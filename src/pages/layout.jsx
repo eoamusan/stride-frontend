@@ -11,11 +11,14 @@ const router = createBrowserRouter([
         index: true,
         Component: Landing,
       },
+      { path: 'login', Component: Login },
+      { path: 'register', Component: Register },
       {
-        path: 'auth',
+        path: 'dashboard',
+        Component: () => <div>Dashboard</div>,
         children: [
-          { path: 'login', Component: Login },
-          { path: 'register', Component: Register },
+          { path: 'settings', Component: () => <div>Settings</div> },
+          { path: 'profile', Component: () => <div>Profile</div> },
         ],
       },
     ],
