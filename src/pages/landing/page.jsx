@@ -1,8 +1,12 @@
-export default function LandingPage() {
+import Header from '@/components/navigations/header';
+import Footer from '@/components/navigations/footer';
+
+export default function Landing() {
   return (
-    <div>
-      <h1>Landing Page</h1>
-      <p>This is the landing page.</p>
+    <div className="relative">
+      <Header />
+      <div className="min-h-screen"></div>
+      <Footer />
     </div>
   );
 }

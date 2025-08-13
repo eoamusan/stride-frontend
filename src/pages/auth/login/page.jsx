@@ -1,7 +1,3 @@
-export default function LoginPage() {
-  return (
-    <div>
-      <h1>Login Page</h1>
-    </div>
-  );
+export default function Login() {
+  return <div className="min-h-screen"></div>;
 }
