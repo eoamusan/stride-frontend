@@ -272,14 +272,14 @@ export default function Register() {
                 />
               </div>
 
-              <Button
-                className={'mt-4 h-12 w-full rounded-2xl'}
-                size={'lg'}
-                type="submit"
-              >
+              <Button className={'mt-4 h-10 w-full'} size={'lg'} type="submit">
                 Create Account
               </Button>
             </form>
+            <p className="mt-2 text-center text-sm">
+              Already have an account?{' '}
+              <Link className="text-primary font-semibold">Log In</Link>
+            </p>
           </Form>
         </main>
       </div>

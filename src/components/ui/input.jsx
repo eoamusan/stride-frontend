@@ -24,6 +24,9 @@ function PhoneNumberInput({ className, ...props }) {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [phoneNumber, setPhoneNumber] = React.useState('');
   const [loading, setLoading] = React.useState(true);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [filteredCountries, setFilteredCountries] = React.useState([]);
+  const searchInputRef = React.useRef(null);
 
   React.useEffect(() => {
     const fetchCountries = async () => {
@@ -44,6 +47,7 @@ function PhoneNumberInput({ className, ...props }) {
           .sort((a, b) => a.name.localeCompare(b.name));
 
         setCountries(formattedCountries);
+        setFilteredCountries(formattedCountries);
 
         // Set Nigeria as default if available
         const nigeria = formattedCountries.find(
@@ -65,9 +69,34 @@ function PhoneNumberInput({ className, ...props }) {
     fetchCountries();
   }, []);
 
+  React.useEffect(() => {
+    if (searchQuery === '') {
+      setFilteredCountries(countries);
+    } else {
+      const filtered = countries.filter(
+        (country) =>
+          country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          country.code.includes(searchQuery)
+      );
+      setFilteredCountries(filtered);
+    }
+  }, [searchQuery, countries]);
+
+  const handleDropdownToggle = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+    setSearchQuery('');
+    if (!isDropdownOpen) {
+      // Focus search input when dropdown opens
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  };
+
   const handleCountrySelect = (country) => {
     setSelectedCountry(country);
     setIsDropdownOpen(false);
+    setSearchQuery('');
 
     // If there's a phone number, update the complete value with new country code
     if (phoneNumber && props.onChange) {
@@ -109,7 +138,7 @@ function PhoneNumberInput({ className, ...props }) {
         <div className="relative">
           <button
             type="button"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            onClick={handleDropdownToggle}
             className="flex h-full items-center border-r border-gray-200 px-2 py-1 hover:bg-gray-50 focus:outline-none"
             disabled={loading}
           >
@@ -127,30 +156,46 @@ function PhoneNumberInput({ className, ...props }) {
 
           {/* Dropdown */}
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 z-50 mt-1 max-h-60 w-64 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
-              {countries.length > 0 ? (
-                countries.map((country) => (
-                  <button
-                    key={country.cca2}
-                    type="button"
-                    onClick={() => handleCountrySelect(country)}
-                    className="flex w-full items-center px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                  >
-                    <div
-                      className="mr-1.5 h-6 w-6 rounded-full bg-cover bg-center bg-no-repeat"
-                      style={{ backgroundImage: `url(${country.flag})` }}
-                    />
-                    <span className="flex-1 text-sm">{country.name}</span>
-                    <span className="ml-2 text-sm text-gray-500">
-                      {country.code}
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <div className="flex w-full items-center justify-center p-3 text-sm text-gray-500">
-                  No countries found
-                </div>
-              )}
+            <div className="absolute top-full left-0 z-50 mt-1 max-h-64 w-64 rounded-md border border-gray-200 bg-white shadow-lg">
+              {/* Search Input */}
+              <div className="sticky top-0 border-b border-gray-200 bg-white p-2">
+                <Input
+                  ref={searchInputRef}
+                  size={'sm'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search countries..."
+                />
+              </div>
+
+              {/* Countries List */}
+              <div className="max-h-48 overflow-y-auto">
+                {filteredCountries.length > 0 ? (
+                  filteredCountries.map((country) => (
+                    <button
+                      key={country.cca2}
+                      type="button"
+                      onClick={() => handleCountrySelect(country)}
+                      className="flex w-full items-center px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                    >
+                      <div
+                        className="mr-1.5 h-6 w-6 rounded-full bg-cover bg-center bg-no-repeat"
+                        style={{ backgroundImage: `url(${country.flag})` }}
+                      />
+                      <span className="flex-1 text-sm">{country.name}</span>
+                      <span className="ml-2 text-sm text-gray-500">
+                        {country.code}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="flex w-full items-center justify-center p-3 text-sm text-gray-500">
+                    {searchQuery
+                      ? 'No countries found'
+                      : 'No countries available'}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -208,9 +253,9 @@ function PasswordInput({ className, ...props }) {
         aria-label={showPassword ? 'Hide password' : 'Show password'}
       >
         {showPassword ? (
-          <EyeOffIcon className="h-6 w-6" />
+          <EyeOffIcon className="size-4" />
         ) : (
-          <EyeIcon className="h-6 w-6" />
+          <EyeIcon className="size-4" />
         )}
       </button>
     </div>

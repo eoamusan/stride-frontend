@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router';
 import Landing from './landing/page';
 import Login from './auth/login/page';
 import Register from './auth/register/page';
+import Onboarding from './dashboard/onboarding/page';
 
 const router = createBrowserRouter([
   {
@@ -13,12 +14,22 @@ const router = createBrowserRouter([
       },
       { path: 'login', Component: Login },
       { path: 'register', Component: Register },
+
       {
         path: 'dashboard',
-        Component: () => <div>Dashboard</div>,
         children: [
-          { path: 'settings', Component: () => <div>Settings</div> },
-          { path: 'profile', Component: () => <div>Profile</div> },
+          { path: 'onboarding', Component: Onboarding },
+          {
+            Component: <>DashboardLayout</>,
+            children: [
+              {
+                index: true,
+                Component: <>DashboardOverview</>,
+              },
+              { path: 'settings', Component: <>Settings</> },
+              { path: 'profile', Component: <>Profile</> },
+            ],
+          },
         ],
       },
     ],
