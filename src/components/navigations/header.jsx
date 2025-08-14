@@ -27,7 +27,7 @@ export default function Header() {
         src="./src/assets/stride-icon.svg"
         alt="Stride"
         className={`transition-all duration-300 ease-in-out ${
-          isScrolled ? 'w-28' : 'w-32'
+          isScrolled ? 'w-32' : 'w-[131px]'
         }`}
       />
 
