@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import StrideLogo from '@/assets/stride-icon.svg';
+import StrideLogo from '@/assets/icons/stride.svg';
 
 const formSchema = z.object({
   business_name: z

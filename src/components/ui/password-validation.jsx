@@ -23,7 +23,7 @@ export default function PasswordValidation({ password }) {
   const strength = getPasswordStrength();
 
   return (
-    <div className="mt-3 space-y-3">
+    <div className="mt-1 space-y-3">
       {/* Password Strength Bars */}
       <div className="flex space-x-1">
         <div

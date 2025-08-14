@@ -3,6 +3,7 @@ import Landing from './landing/page';
 import Login from './auth/login/page';
 import Register from './auth/register/page';
 import Onboarding from './dashboard/onboarding/page';
+import ForgotPassword from './auth/forget-password/page';
 
 const router = createBrowserRouter([
   {
@@ -14,7 +15,7 @@ const router = createBrowserRouter([
       },
       { path: 'login', Component: Login },
       { path: 'register', Component: Register },
-
+      { path: 'forgot-password', Component: ForgotPassword },
       {
         path: 'dashboard',
         children: [

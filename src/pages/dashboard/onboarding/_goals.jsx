@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import StrideLogo from '@/assets/stride-icon.svg';
+import StrideLogo from '@/assets/icons/stride.svg';
 import { ArrowLeftIcon } from 'lucide-react';
 
 const formSchema = z.object({

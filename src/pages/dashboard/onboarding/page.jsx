@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Setup from './setup';
-import Goals from './goals';
+import Setup from './_setup';
+import Goals from './_goals';
 
 export default function Onboarding() {
   const [step, setStep] = useState(0);

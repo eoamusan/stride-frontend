@@ -117,7 +117,7 @@ export default function Register() {
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
           <img
-            src="./src/assets/stride-icon.svg"
+            src="./src/assets/icons/stride.svg"
             alt="Stride"
             className="mx-auto block w-[131px]"
           />
