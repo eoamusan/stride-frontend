@@ -68,6 +68,80 @@ const features = [
   },
 ];
 
+// Alternating features data
+const alternatingFeatures = [
+  {
+    id: 1,
+    badge: 'Time sync',
+    title: 'Time Tracking & Project Management',
+    description:
+      'Never lose another billable hour. Track time effortlessly with our one-click timer, organize projects with intuitive boards, and collaborate with your team in real-time. Built mobile-first for professionals who work everywhere',
+    features: [
+      'Kanban-style project boards',
+      'File sharing and collaboration',
+      'Real-time team updates',
+    ],
+    image: containerPlaceholder,
+    imageAlt: 'Time tracking dashboard',
+  },
+  {
+    id: 2,
+    badge: 'Time sync',
+    title: 'Time Tracking & Project Management',
+    description:
+      'Never lose another billable hour. Track time effortlessly with our one-click timer, organize projects with intuitive boards, and collaborate with your team in real-time. Built mobile-first for professionals who work everywhere',
+    features: [
+      'Kanban-style project boards',
+      'File sharing and collaboration',
+      'Real-time team updates',
+    ],
+    image: containerPlaceholder,
+    imageAlt: 'Project management interface',
+  },
+  {
+    id: 3,
+    badge: 'Time sync',
+    title: 'Time Tracking & Project Management',
+    description:
+      'Never lose another billable hour. Track time effortlessly with our one-click timer, organize projects with intuitive boards, and collaborate with your team in real-time. Built mobile-first for professionals who work everywhere',
+    features: [
+      'Kanban-style project boards',
+      'File sharing and collaboration',
+      'Real-time team updates',
+    ],
+    image: containerPlaceholder,
+    imageAlt: 'Project management interface',
+  },
+  {
+    id: 4,
+    badge: 'Time sync',
+    title: 'Time Tracking & Project Management',
+    description:
+      'Never lose another billable hour. Track time effortlessly with our one-click timer, organize projects with intuitive boards, and collaborate with your team in real-time. Built mobile-first for professionals who work everywhere',
+    features: [
+      'Kanban-style project boards',
+      'File sharing and collaboration',
+      'Real-time team updates',
+    ],
+    image: containerPlaceholder,
+    imageAlt: 'Project management interface',
+  },
+  {
+    id: 5,
+    badge: 'Time sync',
+    title: 'Time Tracking & Project Management',
+    description:
+      'Never lose another billable hour. Track time effortlessly with our one-click timer, organize projects with intuitive boards, and collaborate with your team in real-time. Built mobile-first for professionals who work everywhere',
+    features: [
+      'Kanban-style project boards',
+      'File sharing and collaboration',
+      'Real-time team updates',
+    ],
+    image: containerPlaceholder,
+    imageAlt: 'Project management interface',
+  },
+];
+
 export default function Landing() {
   return (
     <div className="relative max-w-7xl">
@@ -131,7 +205,7 @@ export default function Landing() {
         <section className="pt-4">
           <div className="mx-auto px-[5%]">
             <div
-              className="relative flex h-[527px] items-center justify-center rounded-lg bg-center bg-no-repeat"
+              className="relative flex aspect-video items-center justify-center rounded-2xl bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${containerPlaceholder})` }}
             >
               {/* Play Button */}
@@ -198,6 +272,87 @@ export default function Landing() {
 
                   {/* Description */}
                   <p className="text-xs">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="">
+          <div className="mx-auto px-[5%]">
+            {/* Section Header */}
+            <div className="mb-10 text-center">
+              <div className="mx-auto mb-6 flex w-full max-w-32 items-center">
+                <div className="flex-grow border-t border-gray-300"></div>
+                <span className="mx-1 text-xs font-medium text-[#292D32]">
+                  Features
+                </span>
+                <div className="flex-grow border-t border-gray-300"></div>
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
+                Packed With Power. Built for{' '}
+                <span className="text-primary">Simplicity</span>
+              </h2>
+              <p className="mx-auto mt-4 max-w-3xl text-sm text-gray-600">
+                All the essential tools: time tracking, task management, client
+                handling, and invoicing without the clutter. Just what you need,
+                exactly when you need it.
+              </p>
+            </div>
+
+            {/* Alternating Features */}
+            <div className="space-y-24">
+              {alternatingFeatures.map((feature, index) => (
+                <div
+                  key={feature.id}
+                  className={`flex flex-col items-center gap-12 lg:flex-row ${
+                    index % 2 === 1 ? 'lg:flex-row-reverse' : ''
+                  }`}
+                >
+                  {/* Content */}
+                  <div className="flex-1 space-y-6">
+                    {/* Badge */}
+                    <div className="inline-flex rounded-full bg-[#D3FFB6] px-4 py-2 text-sm font-medium">
+                      {feature.badge}
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="max-w-xs text-2xl font-bold text-gray-900 md:text-3xl">
+                      {feature.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="leading-relaxed text-gray-600">
+                      {feature.description}
+                    </p>
+
+                    {/* Feature List */}
+                    <ul className="space-y-3">
+                      {feature.features.map((item, itemIndex) => (
+                        <li key={itemIndex} className="flex items-center gap-3">
+                          <div className="bg-primary flex size-8 items-center justify-center rounded-full">
+                            <PieChartIcon size={16} color='white'/>
+                          </div>
+                          <span className="text-gray-700">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Image */}
+                  <div className="flex-1">
+                    <div
+                      className="aspect-[4/3] rounded-lg bg-gray-100 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${feature.image})` }}
+                    >
+                      <img
+                        src={feature.image}
+                        alt={feature.imageAlt}
+                        className="h-full w-full rounded-lg object-cover opacity-0"
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
