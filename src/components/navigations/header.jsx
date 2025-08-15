@@ -24,7 +24,7 @@ export default function Header() {
       }`}
     >
       <img
-        src="./src/assets/stride-icon.svg"
+        src="./src/assets/icons/stride.svg"
         alt="Stride"
         className={`transition-all duration-300 ease-in-out ${
           isScrolled ? 'w-32' : 'w-[131px]'
@@ -34,18 +34,18 @@ export default function Header() {
       {/* CTAs */}
       <div className="flex items-center gap-4 transition-all duration-300 ease-in-out">
         <Button
-          asChild
-          size={isScrolled ? 'default' : 'lg'}
-          className="transition-all duration-300 ease-in-out"
-        >
-          <Link to="/register">Get Started</Link>
-        </Button>
-        <Button
           variant={'outline'}
           size={isScrolled ? 'default' : 'lg'}
           className="transition-all duration-300 ease-in-out"
         >
           <Link to="/login">Login</Link>
+        </Button>
+        <Button
+          asChild
+          size={isScrolled ? 'default' : 'lg'}
+          className="transition-all duration-300 ease-in-out"
+        >
+          <Link to="/register">Get Started</Link>
         </Button>
       </div>
     </header>
