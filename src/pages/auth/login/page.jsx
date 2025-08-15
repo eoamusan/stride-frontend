@@ -56,6 +56,7 @@ export default function Login() {
 
   const onSubmit = (data) => {
     console.log(data);
+    // Handle login login: -> Remember me Logic
   };
 
   return (
@@ -125,7 +126,10 @@ export default function Login() {
                       <FormItem>
                         <FormLabel className={'text-xs'}>
                           <FormControl>
-                            <Checkbox {...field} />
+                            <Checkbox
+                              onCheckedChange={field.onChange}
+                              {...field}
+                            />
                           </FormControl>
                           <span>Remember Me</span>
                         </FormLabel>

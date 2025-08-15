@@ -244,7 +244,10 @@ export default function Register() {
                     <FormItem>
                       <FormLabel className={'text-xs font-normal'}>
                         <FormControl>
-                          <Checkbox {...field} />
+                          <Checkbox
+                            onCheckedChange={field.onChange}
+                            {...field}
+                          />
                         </FormControl>
                         <span>
                           I have read and agree to the
@@ -267,7 +270,7 @@ export default function Register() {
                   render={({ field }) => (
                     <FormItem className={'flex'}>
                       <FormControl>
-                        <Checkbox {...field} />
+                        <Checkbox onCheckedChange={field.onChange} {...field} />
                       </FormControl>
                       <FormLabel className={'text-xs font-normal'}>
                         I agree to receive marketing messages from Stride
@@ -284,7 +287,9 @@ export default function Register() {
             </form>
             <p className="mt-2 text-center text-sm">
               Already have an account?{' '}
-              <Link className="text-primary font-semibold">Log In</Link>
+              <Link to="/login" className="text-primary font-semibold">
+                Log In
+              </Link>
             </p>
           </Form>
         </main>

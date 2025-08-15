@@ -4,6 +4,8 @@ import Login from './auth/login/page';
 import Register from './auth/register/page';
 import Onboarding from './dashboard/onboarding/page';
 import ForgotPassword from './auth/forget-password/page';
+import DashboardLayout from './dashboard/layout';
+import Home from './dashboard/home/page';
 
 const router = createBrowserRouter([
   {
@@ -21,11 +23,11 @@ const router = createBrowserRouter([
         children: [
           { path: 'onboarding', Component: Onboarding },
           {
-            Component: <>DashboardLayout</>,
+            Component: DashboardLayout,
             children: [
               {
                 index: true,
-                Component: <>DashboardOverview</>,
+                Component: Home,
               },
               { path: 'settings', Component: <>Settings</> },
               { path: 'profile', Component: <>Profile</> },

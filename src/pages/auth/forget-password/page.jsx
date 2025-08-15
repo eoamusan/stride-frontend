@@ -1,19 +1,60 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'react-router';
 import EmailForm from './_email';
 import EnterOTP from './_enter-otp';
 import NewPassword from './_new-password';
 
 export default function ForgotPassword() {
-  const [step, setStep] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [direction, setDirection] = useState(0);
+
+  // Map step names to numbers for internal state management
+  const stepMapping = {
+    email: 0,
+    'enter-otp': 1,
+    'new-password': 2,
+  };
+
+  const reverseStepMapping = {
+    0: 'email',
+    1: 'enter-otp',
+    2: 'new-password',
+  };
+
+  // Get current step from URL params, default to 'email' (0)
+  const urlStepName = searchParams.get('step') || 'email';
+  const currentStep = stepMapping[urlStepName] || 0;
+  const [step, setStep] = useState(currentStep);
+
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
     // Mark as not initial load after component mounts
     setIsInitialLoad(false);
   }, []);
+
+  // Update URL when step changes
+  useEffect(() => {
+    const stepName = reverseStepMapping[step];
+    if (step === 0) {
+      // Remove step param for the first step to keep URL clean
+      searchParams.delete('step');
+    } else {
+      searchParams.set('step', stepName);
+    }
+    setSearchParams(searchParams, { replace: true });
+  }, [step, searchParams, setSearchParams]);
+
+  // Update local step state when URL changes (e.g., back/forward navigation)
+  useEffect(() => {
+    const urlStepName = searchParams.get('step') || 'email';
+    const urlStep = stepMapping[urlStepName] || 0;
+    if (urlStep !== step) {
+      setStep(urlStep);
+    }
+  }, [searchParams]);
 
   const nextStep = () => {
     setDirection(1);

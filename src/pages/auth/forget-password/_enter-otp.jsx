@@ -24,7 +24,7 @@ const formSchema = z.object({
 });
 
 export default function EnterOTP({ setBack, setNext, setFormData, formData }) {
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(90); // 1 minute and 30 seconds in seconds
 
   const form = useForm({
     resolver: zodResolver(formSchema),

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import {
   Form,
   FormControl,
@@ -27,6 +28,15 @@ export default function EmailForm({ setNext, setFormData, formData }) {
       email: formData?.email || '',
     },
   });
+
+  // Update form values when formData changes (e.g., when navigating back)
+  useEffect(() => {
+    if (formData?.email) {
+      form.reset({
+        email: formData.email,
+      });
+    }
+  }, [formData, form]);
 
   const onSubmit = (data) => {
     console.log(data);

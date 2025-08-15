@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import StrideLogo from '@/assets/icons/stride.svg';
 import { ArrowLeftIcon } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 const formSchema = z.object({
   goal: z.string().nonempty({
@@ -27,6 +28,7 @@ const formSchema = z.object({
 });
 
 export default function Goals({ setBack, setFormData, formData }) {
+  const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -36,6 +38,7 @@ export default function Goals({ setBack, setFormData, formData }) {
 
   const onSubmit = (data) => {
     setFormData((prev) => ({ ...prev, ...data }));
+    navigate('/dashboard');
   };
 
   return (
