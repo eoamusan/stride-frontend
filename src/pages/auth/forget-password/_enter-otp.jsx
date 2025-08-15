@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/input-otp';
 import { Button } from '@/components/ui/button';
 import { Edit2Icon, RotateCcwIcon } from 'lucide-react';
+import strideLogo from '@/assets/icons/stride.svg';
 
 const formSchema = z.object({
   otp: z.string().min(6).max(6).regex(/^\d+$/, 'OTP must be a 6-digit number'),
@@ -63,7 +64,7 @@ export default function EnterOTP({ setBack, setNext, setFormData, formData }) {
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
           <img
-            src="./src/assets/icons/stride.svg"
+            src={strideLogo}
             alt="Stride"
             className="mx-auto block w-[131px]"
           />

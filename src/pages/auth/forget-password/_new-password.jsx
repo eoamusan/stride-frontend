@@ -23,6 +23,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import strideLogo from '@/assets/icons/stride.svg';
+import checkmarkIcon from '@/assets/icons/checkmark.svg';
 
 const formSchema = z
   .object({
@@ -86,7 +88,7 @@ export default function NewPassword({ setFormData, formData }) {
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
           <img
-            src="./src/assets/icons/stride.svg"
+            src={strideLogo}
             alt="Stride"
             className="mx-auto block w-[131px]"
           />
@@ -160,7 +162,7 @@ export default function NewPassword({ setFormData, formData }) {
           <AlertDialogHeader>
             <div className="mx-auto mb-4 flex h-30 w-30 items-center justify-center">
               <img
-                src="./src/assets/icons/checkmark.svg"
+                src={checkmarkIcon}
                 alt="Success"
                 className=""
               />

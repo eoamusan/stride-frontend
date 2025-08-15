@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import GoogleIcon from '@/assets/icons/google.svg';
 import { Link } from 'react-router';
 import { Checkbox } from '@/components/ui/checkbox';
+import strideLogo from '@/assets/icons/stride.svg';
 
 const formSchema = z.object({
   email: z.email({
@@ -62,7 +63,7 @@ export default function Login() {
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
           <img
-            src="./src/assets/icons/stride.svg"
+            src={strideLogo}
             alt="Stride"
             className="mx-auto block w-[131px]"
           />

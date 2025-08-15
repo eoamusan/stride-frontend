@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import PasswordValidation from '@/components/ui/password-validation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'react-router';
+import strideLogo from '@/assets/icons/stride.svg';
 
 const formSchema = z
   .object({
@@ -117,7 +118,7 @@ export default function Register() {
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
           <img
-            src="./src/assets/icons/stride.svg"
+            src={strideLogo}
             alt="Stride"
             className="mx-auto block w-[131px]"
           />

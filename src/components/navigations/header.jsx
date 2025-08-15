@@ -1,6 +1,7 @@
 import { Button } from '../ui/button';
 import { Link } from 'react-router';
 import { useState, useEffect } from 'react';
+import strideLogo from '@/assets/icons/stride.svg';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,7 +25,7 @@ export default function Header() {
       }`}
     >
       <img
-        src="./src/assets/icons/stride.svg"
+        src={strideLogo}
         alt="Stride"
         className={`transition-all duration-300 ease-in-out ${
           isScrolled ? 'w-32' : 'w-[131px]'

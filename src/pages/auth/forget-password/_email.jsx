@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import strideLogo from '@/assets/icons/stride.svg';
 
 const formSchema = z.object({
   email: z.email({
@@ -37,7 +38,7 @@ export default function EmailForm({ setNext, setFormData, formData }) {
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
           <img
-            src="./src/assets/icons/stride.svg"
+            src={strideLogo}
             alt="Stride"
             className="mx-auto block w-[131px]"
           />
