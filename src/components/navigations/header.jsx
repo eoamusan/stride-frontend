@@ -35,6 +35,7 @@ export default function Header() {
       {/* CTAs */}
       <div className="flex items-center gap-4 transition-all duration-300 ease-in-out">
         <Button
+          asChild
           variant={'outline'}
           size={isScrolled ? 'default' : 'lg'}
           className="transition-all duration-300 ease-in-out"
