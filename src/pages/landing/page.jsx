@@ -144,7 +144,7 @@ const alternatingFeatures = [
 
 export default function Landing() {
   return (
-    <div className="relative max-w-7xl">
+    <div className="relative max-w-7xl mx-auto">
       <Header />
       <div className="min-h-screen">
         {/* Hero Section */}
