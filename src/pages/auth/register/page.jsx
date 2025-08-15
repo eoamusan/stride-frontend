@@ -16,6 +16,7 @@ import PasswordValidation from '@/components/ui/password-validation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'react-router';
 import strideLogo from '@/assets/icons/stride.svg';
+import { useNavigate } from 'react-router';
 
 const formSchema = z
   .object({
@@ -93,6 +94,7 @@ const formSchema = z
 
 export default function Register() {
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -111,17 +113,20 @@ export default function Register() {
 
   const onSubmit = (data) => {
     console.log(data);
+    navigate('/dashboard/onboarding');
   };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-16">
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
-          <img
-            src={strideLogo}
-            alt="Stride"
-            className="mx-auto block w-[131px]"
-          />
+          <Link to="/" className="mx-auto block w-[131px]">
+            <img
+              src={strideLogo}
+              alt="Stride"
+              className="mx-auto block w-[131px]"
+            />
+          </Link>
           <hgroup className="mt-6 text-center">
             <h1 className="text-4xl font-semibold">Get Started</h1>
             <p className="mt-2 text-sm">Kindly fill your information</p>

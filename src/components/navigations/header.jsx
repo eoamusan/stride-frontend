@@ -24,13 +24,15 @@ export default function Header() {
           : 'py-5 shadow-none'
       }`}
     >
-      <img
-        src={strideLogo}
-        alt="Stride"
-        className={`transition-all duration-300 ease-in-out ${
-          isScrolled ? 'w-32' : 'w-[131px]'
-        }`}
-      />
+      <Link to="/" className="transition-all duration-300 ease-in-out">
+        <img
+          src={strideLogo}
+          alt="Stride"
+          className={`transition-all duration-300 ease-in-out ${
+            isScrolled ? 'w-32' : 'w-[131px]'
+          }`}
+        />
+      </Link>
 
       {/* CTAs */}
       <div className="flex items-center gap-4 transition-all duration-300 ease-in-out">

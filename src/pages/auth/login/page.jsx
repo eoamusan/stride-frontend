@@ -62,11 +62,13 @@ export default function Login() {
     <div className="flex min-h-screen flex-col items-center justify-center py-16">
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
-          <img
-            src={strideLogo}
-            alt="Stride"
-            className="mx-auto block w-[131px]"
-          />
+          <Link to="/" className="mx-auto block w-[131px]">
+            <img
+              src={strideLogo}
+              alt="Stride"
+              className="mx-auto block w-[131px]"
+            />
+          </Link>
           <hgroup className="mt-6 text-center">
             <h1 className="text-4xl font-semibold">Welcome Back</h1>
             <p className="mt-2 text-sm">Sign in to your account</p>

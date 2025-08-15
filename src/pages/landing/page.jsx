@@ -8,6 +8,9 @@ import containerPlaceholder from '@/assets/images/container-placeholder.svg';
 import samplePartner2 from '@/assets/icons/sample-partner2.svg';
 import playButtonIcon from '@/assets/icons/youtube.svg';
 import { PieChartIcon } from 'lucide-react';
+import testimonialDP from '@/assets/images/testimonial-dp.png';
+import ctaBg from '@/assets/images/cta-bg.png';
+import { Link } from 'react-router';
 
 // Partners data array for easy management
 const partners = [
@@ -142,11 +145,39 @@ const alternatingFeatures = [
   },
 ];
 
+// Testimonials data
+const testimonials = [
+  {
+    id: 1,
+    name: 'Esther Howard',
+    role: 'Freelance Marketing Consultant',
+    avatar: containerPlaceholder, // Using placeholder for now
+    testimonial:
+      "Before Stride, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
+  },
+  {
+    id: 2,
+    name: 'Esther Howard',
+    role: 'Freelance Marketing Consultant',
+    avatar: containerPlaceholder, // Using placeholder for now
+    testimonial:
+      "Before Stride, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
+  },
+  {
+    id: 3,
+    name: 'Esther Howard',
+    role: 'Freelance Marketing Consultant',
+    avatar: containerPlaceholder, // Using placeholder for now
+    testimonial:
+      "Before Stride, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
+  },
+];
+
 export default function Landing() {
   return (
-    <div className="relative max-w-7xl mx-auto">
+    <div className="relative">
       <Header />
-      <div className="min-h-screen">
+      <div className="mx-auto min-h-screen max-w-7xl">
         {/* Hero Section */}
         <section
           className="relative flex items-center justify-between bg-cover bg-center bg-no-repeat px-[5%] py-6 max-md:flex-col-reverse max-md:gap-10"
@@ -235,7 +266,7 @@ export default function Landing() {
               {features.map((feature) => (
                 <div
                   key={feature.id}
-                  className="transition-border hover:border-primary rounded-2xl bg-[#F9F8FD] p-4 hover:border hover:p-[15px]"
+                  className="transition-outline outline-primary rounded-2xl bg-[#F9F8FD] p-4 hover:outline"
                 >
                   {/* Icon */}
                   <div className="bg-primary mb-3 flex size-11 items-center justify-center rounded-full text-white">
@@ -332,7 +363,7 @@ export default function Landing() {
                       {feature.features.map((item, itemIndex) => (
                         <li key={itemIndex} className="flex items-center gap-3">
                           <div className="bg-primary flex size-8 items-center justify-center rounded-full">
-                            <PieChartIcon size={16} color='white'/>
+                            <PieChartIcon size={16} color="white" />
                           </div>
                           <span className="text-gray-700">{item}</span>
                         </li>
@@ -355,6 +386,98 @@ export default function Landing() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonial Section */}
+        <section className="pt-16 pb-10">
+          <div className="mx-auto max-w-7xl px-[5%]">
+            {/* Section Header */}
+            <div className="mb-16 text-center">
+              <div className="mx-auto mb-6 flex w-full max-w-32 items-center">
+                <div className="flex-grow border-t border-gray-300"></div>
+                <span className="mx-1 text-xs font-medium text-[#292D32]">
+                  Testimonials
+                </span>
+                <div className="flex-grow border-t border-gray-300"></div>
+              </div>
+              <h2 className="mx-auto max-w-xl text-2xl font-bold text-gray-900 md:text-4xl">
+                What our clients think about{' '}
+                <span className="text-primary">Stride</span>
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-600">
+                See how freelancers, agencies, and startups use Stride to
+                streamline their workflow, stay organized, and get paid faster
+              </p>
+            </div>
+
+            {/* Testimonials Grid */}
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {testimonials.map((testimonial) => (
+                <div
+                  key={testimonial.id}
+                  className="outline-primary rounded-2xl bg-[#F9F8FD] p-6 shadow-sm transition-shadow hover:shadow-md hover:outline"
+                >
+                  {/* User Info */}
+                  <div className="mb-4 flex items-center gap-4">
+                    <div className="h-12 w-12 overflow-hidden rounded-full">
+                      <img
+                        src={testimonialDP}
+                        alt={testimonial.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">
+                        {testimonial.name}
+                      </h4>
+                      <p className="text-xs text-gray-600">
+                        {testimonial.role}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Testimonial Text */}
+                  <blockquote className="leading-relaxed font-semibold text-[#17191C]">
+                    "{testimonial.testimonial}"
+                  </blockquote>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-[5%]">
+            <div
+              className="relative overflow-hidden rounded-2xl bg-cover bg-center bg-no-repeat px-8 py-14 text-center md:px-16"
+              style={{ backgroundImage: `url(${ctaBg})` }}
+            >
+              {/* Overlay for better text readability */}
+              <div className="absolute inset-0 rounded-2xl bg-black/20"></div>
+
+              {/* Content */}
+              <div className="relative z-10 mx-auto max-w-3xl">
+                <h2 className="mb-6 text-3xl font-bold text-white md:text-4xl">
+                  Ready to Transform Your Business?
+                </h2>
+                <p className="mb-8 text-base text-white/90">
+                  Join thousands of professionals who've streamlined their
+                  workflow and boosted productivity with Stride. Start your free
+                  trial today and see the difference.
+                </p>
+
+                <Button
+                  size="lg"
+                  variant={'outline'}
+                  className="h-12 w-[193px]"
+                  asChild
+                >
+                  <Link to="/register">Start Free Trial</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>

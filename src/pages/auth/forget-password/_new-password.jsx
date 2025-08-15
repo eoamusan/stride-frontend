@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import strideLogo from '@/assets/icons/stride.svg';
 import checkmarkIcon from '@/assets/icons/checkmark.svg';
+import { Link } from 'react-router';
 
 const formSchema = z
   .object({
@@ -87,11 +88,13 @@ export default function NewPassword({ setFormData, formData }) {
     <div className="flex min-h-screen flex-col items-center justify-center py-16">
       <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
-          <img
-            src={strideLogo}
-            alt="Stride"
-            className="mx-auto block w-[131px]"
-          />
+          <Link to="/" className="mx-auto block w-[131px]">
+            <img
+              src={strideLogo}
+              alt="Stride"
+              className="mx-auto block w-[131px]"
+            />
+          </Link>
           <hgroup className="mt-6 text-center">
             <h1 className="text-4xl font-semibold">Reset Password</h1>
             <p className="mt-2 text-sm">
@@ -161,11 +164,7 @@ export default function NewPassword({ setFormData, formData }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="mx-auto mb-4 flex h-30 w-30 items-center justify-center">
-              <img
-                src={checkmarkIcon}
-                alt="Success"
-                className=""
-              />
+              <img src={checkmarkIcon} alt="Success" className="" />
             </div>
             <AlertDialogTitle className="text-center">
               Password Reset Successful!
