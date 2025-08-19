@@ -1,30 +1,111 @@
-import { Link } from "react-router";
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
+import { ArrowLeftIcon } from 'lucide-react';
+import { sidebarItems } from '../../constants/sidebar';
 
 export default function Sidebar() {
-    return (
-        <aside className="w-64 bg-gray-800 text-white">
-            <div className="p-4">
-                <h2 className="text-lg font-semibold">Dashboard</h2>
-                <nav className="mt-4">
-                    <ul>
-                        <li>
-                            <Link to="/dashboard" className="block py-2 px-4 hover:bg-gray-700">
-                                Overview
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/dashboard/settings" className="block py-2 px-4 hover:bg-gray-700">
-                                Settings
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/dashboard/profile" className="block py-2 px-4 hover:bg-gray-700">
-                                Profile
-                            </Link>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </aside>
-    );
+  const [currentView, setCurrentView] = useState('main');
+  const [activeParent, setActiveParent] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleItemClick = (item) => {
+    if (item.children && item.children.length > 0) {
+      setCurrentView('children');
+      setActiveParent(item);
+    } else {
+      navigate(item.link);
+    }
+  };
+
+  const handleChildItemClick = (item) => {
+    navigate(item.link);
+  };
+
+  const handleBackClick = () => {
+    setCurrentView('main');
+    setActiveParent(null);
+  };
+
+  const renderMainView = () => (
+    <nav className="">
+      <ul className="">
+        {sidebarItems.map((item, index) => {
+          const IconComponent = item.icon;
+          const hasChildren = item.children && item.children.length > 0;
+          const isActive = location.pathname === item.link;
+
+          return (
+            <li key={index}>
+              <button
+                onClick={() => handleItemClick(item)}
+                className={`flex w-full max-w-64 cursor-pointer items-center gap-2.5 rounded-lg ${isActive ? 'bg-[#EFE6FD]' : 'bg-white hover:bg-[#EFE6FD]/40'} px-4 py-2.5`}
+              >
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${
+                    isActive ? 'bg-primary' : 'border border-gray-200 bg-white'
+                  }`}
+                >
+                  <IconComponent
+                    className={`h-4 w-4 ${isActive ? 'text-white' : 'text-primary'}`}
+                  />
+                </span>
+                <span className="text-sm font-medium">{item.title}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+
+  const renderChildrenView = () => (
+    <nav className="">
+      <div className="mb-4 flex items-center">
+        <button
+          onClick={handleBackClick}
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 transition-colors duration-200 hover:text-gray-800"
+        >
+          <ArrowLeftIcon size={24} />
+        </button>
+        <h2 className="text-lg font-semibold text-gray-800">
+          {activeParent?.title}
+        </h2>
+      </div>
+      <ul className="">
+        {activeParent?.children.map((item, index) => {
+          const IconComponent = item.icon;
+          const isActive = location.pathname === item.link;
+
+          return (
+            <li key={index}>
+              <button
+                onClick={() => handleChildItemClick(item)}
+                className={`flex w-full max-w-64 flex-1 cursor-pointer items-center gap-2.5 rounded-lg ${isActive ? 'bg-[#EFE6FD]' : 'bg-white hover:bg-[#EFE6FD]/40'} px-4 py-2.5`}
+              >
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${
+                    isActive ? 'bg-primary' : 'border border-gray-200 bg-white'
+                  }`}
+                >
+                  <IconComponent
+                    className={`h-4 w-4 ${isActive ? 'text-white' : 'text-primary'}`}
+                  />
+                </span>
+                <span className="text-left text-sm font-medium">
+                  {item.title}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+
+  return (
+    <aside className="flex h-screen overflow-y-auto w-fit min-w-64 flex-col border-gray-200 bg-white p-4">
+      {currentView === 'main' ? renderMainView() : renderChildrenView()}
+    </aside>
+  );
 }

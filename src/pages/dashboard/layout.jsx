@@ -4,12 +4,11 @@ import { Outlet } from 'react-router';
 export default function DashboardLayout() {
   return (
     <div>
-      <Sidebar />
-      <header>
-        <h1>Dashboard</h1>
-        <p>This is the dashboard page</p>
-      </header>
-      <Outlet />
+      <header>This is the header</header>
+      <div className="flex gap-4 bg-[#E8E8E8]">
+        <Sidebar />
+        <Outlet />
+      </div>
     </div>
   );
 }
