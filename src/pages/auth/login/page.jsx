@@ -15,6 +15,7 @@ import GoogleIcon from '@/assets/icons/google.svg';
 import { Link } from 'react-router';
 import { Checkbox } from '@/components/ui/checkbox';
 import strideLogo from '@/assets/icons/stride.svg';
+import { useNavigate } from 'react-router';
 
 const formSchema = z.object({
   email: z.email({
@@ -53,10 +54,12 @@ export default function Login() {
       remember_me: false,
     },
   });
+  const navigate = useNavigate();
 
   const onSubmit = (data) => {
     console.log(data);
     // Handle login login: -> Remember me Logic
+    navigate('/dashboard');
   };
 
   return (

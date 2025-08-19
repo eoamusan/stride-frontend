@@ -177,13 +177,13 @@ export default function Landing() {
   return (
     <div className="relative">
       <Header />
-      <div className="mx-auto min-h-screen max-w-7xl">
+      <div className="mx-auto min-h-screen max-w-[1800px]">
         {/* Hero Section */}
         <section
           className="relative flex items-center justify-between bg-cover bg-center bg-no-repeat px-[5%] py-6 max-md:flex-col-reverse max-md:gap-10"
           style={{ backgroundImage: `url(${landingBg})` }}
         >
-          <div className="max-w-md">
+          <div className="w-full max-w-2xl">
             <h1 className="mb-6 text-3xl font-bold md:text-4xl lg:text-5xl">
               Transform Your Business Operations with{' '}
               <span className="text-primary">Stride</span>
@@ -198,7 +198,7 @@ export default function Landing() {
               Get Started for Free
             </Button>
           </div>
-          <div className="md:max-w-md lg:max-w-lg xl:max-w-xl">
+          <div className="w-full md:max-w-xl lg:max-w-4xl xl:max-w-5xl">
             <img
               src={landingHero}
               alt="Landing Hero"
@@ -236,7 +236,7 @@ export default function Landing() {
         <section className="pt-4">
           <div className="mx-auto px-[5%]">
             <div
-              className="relative flex aspect-video items-center justify-center rounded-2xl bg-center bg-no-repeat"
+              className="relative flex aspect-video w-full items-center justify-center rounded-2xl bg-cover bg-no-repeat"
               style={{ backgroundImage: `url(${containerPlaceholder})` }}
             >
               {/* Play Button */}
