@@ -29,83 +29,83 @@ const accountingItems = [
   {
     title: 'Account Overview',
     icon: LayoutGrid,
-    link: '/account/dashboard',
+    link: '/dashboard/accounting/overview',
   },
   {
     title: 'Bookkeeping & General Ledger',
     icon: BookOpen,
-    link: '/account/bookkeeping',
+    link: '/dashboard/accounting/bookkeeping',
   },
   {
     title: 'Financial Reports',
     icon: FileText,
-    link: '/account/reports',
+    link: '/dashboard/accounting/reports',
   },
   {
     title: 'Accounts Receivable (A/R)',
     icon: FileSpreadsheet,
-    link: '/account/accounts-receivable',
+    link: '/dashboard/accounting/accounts-receivable',
   },
   {
     title: 'Accounts Payable (A/P)',
     icon: CreditCard,
-    link: '/account/accounts-payable',
+    link: '/dashboard/accounting/accounts-payable',
   },
   {
     title: 'Inventory Management',
     icon: Package,
-    link: '/account/inventory',
+    link: '/dashboard/accounting/inventory',
   },
   {
     title: 'Budgeting & Forecasting',
     icon: Target,
-    link: '/account/budgeting',
+    link: '/dashboard/accounting/budgeting',
   },
   {
     title: 'Asset & Depreciation Management',
     icon: Building,
-    link: '/account/asset-depreciation',
+    link: '/dashboard/accounting/asset-depreciation',
   },
   {
     title: 'Sales & Income',
     icon: DollarSign,
-    link: '/account/sales-income',
+    link: '/dashboard/accounting/sales-income',
   },
   {
     title: 'Tax Management',
     icon: FileText,
-    link: '/account/tax',
+    link: '/dashboard/accounting/tax',
   },
   {
     title: 'Banking & Reconciliation',
     icon: Banknote,
-    link: '/account/banking-reconciliation',
+    link: '/dashboard/accounting/banking-reconciliation',
   },
   {
     title: 'Remunerations',
     icon: Coins,
-    link: '/account/remunerations',
+    link: '/dashboard/accounting/remunerations',
   },
   {
     title: 'Invoices & Receipts',
     icon: Receipt,
-    link: '/account/invoices-receipts',
+    link: '/dashboard/accounting/invoices-receipts',
   },
   {
     title: 'Multi-User Permissions',
     icon: UserCheck,
-    link: '/account/multi-user-permissions',
+    link: '/dashboard/accounting/multi-user-permissions',
   },
   {
     title: 'Data Export & Audit Trail',
     icon: Download,
-    link: '/account/data-export-audit-trail',
+    link: '/dashboard/accounting/data-export-audit-trail',
   },
 ];
 
 const sidebarItems = [
   {
-    title: 'Overview',
+    title: 'Dashboard',
     icon: LayoutGrid,
     link: '/dashboard',
     children: [],

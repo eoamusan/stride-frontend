@@ -29,8 +29,87 @@ const router = createBrowserRouter([
                 index: true,
                 Component: Home,
               },
-              { path: 'settings', Component: <>Settings</> },
-              { path: 'profile', Component: <>Profile</> },
+              // Main dashboard routes
+              { path: 'projects', Component: () => <div>Projects Page</div> },
+              { path: 'tasks', Component: () => <div>Tasks Page</div> },
+              { path: 'contacts', Component: () => <div>Contacts Page</div> },
+              { path: 'invoicing', Component: () => <div>Invoicing Page</div> },
+              { path: 'reports', Component: () => <div>Reports Page</div> },
+              {
+                path: 'accounting',
+                children: [
+                  {
+                    path: 'overview',
+                    Component: () => <div>Account Overview</div>,
+                  },
+                  {
+                    path: 'bookkeeping',
+                    Component: () => <div>Bookkeeping & General Ledger</div>,
+                  },
+                  {
+                    path: 'reports',
+                    Component: () => <div>Financial Reports</div>,
+                  },
+                  {
+                    path: 'accounts-receivable',
+                    Component: () => <div>Accounts Receivable (A/R)</div>,
+                  },
+                  {
+                    path: 'accounts-payable',
+                    Component: () => <div>Accounts Payable (A/P)</div>,
+                  },
+                  {
+                    path: 'inventory',
+                    Component: () => <div>Inventory Management</div>,
+                  },
+                  {
+                    path: 'budgeting',
+                    Component: () => <div>Budgeting & Forecasting</div>,
+                  },
+                  {
+                    path: 'asset-depreciation',
+                    Component: () => <div>Asset & Depreciation Management</div>,
+                  },
+                  {
+                    path: 'sales-income',
+                    Component: () => <div>Sales & Income</div>,
+                  },
+                  { path: 'tax', Component: () => <div>Tax Management</div> },
+                  {
+                    path: 'banking-reconciliation',
+                    Component: () => <div>Banking & Reconciliation</div>,
+                  },
+                  {
+                    path: 'remunerations',
+                    Component: () => <div>Remunerations</div>,
+                  },
+                  {
+                    path: 'invoices-receipts',
+                    Component: () => <div>Invoices & Receipts</div>,
+                  },
+                  {
+                    path: 'multi-user-permissions',
+                    Component: () => <div>Multi-User Permissions</div>,
+                  },
+                  {
+                    path: 'data-export-audit-trail',
+                    Component: () => <div>Data Export & Audit Trail</div>,
+                  },
+                ],
+              },
+              {
+                path: 'celebrations',
+                Component: () => <div>Celebrations Page</div>,
+              },
+              {
+                path: 'team-management',
+                Component: () => <div>Team Management Page</div>,
+              },
+              { path: 'hr', Component: () => <div>HR Page</div> },
+              {
+                path: 'help-center',
+                Component: () => <div>Help Center Page</div>,
+              },
             ],
           },
         ],
