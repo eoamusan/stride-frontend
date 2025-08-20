@@ -32,7 +32,6 @@ export default function Sidebar() {
       <ul className="">
         {sidebarItems.map((item, index) => {
           const IconComponent = item.icon;
-          const hasChildren = item.children && item.children.length > 0;
           const isActive = location.pathname === item.link;
 
           return (
@@ -104,7 +103,7 @@ export default function Sidebar() {
   );
 
   return (
-    <aside className="flex h-screen overflow-y-auto w-fit min-w-64 flex-col border-gray-200 bg-white p-4">
+    <aside className="flex h-screen w-fit min-w-64 flex-col overflow-y-auto border-gray-200 bg-white p-4">
       {currentView === 'main' ? renderMainView() : renderChildrenView()}
     </aside>
   );
