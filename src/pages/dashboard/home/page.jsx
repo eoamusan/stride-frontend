@@ -4,9 +4,10 @@ import OnboardModal from '@/components/dashboard/home/onboard-modal';
 import CallToAction from '@/components/dashboard/home/ctas';
 import MetricsSummary from '@/components/dashboard/home/metrics-summary';
 import BarChartOverview from '@/components/dashboard/bar-metric-card';
+import PieMetricCard from '@/components/dashboard/pie-metric-card';
 
 // sample url data
-const projects = [];
+const projects = [''];
 
 // Sample data for the metrics
 const metricsData = [
@@ -43,7 +44,22 @@ const metricsData = [
     chartData: [20, 21, 22, 23, 23, 23, 23, 20, 24],
   },
 ];
+const chartData = [
+  { day: 'Monday', value: 70 },
+  { day: 'Tuesday', value: 17 },
+  { day: 'Wednesday', value: 32 },
+  { day: 'Thursday', value: 19 },
+  { day: 'Friday', value: 42 },
+  { day: 'Saturday', value: 11 },
+  { day: 'Sunday', value: 57 },
+];
 
+const chartConfig = {
+  value: {
+    label: 'Hours',
+    color: '#8B5CF6',
+  },
+};
 export default function Home() {
   const [openOnboardingModal, setOpenOnboardingModal] = useState(false);
   return (
@@ -61,8 +77,14 @@ export default function Home() {
         ) : (
           <div>
             <MetricsSummary metricsData={metricsData} />
-            <div className='mt-10'>
-              <BarChartOverview />
+            <div className="mt-10 flex items-start gap-6">
+              <BarChartOverview
+                className={'w-full'}
+                title={'Weekly Overview'}
+                chartConfig={chartConfig}
+                chartData={chartData}
+              />
+              <PieMetricCard />
             </div>
           </div>
         )}

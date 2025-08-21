@@ -1,47 +1,29 @@
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Card } from '../ui/card';
 
-const chartData = [
-  { day: 'Monday', value: 70 },
-  { day: 'Tuesday', value: 17 },
-  { day: 'Wednesday', value: 32 },
-  { day: 'Thursday', value: 19 },
-  { day: 'Friday', value: 42 },
-  { day: 'Saturday', value: 11 },
-  { day: 'Sunday', value: 57 },
-];
-
-const chartConfig = {
-  value: {
-    label: 'Hours',
-    color: '#8B5CF6',
-  },
-};
-
-export default function BarChartOverview() {
+export default function BarChartOverview({
+  title,
+  chartConfig,
+  chartData,
+  className,
+}) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow">
+    <Card className={`p-6 ${className}`}>
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Weekly Overview</h3>
-        <button className="text-sm font-medium text-gray-500 hover:text-gray-700">
+        <h3 className="text-lg font-semibold">{title}</h3>
+        <button className="cursor-pointer text-sm font-medium text-gray-500 hover:text-gray-700">
           MORE
         </button>
       </div>
 
       {/* Chart */}
-      <div className="h-80">
+      <div className="">
         <ChartContainer config={chartConfig}>
           <BarChart
             data={chartData}
@@ -56,7 +38,7 @@ export default function BarChartOverview() {
               strokeDasharray="3 3"
               stroke="#e5e7eb"
               horizontal={true}
-              vertical={false}
+              vertical={true}
             />
             <XAxis
               dataKey="day"
@@ -85,6 +67,6 @@ export default function BarChartOverview() {
           </BarChart>
         </ChartContainer>
       </div>
-    </div>
+    </Card>
   );
 }

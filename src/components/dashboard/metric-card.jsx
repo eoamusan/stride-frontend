@@ -1,6 +1,7 @@
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import chevronUpIcon from '@/assets/icons/chevron-up.svg';
 import chevronDownIcon from '@/assets/icons/chevron-down.svg';
+import { Card } from '../ui/card';
 
 export default function MetricCard({
   title,
@@ -12,9 +13,7 @@ export default function MetricCard({
   className = '',
 }) {
   return (
-    <div
-      className={`rounded-lg border border-gray-200 bg-white p-6 shadow ${className}`}
-    >
+    <Card className={`p-6 ${className}`}>
       {/* Title */}
       <h3 className="mb-4 text-sm font-medium text-[#434343]">{title}</h3>
 
@@ -92,6 +91,6 @@ export default function MetricCard({
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
