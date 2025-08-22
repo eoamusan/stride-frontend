@@ -60,6 +60,28 @@ const chartConfig = {
     color: '#8B5CF6',
   },
 };
+
+const pieChartData = [
+  { name: 'To Do', value: 82, percentage: 59.42, color: '#6366F1' },
+  { name: 'Completed', value: 46, percentage: 33.33, color: '#10B981' },
+  { name: 'In progress', value: 10, percentage: 7.25, color: '#F59E0B' },
+];
+
+const pieChartConfig = {
+  'To Do': {
+    label: 'To Do',
+    color: '#6366F1',
+  },
+  Completed: {
+    label: 'Completed',
+    color: '#10B981',
+  },
+  'In progress': {
+    label: 'In progress',
+    color: '#F59E0B',
+  },
+};
+
 export default function Home() {
   const [openOnboardingModal, setOpenOnboardingModal] = useState(false);
   return (
@@ -77,14 +99,19 @@ export default function Home() {
         ) : (
           <div>
             <MetricsSummary metricsData={metricsData} />
-            <div className="mt-10 flex items-start gap-6">
+            <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
               <BarChartOverview
-                className={'w-full'}
+                className={'w-full lg:col-span-2'}
                 title={'Weekly Overview'}
                 chartConfig={chartConfig}
                 chartData={chartData}
               />
-              <PieMetricCard />
+              <PieMetricCard
+                title={'Task Summary'}
+                chartConfig={pieChartConfig}
+                chartData={pieChartData}
+                className={'w-full max-w-full self-start'}
+              />
             </div>
           </div>
         )}
