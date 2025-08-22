@@ -11,6 +11,7 @@ import { PieChartIcon } from 'lucide-react';
 import testimonialDP from '@/assets/images/testimonial-dp.png';
 import ctaBg from '@/assets/images/cta-bg.png';
 import { Link } from 'react-router';
+import Marquee from 'react-fast-marquee';
 
 // Partners data array for easy management
 const partners = [
@@ -43,6 +44,12 @@ const partners = [
     name: 'Partner 5',
     logo: samplePartner,
     alt: 'Partner 5 Logo',
+  },
+  {
+    id: 6,
+    name: 'Partner 6',
+    logo: samplePartner2,
+    alt: 'Partner 6 Logo',
   },
 ];
 
@@ -171,6 +178,14 @@ const testimonials = [
     testimonial:
       "Before Stride, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
   },
+  {
+    id: 4,
+    name: 'Esther Howard',
+    role: 'Freelance Marketing Consultant',
+    avatar: containerPlaceholder, // Using placeholder for now
+    testimonial:
+      "Before Stride, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
+  },
 ];
 
 export default function Landing() {
@@ -214,11 +229,15 @@ export default function Landing() {
               <p className="mb-4 text-base font-bold text-black/50">
                 Trusted by growing businesses worldwide
               </p>
-              <div className="flex flex-wrap items-center justify-center space-y-4 space-x-10">
+              <Marquee
+                pauseOnHover
+                speed={35}
+                className="flex items-center justify-center"
+              >
                 {partners.map((partner) => (
                   <div
                     key={partner.id}
-                    className="flex items-center justify-center"
+                    className="mr-10 flex items-center justify-center"
                   >
                     <img
                       src={partner.logo}
@@ -227,7 +246,7 @@ export default function Landing() {
                     />
                   </div>
                 ))}
-              </div>
+              </Marquee>
             </div>
           </div>
         </section>
@@ -392,7 +411,7 @@ export default function Landing() {
 
         {/* Testimonial Section */}
         <section className="pt-16 pb-10">
-          <div className="mx-auto max-w-7xl px-[5%]">
+          <div className="mx-auto px-[5%]">
             {/* Section Header */}
             <div className="mb-16 text-center">
               <div className="mx-auto mb-6 flex w-full max-w-32 items-center">
@@ -413,11 +432,11 @@ export default function Landing() {
             </div>
 
             {/* Testimonials Grid */}
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <Marquee speed={30} pauseOnHover className="py-1">
               {testimonials.map((testimonial) => (
                 <div
                   key={testimonial.id}
-                  className="outline-primary rounded-2xl bg-[#F9F8FD] p-6 shadow-sm transition-shadow hover:shadow-md hover:outline"
+                  className="outline-primary mr-6 w-[90vw] max-w-[420px] rounded-2xl bg-[#F9F8FD] p-6 shadow-sm transition-shadow hover:shadow-md hover:outline"
                 >
                   {/* User Info */}
                   <div className="mb-4 flex items-center gap-4">
@@ -444,15 +463,15 @@ export default function Landing() {
                   </blockquote>
                 </div>
               ))}
-            </div>
+            </Marquee>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 md:py-24">
-          <div className="mx-auto max-w-7xl px-[5%]">
+        <section className="py-16 md:py-20">
+          <div className="mx-auto px-[5%]">
             <div
-              className="relative overflow-hidden rounded-2xl bg-cover bg-center bg-no-repeat px-8 py-14 text-center md:px-16"
+              className="relative overflow-hidden rounded-2xl bg-cover bg-center bg-no-repeat px-8 py-14 text-center md:px-16 md:py-20"
               style={{ backgroundImage: `url(${ctaBg})` }}
             >
               {/* Overlay for better text readability */}
