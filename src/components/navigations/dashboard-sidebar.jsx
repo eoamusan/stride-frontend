@@ -28,7 +28,7 @@ export default function Sidebar() {
   };
 
   const renderMainView = () => (
-    <nav className="">
+    <nav className="p-4">
       <ul className="">
         {sidebarItems.map((item, index) => {
           const IconComponent = item.icon;
@@ -59,8 +59,8 @@ export default function Sidebar() {
   );
 
   const renderChildrenView = () => (
-    <nav className="">
-      <div className="mb-4 flex items-center">
+    <nav className="px-4 pb-4">
+      <div className="sticky top-0 flex items-center bg-white pt-2 pb-1">
         <button
           onClick={handleBackClick}
           className="flex items-center gap-2 px-4 py-2 text-gray-600 transition-colors duration-200 hover:text-gray-800"
@@ -71,7 +71,7 @@ export default function Sidebar() {
           {activeParent?.title}
         </h2>
       </div>
-      <ul className="">
+      <ul>
         {activeParent?.children.map((item, index) => {
           const IconComponent = item.icon;
           const isActive = location.pathname === item.link;
@@ -83,7 +83,7 @@ export default function Sidebar() {
                 className={`flex w-full max-w-64 flex-1 cursor-pointer items-center gap-2.5 rounded-lg ${isActive ? 'bg-[#EFE6FD]' : 'bg-white hover:bg-[#EFE6FD]/40'} px-4 py-2.5`}
               >
                 <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 ${
                     isActive ? 'bg-primary' : 'border border-gray-200 bg-white'
                   }`}
                 >
@@ -103,7 +103,7 @@ export default function Sidebar() {
   );
 
   return (
-    <aside className="flex h-screen w-fit min-w-64 flex-col overflow-y-auto border-gray-200 bg-white p-4">
+    <aside className="flex h-full w-64 flex-col overflow-y-auto bg-white">
       {currentView === 'main' ? renderMainView() : renderChildrenView()}
     </aside>
   );

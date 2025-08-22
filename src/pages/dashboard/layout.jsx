@@ -7,23 +7,27 @@ import TopAlert from '@/components/dashboard/top-alert';
 export default function DashboardLayout() {
   const [cancelNotification, setCancelNotification] = useState(false);
   return (
-    <div>
+    <div className="flex h-screen flex-col">
       <Header />
-      <div className="flex gap-4 bg-[#F5F6FA]">
-        <Sidebar />
-        <div className="w-full pr-4 pt-4">
-          {!cancelNotification && (
-            <TopAlert
-              title={
-                'Lorem ipsum dolor sit amet consectetur. Auctor aliquet sem vulputate diam.'
-              }
-              onThumbsUp={() => console.log('Thumbs up clicked')}
-              onThumbsDown={() => console.log('Thumbs down clicked')}
-              onCancel={() => setCancelNotification(true)}
-              externalLink="#"
-            />
-          )}
-          <Outlet />
+      <div className="flex flex-1 overflow-hidden bg-[#F5F6FA]">
+        <div className="fixed top-16 bottom-0 left-0 z-30 bg-white pt-6">
+          <Sidebar />
+        </div>
+        <div className="ml-68 flex-1 overflow-y-auto">
+          <div className="pt-4 pr-4">
+            {!cancelNotification && (
+              <TopAlert
+                title={
+                  'Lorem ipsum dolor sit amet consectetur. Auctor aliquet sem vulputate diam.'
+                }
+                onThumbsUp={() => console.log('Thumbs up clicked')}
+                onThumbsDown={() => console.log('Thumbs down clicked')}
+                onCancel={() => setCancelNotification(true)}
+                externalLink="#"
+              />
+            )}
+            <Outlet />
+          </div>
         </div>
       </div>
     </div>
