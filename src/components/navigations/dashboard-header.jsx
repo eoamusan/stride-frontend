@@ -13,12 +13,11 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { useState } from 'react';
 
-export default function Header() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+export default function Header({ onMobileMenuToggle }) {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   return (
-    <header className="flex items-center justify-between bg-white p-4">
+    <header className="relative flex items-center justify-between bg-white p-4">
       {/* Mobile Layout */}
       <div className="flex w-full items-center justify-between lg:hidden">
         {/* Left side - Hamburger + Breadcrumb */}
@@ -27,7 +26,7 @@ export default function Header() {
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={onMobileMenuToggle}
           >
             <MenuIcon size={24} />
           </Button>
@@ -141,14 +140,14 @@ export default function Header() {
       </div>
 
       {/* Mobile Search Bar */}
-      {/* {showMobileSearch && (
-        <div className="absolute top-full right-0 left-0 z-50 border-b border-gray-200 bg-black p-4 lg:hidden">
+      {showMobileSearch && (
+        <div className="absolute top-full right-0 left-0 z-40 bg-white p-4 lg:hidden">
           <div className="relative">
             <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <Input placeholder="Search..." className="w-full pl-10" />
           </div>
         </div>
-      )} */}
+      )}
     </header>
   );
 }

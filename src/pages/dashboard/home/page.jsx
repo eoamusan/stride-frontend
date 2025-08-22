@@ -129,7 +129,7 @@ export default function Home() {
 
         {projects.length > 0 && <CallToAction />}
       </div>
-      <div className="mt-10">
+      <div className="my-10">
         {projects.length === 0 ? (
           <EmptyDashboard onGetStarted={() => setOpenOnboardingModal(true)} />
         ) : (
