@@ -122,14 +122,14 @@ export default function Home() {
   const [openOnboardingModal, setOpenOnboardingModal] = useState(false);
   return (
     <div className="mt-2 overflow-y-auto">
-      <div className="flex flex-wrap items-center justify-between gap-4 max-sm:justify-start">
-        <h1 className="p-4 text-base italic">
+      <div className="flex flex-wrap items-center justify-between gap-4 py-4">
+        <h1 className="text-base italic">
           WELCOME <span className="font-bold not-italic">Oluwatosin👋</span>
         </h1>
 
         {projects.length > 0 && <CallToAction />}
       </div>
-      <div className="my-10">
+      <div className="mt-5 mb-10 md:mt-10">
         {projects.length === 0 ? (
           <EmptyDashboard onGetStarted={() => setOpenOnboardingModal(true)} />
         ) : (
