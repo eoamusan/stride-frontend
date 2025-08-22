@@ -11,7 +11,7 @@ export default function DashboardLayout() {
       <Header />
       <div className="flex gap-4 bg-[#F5F6FA]">
         <Sidebar />
-        <div className="w-full pr-4">
+        <div className="w-full pr-4 pt-4">
           {!cancelNotification && (
             <TopAlert
               title={

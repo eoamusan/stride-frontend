@@ -5,6 +5,7 @@ import CallToAction from '@/components/dashboard/home/ctas';
 import MetricsSummary from '@/components/dashboard/home/metrics-summary';
 import BarChartOverview from '@/components/dashboard/bar-metric-card';
 import PieMetricCard from '@/components/dashboard/pie-metric-card';
+import ActiveProjectsTable from '@/components/dashboard/home/active-projects-table';
 
 // sample url data
 const projects = [''];
@@ -82,6 +83,41 @@ const pieChartConfig = {
   },
 };
 
+const activeDataTable = [
+  {
+    id: 1,
+    projectName: 'Website Redesign',
+    category: 'Design',
+    dueDate: '2025-08-30',
+    priority: 'High',
+    status: 'Completed',
+  },
+  {
+    id: 2,
+    projectName: 'Mobile App Development',
+    category: 'Development',
+    dueDate: '2025-09-15',
+    priority: 'Medium',
+    status: 'Planning',
+  },
+  {
+    id: 3,
+    projectName: 'Marketing Campaign',
+    category: 'Marketing',
+    dueDate: '2025-08-25',
+    priority: 'High',
+    status: 'Active',
+  },
+  {
+    id: 4,
+    projectName: 'Database Migration',
+    category: 'Development',
+    dueDate: '2025-09-01',
+    priority: 'Critical',
+    status: 'In Progress',
+  },
+];
+
 export default function Home() {
   const [openOnboardingModal, setOpenOnboardingModal] = useState(false);
   return (
@@ -111,6 +147,12 @@ export default function Home() {
                 chartConfig={pieChartConfig}
                 chartData={pieChartData}
                 className={'w-full max-w-full self-start'}
+              />
+            </div>
+            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <ActiveProjectsTable
+                className={'lg:col-span-2'}
+                tableData={activeDataTable}
               />
             </div>
           </div>

@@ -23,12 +23,15 @@ export default function PieMetricCard({
       {/* Chart Container */}
       <div className="h-full w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ChartContainer config={chartConfig} className="h-full min-h-80 w-full">
+          <ChartContainer
+            config={chartConfig}
+            className="h-full min-h-64 w-full"
+          >
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
               <Pie
                 data={chartData}
-                className="pt-4 w-full"
+                className="w-full pt-4"
                 label
                 nameKey="value"
                 dataKey="value"
