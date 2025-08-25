@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { ArrowLeftIcon, X } from 'lucide-react';
 import { sidebarItems } from '../../constants/sidebar';
@@ -10,6 +10,28 @@ export default function MobileSidebar({ isOpen, onClose }) {
   const [activeParent, setActiveParent] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Effect to automatically set view based on pathname
+  useEffect(() => {
+    if (location.pathname.includes('/accounting')) {
+      // Find the accounting parent item
+      const accountingParent = sidebarItems.find(
+        (item) =>
+          item.title === 'Accounting' &&
+          item.children &&
+          item.children.length > 0
+      );
+
+      if (accountingParent) {
+        setCurrentView('children');
+        setActiveParent(accountingParent);
+      }
+    } else {
+      // Reset to main view if not in accounting section
+      setCurrentView('main');
+      setActiveParent(null);
+    }
+  }, [location.pathname]);
 
   const handleItemClick = (item) => {
     if (item.children && item.children.length > 0) {
