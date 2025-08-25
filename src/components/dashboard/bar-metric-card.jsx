@@ -1,4 +1,11 @@
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+} from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -23,8 +30,8 @@ export default function BarChartOverview({
       </div>
 
       {/* Chart */}
-      <div className="">
-        <ChartContainer config={chartConfig}>
+      <ResponsiveContainer width="100%" height="100%">
+        <ChartContainer config={chartConfig} className="h-full w-full">
           <BarChart
             data={chartData}
             margin={{
@@ -66,7 +73,7 @@ export default function BarChartOverview({
             />
           </BarChart>
         </ChartContainer>
-      </div>
+      </ResponsiveContainer>
     </Card>
   );
 }

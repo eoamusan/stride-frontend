@@ -18,7 +18,7 @@ export default function DashboardLayout() {
         <div className="fixed top-16 bottom-0 left-0 z-30 bg-white pt-6 max-md:hidden">
           <Sidebar />
         </div>
-        <div className="ml-4 flex-1 overflow-y-auto md:ml-68">
+        <div className="ml-4 flex-1 overflow-y-auto md:ml-76">
           <div className="pt-4 pr-4">
             {!cancelNotification && (
               <TopAlert

@@ -55,15 +55,15 @@ export default function MobileSidebar({ isOpen, onClose }) {
                 }`}
               >
                 <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors duration-200 ${
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${
                     isActive ? 'bg-primary' : 'border border-gray-200 bg-white'
                   }`}
                 >
                   <IconComponent
-                    className={`h-5 w-5 ${isActive ? 'text-white' : 'text-primary'}`}
+                    className={`h-4 w-4 ${isActive ? 'text-white' : 'text-primary'}`}
                   />
                 </span>
-                <span className="text-base font-medium">{item.title}</span>
+                <span className="text-xs font-medium">{item.title}</span>
               </button>
             </li>
           );
@@ -102,17 +102,17 @@ export default function MobileSidebar({ isOpen, onClose }) {
                   }`}
                 >
                   <span
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors duration-200 ${
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${
                       isActive
                         ? 'bg-primary'
                         : 'border border-gray-200 bg-white'
                     }`}
                   >
                     <IconComponent
-                      className={`h-5 w-5 ${isActive ? 'text-white' : 'text-primary'}`}
+                      className={`h-4 w-4 ${isActive ? 'text-white' : 'text-primary'}`}
                     />
                   </span>
-                  <span className="text-base font-medium">{item.title}</span>
+                  <span className="text-xs font-medium">{item.title}</span>
                 </button>
               </li>
             );

@@ -12,17 +12,13 @@ import {
   HelpCircle,
   DollarSign,
   BookOpen,
-  TrendingUp,
   Building,
   Package,
   Target,
   Coins,
-  Receipt,
   Banknote,
   CreditCard,
   FileSpreadsheet,
-  UserCheck,
-  Download,
 } from 'lucide-react';
 
 const accountingItems = [
@@ -32,74 +28,59 @@ const accountingItems = [
     link: '/dashboard/accounting/overview',
   },
   {
-    title: 'Bookkeeping & General Ledger',
+    title: 'Invoicing',
     icon: BookOpen,
+    link: '/dashboard/accounting/invoicing',
+  },
+  {
+    title: 'Expense Management',
+    icon: FileText,
+    link: '/dashboard/accounting/expense-management',
+  },
+  {
+    title: 'Bookkeeping & General Ledger',
+    icon: FileSpreadsheet,
     link: '/dashboard/accounting/bookkeeping',
   },
   {
     title: 'Financial Reports',
-    icon: FileText,
-    link: '/dashboard/accounting/reports',
+    icon: CreditCard,
+    link: '/dashboard/accounting/financial-reports',
   },
   {
     title: 'Accounts Receivable (A/R)',
-    icon: FileSpreadsheet,
+    icon: Package,
     link: '/dashboard/accounting/accounts-receivable',
   },
   {
     title: 'Accounts Payable (A/P)',
-    icon: CreditCard,
+    icon: Target,
     link: '/dashboard/accounting/accounts-payable',
   },
   {
     title: 'Inventory Management',
-    icon: Package,
-    link: '/dashboard/accounting/inventory',
+    icon: Building,
+    link: '/dashboard/accounting/inventory-management',
   },
   {
     title: 'Budgeting & Forecasting',
-    icon: Target,
+    icon: DollarSign,
     link: '/dashboard/accounting/budgeting',
   },
   {
-    title: 'Asset & Depreciation Management',
-    icon: Building,
-    link: '/dashboard/accounting/asset-depreciation',
-  },
-  {
-    title: 'Sales & Income',
-    icon: DollarSign,
-    link: '/dashboard/accounting/sales-income',
+    title: 'Fixed Asset Management',
+    icon: FileText,
+    link: '/dashboard/accounting/fixed-asset-management',
   },
   {
     title: 'Tax Management',
-    icon: FileText,
-    link: '/dashboard/accounting/tax',
+    icon: Banknote,
+    link: '/dashboard/accounting/tax-management',
   },
   {
     title: 'Banking & Reconciliation',
-    icon: Banknote,
-    link: '/dashboard/accounting/banking-reconciliation',
-  },
-  {
-    title: 'Remunerations',
     icon: Coins,
-    link: '/dashboard/accounting/remunerations',
-  },
-  {
-    title: 'Invoices & Receipts',
-    icon: Receipt,
-    link: '/dashboard/accounting/invoices-receipts',
-  },
-  {
-    title: 'Multi-User Permissions',
-    icon: UserCheck,
-    link: '/dashboard/accounting/multi-user-permissions',
-  },
-  {
-    title: 'Data Export & Audit Trail',
-    icon: Download,
-    link: '/dashboard/accounting/data-export-audit-trail',
+    link: '/dashboard/accounting/banking-reconciliation',
   },
 ];
 

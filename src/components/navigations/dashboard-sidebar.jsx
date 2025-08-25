@@ -49,7 +49,7 @@ export default function Sidebar() {
                     className={`h-4 w-4 ${isActive ? 'text-white' : 'text-primary'}`}
                   />
                 </span>
-                <span className="text-sm font-medium">{item.title}</span>
+                <span className="text-xs font-medium">{item.title}</span>
               </button>
             </li>
           );
@@ -91,7 +91,7 @@ export default function Sidebar() {
                     className={`h-4 w-4 ${isActive ? 'text-white' : 'text-primary'}`}
                   />
                 </span>
-                <span className="text-left text-sm font-medium">
+                <span className="text-left text-xs font-medium">
                   {item.title}
                 </span>
               </button>
@@ -103,7 +103,7 @@ export default function Sidebar() {
   );
 
   return (
-    <aside className="flex h-full w-64 flex-col overflow-y-auto bg-white">
+    <aside className="flex h-full w-72 flex-col overflow-y-auto bg-white">
       {currentView === 'main' ? renderMainView() : renderChildrenView()}
     </aside>
   );
