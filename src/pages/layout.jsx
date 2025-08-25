@@ -6,6 +6,8 @@ import Onboarding from './dashboard/onboarding/page';
 import ForgotPassword from './auth/forget-password/page';
 import DashboardLayout from './dashboard/layout';
 import Home from './dashboard/home/page';
+import AccountingBreadcrumb from '@/components/dashboard/accounting/breadcrumb';
+import AccountingOverview from './dashboard/accounting/overview/page';
 
 const router = createBrowserRouter([
   {
@@ -37,10 +39,11 @@ const router = createBrowserRouter([
               { path: 'reports', Component: () => <div>Reports Page</div> },
               {
                 path: 'accounting',
+                Component: AccountingBreadcrumb,
                 children: [
                   {
                     path: 'overview',
-                    Component: () => <div>Account Overview</div>,
+                    Component: AccountingOverview,
                   },
                   {
                     path: 'bookkeeping',
