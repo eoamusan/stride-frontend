@@ -1,3 +1,4 @@
+import AreaMetricCard from '@/components/dashboard/area-metric-card';
 import MetricCard from '@/components/dashboard/metric-card';
 
 const metricsData = [
@@ -33,8 +34,14 @@ export default function AccountingOverview() {
           <MetricCard key={metric.title} {...metric} emptyState={true} />
         ))}
       </div>
-      <div className="flex">
-        
+      <div className="mt-6 flex">
+        <div className="w-full max-w-3xl">
+          <AreaMetricCard
+            title={'Revenue & Expenses'}
+            description={'Monthly comparison over the past year'}
+          />
+        </div>
+        <div></div>
       </div>
     </div>
   );
