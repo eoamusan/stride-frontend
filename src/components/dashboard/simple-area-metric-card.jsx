@@ -7,16 +7,10 @@ import {
   YAxis,
 } from 'recharts';
 import { Card } from '../ui/card';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-} from '../ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 import emptyStateImg from '@/assets/images/empty-chart-state.png';
 
-export default function AreaMetricCard({
+export default function SimpleAreaMetricCard({
   emptyState = false,
   className,
   description,
@@ -30,7 +24,9 @@ export default function AreaMetricCard({
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">{title}</h3>
-          <p className="text-xs text-[#434343]">{description}</p>
+          {description && (
+            <p className="text-xs text-[#434343]">{description}</p>
+          )}
         </div>
         <button className="cursor-pointer text-sm font-medium text-gray-500 hover:text-gray-700">
           MORE
@@ -38,25 +34,26 @@ export default function AreaMetricCard({
       </div>
 
       {emptyState ? (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" className={'h-full'}>
           <ChartContainer
             config={chartConfig}
             className="relative h-full w-full"
           >
             <AreaChart
               data={chartData}
+              className="h-full w-full"
               margin={{
                 top: 10,
                 right: 0,
-                left: -10,
+                left: -12,
                 bottom: 10,
               }}
             >
               <defs>
-                {Object.entries(chartConfig).map(([key, config]) => (
+                {chartConfig.map((config) => (
                   <linearGradient
-                    key={key}
-                    id={`fill${key}`}
+                    key={config.dataKey}
+                    id={`fill${config.dataKey}`}
                     x1="0"
                     y1="0"
                     x2="0"
@@ -105,17 +102,18 @@ export default function AreaMetricCard({
         <ResponsiveContainer width="100%" height="100%">
           <ChartContainer config={chartConfig} className="h-full w-full">
             <AreaChart
+              className="h-full w-full"
               data={chartData}
               margin={{
                 top: 10,
-                left: -15,
+                left: -10,
               }}
             >
               <defs>
-                {Object.entries(chartConfig).map(([key, config]) => (
+                {chartConfig.map((config) => (
                   <linearGradient
-                    key={key}
-                    id={`fill${key}`}
+                    key={config.dataKey}
+                    id={`fill${config.dataKey}`}
                     x1="0"
                     y1="0"
                     x2="0"
@@ -170,22 +168,20 @@ export default function AreaMetricCard({
                     labelFormatter={(value) => {
                       return new Date(value).toLocaleDateString('en-US', {
                         month: 'short',
-                        day: 'numeric',
                       });
                     }}
                     indicator="dot"
                   />
                 }
               />
-              {Object.entries(chartConfig).map(([key, config]) => (
+              {chartConfig.map((config) => (
                 <Area
-                  key={key}
-                  dataKey={key}
+                  key={config.dataKey}
+                  dataKey="value"
                   type="natural"
-                  fill={`url(#fill${key})`}
+                  fill={`url(#fill${config.dataKey})`}
                   stroke={config.color}
                   strokeWidth={2}
-                  stackId="a"
                   dot={{
                     fill: config.color,
                     stroke: `#f4f4f4`,
@@ -200,10 +196,6 @@ export default function AreaMetricCard({
                   }}
                 />
               ))}
-              <ChartLegend
-                className="mt-2 ml-6 w-fit"
-                content={<ChartLegendContent />}
-              />
             </AreaChart>
           </ChartContainer>
         </ResponsiveContainer>

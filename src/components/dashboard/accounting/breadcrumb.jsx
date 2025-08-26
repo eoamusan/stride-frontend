@@ -19,7 +19,7 @@ export default function AccountingBreadcrumb() {
 
             return (
               <span
-                key={item.id}
+                key={item.link}
                 onClick={() => handleItemClick(item)}
                 className={`cursor-pointer pb-4 text-xs font-bold text-nowrap transition-colors ${
                   isActive
