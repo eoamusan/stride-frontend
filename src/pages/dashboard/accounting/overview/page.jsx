@@ -1,6 +1,28 @@
 import AreaMetricCard from '@/components/dashboard/area-metric-card';
 import MetricCard from '@/components/dashboard/metric-card';
 
+// Sample data for area chart
+const sampleChartData = [
+  { date: '2024-01-01', revenue: 10000, expenses: 5000 },
+  { date: '2024-01-02', revenue: 9700, expenses: 97000 },
+  { date: '2024-01-03', revenue: 1600, expenses: 15000 },
+  { date: '2024-01-04', revenue: 24200, expenses: 10000 },
+  { date: '2024-01-05', revenue: 37300, expenses: 40000 },
+  { date: '2024-01-06', revenue: 30100, expenses: 35000 },
+  { date: '2024-01-07', revenue: 245, expenses: 180 },
+];
+
+const sampleChartConfig = {
+  revenue: {
+    label: 'Revenue',
+    color: '#6FD195',
+  },
+  expenses: {
+    label: 'Expenses',
+    color: '#7086FD',
+  },
+};
+
 const metricsData = [
   {
     title: 'Total Revenue',
@@ -39,6 +61,8 @@ export default function AccountingOverview() {
           <AreaMetricCard
             title={'Revenue & Expenses'}
             description={'Monthly comparison over the past year'}
+            chartData={sampleChartData}
+            chartConfig={sampleChartConfig}
           />
         </div>
         <div></div>

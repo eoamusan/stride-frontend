@@ -16,35 +16,13 @@ import {
 } from '../ui/chart';
 import emptyStateImg from '@/assets/images/empty-chart-state.png';
 
-// Sample data
-const sampleChartData = [
-  { date: '2024-01-01', desktop: 222, mobile: 150 },
-  { date: '2024-01-02', desktop: 97, mobile: 180 },
-  { date: '2024-01-03', desktop: 167, mobile: 120 },
-  { date: '2024-01-04', desktop: 242, mobile: 260 },
-  { date: '2024-01-05', desktop: 373, mobile: 290 },
-  { date: '2024-01-06', desktop: 301, mobile: 340 },
-  { date: '2024-01-07', desktop: 245, mobile: 180 },
-];
-
-const sampleChartConfig = {
-  desktop: {
-    label: 'Desktop',
-    color: '#6FD195',
-  },
-  mobile: {
-    label: 'Mobile',
-    color: '#7086FD',
-  },
-};
-
 export default function AreaMetricCard({
   emptyState = false,
   className,
   description,
   title,
-  chartConfig = sampleChartConfig,
-  chartData = sampleChartData,
+  chartConfig,
+  chartData,
 }) {
   return (
     <Card className={`p-6 ${className}`}>
@@ -177,13 +155,15 @@ export default function AreaMetricCard({
                 axisLine={false}
                 tickMargin={8}
                 minTickGap={32}
-                // tickFormatter={(value) => {
-                //   const date = new Date(value);
-                //   return date.toLocaleDateString('en-US', {
-                //     month: 'short',
-                //     day: 'numeric',
-                //   });
-                // }}
+                tickFormatter={(value) => {
+                  if (value >= 1000000) {
+                    return `$${(value / 1000000).toFixed(1)}M`;
+                  } else if (value >= 1000) {
+                    return `$${(value / 1000).toFixed(0)}k`;
+                  } else {
+                    return `$${value}`;
+                  }
+                }}
               />
               <ChartTooltip
                 cursor={false}
