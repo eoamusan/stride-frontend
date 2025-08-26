@@ -14,6 +14,7 @@ export default function PieMetricCard({
   title,
   chartConfig,
   chartData,
+  emptyState = false,
 }) {
   return (
     <Card className={cn('w-full p-6', className)}>
@@ -27,24 +28,45 @@ export default function PieMetricCard({
             config={chartConfig}
             className="h-full min-h-64 w-full"
           >
-            <PieChart>
-              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-              <Pie
-                data={chartData}
-                className="w-full pt-4"
-                label
-                nameKey="value"
-                dataKey="value"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <ChartLegend
-                content={<ChartLegendContent nameKey="value" />}
-                className="flex-wrap gap-2 pt-4 *:basis-1/4 *:justify-center"
-              />
-            </PieChart>
+            {emptyState ? (
+              <div className="flex h-full w-full flex-col items-center justify-center">
+                <div className="mx-auto aspect-square h-[80%] rounded-full bg-[#f4f4f4]"></div>
+                <div className="mt-6 w-full">
+                  <div className="flex flex-wrap items-center justify-center gap-4">
+                    {chartData?.map((item, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{ backgroundColor: item.color }}
+                        ></div>
+                        <span className="text-sm text-gray-700">
+                          {item.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <PieChart>
+                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                <Pie
+                  data={chartData}
+                  className="w-full pt-4"
+                  label
+                  nameKey="value"
+                  dataKey="value"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <ChartLegend
+                  content={<ChartLegendContent nameKey="value" />}
+                  className="flex-wrap gap-2 pt-4 *:basis-1/4 *:justify-center"
+                />
+              </PieChart>
+            )}
           </ChartContainer>
         </ResponsiveContainer>
       </div>

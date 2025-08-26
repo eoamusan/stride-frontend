@@ -113,7 +113,7 @@ export default function Header({ onMobileMenuToggle }) {
           {/* User Profile */}
           <div className="flex w-fit items-center justify-center gap-2">
             <Avatar className={'h-9 w-9'}>
-              <AvatarImage src={'https://github.com/shadcn.png'} />
+              <AvatarImage src={''} />
               <AvatarFallback>OA</AvatarFallback>
             </Avatar>
             <div>
