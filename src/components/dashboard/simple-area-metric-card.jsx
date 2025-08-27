@@ -19,7 +19,7 @@ export default function SimpleAreaMetricCard({
   chartData,
 }) {
   return (
-    <Card className={`p-6 ${className}`}>
+    <Card className={`h-full p-6 ${className}`}>
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>

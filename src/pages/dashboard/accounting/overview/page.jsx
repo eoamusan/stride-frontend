@@ -74,22 +74,21 @@ export default function AccountingOverview() {
           <MetricCard key={metric.title} {...metric} emptyState={true} />
         ))}
       </div>
-      <div className="mt-6 flex flex-col lg:flex-row gap-6 ">
-        <div className="w-full lg:w-[60%]">
-          <AreaMetricCard
-            title={'Revenue & Expenses'}
-            description={'Monthly comparison over the past year'}
-            chartData={sampleChartData}
-            chartConfig={sampleChartConfig}
-          />
-        </div>
-        <div className="w-full lg:w-[40%]">
-          <SimpleAreaMetricCard
-            title={'Cash Flow'}
-            chartData={simpleChartData}
-            chartConfig={simpleChartConfig}
-          />
-        </div>
+      <div className="mt-6 flex flex-col justify-items-stretch gap-6 lg:h-[528px] lg:flex-row">
+        <AreaMetricCard
+          className={'h-full w-full lg:w-[59%]'}
+          title={'Revenue & Expenses'}
+          description={'Monthly comparison over the past year'}
+          chartData={sampleChartData}
+          chartConfig={sampleChartConfig}
+        />
+
+        <SimpleAreaMetricCard
+          className={'h-full w-full lg:w-[39%]'}
+          title={'Cash Flow'}
+          chartData={simpleChartData}
+          chartConfig={simpleChartConfig}
+        />
       </div>
     </div>
   );
