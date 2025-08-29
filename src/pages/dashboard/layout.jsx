@@ -10,10 +10,14 @@ export default function DashboardLayout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen flex-col">
-      <Header
-        onMobileMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-      />
+    <div className="">
+      <div className="sticky top-0 z-50">
+        <Header
+          onMobileMenuToggle={() =>
+            setIsMobileSidebarOpen(!isMobileSidebarOpen)
+          }
+        />
+      </div>
       <div className="flex flex-1 overflow-hidden bg-[#F5F6FA]">
         <div className="fixed top-16 bottom-0 left-0 z-30 bg-white pt-6 max-md:hidden">
           <Sidebar />
@@ -31,7 +35,9 @@ export default function DashboardLayout() {
                 externalLink="#"
               />
             )}
-            <Outlet />
+            <div className="h-full overflow-hidden">
+              <Outlet />
+            </div>
           </div>
         </div>
       </div>

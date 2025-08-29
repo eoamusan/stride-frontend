@@ -110,12 +110,6 @@ const sidebarItems = [
     children: [],
   },
   {
-    title: 'Invoicing',
-    icon: FileText,
-    link: '/dashboard/invoicing',
-    children: [],
-  },
-  {
     title: 'Reports',
     icon: BarChart3,
     link: '/dashboard/reports',
