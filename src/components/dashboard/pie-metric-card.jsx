@@ -33,14 +33,14 @@ export default function PieMetricCard({
                 <div className="mx-auto aspect-square h-[80%] rounded-full bg-[#f4f4f4]"></div>
                 <div className="mt-6 w-full">
                   <div className="flex flex-wrap items-center justify-center gap-4">
-                    {chartData?.map((item, index) => (
+                    {Object.values(chartConfig)?.map((item, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <div
                           className="h-1.5 w-1.5 rounded-full"
                           style={{ backgroundColor: item.color }}
                         ></div>
                         <span className="text-sm text-gray-700">
-                          {item.name}
+                          {item.label}
                         </span>
                       </div>
                     ))}
@@ -63,7 +63,7 @@ export default function PieMetricCard({
                 </Pie>
                 <ChartLegend
                   content={<ChartLegendContent nameKey="value" />}
-                  className="flex-wrap gap-2 pt-4 *:basis-1/4 *:justify-center"
+                  className="flex flex-wrap items-center justify-center gap-4 pt-4"
                 />
               </PieChart>
             )}
