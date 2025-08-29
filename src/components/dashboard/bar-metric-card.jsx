@@ -32,10 +32,14 @@ export default function BarChartOverview({
       </div>
 
       {emptyState ? (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          className={'max-h-[550px]'}
+        >
           <ChartContainer
             config={chartConfig}
-            className="relative h-full w-full"
+            className="relative h-full max-h-[550px] w-full"
           >
             <BarChart
               data={chartData}
@@ -73,8 +77,15 @@ export default function BarChartOverview({
           </ChartContainer>
         </ResponsiveContainer>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
-          <ChartContainer config={chartConfig} className="h-full w-full">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          className={'max-h-[550px]'}
+        >
+          <ChartContainer
+            config={chartConfig}
+            className="h-full max-h-[550px] w-full"
+          >
             <BarChart
               data={chartData}
               margin={{

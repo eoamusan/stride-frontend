@@ -3,6 +3,8 @@ import SimpleAreaMetricCard from '@/components/dashboard/simple-area-metric-card
 import MetricCard from '@/components/dashboard/metric-card';
 import QuickActionsCard from '@/components/dashboard/accounting/overview/quick-actions-card';
 import PieMetricCard from '@/components/dashboard/pie-metric-card';
+import RecentTransactionCard from '@/components/dashboard/accounting/overview/transactions-card';
+import AccountBalanceCard from '@/components/dashboard/accounting/overview/account-bal-card';
 
 // Sample data for area chart
 const sampleChartData = [
@@ -126,6 +128,10 @@ export default function AccountingOverview() {
           chartConfig={pieChartConfig}
           className={'w-full lg:w-[39%]'}
         />
+      </div>
+      <div className="mt-6 flex flex-col gap-6 lg:flex-row">
+        <RecentTransactionCard className={'w-full lg:w-[59%]'} />
+        <AccountBalanceCard className={'w-full lg:w-[39%] h-fit'} />
       </div>
     </div>
   );

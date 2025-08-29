@@ -38,10 +38,14 @@ export default function AreaMetricCard({
       </div>
 
       {emptyState ? (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          className={'max-h-[430px]'}
+        >
           <ChartContainer
             config={chartConfig}
-            className="relative h-full w-full"
+            className="relative h-full max-h-[430px] w-full"
           >
             <AreaChart
               data={chartData}
@@ -102,8 +106,15 @@ export default function AreaMetricCard({
           </ChartContainer>
         </ResponsiveContainer>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
-          <ChartContainer config={chartConfig} className="h-full w-full">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          className={'max-h-[430px]'}
+        >
+          <ChartContainer
+            config={chartConfig}
+            className="h-full max-h-[430px] w-full"
+          >
             <AreaChart
               data={chartData}
               margin={{
