@@ -8,6 +8,7 @@ import DashboardLayout from './dashboard/layout';
 import Home from './dashboard/home/page';
 import AccountingLayout from './dashboard/accounting/layout';
 import AccountingOverview from './dashboard/accounting/overview/page';
+import Invoicing from './dashboard/accounting/invoicing/page';
 
 const router = createBrowserRouter([
   {
@@ -46,7 +47,7 @@ const router = createBrowserRouter([
                   },
                   {
                     path: 'invoicing',
-                    Component: () => <div>Invoicing Page</div>,
+                    Component: Invoicing,
                   },
                   {
                     path: 'bookkeeping',
