@@ -38,6 +38,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import PreviewInvoice from './preview-invoice';
 
 const formSchema = z.object({
   invoice_number: z.string().min(1, { message: 'Invoice number is required' }),
@@ -211,6 +212,16 @@ export default function CreateInvoice() {
   const handleSend = () => {
     form.handleSubmit(onSubmit)();
   };
+
+  if (isPreview) {
+    return (
+      <PreviewInvoice
+        formData={form.getValues()}
+        calculateSubtotal={calculateSubtotal}
+        onEdit={() => setIsPreview(false)}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl rounded-2xl bg-white p-6">
@@ -773,8 +784,8 @@ export default function CreateInvoice() {
           </div>
 
           {/* Totals Section */}
-          <div className="grid grid-cols-1 gap-8 border-t pt-6 md:grid-cols-2">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-8 border-t pt-6 md:grid-cols-5">
+            <div className="col-span-2 space-y-4">
               <h3 className="text-lg font-semibold">Terms</h3>
               <FormField
                 control={form.control}
@@ -793,7 +804,7 @@ export default function CreateInvoice() {
               />
             </div>
 
-            <div className="space-y-4">
+            <div className="col-span-2 col-start-4 space-y-4">
               <h3 className="text-lg font-semibold">Internal Notes</h3>
               <FormField
                 control={form.control}
@@ -815,8 +826,8 @@ export default function CreateInvoice() {
 
           {/* Checkboxes */}
           <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-5">
+              <div className="col-span-2 space-y-4">
                 <FormField
                   control={form.control}
                   name="paid_with_cash"
@@ -873,7 +884,7 @@ export default function CreateInvoice() {
                 />
               </div>
 
-              <div>
+              <div className="col-span-2 col-start-4">
                 <FormField
                   control={form.control}
                   name="apply_signature"

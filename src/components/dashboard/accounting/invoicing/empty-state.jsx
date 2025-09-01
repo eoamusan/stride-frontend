@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 
 export default function EmptyInvoice({ onClick }) {
   return (
-    <div className="flex flex-col items-center justify-center py-10 text-center">
+    <div className="flex flex-col items-center justify-center py-16 text-center">
       <img src={emptyInvoice} className="size-[130px]" alt="No invoices" />
       <h2 className="mt-4 text-2xl font-bold">New Invoice</h2>
       <p className="mt-2 mb-4 text-sm text-[#7D7D7D]">
