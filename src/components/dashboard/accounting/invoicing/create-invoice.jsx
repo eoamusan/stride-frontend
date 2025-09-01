@@ -22,8 +22,10 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   CalendarIcon,
+  EyeIcon,
   NotepadTextIcon,
   PlusIcon,
+  SendIcon,
   SettingsIcon,
   TrashIcon,
 } from 'lucide-react';
@@ -63,13 +65,6 @@ const formSchema = z.object({
       })
     )
     .min(1, { message: 'At least one product is required' }),
-  account_name: z.string().min(1, { message: 'Account name is required' }),
-  account_number: z.string().min(1, { message: 'Account number is required' }),
-  bank_name: z.string().min(1, { message: 'Bank name is required' }),
-  tax_identification_no: z
-    .string()
-    .min(1, { message: 'Tax identification number is required' }),
-  sort_code: z.string().min(1, { message: 'Sort code is required' }),
   discount: z.number().min(0).max(100).optional(),
   vat: z.number().min(0).max(100).optional(),
   delivery_fee: z.number().min(0).optional(),
@@ -106,11 +101,6 @@ export default function CreateInvoice() {
           total_price: 0,
         },
       ],
-      account_name: 'James John',
-      account_number: '254675987',
-      bank_name: 'James Bank',
-      tax_identification_no: '3545',
-      sort_code: '3545',
       discount: 0,
       vat: 7.5,
       delivery_fee: 0,
@@ -153,18 +143,25 @@ export default function CreateInvoice() {
   const watchProducts = form.watch('products');
   useEffect(() => {
     watchProducts.forEach((product, index) => {
-      const total = (product.unit_price || 0) * (product.quantity || 1);
-      if (product.total_price !== total) {
-        form.setValue(`products.${index}.total_price`, total);
+      const unitPrice = Number(product.unit_price) || 0;
+      const quantity = Number(product.quantity) || 1;
+      const total = unitPrice * quantity;
+
+      // Only update if the calculated total is different from the current total
+      if (Number(product.total_price) !== total) {
+        form.setValue(`products.${index}.total_price`, total, {
+          shouldValidate: false,
+        });
       }
     });
   }, [watchProducts, form]);
 
   const calculateSubtotal = () => {
-    return watchProducts.reduce(
-      (sum, product) => sum + (product.total_price || 0),
-      0
-    );
+    return watchProducts.reduce((sum, product) => {
+      const unitPrice = Number(product.unit_price) || 0;
+      const quantity = Number(product.quantity) || 1;
+      return sum + unitPrice * quantity;
+    }, 0);
   };
 
   const calculateTotal = () => {
@@ -479,19 +476,18 @@ export default function CreateInvoice() {
             <h3 className="pt-6 text-xl font-semibold">Products</h3>
 
             {/* Products Header */}
-            <div className="grid grid-cols-12 gap-4 text-sm font-medium tracking-wide text-gray-700 uppercase">
+            <div className="mb-2 grid grid-cols-10 gap-4 text-xs font-semibold tracking-wide text-[#434343] uppercase">
               <div className="col-span-3">Product / Item Name</div>
               <div className="col-span-2">Unit Price</div>
               <div className="col-span-2">QTY</div>
               <div className="col-span-2">Total Price</div>
-              <div className="col-span-2"></div>
               <div className="col-span-1"></div>
             </div>
 
             {/* Product Rows */}
             {fields.map((field, index) => (
               <div key={field.id} className="space-y-2">
-                <div className="grid grid-cols-12 items-start gap-4">
+                <div className="grid grid-cols-10 items-start gap-4">
                   <div className="col-span-3">
                     <FormField
                       control={form.control}
@@ -566,8 +562,11 @@ export default function CreateInvoice() {
                           <FormControl>
                             <Input
                               placeholder="TOTAL PRICE"
-                              className={'h-10'}
-                              value={field.value || 0}
+                              className={'h-10 bg-gray-50'}
+                              value={
+                                (watchProducts[index]?.unit_price || 0) *
+                                (watchProducts[index]?.quantity || 1)
+                              }
                               readOnly
                             />
                           </FormControl>
@@ -576,8 +575,6 @@ export default function CreateInvoice() {
                       )}
                     />
                   </div>
-
-                  <div className="col-span-2"></div>
 
                   <div className="col-span-1">
                     {fields.length > 1 && (
@@ -594,8 +591,8 @@ export default function CreateInvoice() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-12 gap-4">
-                  <div className="col-span-6">
+                <div className="mt-4 grid grid-cols-12 gap-4">
+                  <div className="col-span-12 md:col-span-6">
                     <FormField
                       control={form.control}
                       name={`products.${index}.description`}
@@ -620,166 +617,139 @@ export default function CreateInvoice() {
               type="button"
               variant="ghost"
               onClick={addProduct}
-              className="mt-2"
+              size={'sm'}
+              className="mt-2 text-sm"
             >
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="h-4 w-4" />
               Add Product
             </Button>
           </div>
 
           {/* Bank Details */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Bank Details</h3>
-              <div className="flex gap-2">
-                <Button type="button" variant="ghost" onClick={addNewBank}>
-                  <PlusIcon className="mr-2 h-4 w-4" />
+            <div className="flex flex-wrap items-center justify-between gap-6">
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                  <p className="font-semibold">Account Name:</p>
+                  <p>James john</p>
+                </div>
+                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                  <p className="font-semibold">Account Number:</p>
+                  <p>25467587</p>
+                </div>
+                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                  <p className="font-semibold">Bank Name:</p>
+                  <p>Equity Bank</p>
+                </div>
+                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                  <p className="font-semibold">Tax identification No:</p>
+                  <p>123456789</p>
+                </div>
+                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                  <p className="font-semibold">Sort Code:</p>
+                  <p>123456789</p>
+                </div>
+                <Button
+                  type="button"
+                  className={'w-fit text-sm'}
+                  variant="ghost"
+                  size={'sm'}
+                  onClick={addNewBank}
+                >
+                  <PlusIcon className="h-4 w-4" />
                   Add New bank
                 </Button>
+
                 <Button
                   type="button"
                   variant="ghost"
+                  className={'w-fit text-sm'}
+                  size={'sm'}
                   onClick={addPaymentGateway}
                 >
-                  <PlusIcon className="mr-2 h-4 w-4" />
+                  <PlusIcon className="h-4 w-4" />
                   Add payment Gateway
                 </Button>
               </div>
-            </div>
+              <div className="w-full max-w-sm space-y-4">
+                <div className="space-y-2 text-sm font-medium">
+                  <div className="flex justify-between">
+                    <span>Sub total</span>
+                    <span>{calculateSubtotal().toFixed(2)}</span>
+                  </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <FormField
-                control={form.control}
-                name="account_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Account Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} readOnly className="bg-gray-50" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="account_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Account Number</FormLabel>
-                    <FormControl>
-                      <Input {...field} readOnly className="bg-gray-50" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="bank_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bank Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} readOnly className="bg-gray-50" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="tax_identification_no"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tax Identification No</FormLabel>
-                    <FormControl>
-                      <Input {...field} readOnly className="bg-gray-50" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="sort_code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sort Code</FormLabel>
-                    <FormControl>
-                      <Input {...field} readOnly className="bg-gray-50" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Totals Section */}
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Terms</h3>
-              <FormField
-                control={form.control}
-                name="terms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <textarea
-                        className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                        placeholder="Terms and conditions..."
-                        {...field}
+                  <div className="flex items-center justify-between">
+                    <span>Discount</span>
+                    <div className="flex items-center gap-2">
+                      <FormField
+                        control={form.control}
+                        name="discount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="Enter price"
+                                className="h-10 w-24 text-right"
+                                {...field}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <span>%</span>
+                    </div>
+                  </div>
 
-              <h3 className="text-lg font-semibold">Internal Notes</h3>
-              <FormField
-                control={form.control}
-                name="internal_notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <textarea
-                        className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                        placeholder="Internal notes..."
-                        {...field}
+                  <div className="flex items-center justify-between">
+                    <span>Vax (7.5%)</span>
+                    <div className="flex items-center gap-2">
+                      <FormField
+                        control={form.control}
+                        name="vat"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Select
+                                onValueChange={(value) =>
+                                  field.onChange(parseFloat(value))
+                                }
+                                defaultValue={field.value?.toString()}
+                              >
+                                <SelectTrigger className="w-24">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="0">0%</SelectItem>
+                                  <SelectItem value="5">5%</SelectItem>
+                                  <SelectItem value="7.5">7.5%</SelectItem>
+                                  <SelectItem value="10">10%</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    </div>
+                  </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Sub total</span>
-                  <span>{calculateSubtotal().toFixed(2)}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span>Discount</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between">
+                    <span>Delivery fee</span>
                     <FormField
                       control={form.control}
-                      name="discount"
+                      name="delivery_fee"
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
                             <Input
                               type="number"
                               placeholder="Enter price"
-                              className="w-24 text-right"
+                              className="h-10 w-24 text-right"
                               {...field}
                               onChange={(e) =>
                                 field.onChange(parseFloat(e.target.value) || 0)
@@ -789,79 +759,64 @@ export default function CreateInvoice() {
                         </FormItem>
                       )}
                     />
-                    <span>%</span>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between">
-                  <span>Vax (7.5%)</span>
-                  <div className="flex items-center gap-2">
-                    <FormField
-                      control={form.control}
-                      name="vat"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Select
-                              onValueChange={(value) =>
-                                field.onChange(parseFloat(value))
-                              }
-                              defaultValue={field.value?.toString()}
-                            >
-                              <SelectTrigger className="w-24">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="0">0%</SelectItem>
-                                <SelectItem value="5">5%</SelectItem>
-                                <SelectItem value="7.5">7.5%</SelectItem>
-                                <SelectItem value="10">10%</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span>Delivery fee</span>
-                  <FormField
-                    control={form.control}
-                    name="delivery_fee"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="Enter price"
-                            className="w-24 text-right"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value) || 0)
-                            }
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="border-t pt-2">
-                  <div className="flex justify-between font-semibold">
-                    <span>Total</span>
-                    <span>{calculateTotal().toFixed(2)}</span>
+                  <div className="border-t pt-2">
+                    <div className="flex justify-between font-semibold">
+                      <span>Total</span>
+                      <span>{calculateTotal().toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Totals Section */}
+          <div className="grid grid-cols-1 gap-8 border-t pt-6 md:grid-cols-2">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Terms</h3>
+              <FormField
+                control={form.control}
+                name="terms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Terms and conditions..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Internal Notes</h3>
+              <FormField
+                control={form.control}
+                name="internal_notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Terms and conditions..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
           {/* Checkboxes */}
           <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+              <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="paid_with_cash"
@@ -911,7 +866,7 @@ export default function CreateInvoice() {
                       </FormControl>
                       <FormLabel className="text-sm font-normal">
                         This invoice has been{' '}
-                        <span className="font-medium text-blue-600">paid</span>
+                        <span className="text-primary font-medium">paid</span>
                       </FormLabel>
                     </FormItem>
                   )}
@@ -942,11 +897,18 @@ export default function CreateInvoice() {
 
           {/* Action Buttons */}
           <div className="flex gap-4 pt-6">
-            <Button type="button" variant="outline" onClick={handlePreview}>
-              Preview
-            </Button>
-            <Button type="button" onClick={handleSend}>
+            <Button className={'h-10'} onClick={handleSend}>
+              <SendIcon className="size-4" />
               Send
+            </Button>
+            <Button
+              type="button"
+              className={'h-10'}
+              variant="outline"
+              onClick={handlePreview}
+            >
+              <EyeIcon className="size-4" />
+              Preview
             </Button>
           </div>
         </form>
