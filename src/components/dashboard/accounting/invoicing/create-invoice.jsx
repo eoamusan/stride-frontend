@@ -20,8 +20,22 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { NotepadTextIcon, PlusIcon, SettingsIcon, XIcon } from 'lucide-react';
-import doleLogo from '@/assets/icons/stride-s-logo.svg';
+import {
+  CalendarIcon,
+  NotepadTextIcon,
+  PlusIcon,
+  SettingsIcon,
+  TrashIcon,
+} from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 const formSchema = z.object({
   invoice_number: z.string().min(1, { message: 'Invoice number is required' }),
@@ -234,73 +248,50 @@ export default function CreateInvoice() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Customer and Basic Info */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="customer_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Customer Name</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select customer" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="customer1">Customer 1</SelectItem>
-                        <SelectItem value="customer2">Customer 2</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="space-y-6">
+            <div className="flex flex-col justify-between gap-6 md:flex-row">
+              <div className="flex w-full max-w-xs items-end gap-2">
+                <FormField
+                  control={form.control}
+                  name="customer_name"
+                  render={({ field }) => (
+                    <FormItem className={'w-full'}>
+                      <FormLabel>Customer Name</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className={'w-full'}>
+                            <SelectValue placeholder="Select customer" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="customer1">Customer 1</SelectItem>
+                          <SelectItem value="customer2">Customer 2</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="button" className={'h-10 w-8'}>
+                  <PlusIcon />
+                </Button>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="services">Services</SelectItem>
-                        <SelectItem value="products">Products</SelectItem>
-                        <SelectItem value="consulting">Consulting</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="currency"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={'w-full max-w-xs'}>
                     <FormLabel>Currency</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className={'w-full'}>
                           <SelectValue placeholder="Select currency" />
                         </SelectTrigger>
                       </FormControl>
@@ -317,16 +308,44 @@ export default function CreateInvoice() {
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="flex flex-col justify-between gap-6 md:flex-row">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem className={'w-full max-w-xs'}>
+                    <FormLabel>Category</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className={'w-full'}>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="services">Services</SelectItem>
+                        <SelectItem value="products">Products</SelectItem>
+                        <SelectItem value="consulting">Consulting</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
                 name="c_o"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={'w-full max-w-xs'}>
                     <FormLabel>C/O (optional)</FormLabel>
                     <FormControl>
-                      <textarea
-                        className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      <Textarea
+                        className={'w-full'}
                         placeholder="Additional notes..."
                         {...field}
                       />
@@ -337,16 +356,45 @@ export default function CreateInvoice() {
               />
             </div>
 
-            <div className="space-y-4">
+            <div className="mt-12 flex flex-wrap justify-between gap-6">
               <FormField
                 control={form.control}
                 name="invoice_date"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex w-full max-w-xs flex-col">
                     <FormLabel>Invoice Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={cn(
+                              'h-10 w-full max-w-xs pl-3 text-left text-sm font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, 'PPP')
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          // disabled={(date) =>
+                          //   date > new Date() || date < new Date("1900-01-01")
+                          // }
+                          captionLayout="dropdown"
+                        />
+                      </PopoverContent>
+                    </Popover>
+
                     <FormMessage />
                   </FormItem>
                 )}
@@ -363,7 +411,7 @@ export default function CreateInvoice() {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className={'w-48'}>
                           <SelectValue placeholder="Select term" />
                         </SelectTrigger>
                       </FormControl>
@@ -373,6 +421,7 @@ export default function CreateInvoice() {
                         <SelectItem value="7 days">7 days</SelectItem>
                         <SelectItem value="14 days">14 days</SelectItem>
                         <SelectItem value="30 days">30 days</SelectItem>
+                        <SelectItem value="60 days">60 days</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -384,11 +433,40 @@ export default function CreateInvoice() {
                 control={form.control}
                 name="due_date"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex w-full max-w-xs flex-col">
                     <FormLabel>Due Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={cn(
+                              'h-10 w-full max-w-xs pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, 'PPP')
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          // disabled={(date) =>
+                          //   date > new Date() || date < new Date("1900-01-01")
+                          // }
+                          captionLayout="dropdown"
+                        />
+                      </PopoverContent>
+                    </Popover>
+
                     <FormMessage />
                   </FormItem>
                 )}
@@ -397,8 +475,8 @@ export default function CreateInvoice() {
           </div>
 
           {/* Products Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Products</h3>
+          <div className="mt-4 space-y-4 border-t">
+            <h3 className="pt-6 text-xl font-semibold">Products</h3>
 
             {/* Products Header */}
             <div className="grid grid-cols-12 gap-4 text-sm font-medium tracking-wide text-gray-700 uppercase">
@@ -422,6 +500,7 @@ export default function CreateInvoice() {
                         <FormItem>
                           <FormControl>
                             <Input
+                              className={'h-10'}
                               placeholder="Enter product / item name"
                               {...field}
                             />
@@ -441,6 +520,7 @@ export default function CreateInvoice() {
                           <FormControl>
                             <Input
                               type="number"
+                              className={'h-10'}
                               placeholder="Enter price"
                               {...field}
                               onChange={(e) =>
@@ -463,6 +543,7 @@ export default function CreateInvoice() {
                           <FormControl>
                             <Input
                               type="number"
+                              className={'h-10'}
                               placeholder="QTY"
                               {...field}
                               onChange={(e) =>
@@ -485,9 +566,9 @@ export default function CreateInvoice() {
                           <FormControl>
                             <Input
                               placeholder="TOTAL PRICE"
+                              className={'h-10'}
                               value={field.value || 0}
                               readOnly
-                              className="bg-gray-50"
                             />
                           </FormControl>
                           <FormMessage />
@@ -507,7 +588,7 @@ export default function CreateInvoice() {
                         onClick={() => remove(index)}
                         className="h-8 w-8 p-0"
                       >
-                        <XIcon className="h-4 w-4" />
+                        <TrashIcon className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
@@ -521,8 +602,7 @@ export default function CreateInvoice() {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <textarea
-                              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[60px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                            <Textarea
                               placeholder="Enter Description"
                               {...field}
                             />
