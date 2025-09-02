@@ -12,22 +12,42 @@ const invoiceStats = [
   {
     title: 'Total Invoices',
     unit: '',
+    value: 120,
+    isPositive: true,
+    percentage: '2.45',
+    chartData: [20, 25, 30, 28, 35, 40, 38, 45, 50],
   },
   {
     title: 'Total Amount',
     unit: '$',
+    value: 45000,
+    isPositive: true,
+    percentage: '3.75',
+    chartData: [2000, 2500, 3000, 2800, 3500, 4000, 3800, 4500, 5000],
   },
   {
     title: 'Outstanding Invoices',
     unit: '$',
+    value: 15000,
+    isPositive: false,
+    percentage: '1.25',
+    chartData: [500, 600, 550, 580, 620, 700, 680, 720, 750],
   },
   {
     title: 'Unpaid Invoices',
     unit: '',
+    value: 45,
+    isPositive: false,
+    percentage: '0.75',
+    chartData: [300, 350, 400, 380, 420, 450, 430, 470, 500],
   },
   {
     title: 'Collection Rate',
     unit: '%',
+    value: 88,
+    percentage: '92.5',
+    isPositive: true,
+    chartData: [80, 82, 85, 83, 87, 90, 88, 92, 95],
   },
 ];
 
@@ -108,7 +128,6 @@ export default function Invoicing() {
                   className="w-full max-w-[259px]"
                   title={stat.title}
                   unit={stat.unit}
-                  emptyState={true}
                   {...stat}
                 />
               ))}
