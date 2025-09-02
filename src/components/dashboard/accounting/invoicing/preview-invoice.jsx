@@ -98,11 +98,11 @@ export default function PreviewInvoice({
       <div className="mb-8">
         {/* Table Header */}
         <div className="bg-primary text-white">
-          <div className="grid grid-cols-12 gap-4 p-4 font-semibold">
+          <div className="grid grid-cols-12 gap-4 p-4 font-semibold max-sm:p-2">
             <div className="col-span-6">Item</div>
             <div className="col-span-2 text-center">Qty</div>
             <div className="col-span-2 text-center">Rate</div>
-            <div className="col-span-2 text-right">Amount</div>
+            <div className="col-span-2 truncate text-right">Amount</div>
           </div>
         </div>
 
@@ -160,10 +160,10 @@ export default function PreviewInvoice({
           <div className="flex justify-end gap-4">
             <span className="font-medium">VAT ({formData.vat || 7.5}%):</span>
             <span className="font-bold">
-              ₦{' '}
               {formData.vat.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
               })}
+              %
             </span>
           </div>
           {formData.delivery_fee > 0 && (

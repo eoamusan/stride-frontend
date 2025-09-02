@@ -14,6 +14,8 @@ export default function Invoicing() {
     const createParam = searchParams.get('create');
     if (createParam === 'true') {
       setToggleCreateInvoice(true);
+    } else {
+      setToggleCreateInvoice(false);
     }
   }, [searchParams]);
 
@@ -31,7 +33,7 @@ export default function Invoicing() {
       setSearchParams(newSearchParams);
     }
   };
-  
+
   if (toggleCreateInvoice) {
     return (
       <div className="my-4 min-h-screen">

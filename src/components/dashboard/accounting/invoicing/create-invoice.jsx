@@ -39,6 +39,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import PreviewInvoice from './preview-invoice';
+import AddCustomerModal from './add-customer';
 
 const formSchema = z.object({
   invoice_number: z.string().min(1, { message: 'Invoice number is required' }),
@@ -81,6 +82,7 @@ const STORAGE_KEY = 'create_invoice_draft';
 
 export default function CreateInvoice() {
   const [isPreview, setIsPreview] = useState(false);
+  const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -283,7 +285,11 @@ export default function CreateInvoice() {
                     </FormItem>
                   )}
                 />
-                <Button type="button" className={'h-10 w-8'}>
+                <Button
+                  type="button"
+                  onClick={() => setIsAddCustomerModalOpen(true)}
+                  className={'h-10 w-8'}
+                >
                   <PlusIcon />
                 </Button>
               </div>
@@ -449,7 +455,7 @@ export default function CreateInvoice() {
                           <Button
                             variant={'outline'}
                             className={cn(
-                              'h-10 w-full max-w-xs pl-3 text-left font-normal',
+                              'h-10 w-full max-w-xs pl-3 text-left text-sm font-normal',
                               !field.value && 'text-muted-foreground'
                             )}
                           >
@@ -785,7 +791,7 @@ export default function CreateInvoice() {
 
           {/* Totals Section */}
           <div className="grid grid-cols-1 gap-8 border-t pt-6 md:grid-cols-5">
-            <div className="col-span-2 space-y-4">
+            <div className="space-y-4 md:col-span-2">
               <h3 className="text-lg font-semibold">Terms</h3>
               <FormField
                 control={form.control}
@@ -804,7 +810,7 @@ export default function CreateInvoice() {
               />
             </div>
 
-            <div className="col-span-2 col-start-4 space-y-4">
+            <div className="space-y-4 md:col-span-2 md:col-start-4">
               <h3 className="text-lg font-semibold">Internal Notes</h3>
               <FormField
                 control={form.control}
@@ -827,7 +833,7 @@ export default function CreateInvoice() {
           {/* Checkboxes */}
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-8 md:grid-cols-5">
-              <div className="col-span-2 space-y-4">
+              <div className="space-y-4 md:col-span-2">
                 <FormField
                   control={form.control}
                   name="paid_with_cash"
@@ -884,7 +890,7 @@ export default function CreateInvoice() {
                 />
               </div>
 
-              <div className="col-span-2 col-start-4">
+              <div className="md:col-span-2 md:col-start-4">
                 <FormField
                   control={form.control}
                   name="apply_signature"
@@ -924,6 +930,10 @@ export default function CreateInvoice() {
           </div>
         </form>
       </Form>
+      <AddCustomerModal
+        open={isAddCustomerModalOpen}
+        onOpenChange={setIsAddCustomerModalOpen}
+      />
     </div>
   );
 }
