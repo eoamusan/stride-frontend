@@ -84,6 +84,29 @@ const accountingItems = [
   },
 ];
 
+const invoicingItems = [
+  {
+    title: 'Invoice Management',
+    link: '/dashboard/accounting/invoicing',
+  },
+  {
+    title: 'Customers',
+    link: '/dashboard/accounting/invoicing/customers',
+  },
+  {
+    title: 'Payments',
+    link: '/dashboard/accounting/invoicing/payments',
+  },
+  {
+    title: 'Credit notes and returns',
+    link: '/dashboard/accounting/invoicing/credit-notes',
+  },
+  {
+    title: 'Settings',
+    link: '/dashboard/accounting/invoicing/settings',
+  },
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -147,4 +170,18 @@ const sidebarItems = [
   },
 ];
 
-export { sidebarItems };
+const accountingTopItems = {
+  overview: accountingItems,
+  invoicing: invoicingItems,
+  expenseManagement: [],
+  bookkeeping: [],
+  financialReports: [],
+  accountsReceivable: [],
+  accountsPayable: [],
+  inventoryManagement: [],
+  budgeting: [],
+  fixedAssetManagement: [],
+  taxManagement: [],
+  bankingReconciliation: [],
+};
+export { sidebarItems, accountingTopItems };
