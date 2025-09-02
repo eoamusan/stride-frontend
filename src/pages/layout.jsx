@@ -10,6 +10,7 @@ import AccountingLayout from './dashboard/accounting/layout';
 import AccountingOverview from './dashboard/accounting/overview/page';
 import Invoicing from './dashboard/accounting/invoicing/page';
 import Customers from './dashboard/accounting/invoicing/customers/page';
+import Payments from './dashboard/accounting/invoicing/payments/page';
 
 const router = createBrowserRouter([
   {
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
                       {
                         path: 'customers',
                         Component: Customers,
+                      },
+                      {
+                        path: 'payments',
+                        Component: Payments,
                       },
                     ],
                   },
