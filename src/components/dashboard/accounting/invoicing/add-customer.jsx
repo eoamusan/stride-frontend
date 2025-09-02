@@ -437,11 +437,11 @@ export default function AddCustomerModal({ open, onOpenChange }) {
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                className="w-full max-w-[35%]"
+                className="h-10 w-full max-w-[35%]"
               >
                 Cancel
               </Button>
-              <Button type="submit" className="w-full max-w-[35%]">
+              <Button type="submit" className="h-10 w-full max-w-[35%]">
                 Save
               </Button>
             </div>
