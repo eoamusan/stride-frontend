@@ -1,4 +1,5 @@
 import PaymentMetrics from '@/components/dashboard/accounting/invoicing/payments/payment-metrics';
+import PaymentTable from '@/components/dashboard/accounting/invoicing/payments/payment-table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, SettingsIcon } from 'lucide-react';
 
@@ -30,7 +31,9 @@ export default function Payments() {
       <div className="mt-10">
         <PaymentMetrics />
 
-        <div className="mt-10">{/* <CustomerTable /> */}</div>
+        <div className="mt-10">
+          <PaymentTable />
+        </div>
       </div>
     </div>
   );
