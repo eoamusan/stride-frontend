@@ -29,46 +29,46 @@ import {
 } from '@/components/ui/pagination';
 import emptyTableImg from '@/assets/icons/empty-table.svg';
 
-const invoiceData = [
+const customerData = [
   {
-    id: 'INV-1001',
-    customer: 'ABC Corporation',
-    currency: 'NGN',
-    amount: '$15,400.00',
-    issueDate: '$15,400.00',
+    id: 'CUST-1001',
+    name: 'John Smith',
+    companyName: 'ABC Corporation',
+    creditLimit: '$50,000.00',
+    balance: '$15,400.00',
     dueDate: 'Jul 20, 2024',
-    status: 'Overdue',
+    status: 'Active',
   },
   {
-    id: 'INV-1002',
-    customer: 'ABC Corporation',
-    currency: 'EUR',
-    amount: '$15,400.00',
-    issueDate: '$15,400.00',
-    dueDate: 'Jul 20, 2024',
-    status: 'Paid',
+    id: 'CUST-1002',
+    name: 'Sarah Johnson',
+    companyName: 'Tech Solutions Ltd',
+    creditLimit: '$25,000.00',
+    balance: '$8,750.00',
+    dueDate: 'Aug 15, 2024',
+    status: 'Active',
   },
   {
-    id: 'INV-1003',
-    customer: 'ABC Corporation',
-    currency: 'USD',
-    amount: '$15,400.00',
-    issueDate: '$15,400.00',
-    dueDate: 'Jul 20, 2024',
-    status: 'Pending',
+    id: 'CUST-1003',
+    name: 'Michael Brown',
+    companyName: 'Global Enterprises',
+    creditLimit: '$100,000.00',
+    balance: '$0.00',
+    dueDate: '-',
+    status: 'Inactive',
   },
   {
-    id: 'INV-1004',
-    customer: 'ABC Corporation',
-    currency: 'GBP',
-    amount: '$15,400.00',
-    issueDate: '$15,400.00',
-    dueDate: 'Jul 20, 2024',
+    id: 'CUST-1004',
+    name: 'Emily Davis',
+    companyName: 'Creative Agency Inc',
+    creditLimit: '$30,000.00',
+    balance: '$22,500.00',
+    dueDate: 'Jun 30, 2024',
     status: 'Overdue',
   },
 ];
 
-const invoiceListData = {
+const customerListData = {
   pagination: {
     page: 1,
     totalPages: 10,
@@ -77,30 +77,30 @@ const invoiceListData = {
   },
 };
 
-export default function InvoiceTable() {
-  const [selectedInvoices, setSelectedInvoices] = useState([]);
+export default function CustomerTable() {
+  const [selectedCustomers, setSelectedCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedInvoices(invoiceData.map((invoice) => invoice.id));
+      setSelectedCustomers(customerData.map((customer) => customer.id));
     } else {
-      setSelectedInvoices([]);
+      setSelectedCustomers([]);
     }
   };
 
-  const handleSelectInvoice = (invoiceId, checked) => {
+  const handleSelectCustomer = (customerId, checked) => {
     if (checked) {
-      setSelectedInvoices([...selectedInvoices, invoiceId]);
+      setSelectedCustomers([...selectedCustomers, customerId]);
     } else {
-      setSelectedInvoices(selectedInvoices.filter((id) => id !== invoiceId));
+      setSelectedCustomers(selectedCustomers.filter((id) => id !== customerId));
     }
   };
 
   const getStatusBadge = (status) => {
     const statusStyles = {
-      Paid: 'bg-green-100 text-green-800 hover:bg-green-100',
-      Pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+      Active: 'bg-green-100 text-green-800 hover:bg-green-100',
+      Inactive: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
       Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
     };
 
@@ -111,14 +111,15 @@ export default function InvoiceTable() {
     );
   };
 
-  const filteredInvoices = invoiceData.filter(
-    (invoice) =>
-      invoice.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.id.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCustomers = customerData.filter(
+    (customer) =>
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Helper to render pagination items
-  const { page, totalPages } = invoiceListData.pagination;
+  const { page, totalPages } = customerListData.pagination;
   const renderPaginationItems = () => {
     const items = [];
     if (totalPages <= 6) {
@@ -166,13 +167,13 @@ export default function InvoiceTable() {
     <div className="w-full rounded-2xl bg-white p-6">
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-6">
-        <h2 className="text-xl font-bold">Invoice Management</h2>
+        <h2 className="text-xl font-bold">Customer Management</h2>
 
         <div className="flex items-center gap-3">
           <div className="relative">
             <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
             <Input
-              placeholder="Search invoices......"
+              placeholder="Search customers......"
               className="w-full max-w-80 pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -191,24 +192,21 @@ export default function InvoiceTable() {
             <TableRow className="bg-zinc-50">
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedInvoices.length === invoiceData.length}
+                  checked={selectedCustomers.length === customerData.length}
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
               <TableHead className="font-semibold text-gray-600">
-                Invoice #
+                Name
               </TableHead>
               <TableHead className="font-semibold text-gray-600">
-                Customer
+                Company Name
               </TableHead>
               <TableHead className="font-semibold text-gray-600">
-                Currency
+                Credit Limit
               </TableHead>
               <TableHead className="font-semibold text-gray-600">
-                Amount
-              </TableHead>
-              <TableHead className="font-semibold text-gray-600">
-                Issue Date
+                Balance
               </TableHead>
               <TableHead className="font-semibold text-gray-600">
                 Due Date
@@ -220,24 +218,23 @@ export default function InvoiceTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredInvoices.length > 0 ? (
-              filteredInvoices.map((invoice, index) => (
+            {filteredCustomers.length > 0 ? (
+              filteredCustomers.map((customer, index) => (
                 <TableRow key={index} className="hover:bg-zinc-50">
                   <TableCell>
                     <Checkbox
-                      checked={selectedInvoices.includes(invoice.id)}
+                      checked={selectedCustomers.includes(customer.id)}
                       onCheckedChange={(checked) =>
-                        handleSelectInvoice(invoice.id, checked)
+                        handleSelectCustomer(customer.id, checked)
                       }
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{invoice.id}</TableCell>
-                  <TableCell>{invoice.customer}</TableCell>
-                  <TableCell>{invoice.currency}</TableCell>
-                  <TableCell>{invoice.amount}</TableCell>
-                  <TableCell>{invoice.issueDate}</TableCell>
-                  <TableCell>{invoice.dueDate}</TableCell>
-                  <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                  <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell>{customer.companyName}</TableCell>
+                  <TableCell>{customer.creditLimit}</TableCell>
+                  <TableCell>{customer.balance}</TableCell>
+                  <TableCell>{customer.dueDate}</TableCell>
+                  <TableCell>{getStatusBadge(customer.status)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -246,9 +243,12 @@ export default function InvoiceTable() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
                         <DropdownMenuItem>View</DropdownMenuItem>
-                        <DropdownMenuItem>Generate receipt</DropdownMenuItem>
+                        <DropdownMenuItem>Create Invoice</DropdownMenuItem>
+                        <DropdownMenuItem>Create Charge</DropdownMenuItem>
+                        <DropdownMenuItem>Make inactive</DropdownMenuItem>
+                        <DropdownMenuItem>Create Statement</DropdownMenuItem>
+                        <DropdownMenuItem>Create Task</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -257,7 +257,7 @@ export default function InvoiceTable() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={9}
+                  colSpan={8}
                   className="h-24 text-center text-gray-500"
                 >
                   <img

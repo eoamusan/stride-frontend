@@ -64,7 +64,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
       <ul className="space-y-2">
         {sidebarItems.map((item, index) => {
           const IconComponent = item.icon;
-          const isActive = location.pathname === item.link;
+          const isActive = location.pathname.includes(item.link);
 
           return (
             <li key={index}>

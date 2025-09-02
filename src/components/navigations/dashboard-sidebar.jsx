@@ -96,7 +96,7 @@ export default function Sidebar() {
       <ul>
         {activeParent?.children.map((item, index) => {
           const IconComponent = item.icon;
-          const isActive = location.pathname === item.link;
+          const isActive = location.pathname.includes(item.link);
 
           return (
             <li key={index}>

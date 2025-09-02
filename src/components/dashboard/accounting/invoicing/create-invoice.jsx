@@ -39,7 +39,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import PreviewInvoice from './preview-invoice';
-import AddCustomerModal from './add-customer';
+import AddCustomerModal from './customers/add-customer';
 import AddBankModal from './add-bank';
 import InvoiceSentModal from './invoice-sent-modal';
 

@@ -78,7 +78,7 @@ export default function Header({ onMobileMenuToggle }) {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden w-full items-center justify-between lg:flex">
+      <div className="hidden w-full items-center justify-between lg:flex gap-8">
         {/* Logo */}
         <div>
           <img src={strideLogo} alt="Stride Logo" />
