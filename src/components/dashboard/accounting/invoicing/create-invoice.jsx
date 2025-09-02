@@ -41,6 +41,7 @@ import { format } from 'date-fns';
 import PreviewInvoice from './preview-invoice';
 import AddCustomerModal from './add-customer';
 import AddBankModal from './add-bank';
+import InvoiceSentModal from './invoice-sent-modal';
 
 const formSchema = z.object({
   invoice_number: z.string().min(1, { message: 'Invoice number is required' }),
@@ -85,6 +86,7 @@ export default function CreateInvoice() {
   const [isPreview, setIsPreview] = useState(false);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -206,6 +208,7 @@ export default function CreateInvoice() {
     // Clear localStorage after successful submission
     localStorage.removeItem(STORAGE_KEY);
     // Handle form submission
+    setIsSuccessModalOpen(true);
   };
 
   const handlePreview = () => {
@@ -939,6 +942,18 @@ export default function CreateInvoice() {
       <AddBankModal
         open={isAddBankModalOpen}
         onOpenChange={setIsAddBankModalOpen}
+      />
+
+      <InvoiceSentModal
+        open={isSuccessModalOpen}
+        onOpenChange={setIsSuccessModalOpen}
+        handleView={handlePreview}
+        handleBack={() => {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('create');
+          window.location.replace(url.pathname + url.search);
+          setIsSuccessModalOpen(false);
+        }}
       />
     </div>
   );
