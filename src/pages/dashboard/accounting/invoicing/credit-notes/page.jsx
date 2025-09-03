@@ -1,3 +1,4 @@
+import AddCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/add-credit';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
 import { Button } from '@/components/ui/button';
@@ -143,6 +144,11 @@ export default function CreditNotes() {
           />
         </div>
       </div>
+
+      <AddCreditNote
+        open={isCreateCreditNoteOpen}
+        onOpenChange={setIsCreateCreditNoteOpen}
+      />
     </div>
   );
 }
