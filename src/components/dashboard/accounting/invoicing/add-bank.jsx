@@ -153,7 +153,7 @@ export default function AddBankModal({ open, onOpenChange }) {
             />
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-6 pt-8">
+            <div className="flex justify-end gap-6 pt-6">
               <Button
                 type="button"
                 variant="outline"

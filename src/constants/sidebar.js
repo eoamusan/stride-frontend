@@ -19,6 +19,7 @@ import {
   Banknote,
   CreditCard,
   FileSpreadsheet,
+  ChartNoAxesColumn,
 } from 'lucide-react';
 
 const accountingItems = [
@@ -29,7 +30,7 @@ const accountingItems = [
   },
   {
     title: 'Invoicing',
-    icon: BookOpen,
+    icon: ChartNoAxesColumn,
     link: '/dashboard/accounting/invoicing',
   },
   {
@@ -39,7 +40,7 @@ const accountingItems = [
   },
   {
     title: 'Bookkeeping & General Ledger',
-    icon: FileSpreadsheet,
+    icon: Package,
     link: '/dashboard/accounting/bookkeeping',
   },
   {
@@ -49,7 +50,7 @@ const accountingItems = [
   },
   {
     title: 'Accounts Receivable (A/R)',
-    icon: Package,
+    icon: FileSpreadsheet,
     link: '/dashboard/accounting/accounts-receivable',
   },
   {
