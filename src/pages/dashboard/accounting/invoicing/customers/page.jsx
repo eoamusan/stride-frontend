@@ -106,23 +106,21 @@ export default function Customers() {
           </p>
         </hgroup>
 
-        {customers.length > 0 && (
-          <div className="flex space-x-4">
-            <Button
-              onClick={() => setIsCreateCustomerOpen(true)}
-              className={'h-10 rounded-2xl'}
-            >
-              <PlusCircleIcon className="size-4" />
-              Add Customer
-            </Button>
-            <Button size={'icon'} className={'size-10'} variant={'outline'}>
-              <DownloadIcon size={16} />
-            </Button>
-            <Button size={'icon'} className={'size-10'} variant={'outline'}>
-              <SettingsIcon size={16} />
-            </Button>
-          </div>
-        )}
+        <div className="flex space-x-4">
+          <Button
+            onClick={() => setIsCreateCustomerOpen(true)}
+            className={'h-10 rounded-2xl'}
+          >
+            <PlusCircleIcon className="size-4" />
+            Add Customer
+          </Button>
+          <Button size={'icon'} className={'size-10'} variant={'outline'}>
+            <DownloadIcon size={16} />
+          </Button>
+          <Button size={'icon'} className={'size-10'} variant={'outline'}>
+            <SettingsIcon size={16} />
+          </Button>
+        </div>
       </div>
 
       <div className="mt-10">

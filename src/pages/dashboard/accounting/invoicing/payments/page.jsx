@@ -107,16 +107,14 @@ export default function Payments() {
           </p>
         </hgroup>
 
-        {payments.length > 0 && (
-          <div className="flex space-x-4">
-            <Button size={'icon'} className={'size-10'} variant={'outline'}>
-              <DownloadIcon size={16} />
-            </Button>
-            <Button size={'icon'} className={'size-10'} variant={'outline'}>
-              <SettingsIcon size={16} />
-            </Button>
-          </div>
-        )}
+        <div className="flex space-x-4">
+          <Button size={'icon'} className={'size-10'} variant={'outline'}>
+            <DownloadIcon size={16} />
+          </Button>
+          <Button size={'icon'} className={'size-10'} variant={'outline'}>
+            <SettingsIcon size={16} />
+          </Button>
+        </div>
       </div>
 
       <div className="mt-10">
