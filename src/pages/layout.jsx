@@ -12,6 +12,7 @@ import Invoicing from './dashboard/accounting/invoicing/page';
 import Customers from './dashboard/accounting/invoicing/customers/page';
 import Payments from './dashboard/accounting/invoicing/payments/page';
 import CreditNotes from './dashboard/accounting/invoicing/credit-notes/page';
+import InvoiceSettings from './dashboard/accounting/invoicing/settings/page';
 
 const router = createBrowserRouter([
   {
@@ -66,6 +67,10 @@ const router = createBrowserRouter([
                       {
                         path: 'credit-notes',
                         Component: CreditNotes,
+                      },
+                      {
+                        path: 'settings',
+                        Component: InvoiceSettings,
                       },
                     ],
                   },
