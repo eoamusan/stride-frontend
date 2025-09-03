@@ -109,7 +109,7 @@ export default function Customers() {
         <div className="flex space-x-4">
           <Button
             onClick={() => setIsCreateCustomerOpen(true)}
-            className={'h-10 rounded-2xl'}
+            className={'h-10 rounded-2xl text-sm'}
           >
             <PlusCircleIcon className="size-4" />
             Add Customer

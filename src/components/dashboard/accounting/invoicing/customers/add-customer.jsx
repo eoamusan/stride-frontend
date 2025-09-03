@@ -86,7 +86,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-full max-w-4xl overflow-y-auto sm:max-w-4xl sm:p-8">
+      <DialogContent className="max-h-[90vh] w-full max-w-4xl overflow-y-auto p-8 sm:max-w-4xl">
         <DialogHeader className={'w-full'}>
           <DialogTitle className="text-2xl font-semibold">
             Add Customer

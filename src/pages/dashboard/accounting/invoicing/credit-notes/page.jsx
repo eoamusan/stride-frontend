@@ -1,4 +1,5 @@
 import AddCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/add-credit';
+import ViewCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/view-credit';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
 import { Button } from '@/components/ui/button';
@@ -82,16 +83,16 @@ const creditMetrics = [
 
 export default function CreditNotes() {
   const [isCreateCreditNoteOpen, setIsCreateCreditNoteOpen] = useState(false);
+  const [isViewCreditNoteOpen, setIsViewCreditNoteOpen] = useState(false);
 
   const handleCreditNoteAction = (action, creditNote) => {
     console.log('Credit note action:', action, creditNote);
     // Handle different actions here
     switch (action) {
       case 'edit':
-        // Handle edit action
         break;
       case 'view':
-        // Handle view action
+        setIsViewCreditNoteOpen(true);
         break;
       case 'export':
         // Handle export action
@@ -114,7 +115,7 @@ export default function CreditNotes() {
         <div className="flex space-x-4">
           <Button
             onClick={() => setIsCreateCreditNoteOpen(true)}
-            className={'h-10 rounded-2xl'}
+            className={'h-10 rounded-2xl text-sm'}
           >
             <PlusCircleIcon className="size-4" />
             Create Credit Note
@@ -148,6 +149,11 @@ export default function CreditNotes() {
       <AddCreditNote
         open={isCreateCreditNoteOpen}
         onOpenChange={setIsCreateCreditNoteOpen}
+      />
+
+      <ViewCreditNote
+        open={isViewCreditNoteOpen}
+        onOpenChange={setIsViewCreditNoteOpen}
       />
     </div>
   );

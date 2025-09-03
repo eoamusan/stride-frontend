@@ -222,7 +222,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-full max-w-5xl overflow-y-auto p-6 sm:max-w-5xl">
+      <DialogContent className="max-h-[90vh] w-full max-w-5xl overflow-y-auto p-8 sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Create Credit Notes</DialogTitle>
           <p className="text-muted-foreground text-sm">

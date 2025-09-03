@@ -11,7 +11,7 @@ import { CirclePlusIcon } from 'lucide-react';
 export default function OnboardModal({ open, onClose }) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="p-8 sm:max-w-lg">
         <DialogHeader className="text-center">
           <DialogTitle className="text-center text-xl font-semibold">
             Get Started

@@ -102,7 +102,7 @@ export default function Invoicing() {
           <div className="flex space-x-4">
             <Button
               onClick={handleToggleCreateInvoice}
-              className={'h-10 rounded-2xl'}
+              className={'h-10 rounded-2xl text-sm'}
             >
               <PlusCircle className="size-4" />
               Create Invoice

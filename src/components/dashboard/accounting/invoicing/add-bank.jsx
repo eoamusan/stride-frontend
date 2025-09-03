@@ -53,7 +53,7 @@ export default function AddBankModal({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-full max-w-lg overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] w-full max-w-lg overflow-y-auto p-8 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-left text-2xl font-semibold">
             Add Bank
