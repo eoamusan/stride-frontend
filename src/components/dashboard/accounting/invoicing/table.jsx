@@ -29,98 +29,69 @@ import {
 } from '@/components/ui/pagination';
 import emptyTableImg from '@/assets/icons/empty-table.svg';
 
-const paymentData = [
-  {
-    id: 'P-35476',
-    customer: 'ABC Corporation',
-    invoice: '#INV-001',
-    method: 'Bank Transfer',
-    amount: '$15,400.00',
-    date: 'Jul 20, 2024',
-    status: 'Overdue',
-  },
-  {
-    id: 'P-35477',
-    customer: 'Tech Solutions Ltd',
-    invoice: '#INV-002',
-    method: 'Credit Card',
-    amount: '$8,750.00',
-    date: 'Aug 15, 2024',
-    status: 'Completed',
-  },
-  {
-    id: 'P-35478',
-    customer: 'Global Enterprises',
-    invoice: '#INV-003',
-    method: 'Bank Transfer',
-    amount: '$25,000.00',
-    date: 'Aug 10, 2024',
-    status: 'Pending',
-  },
-  {
-    id: 'P-35479',
-    customer: 'Creative Agency Inc',
-    invoice: '#INV-004',
-    method: 'PayPal',
-    amount: '$12,300.00',
-    date: 'Jul 30, 2024',
-    status: 'Failed',
-  },
-];
-
-const paymentListData = {
-  pagination: {
+export default function InvoicingTable({
+  title,
+  data = [],
+  columns = [],
+  searchFields = [],
+  searchPlaceholder = 'Search...',
+  statusStyles = {},
+  dropdownActions = [],
+  paginationData = {
     page: 1,
-    totalPages: 10,
+    totalPages: 1,
     pageSize: 10,
-    totalCount: 100,
+    totalCount: 0,
   },
-};
-
-export default function PaymentTable() {
-  const [selectedPayments, setSelectedPayments] = useState([]);
+  onRowAction,
+  className = '',
+}) {
+  const [selectedItems, setSelectedItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedPayments(paymentData.map((payment) => payment.id));
+      setSelectedItems(data.map((item) => item.id));
     } else {
-      setSelectedPayments([]);
+      setSelectedItems([]);
     }
   };
 
-  const handleSelectPayment = (paymentId, checked) => {
+  const handleSelectItem = (itemId, checked) => {
     if (checked) {
-      setSelectedPayments([...selectedPayments, paymentId]);
+      setSelectedItems([...selectedItems, itemId]);
     } else {
-      setSelectedPayments(selectedPayments.filter((id) => id !== paymentId));
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
     }
   };
 
   const getStatusBadge = (status) => {
-    const statusStyles = {
-      Completed: 'bg-green-100 text-green-800 hover:bg-green-100',
-      Pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-      Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
-      Failed: 'bg-red-100 text-red-800 hover:bg-red-100',
-    };
+    const defaultStyles = 'bg-gray-100 text-gray-800 hover:bg-gray-100';
+    const badgeStyle = statusStyles[status] || defaultStyles;
 
-    return (
-      <Badge className={statusStyles[status] || 'bg-gray-100 text-gray-800'}>
-        {status}
-      </Badge>
-    );
+    return <Badge className={badgeStyle}>{status}</Badge>;
   };
 
-  const filteredPayments = paymentData.filter(
-    (payment) =>
-      payment.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.invoice.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = data.filter((item) => {
+    if (!searchTerm) return true;
+
+    return searchFields.some((field) => {
+      const value = item[field];
+      if (value && typeof value === 'string') {
+        return value.toLowerCase().includes(searchTerm.toLowerCase());
+      }
+      return false;
+    });
+  });
+
+  const handleDropdownAction = (action, item) => {
+    if (onRowAction) {
+      onRowAction(action, item);
+    }
+  };
 
   // Helper to render pagination items
-  const { page, totalPages } = paymentListData.pagination;
+  const { page, totalPages } = paginationData;
   const renderPaginationItems = () => {
     const items = [];
     if (totalPages <= 6) {
@@ -164,17 +135,31 @@ export default function PaymentTable() {
     return items;
   };
 
+  const renderCellContent = (item, column) => {
+    const value = item[column.key];
+
+    if (column.key === 'status') {
+      return getStatusBadge(value);
+    }
+
+    if (column.render) {
+      return column.render(value, item);
+    }
+
+    return value;
+  };
+
   return (
-    <div className="w-full rounded-2xl bg-white p-6">
+    <div className={`w-full rounded-2xl bg-white p-6 ${className}`}>
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-6">
-        <h2 className="text-xl font-bold">Recent Payments</h2>
+        <h2 className="text-xl font-bold">{title}</h2>
 
         <div className="flex items-center gap-3">
           <div className="relative">
             <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
             <Input
-              placeholder="Search payment......"
+              placeholder={searchPlaceholder}
               className="w-full max-w-80 pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -193,71 +178,76 @@ export default function PaymentTable() {
             <TableRow className="bg-zinc-50">
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedPayments.length === paymentData.length}
+                  checked={
+                    selectedItems.length === data.length && data.length > 0
+                  }
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
-              <TableHead className="font-semibold text-gray-600">
-                Payment ID
-              </TableHead>
-              <TableHead className="font-semibold text-gray-600">
-                Customer
-              </TableHead>
-              <TableHead className="font-semibold text-gray-600">
-                Invoice
-              </TableHead>
-              <TableHead className="font-semibold text-gray-600">
-                Method
-              </TableHead>
-              <TableHead className="font-semibold text-gray-600">
-                Amount
-              </TableHead>
-              <TableHead className="font-semibold text-gray-600">
-                Date
-              </TableHead>
-              <TableHead className="font-semibold text-gray-600">
-                Status
-              </TableHead>
-              <TableHead className="w-12"></TableHead>
+              {columns.map((column, index) => (
+                <TableHead
+                  key={index}
+                  className={`font-semibold text-gray-600 ${column.className || ''}`}
+                >
+                  {column.label}
+                </TableHead>
+              ))}
+              {dropdownActions.length > 0 && (
+                <TableHead className="w-12"></TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredPayments.length > 0 ? (
-              filteredPayments.map((payment, index) => (
+            {filteredData.length > 0 ? (
+              filteredData.map((item, index) => (
                 <TableRow key={index} className="hover:bg-zinc-50">
                   <TableCell>
                     <Checkbox
-                      checked={selectedPayments.includes(payment.id)}
+                      checked={selectedItems.includes(item.id)}
                       onCheckedChange={(checked) =>
-                        handleSelectPayment(payment.id, checked)
+                        handleSelectItem(item.id, checked)
                       }
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{payment.id}</TableCell>
-                  <TableCell>{payment.customer}</TableCell>
-                  <TableCell>{payment.invoice}</TableCell>
-                  <TableCell>{payment.method}</TableCell>
-                  <TableCell>{payment.amount}</TableCell>
-                  <TableCell>{payment.date}</TableCell>
-                  <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontalIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Export</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {columns.map((column, colIndex) => (
+                    <TableCell
+                      key={colIndex}
+                      className={colIndex === 0 ? 'font-medium' : ''}
+                    >
+                      {renderCellContent(item, column)}
+                    </TableCell>
+                  ))}
+                  {dropdownActions.length > 0 && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontalIcon className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {dropdownActions.map((action, actionIndex) => (
+                            <DropdownMenuItem
+                              key={actionIndex}
+                              onClick={() =>
+                                handleDropdownAction(action.key, item)
+                              }
+                            >
+                              {action.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={9}
+                  colSpan={
+                    columns.length + 1 + (dropdownActions.length > 0 ? 1 : 0)
+                  }
                   className="h-24 text-center text-gray-500"
                 >
                   <img
