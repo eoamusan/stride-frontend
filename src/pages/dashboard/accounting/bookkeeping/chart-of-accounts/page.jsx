@@ -1,6 +1,55 @@
 import AccountActions from '@/components/dashboard/accounting/bookkeeping/account-cta';
+import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+
+// Chart of Accounts data based on the UI image
+const accountsData = [
+  {
+    id: 1,
+    codeSeries: '10001',
+    name: 'Wage expenses',
+    type: 'Office equipment',
+    description: 'Thank you',
+    currency: 'NGN',
+    balance: '$453',
+  },
+  {
+    id: 2,
+    codeSeries: '10001',
+    name: 'Wage expenses',
+    type: 'Office equipment',
+    description: 'Received',
+    currency: 'EUR',
+    balance: '$453',
+  },
+];
+
+// Table columns configuration
+const accountColumns = [
+  { key: 'codeSeries', label: 'Code Series' },
+  { key: 'name', label: 'Name' },
+  { key: 'type', label: 'Type' },
+  { key: 'description', label: 'Description' },
+  { key: 'currency', label: 'Currency' },
+  { key: 'balance', label: 'Balance' },
+];
+
+// Dropdown actions for each row
+const accountDropdownActions = [
+  { key: 'edit', label: 'Edit' },
+  { key: 'view', label: 'View' },
+  { key: 'delete', label: 'Delete' },
+  { key: 'duplicate', label: 'Duplicate' },
+];
+
+// Pagination data
+const accountPaginationData = {
+  page: 1,
+  totalPages: 10,
+  pageSize: 75,
+  totalCount: 200,
+};
 
 export default function ChartOfAccounts() {
   // State for AccountActions
@@ -73,6 +122,69 @@ export default function ChartOfAccounts() {
     console.log('Run report clicked');
     // Add report generation logic here
   };
+
+  // Handle row actions for the accounts table
+  const handleAccountRowAction = (action, account) => {
+    console.log(`Action: ${action}`, account);
+    switch (action) {
+      case 'edit':
+        console.log('Edit account:', account.codeSeries);
+        // Add edit logic here
+        break;
+      case 'view':
+        console.log('View account:', account.codeSeries);
+        // Add view logic here
+        break;
+      case 'delete':
+        console.log('Delete account:', account.codeSeries);
+        // Add delete logic here
+        break;
+      case 'duplicate':
+        console.log('Duplicate account:', account.codeSeries);
+        // Add duplicate logic here
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
+  };
+
+  // Filter accounts based on search term and column visibility
+  const getFilteredAccounts = () => {
+    let filtered = accountsData;
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (account) =>
+          account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          account.codeSeries.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          account.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          account.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return filtered;
+  };
+
+  // Get visible columns based on settings
+  const getVisibleColumns = () => {
+    return accountColumns.filter((column) => {
+      switch (column.key) {
+        case 'codeSeries':
+          return columns.number;
+        case 'type':
+          return columns.type;
+        case 'description':
+          return columns.detailType;
+        case 'currency':
+          return columns.currency;
+        case 'balance':
+          return columns.bankBalance;
+        default:
+          return true; // Always show name column
+      }
+    });
+  };
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -109,6 +221,18 @@ export default function ChartOfAccounts() {
           onFilterClick={handleFilterClick}
           onDownloadFormats={handleDownloadFormats}
           onRunReport={handleRunReport}
+        />
+
+        <BookkeepingTable
+          className="mt-10"
+          data={getFilteredAccounts()}
+          columns={getVisibleColumns()}
+          dropdownActions={accountDropdownActions}
+          paginationData={{
+            ...accountPaginationData,
+            pageSize: parseInt(pageSize),
+          }}
+          onRowAction={handleAccountRowAction}
         />
       </div>
     </div>
