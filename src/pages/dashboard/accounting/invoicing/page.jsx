@@ -5,9 +5,82 @@ import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-in
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircle, SettingsIcon } from 'lucide-react';
 import MetricCard from '@/components/dashboard/metric-card';
-import InvoiceTable from '@/components/dashboard/accounting/invoicing/invoice-table';
+import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
 
 const invoice = [''];
+
+// Invoice data from invoice-table.jsx
+const invoiceData = [
+  {
+    id: 'INV-1001',
+    customer: 'ABC Corporation',
+    currency: 'NGN',
+    amount: '$15,400.00',
+    issueDate: '$15,400.00',
+    dueDate: 'Jul 20, 2024',
+    status: 'Overdue',
+  },
+  {
+    id: 'INV-1002',
+    customer: 'ABC Corporation',
+    currency: 'EUR',
+    amount: '$15,400.00',
+    issueDate: '$15,400.00',
+    dueDate: 'Jul 20, 2024',
+    status: 'Paid',
+  },
+  {
+    id: 'INV-1003',
+    customer: 'ABC Corporation',
+    currency: 'USD',
+    amount: '$15,400.00',
+    issueDate: '$15,400.00',
+    dueDate: 'Jul 20, 2024',
+    status: 'Pending',
+  },
+  {
+    id: 'INV-1004',
+    customer: 'ABC Corporation',
+    currency: 'GBP',
+    amount: '$15,400.00',
+    issueDate: '$15,400.00',
+    dueDate: 'Jul 20, 2024',
+    status: 'Overdue',
+  },
+];
+
+// Table configuration
+const invoiceColumns = [
+  { key: 'id', label: 'Invoice #' },
+  { key: 'customer', label: 'Customer' },
+  { key: 'currency', label: 'Currency' },
+  { key: 'amount', label: 'Amount' },
+  { key: 'issueDate', label: 'Issue Date' },
+  { key: 'dueDate', label: 'Due Date' },
+  { key: 'status', label: 'Status' },
+];
+
+const invoiceStatusStyles = {
+  Paid: 'bg-green-100 text-green-800 hover:bg-green-100',
+  Pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+  Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
+};
+
+const invoiceDropdownActions = [
+  { key: 'edit', label: 'Edit' },
+  { key: 'view', label: 'View' },
+  { key: 'generate-receipt', label: 'Generate receipt' },
+];
+
+const invoiceListData = {
+  pagination: {
+    page: 1,
+    totalPages: 10,
+    pageSize: 10,
+    totalCount: 100,
+  },
+};
+
 const invoiceStats = [
   {
     title: 'Total Invoices',
@@ -54,6 +127,27 @@ const invoiceStats = [
 export default function Invoicing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [toggleCreateInvoice, setToggleCreateInvoice] = useState(false);
+
+  // Handle row actions for the table
+  const handleRowAction = (action, item) => {
+    console.log(`Action: ${action}`, item);
+    switch (action) {
+      case 'edit':
+        // Add edit logic here
+        console.log('Edit invoice:', item.id);
+        break;
+      case 'view':
+        // Add view logic here
+        console.log('View invoice:', item.id);
+        break;
+      case 'generate-receipt':
+        // Add receipt generation logic here
+        console.log('Generate receipt for:', item.id);
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
+  };
 
   // Check for create parameter on component mount
   useEffect(() => {
@@ -133,7 +227,17 @@ export default function Invoicing() {
               ))}
           </div>
 
-          <InvoiceTable />
+          <InvoicingTable
+            title="Invoice Management"
+            data={invoiceData}
+            columns={invoiceColumns}
+            searchFields={['customer', 'id']}
+            searchPlaceholder="Search invoices......"
+            statusStyles={invoiceStatusStyles}
+            dropdownActions={invoiceDropdownActions}
+            paginationData={invoiceListData.pagination}
+            onRowAction={handleRowAction}
+          />
         </div>
       )}
     </div>

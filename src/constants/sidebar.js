@@ -108,6 +108,25 @@ const invoicingItems = [
   },
 ];
 
+const bookkeepingItems = [
+  {
+    title: 'Chart of Accounts',
+    link: '/dashboard/accounting/bookkeeping',
+  },
+  {
+    title: 'Ledger View',
+    link: '/dashboard/accounting/bookkeeping/ledger-view',
+  },
+  {
+    title: 'Journal Entries',
+    link: '/dashboard/accounting/bookkeeping/journals',
+  },
+  {
+    title: 'Trial Balance',
+    link: '/dashboard/accounting/bookkeeping/trial-balance',
+  },
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -175,7 +194,7 @@ const accountingTopItems = {
   overview: accountingItems,
   invoicing: invoicingItems,
   expenseManagement: [],
-  bookkeeping: [],
+  bookkeeping: bookkeepingItems,
   financialReports: [],
   accountsReceivable: [],
   accountsPayable: [],
