@@ -1,9 +1,10 @@
 import AccountActions from '@/components/dashboard/accounting/bookkeeping/account-cta';
+import AccountSuccess from '@/components/dashboard/accounting/bookkeeping/account-success';
+import AddAccountForm from '@/components/dashboard/accounting/bookkeeping/add-account';
 import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
-// Chart of Accounts data based on the UI image
 const accountsData = [
   {
     id: 1,
@@ -66,6 +67,8 @@ export default function ChartOfAccounts() {
   const [showAccountTypeBadges, setShowAccountTypeBadges] = useState(true);
   const [pageSize, setPageSize] = useState('75');
   const [tableDensity, setTableDensity] = useState('Cozy');
+  const [openAddForm, setOpenAddForm] = useState(true);
+  const [showAccountSuccess, setShowAccountSuccess] = useState(false);
 
   // Handlers
   const handleBatchActionChange = (value) => {
@@ -196,7 +199,12 @@ export default function ChartOfAccounts() {
         </hgroup>
 
         <div className="flex space-x-4">
-          <Button className={'h-10 rounded-2xl text-sm'}>Add Account</Button>
+          <Button
+            onClick={() => setOpenAddForm(true)}
+            className={'h-10 rounded-2xl text-sm'}
+          >
+            Add Account
+          </Button>
           <Button variant={'outline'} className={'h-10 rounded-2xl text-sm'}>
             Date Range
           </Button>
@@ -235,6 +243,17 @@ export default function ChartOfAccounts() {
           onRowAction={handleAccountRowAction}
         />
       </div>
+
+      <AddAccountForm
+        isOpen={openAddForm}
+        onClose={setOpenAddForm}
+        showSuccessModal={() => setShowAccountSuccess(true)}
+      />
+
+      <AccountSuccess
+        open={showAccountSuccess}
+        onOpenChange={setShowAccountSuccess}
+      />
     </div>
   );
 }
