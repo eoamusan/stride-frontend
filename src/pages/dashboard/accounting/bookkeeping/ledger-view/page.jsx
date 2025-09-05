@@ -3,6 +3,16 @@ import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/tabl
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
+const ledgercolumns = [
+  { key: 'id', label: 'Ledger ID' },
+  { key: 'customer', label: 'Customer' },
+  { key: 'originalInvoice', label: 'Original Invoice' },
+  { key: 'reason', label: 'Reason' },
+  { key: 'amount', label: 'Amount' },
+  { key: 'issueDate', label: 'Issue Date' },
+  { key: 'status', label: 'Status' },
+];
+
 export default function LedgerView() {
   // State for LedgerViewCta
   const [reportPeriod, setReportPeriod] = useState('');
@@ -88,7 +98,7 @@ export default function LedgerView() {
         />
       </div>
       <div className="mt-10">
-        <BookkeepingTable />
+        <BookkeepingTable columns={ledgercolumns} />
       </div>
     </div>
   );

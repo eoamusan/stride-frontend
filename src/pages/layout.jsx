@@ -15,6 +15,8 @@ import CreditNotes from './dashboard/accounting/invoicing/credit-notes/page';
 import InvoiceSettings from './dashboard/accounting/invoicing/settings/page';
 import LedgerView from './dashboard/accounting/bookkeeping/ledger-view/page';
 import ChartOfAccounts from './dashboard/accounting/bookkeeping/chart-of-accounts/page';
+import JournalEntries from './dashboard/accounting/bookkeeping/journals/page';
+import TrialBalance from './dashboard/accounting/bookkeeping/trial-balance/page';
 
 const router = createBrowserRouter([
   {
@@ -86,6 +88,14 @@ const router = createBrowserRouter([
                       {
                         path: 'ledger-view',
                         Component: LedgerView,
+                      },
+                      {
+                        path: 'journals',
+                        Component: JournalEntries,
+                      },
+                      {
+                        path: 'trial-balance',
+                        Component: TrialBalance,
                       },
                     ],
                   },
