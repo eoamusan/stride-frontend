@@ -1,6 +1,7 @@
 import AccountActions from '@/components/dashboard/accounting/bookkeeping/account-cta';
 import AccountSuccess from '@/components/dashboard/accounting/bookkeeping/account-success';
 import AddAccountForm from '@/components/dashboard/accounting/bookkeeping/add-account';
+import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
 import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -69,6 +70,7 @@ export default function ChartOfAccounts() {
   const [tableDensity, setTableDensity] = useState('Cozy');
   const [openAddForm, setOpenAddForm] = useState(true);
   const [showAccountSuccess, setShowAccountSuccess] = useState(false);
+  const [openRunReportForm, setOpenRunReportForm] = useState(false);
 
   // Handlers
   const handleBatchActionChange = (value) => {
@@ -122,8 +124,7 @@ export default function ChartOfAccounts() {
   };
 
   const handleRunReport = () => {
-    console.log('Run report clicked');
-    // Add report generation logic here
+    setOpenRunReportForm(true);
   };
 
   // Handle row actions for the accounts table
@@ -253,6 +254,14 @@ export default function ChartOfAccounts() {
       <AccountSuccess
         open={showAccountSuccess}
         onOpenChange={setShowAccountSuccess}
+      />
+
+      <RunReportForm
+        isOpen={openRunReportForm}
+        onClose={() => setOpenRunReportForm(false)}
+        onSubmit={() => {
+          setOpenRunReportForm(false);
+        }}
       />
     </div>
   );
