@@ -68,7 +68,7 @@ export default function ChartOfAccounts() {
   const [showAccountTypeBadges, setShowAccountTypeBadges] = useState(true);
   const [pageSize, setPageSize] = useState('75');
   const [tableDensity, setTableDensity] = useState('Cozy');
-  const [openAddForm, setOpenAddForm] = useState(true);
+  const [openAddForm, setOpenAddForm] = useState(false);
   const [showAccountSuccess, setShowAccountSuccess] = useState(false);
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
 
