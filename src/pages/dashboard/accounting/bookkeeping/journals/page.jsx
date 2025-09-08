@@ -6,15 +6,75 @@ import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/tabl
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
 import JournalEntrySuccess from '@/components/dashboard/accounting/bookkeeping/journal-entry-success';
 import { se } from 'date-fns/locale';
+import RecurringTemplateForm from '@/components/dashboard/accounting/bookkeeping/recurring-template-form';
 
 const journalTableColumns = [
   { key: 'date', label: 'Date' },
-  { key: 'type', label: 'Type' },
   { key: 'ref', label: 'Ref No' },
+  { key: 'type', label: 'Type' },
   { key: 'assigned', label: 'Assigned' },
   { key: 'dueDate', label: 'Due Date' },
+  { key: 'balance', label: 'Balance' },
   { key: 'total', label: 'Total' },
-  { key: 'action', label: 'Action' },
+  { key: 'dateModified', label: 'Date Modified' },
+];
+
+const journalEntriesData = [
+  {
+    id: 1,
+    date: '12-12-25',
+    ref: '10004',
+    type: 'Wage expenses',
+    assigned: 'John',
+    dueDate: '12-12-25',
+    balance: '₦453',
+    total: '₦453',
+    dateModified: '12-12-25',
+  },
+  {
+    id: 2,
+    date: '12-12-25',
+    ref: '10005',
+    type: 'Wage expenses',
+    assigned: 'John',
+    dueDate: '12-12-25',
+    balance: '₦453',
+    total: '₦453',
+    dateModified: '12-12-25',
+  },
+  {
+    id: 3,
+    date: '12-12-25',
+    ref: '10006',
+    type: 'Wage expenses',
+    assigned: 'John',
+    dueDate: '12-12-25',
+    balance: '₦453',
+    total: '₦453',
+    dateModified: '12-12-25',
+  },
+  {
+    id: 4,
+    date: '12-12-25',
+    ref: '10007',
+    type: 'Wage expenses',
+    assigned: 'John',
+    dueDate: '12-12-25',
+    balance: '₦453',
+    total: '₦453',
+    dateModified: '12-12-25',
+  },
+  {
+    id: 5,
+    date: '12-12-25',
+    ref: '10008',
+    type: 'Wage expenses',
+    assigned: 'John',
+    dueDate: '12-12-25',
+    balance: '₦453',
+    total: '₦453',
+    dateModified: '12-12-25',
+  },
 ];
 
 export default function JournalEntries() {
@@ -25,6 +85,8 @@ export default function JournalEntries() {
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
   const [openJournalEntryForm, setOpenJournalEntryForm] = useState(false);
   const [entrySuccessOpen, setEntrySuccessOpen] = useState(false);
+  const [recurringStatus, setRecurringStatus] = useState(false);
+  const [recurringTemplateOpen, setRecurringTemplateOpen] = useState(false);
 
   // Handlers
   const handleDateChange = (date) => {
@@ -56,6 +118,14 @@ export default function JournalEntries() {
 
   const handleEntryAdded = () => {
     setEntrySuccessOpen(true);
+  };
+
+  const handleRecurringStatusChange = (checked) => {
+    setRecurringStatus(checked);
+
+    if (checked) {
+      setRecurringTemplateOpen(true);
+    }
   };
 
   return (
@@ -90,10 +160,39 @@ export default function JournalEntries() {
           onReferenceNumberChange={handleReferenceNumberChange}
           onFilter={handleFilter}
           onRunReport={() => setOpenRunReportForm(true)}
+          recurringStatus={recurringStatus}
+          onRecurringStatusChange={handleRecurringStatusChange}
         />
       </div>
       <div className="mt-10">
-        <BookkeepingTable columns={journalTableColumns} />
+        <BookkeepingTable
+          data={journalEntriesData}
+          columns={journalTableColumns}
+          dropdownActions={[
+            { key: 'edit', label: 'Edit' },
+            { key: 'view', label: 'View' },
+          ]}
+          paginationData={{
+            page: 1,
+            totalPages: 10,
+            pageSize: 10,
+            totalCount: journalEntriesData.length,
+          }}
+          onRowAction={(action, item) => {
+            console.log(`Action: ${action}, Item:`, item);
+            // Handle different actions here
+            switch (action) {
+              case 'edit':
+                // Handle edit action
+                break;
+              case 'view':
+                // Handle view action
+                break;
+              default:
+                break;
+            }
+          }}
+        />
       </div>
 
       <RunReportForm
@@ -113,6 +212,12 @@ export default function JournalEntries() {
         open={entrySuccessOpen}
         onOpenChange={setEntrySuccessOpen}
         handleBack={() => setEntrySuccessOpen(false)}
+      />
+
+      <RecurringTemplateForm
+        open={recurringTemplateOpen}
+        onOpenChange={setRecurringTemplateOpen}
+        onSubmit={() => {}}
       />
     </div>
   );

@@ -39,6 +39,7 @@ export default function BookkeepingTable({
   },
   onRowAction,
   className = '',
+  summaryRow,
 }) {
   const [selectedItems, setSelectedItems] = useState([]);
 
@@ -207,6 +208,7 @@ export default function BookkeepingTable({
             )}
           </TableBody>
         </Table>
+        {summaryRow && <>{summaryRow}</>}
       </div>
 
       {/* Pagination */}

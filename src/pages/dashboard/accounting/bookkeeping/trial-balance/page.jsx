@@ -1,4 +1,5 @@
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
+import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
 import TrialBalanceCta from '@/components/dashboard/accounting/bookkeeping/trial-balance-cta';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -9,6 +10,69 @@ export default function TrialBalance() {
   const [toDate, setToDate] = useState(null);
   const [accountingMethod, setAccountingMethod] = useState('accrual');
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
+
+  // Trial Balance Data based on the image
+  const trialBalanceData = [
+    {
+      id: 1,
+      accountCode: '1000',
+      accountName: 'Cash and Cash Equivalents',
+      type: 'Assets',
+      debit: 125000,
+      credit: 0,
+    },
+    {
+      id: 2,
+      accountCode: '1000',
+      accountName: 'Cash and Cash Equivalents',
+      type: 'Assets',
+      debit: 125000,
+      credit: 0,
+    },
+  ];
+
+  // Calculate totals
+  const totalDebit = trialBalanceData.reduce(
+    (sum, item) => sum + item.debit,
+    0
+  );
+  const totalCredit = trialBalanceData.reduce(
+    (sum, item) => sum + item.credit,
+    0
+  );
+
+  // Table columns configuration
+  const trialBalanceColumns = [
+    {
+      key: 'accountCode',
+      label: 'Account Code',
+    },
+    {
+      key: 'accountName',
+      label: 'Account Name',
+    },
+    {
+      key: 'type',
+      label: 'Type',
+    },
+    {
+      key: 'debit',
+      label: 'Debit',
+      // render: (value) => (value > 0 ? `$${value.toLocaleString()}` : '-'),
+    },
+    {
+      key: 'credit',
+      label: 'Credit',
+      // render: (value) => (value > 0 ? `$${value.toLocaleString()}` : '-'),
+    },
+  ];
+
+  const paginationData = {
+    page: 10,
+    totalPages: 3,
+    pageSize: 10,
+    totalCount: trialBalanceData.length,
+  };
 
   return (
     <div className="my-4 min-h-screen">
@@ -41,6 +105,30 @@ export default function TrialBalance() {
           onFilter={() => {}}
         />
       </div>
+
+      <BookkeepingTable
+        className="mt-10"
+        data={trialBalanceData}
+        columns={trialBalanceColumns}
+        paginationData={paginationData}
+        summaryRow={
+          <div className="border-t bg-red-100 px-4 py-2">
+            <div className="grid grid-cols-10 gap-4 text-sm font-semibold">
+              <div className="col-span-3 text-left">Total NGN</div>
+              <div className="text-right col-start-8">NGN{totalDebit.toLocaleString()}</div>
+              <div className="text-right">
+                NGN{totalCredit.toLocaleString()}
+              </div>
+            </div>
+          </div>
+        }
+        dropdownActions={[
+          { key: 'edit', label: 'Edit' },
+          { key: 'view', label: 'View' },
+          { key: 'delete', label: 'Delete' },
+        ]}
+        onRowAction={() => {}}
+      />
 
       <RunReportForm
         isOpen={openRunReportForm}
