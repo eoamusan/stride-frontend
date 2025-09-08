@@ -88,6 +88,18 @@ export default function JournalEntries() {
   const [recurringStatus, setRecurringStatus] = useState(false);
   const [recurringTemplateOpen, setRecurringTemplateOpen] = useState(false);
 
+  // State for table selection
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
+
+  // Handle selection changes from BookkeepingTable
+  const handleSelectionChange = (selectedIds, selectedRowData) => {
+    setSelectedRowIds(selectedIds);
+    setSelectedRows(selectedRowData);
+    console.log('Selected IDs:', selectedIds);
+    console.log('Selected Rows:', selectedRowData);
+  };
+
   // Handlers
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -122,8 +134,7 @@ export default function JournalEntries() {
 
   const handleRecurringStatusChange = (checked) => {
     setRecurringStatus(checked);
-
-    if (checked) {
+    if (checked && selectedRows.length > 0 && selectedRowIds.length > 0) {
       setRecurringTemplateOpen(true);
     }
   };
@@ -178,6 +189,7 @@ export default function JournalEntries() {
             pageSize: 10,
             totalCount: journalEntriesData.length,
           }}
+          onSelectionChange={handleSelectionChange}
           onRowAction={(action, item) => {
             console.log(`Action: ${action}, Item:`, item);
             // Handle different actions here

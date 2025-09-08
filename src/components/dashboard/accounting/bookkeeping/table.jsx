@@ -38,24 +38,54 @@ export default function BookkeepingTable({
     totalCount: 0,
   },
   onRowAction,
+  onSelectionChange,
+  selectedItems: controlledSelectedItems,
   className = '',
   summaryRow,
 }) {
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [internalSelectedItems, setInternalSelectedItems] = useState([]);
+
+  // Use controlled selection if provided, otherwise use internal state
+  const selectedItems =
+    controlledSelectedItems !== undefined
+      ? controlledSelectedItems
+      : internalSelectedItems;
+  const setSelectedItems =
+    controlledSelectedItems !== undefined
+      ? (newSelection) => {
+          if (onSelectionChange) {
+            const selectedRows = data.filter((item) =>
+              newSelection.includes(item.id)
+            );
+            onSelectionChange(newSelection, selectedRows);
+          }
+        }
+      : setInternalSelectedItems;
 
   const handleSelectAll = (checked) => {
-    if (checked) {
-      setSelectedItems(data.map((item) => item.id));
-    } else {
-      setSelectedItems([]);
+    const newSelection = checked ? data.map((item) => item.id) : [];
+    setSelectedItems(newSelection);
+
+    // Notify parent component about selection change (for uncontrolled mode)
+    if (onSelectionChange && controlledSelectedItems === undefined) {
+      const selectedRows = checked ? data : [];
+      onSelectionChange(newSelection, selectedRows);
     }
   };
 
   const handleSelectItem = (itemId, checked) => {
-    if (checked) {
-      setSelectedItems([...selectedItems, itemId]);
-    } else {
-      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    const newSelection = checked
+      ? [...selectedItems, itemId]
+      : selectedItems.filter((id) => id !== itemId);
+
+    setSelectedItems(newSelection);
+
+    // Notify parent component about selection change (for uncontrolled mode)
+    if (onSelectionChange && controlledSelectedItems === undefined) {
+      const selectedRows = data.filter((item) =>
+        newSelection.includes(item.id)
+      );
+      onSelectionChange(newSelection, selectedRows);
     }
   };
 

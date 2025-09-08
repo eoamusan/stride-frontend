@@ -34,6 +34,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { DialogDescription } from '@radix-ui/react-dialog';
 
 const formSchema = z.object({
   templateName: z.string().min(1, { message: 'Template name is required' }),
@@ -45,7 +46,6 @@ const formSchema = z.object({
   onDay: z.string().min(1, { message: 'Day is required' }),
   onDate: z.string().min(1, { message: 'Date is required' }),
   everyNumber: z.string().min(1, { message: 'Number is required' }),
-  everyPeriod: z.string().min(1, { message: 'Period is required' }),
   startDate: z.date({ required_error: 'Start date is required' }),
   endDate: z.string().min(1, { message: 'End option is required' }),
   currency: z.string().min(1, { message: 'Currency is required' }),
@@ -66,7 +66,6 @@ export default function RecurringTemplateForm({
       onDay: 'day',
       onDate: '1st',
       everyNumber: '1st',
-      everyPeriod: 'months',
       startDate: new Date(),
       endDate: 'none',
       currency: 'ngn',
@@ -79,6 +78,7 @@ export default function RecurringTemplateForm({
       onSubmit(data);
     }
     onOpenChange(false);
+    form.reset();
   };
 
   const intervalOptions = [
@@ -109,13 +109,6 @@ export default function RecurringTemplateForm({
     { value: '4th', label: '4th' },
   ];
 
-  const everyPeriodOptions = [
-    { value: 'months', label: 'Months' },
-    { value: 'weeks', label: 'Weeks' },
-    { value: 'days', label: 'Days' },
-    { value: 'years', label: 'Years' },
-  ];
-
   const endOptions = [
     { value: 'none', label: 'None' },
     { value: 'after', label: 'After' },
@@ -131,17 +124,20 @@ export default function RecurringTemplateForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[90%] max-w-2xl overflow-y-auto p-8">
+      <DialogContent className="max-h-[90vh] w-[90%] max-w-2xl overflow-y-auto p-8 sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             Create Recurring Template
           </DialogTitle>
+          <DialogDescription className="text-sm">
+            Define the settings for your recurring journal entries.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="mt-4 space-y-6"
           >
             {/* Template Name */}
             <FormField
@@ -149,14 +145,12 @@ export default function RecurringTemplateForm({
               name="templateName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">
-                    Template Name
-                  </FormLabel>
+                  <FormLabel>Template Name</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="Enter template name"
-                      className="h-12 w-full rounded-lg border border-gray-300"
+                      className="h-10 w-full"
                     />
                   </FormControl>
                   <FormMessage />
@@ -170,13 +164,11 @@ export default function RecurringTemplateForm({
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">
-                    Type
-                  </FormLabel>
+                  <FormLabel>Type</FormLabel>
                   <div className="flex items-center gap-4">
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-12 w-48 rounded-lg border border-gray-300">
+                        <SelectTrigger className="h-10 w-full max-w-[262px]">
                           <SelectValue placeholder="Scheduled" />
                         </SelectTrigger>
                       </FormControl>
@@ -186,31 +178,30 @@ export default function RecurringTemplateForm({
                       </SelectContent>
                     </Select>
 
-                    {field.value === 'create' && (
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="createDaysInAdvance"
-                          render={({ field: daysField }) => (
-                            <FormItem className="flex items-center gap-2">
-                              <FormControl>
-                                <Input
-                                  {...daysField}
-                                  type="number"
-                                  className="h-12 w-20 rounded-lg border border-gray-300 text-center"
-                                  onChange={(e) =>
-                                    daysField.onChange(parseInt(e.target.value))
-                                  }
-                                />
-                              </FormControl>
-                              <span className="text-sm text-gray-600">
-                                days in advance
-                              </span>
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    )}
+                    <FormField
+                      control={form.control}
+                      name="createDaysInAdvance"
+                      render={({ field: daysField }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-[#434343]">
+                            Create
+                          </span>
+                          <FormControl>
+                            <Input
+                              {...daysField}
+                              type="number"
+                              className="h-10 w-20 text-center"
+                              onChange={(e) =>
+                                daysField.onChange(parseInt(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <span className="text-sm font-semibold text-[#434343]">
+                            days in advance
+                          </span>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   <FormMessage />
                 </FormItem>
@@ -219,21 +210,19 @@ export default function RecurringTemplateForm({
 
             {/* Interval */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid items-end gap-4 sm:grid-cols-4">
                 <FormField
                   control={form.control}
                   name="interval"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700">
-                        Interval
-                      </FormLabel>
+                      <FormLabel>Interval</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-lg border border-gray-300">
+                          <SelectTrigger className="h-10 w-full">
                             <SelectValue placeholder="Monthly" />
                           </SelectTrigger>
                         </FormControl>
@@ -250,23 +239,18 @@ export default function RecurringTemplateForm({
                   )}
                 />
 
-                <div className="flex items-end justify-start">
-                  <span className="text-sm font-medium text-gray-700">On</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                 <FormField
                   control={form.control}
                   name="onDay"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>On</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-lg border border-gray-300">
+                          <SelectTrigger className="h-10 w-full">
                             <SelectValue placeholder="Day" />
                           </SelectTrigger>
                         </FormControl>
@@ -293,7 +277,7 @@ export default function RecurringTemplateForm({
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-lg border border-gray-300">
+                          <SelectTrigger className="h-10 w-full">
                             <SelectValue placeholder="1st" />
                           </SelectTrigger>
                         </FormControl>
@@ -309,70 +293,41 @@ export default function RecurringTemplateForm({
                     </FormItem>
                   )}
                 />
-
-                <div className="flex items-center justify-center">
-                  <span className="text-sm font-medium text-gray-700">
-                    Of every
+                <div className="flex w-full items-center gap-2">
+                  <FormField
+                    control={form.control}
+                    name="everyNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Of every</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-12 w-full rounded-lg border border-gray-300">
+                              <SelectValue placeholder="1st" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {everyNumberOptions.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <span className="pt-6 text-sm font-medium text-[#434343]">
+                    Months
                   </span>
                 </div>
-
-                <div></div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="everyNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-12 rounded-lg border border-gray-300">
-                            <SelectValue placeholder="1st" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {everyNumberOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="everyPeriod"
-                  render={({ field }) => (
-                    <FormItem>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-12 rounded-lg border border-gray-300">
-                            <SelectValue placeholder="Months" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {everyPeriodOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
             </div>
 
@@ -383,16 +338,14 @@ export default function RecurringTemplateForm({
                 name="startDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">
-                      Start date
-                    </FormLabel>
+                    <FormLabel>Start date</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant="outline"
                             className={cn(
-                              'h-12 w-full justify-start rounded-lg border border-gray-300 text-left font-normal',
+                              'h-10 w-full justify-start text-sm',
                               !field.value && 'text-muted-foreground'
                             )}
                           >
@@ -422,12 +375,10 @@ export default function RecurringTemplateForm({
                 name="endDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">
-                      End
-                    </FormLabel>
+                    <FormLabel>End</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-12 rounded-lg border border-gray-300">
+                        <SelectTrigger className="h-10 text-sm">
                           <SelectValue placeholder="None" />
                         </SelectTrigger>
                       </FormControl>
@@ -451,12 +402,10 @@ export default function RecurringTemplateForm({
               name="currency"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">
-                    Currency
-                  </FormLabel>
+                  <FormLabel>Currency</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className="h-12 w-full rounded-lg border border-gray-300">
+                      <SelectTrigger className="h-10 w-full max-w-[262px] text-sm">
                         <SelectValue placeholder="NGN Nigeria Naira" />
                       </SelectTrigger>
                     </FormControl>
@@ -479,13 +428,13 @@ export default function RecurringTemplateForm({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="h-10"
+                className="h-10 w-full max-w-[176px] text-sm"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="h-10"
+                className="h-10 w-full max-w-[176px] text-sm"
               >
                 Save
               </Button>
