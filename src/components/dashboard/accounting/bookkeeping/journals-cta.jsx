@@ -16,6 +16,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, DownloadIcon, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function JournalEntriesCta({
   selectedDate,
@@ -25,7 +31,7 @@ export default function JournalEntriesCta({
   referenceNumber,
   onReferenceNumberChange,
   onFilter,
-  onRefresh,
+  onRunReport,
 }) {
   const transactionTypeOptions = [
     { value: 'all', label: 'All Types' },
@@ -96,22 +102,42 @@ export default function JournalEntriesCta({
       {/* Action Icons */}
       <div className="flex items-end gap-2 pt-6">
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
           onClick={onFilter}
           className="h-10 w-10"
         >
           <Filter className="h-4 w-4" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onRefresh}
-          className="h-10 w-10"
-        >
-          <DownloadIcon className="h-4 w-4" />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size={'icon'} className={'size-10'} variant={'outline'}>
+              <DownloadIcon size={16} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-11 min-w-24 text-xs" align="end">
+            <DropdownMenuCheckboxItem
+              onCheckedChange={(checked) => onDownloadFormats('pdf', checked)}
+            >
+              Pdf
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              onCheckedChange={(checked) => onDownloadFormats('excel', checked)}
+            >
+              Excel
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              onCheckedChange={(checked) => onDownloadFormats('csv', checked)}
+            >
+              csv**
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Button size={'sm'} className={'h-10 text-sm'} onClick={onRunReport}>
+          Run Report
         </Button>
-        <Button className="ml-2 h-10 text-sm">Run report</Button>
       </div>
     </div>
   );

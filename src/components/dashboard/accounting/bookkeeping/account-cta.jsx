@@ -191,7 +191,6 @@ export default function AccountActions({
         <Button
           size={'sm'}
           className={'h-10 text-sm'}
-          variant={'outline'}
           onClick={onRunReport}
         >
           Run Report

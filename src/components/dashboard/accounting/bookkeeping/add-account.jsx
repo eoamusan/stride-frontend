@@ -29,7 +29,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { X } from 'lucide-react';
 
 const formSchema = z.object({
   accountType: z.string().min(1, { message: 'Account type is required' }),

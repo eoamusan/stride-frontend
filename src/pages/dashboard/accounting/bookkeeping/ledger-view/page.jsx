@@ -1,4 +1,5 @@
 import LedgerViewCta from '@/components/dashboard/accounting/bookkeeping/ledger-view-cta';
+import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
 import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -20,6 +21,7 @@ export default function LedgerView() {
   const [toDate, setToDate] = useState(null);
   const [accountType, setAccountType] = useState('');
   const [accountingMethod, setAccountingMethod] = useState('cash');
+  const [openRunReportForm, setOpenRunReportForm] = useState(false);
 
   // Handlers
   const handleReportPeriodChange = (value) => {
@@ -54,16 +56,7 @@ export default function LedgerView() {
   };
 
   const handleRunReport = () => {
-    const reportData = {
-      reportPeriod,
-      fromDate,
-      toDate,
-      accountType,
-      accountingMethod,
-    };
-
-    // Add your report generation logic here
-    console.log('Report generated successfully');
+    setOpenRunReportForm(true);
   };
   return (
     <div className="my-4 min-h-screen">
@@ -100,6 +93,14 @@ export default function LedgerView() {
       <div className="mt-10">
         <BookkeepingTable columns={ledgercolumns} />
       </div>
+
+      <RunReportForm
+        isOpen={openRunReportForm}
+        onClose={() => setOpenRunReportForm(false)}
+        onSubmit={() => {
+          setOpenRunReportForm(false);
+        }}
+      />
     </div>
   );
 }

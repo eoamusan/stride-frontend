@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import JournalEntriesCta from '@/components/dashboard/accounting/bookkeeping/journals-cta';
+import JournalEntryForm from '@/components/dashboard/accounting/bookkeeping/journal-entry-form';
 import { Button } from '@/components/ui/button';
 import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
+import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
 
 const journalTableColumns = [
   { key: 'date', label: 'Date' },
@@ -18,6 +20,8 @@ export default function JournalEntries() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [transactionType, setTransactionType] = useState('');
   const [referenceNumber, setReferenceNumber] = useState('');
+  const [openRunReportForm, setOpenRunReportForm] = useState(false);
+  const [openJournalEntryForm, setOpenJournalEntryForm] = useState(false);
 
   // Handlers
   const handleDateChange = (date) => {
@@ -47,17 +51,6 @@ export default function JournalEntries() {
     // Example: filterJournalEntries(filterData);
   };
 
-  const handleRefresh = () => {
-    // Reset all filters
-    setSelectedDate(null);
-    setTransactionType('');
-    setReferenceNumber('');
-
-    console.log('Journal entries refreshed');
-    // Add your refresh logic here
-    // Example: fetchJournalEntries();
-  };
-
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -72,7 +65,12 @@ export default function JournalEntries() {
           <Button variant={'outline'} className={'h-10 rounded-2xl text-sm'}>
             Customize
           </Button>
-          <Button className={'h-10 rounded-2xl text-sm'}>New Entry</Button>
+          <Button
+            className={'h-10 rounded-2xl text-sm'}
+            onClick={() => setOpenJournalEntryForm(true)}
+          >
+            New Entry
+          </Button>
         </div>
       </div>
       <div className="mt-10">
@@ -84,12 +82,25 @@ export default function JournalEntries() {
           referenceNumber={referenceNumber}
           onReferenceNumberChange={handleReferenceNumberChange}
           onFilter={handleFilter}
-          onRefresh={handleRefresh}
+          onRunReport={() => setOpenRunReportForm(true)}
         />
       </div>
       <div className="mt-10">
         <BookkeepingTable columns={journalTableColumns} />
       </div>
+
+      <RunReportForm
+        isOpen={openRunReportForm}
+        onClose={() => setOpenRunReportForm(false)}
+        onSubmit={() => {
+          setOpenRunReportForm(false);
+        }}
+      />
+
+      <JournalEntryForm
+        isOpen={openJournalEntryForm}
+        onClose={() => setOpenJournalEntryForm(false)}
+      />
     </div>
   );
 }
