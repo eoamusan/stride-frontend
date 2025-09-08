@@ -60,7 +60,7 @@ const formSchema = z.object({
   makeRecurring: z.boolean().default(false),
 });
 
-export default function JournalEntryForm({ isOpen, onClose }) {
+export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
   const [attachments, setAttachments] = useState([]);
 
   const form = useForm({
@@ -160,8 +160,10 @@ export default function JournalEntryForm({ isOpen, onClose }) {
     }
   };
 
-  const calculateTotals = () => {
-    const entries = form.getValues('entries') || [];
+  // Watch entries to recalculate totals when they change
+  const watchedEntries = form.watch('entries');
+
+  const calculateTotals = (entries) => {
     const totalDebit = entries.reduce(
       (sum, entry) => sum + (parseFloat(entry.debit) || 0),
       0
@@ -173,7 +175,7 @@ export default function JournalEntryForm({ isOpen, onClose }) {
     return { totalDebit, totalCredit };
   };
 
-  const { totalDebit, totalCredit } = calculateTotals();
+  const { totalDebit, totalCredit } = calculateTotals(watchedEntries || []);
 
   const handleSubmit = (data) => {
     const journalData = {
@@ -185,6 +187,8 @@ export default function JournalEntryForm({ isOpen, onClose }) {
     console.log('Saving journal entry:', journalData);
     // Add save logic here
     onClose();
+    form.reset();
+    onSuccess();
   };
 
   const handleClearAll = () => {
@@ -252,7 +256,7 @@ export default function JournalEntryForm({ isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] w-[90%] max-w-6xl overflow-auto p-8 sm:max-w-6xl">
+      <DialogContent className="max-h-[90vh] w-[90%] max-w-6xl overflow-y-auto p-8 sm:max-w-6xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">New Entry</DialogTitle>
           <DialogDescription>Enter the details</DialogDescription>
@@ -261,7 +265,7 @@ export default function JournalEntryForm({ isOpen, onClose }) {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="mt-4 space-y-6"
+            className="mt-4 w-full space-y-6"
           >
             {/* Top Form Fields */}
             <div className="flex flex-wrap gap-4">

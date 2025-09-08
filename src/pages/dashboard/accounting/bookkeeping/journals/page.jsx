@@ -4,6 +4,8 @@ import JournalEntryForm from '@/components/dashboard/accounting/bookkeeping/jour
 import { Button } from '@/components/ui/button';
 import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
+import JournalEntrySuccess from '@/components/dashboard/accounting/bookkeeping/journal-entry-success';
+import { se } from 'date-fns/locale';
 
 const journalTableColumns = [
   { key: 'date', label: 'Date' },
@@ -22,6 +24,7 @@ export default function JournalEntries() {
   const [referenceNumber, setReferenceNumber] = useState('');
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
   const [openJournalEntryForm, setOpenJournalEntryForm] = useState(false);
+  const [entrySuccessOpen, setEntrySuccessOpen] = useState(false);
 
   // Handlers
   const handleDateChange = (date) => {
@@ -49,6 +52,10 @@ export default function JournalEntries() {
     console.log('Filtering journal entries with:', filterData);
     // Add your filtering logic here
     // Example: filterJournalEntries(filterData);
+  };
+
+  const handleEntryAdded = () => {
+    setEntrySuccessOpen(true);
   };
 
   return (
@@ -100,6 +107,12 @@ export default function JournalEntries() {
       <JournalEntryForm
         isOpen={openJournalEntryForm}
         onClose={() => setOpenJournalEntryForm(false)}
+        onSuccess={handleEntryAdded}
+      />
+      <JournalEntrySuccess
+        open={entrySuccessOpen}
+        onOpenChange={setEntrySuccessOpen}
+        handleBack={() => setEntrySuccessOpen(false)}
       />
     </div>
   );
