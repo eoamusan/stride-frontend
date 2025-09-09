@@ -127,6 +127,29 @@ const bookkeepingItems = [
   },
 ];
 
+const accountsReceivableItems = [
+  {
+    title: 'Accounts Receivable (A/R)',
+    link: '/dashboard/accounting/accounts-receivable',
+  },
+  {
+    title: 'Customers',
+    link: '/dashboard/accounting/accounts-receivable/customers',
+  },
+  {
+    title: 'Payments',
+    link: '/dashboard/accounting/accounts-receivable/payments',
+  },
+  {
+    title: 'Credit notes and returns',
+    link: '/dashboard/accounting/accounts-receivable/credit-notes',
+  },
+  {
+    title: 'Reports',
+    link: '/dashboard/accounting/accounts-receivable/reports',
+  },
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -196,7 +219,7 @@ const accountingTopItems = {
   expenseManagement: [],
   bookkeeping: bookkeepingItems,
   financialReports: [],
-  accountsReceivable: [],
+  accountsReceivable: accountsReceivableItems,
   accountsPayable: [],
   inventoryManagement: [],
   budgeting: [],

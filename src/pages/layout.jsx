@@ -17,6 +17,7 @@ import LedgerView from './dashboard/accounting/bookkeeping/ledger-view/page';
 import ChartOfAccounts from './dashboard/accounting/bookkeeping/chart-of-accounts/page';
 import JournalEntries from './dashboard/accounting/bookkeeping/journals/page';
 import TrialBalance from './dashboard/accounting/bookkeeping/trial-balance/page';
+import AccountsReceivable from './dashboard/accounting/accounts-receivable/page';
 
 const router = createBrowserRouter([
   {
@@ -105,7 +106,28 @@ const router = createBrowserRouter([
                   },
                   {
                     path: 'accounts-receivable',
-                    Component: () => <div>Accounts Receivable (A/R)</div>,
+                    children: [
+                      {
+                        index: true,
+                        Component: AccountsReceivable,
+                      },
+                      {
+                        path: 'customers',
+                        Component: () => <div>Customers</div>,
+                      },
+                      {
+                        path: 'payments',
+                        Component: () => <div>Payments</div>,
+                      },
+                      {
+                        path: 'credit-notes',
+                        Component: () => <div>Credit Notes & Returns</div>,
+                      },
+                      {
+                        path: 'reports',
+                        Component: () => <div>Reports</div>,
+                      },
+                    ],
                   },
                   {
                     path: 'accounts-payable',
