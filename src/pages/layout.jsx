@@ -21,6 +21,7 @@ import AccountsReceivable from './dashboard/accounting/accounts-receivable/page'
 import CustomersAR from './dashboard/accounting/accounts-receivable/customers/page';
 import PaymentsAR from './dashboard/accounting/accounts-receivable/payments/page';
 import CustomerLedgerAR from './dashboard/accounting/accounts-receivable/customer-ledger/page';
+import CreditNotesAR from './dashboard/accounting/accounts-receivable/credit-notes/page';
 
 const router = createBrowserRouter([
   {
@@ -132,11 +133,11 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'credit-notes',
-                        Component: () => <div>Credit Notes & Returns</div>,
+                        Component: CreditNotesAR,
                       },
                       {
                         path: 'reports',
-                        Component: () => <div>Reports</div>,
+                        Component: () => <div>No design available yet</div>,
                       },
                     ],
                   },
