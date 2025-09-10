@@ -141,6 +141,10 @@ const accountsReceivableItems = [
     link: '/dashboard/accounting/accounts-receivable/payments',
   },
   {
+    title: 'Customer Ledger',
+    link: '/dashboard/accounting/accounts-receivable/customer-ledger',
+  },
+  {
     title: 'Credit notes and returns',
     link: '/dashboard/accounting/accounts-receivable/credit-notes',
   },

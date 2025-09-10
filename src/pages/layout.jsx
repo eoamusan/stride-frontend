@@ -20,6 +20,7 @@ import TrialBalance from './dashboard/accounting/bookkeeping/trial-balance/page'
 import AccountsReceivable from './dashboard/accounting/accounts-receivable/page';
 import CustomersAR from './dashboard/accounting/accounts-receivable/customers/page';
 import PaymentsAR from './dashboard/accounting/accounts-receivable/payments/page';
+import CustomerLedgerAR from './dashboard/accounting/accounts-receivable/customer-ledger/page';
 
 const router = createBrowserRouter([
   {
@@ -124,6 +125,10 @@ const router = createBrowserRouter([
                       {
                         path: 'payments',
                         Component: PaymentsAR,
+                      },
+                      {
+                        path: 'customer-ledger',
+                        Component: CustomerLedgerAR,
                       },
                       {
                         path: 'credit-notes',
