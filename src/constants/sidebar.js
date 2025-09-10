@@ -154,6 +154,25 @@ const accountsReceivableItems = [
   },
 ];
 
+const accountsPayableItems = [
+  {
+    title: 'Overview',
+    link: '/dashboard/accounting/accounts-payable',
+  },
+  {
+    title: 'Vendor Management',
+    link: '/dashboard/accounting/accounts-payable/vendors',
+  },
+  {
+    title: 'Payments',
+    link: '/dashboard/accounting/accounts-payable/payments',
+  },
+  {
+    title: 'Reports',
+    link: '/dashboard/accounting/accounts-payable/reports',
+  },
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -224,7 +243,7 @@ const accountingTopItems = {
   bookkeeping: bookkeepingItems,
   financialReports: [],
   accountsReceivable: accountsReceivableItems,
-  accountsPayable: [],
+  accountsPayable: accountsPayableItems,
   inventoryManagement: [],
   budgeting: [],
   fixedAssetManagement: [],

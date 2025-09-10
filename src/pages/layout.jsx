@@ -22,6 +22,7 @@ import CustomersAR from './dashboard/accounting/accounts-receivable/customers/pa
 import PaymentsAR from './dashboard/accounting/accounts-receivable/payments/page';
 import CustomerLedgerAR from './dashboard/accounting/accounts-receivable/customer-ledger/page';
 import CreditNotesAR from './dashboard/accounting/accounts-receivable/credit-notes/page';
+import OverviewAP from './dashboard/accounting/accounts-payable/page';
 
 const router = createBrowserRouter([
   {
@@ -143,7 +144,28 @@ const router = createBrowserRouter([
                   },
                   {
                     path: 'accounts-payable',
-                    Component: () => <div>Accounts Payable (A/P)</div>,
+                    children: [
+                      {
+                        index: true,
+                        Component: OverviewAP,
+                      },
+                      {
+                        path: 'vendors',
+                        Component: () => <div>Vendors Management</div>,
+                      },
+                      {
+                        path: 'invoices',
+                        Component: () => <div>Invoices Page</div>,
+                      },
+                      {
+                        path: 'payments',
+                        Component: () => <div>Payments Page</div>,
+                      },
+                      {
+                        path: 'reports',
+                        Component: () => <div>Reports Page</div>,
+                      },
+                    ],
                   },
                   {
                     path: 'inventory',
