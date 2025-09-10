@@ -3,8 +3,6 @@ import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, SettingsIcon } from 'lucide-react';
 
-const payments = [''];
-
 const paymentData = [
   {
     id: 'P-35476',
@@ -119,20 +117,19 @@ export default function Payments() {
 
       <div className="mt-10">
         <Metrics metrics={paymentMetrics} />
-
-        <div className="mt-10">
-          <InvoicingTable
-            title={'Recent Payments'}
-            data={paymentData}
-            columns={paymentColumns}
-            searchFields={['customer', 'invoice', 'id']}
-            searchPlaceholder="Search payment......"
-            statusStyles={paymentStatusStyles}
-            dropdownActions={paymentDropdownActions}
-            paginationData={paymentPaginationData}
-            onRowAction={handlePaymentAction}
-          />
-        </div>
+      </div>
+      <div className="mt-10">
+        <InvoicingTable
+          title={'Recent Payments'}
+          data={paymentData}
+          columns={paymentColumns}
+          searchFields={['customer', 'invoice', 'id']}
+          searchPlaceholder="Search payment......"
+          statusStyles={paymentStatusStyles}
+          dropdownActions={paymentDropdownActions}
+          paginationData={paymentPaginationData}
+          onRowAction={handlePaymentAction}
+        />
       </div>
     </div>
   );

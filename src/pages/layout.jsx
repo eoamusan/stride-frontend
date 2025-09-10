@@ -19,6 +19,7 @@ import JournalEntries from './dashboard/accounting/bookkeeping/journals/page';
 import TrialBalance from './dashboard/accounting/bookkeeping/trial-balance/page';
 import AccountsReceivable from './dashboard/accounting/accounts-receivable/page';
 import CustomersAR from './dashboard/accounting/accounts-receivable/customers/page';
+import PaymentsAR from './dashboard/accounting/accounts-receivable/payments/page';
 
 const router = createBrowserRouter([
   {
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
                     ],
                   },
                   {
+                    path: 'expense-management',
+                    Component: () => <div>Expense Management</div>,
+                  },
+                  {
                     path: 'bookkeeping',
                     children: [
                       {
@@ -102,7 +107,7 @@ const router = createBrowserRouter([
                     ],
                   },
                   {
-                    path: 'reports',
+                    path: 'financial-reports',
                     Component: () => <div>Financial Reports</div>,
                   },
                   {
@@ -118,7 +123,7 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'payments',
-                        Component: () => <div>Payments</div>,
+                        Component: PaymentsAR,
                       },
                       {
                         path: 'credit-notes',
