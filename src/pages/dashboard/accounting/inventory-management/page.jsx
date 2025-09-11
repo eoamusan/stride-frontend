@@ -1,6 +1,7 @@
 import AddProductForm from '@/components/dashboard/accounting/inventory/add-product-form';
 import EmptyInventory from '@/components/dashboard/accounting/inventory/empty-inventory';
 import InventoryCategoryForm from '@/components/dashboard/accounting/inventory/inventory-category-form';
+import ProductSuccessModal from '@/components/dashboard/accounting/inventory/product-success';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
 import ActivityCard from '@/components/dashboard/activity-card';
@@ -106,6 +107,16 @@ const productData = [
 export default function InventoryManagement() {
   const [openCategoryForm, setOpenCategoryForm] = useState(false);
   const [openAddProductForm, setOpenAddProductForm] = useState(false);
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
+
+  const handleProductAdded = () => {
+    setOpenAddProductForm(false);
+    setOpenSuccessModal(true);
+  };
+
+  const handleBackFromSuccess = () => {
+    setOpenSuccessModal(false);
+  };
 
   // Table columns configuration
   const tableColumns = [
@@ -252,10 +263,16 @@ export default function InventoryManagement() {
       <AddProductForm
         open={openAddProductForm}
         onOpenChange={setOpenAddProductForm}
+        onProductAdded={handleProductAdded}
       />
       <InventoryCategoryForm
         open={openCategoryForm}
         onOpenChange={setOpenCategoryForm}
+      />
+      <ProductSuccessModal
+        open={openSuccessModal}
+        onOpenChange={setOpenSuccessModal}
+        handleBack={handleBackFromSuccess}
       />
     </div>
   );

@@ -36,7 +36,7 @@ function Badge({
   return (
     <Comp
       data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(badgeVariants({ variant }), 'rounded-full', className)}
       {...props} />
   );
 }

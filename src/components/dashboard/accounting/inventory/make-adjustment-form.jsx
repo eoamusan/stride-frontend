@@ -26,43 +26,44 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { UploadIcon, X } from 'lucide-react';
+import { UploadIcon, X, CalendarIcon } from 'lucide-react';
 import { DialogDescription } from '@radix-ui/react-dialog';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { format } from 'date-fns';
 
 // Zod schema for form validation
-const addProductSchema = z.object({
+const makeAdjustmentSchema = z.object({
   productName: z.string().min(1, 'Product name is required'),
-  skuBarcode: z.string().min(1, 'SKU/Barcode is required'),
-  category: z.string().min(1, 'Please select a category'),
-  unitOfMeasurement: z.string().min(1, 'Please select a unit'),
-  purchasePrice: z.string().min(1, 'Purchase price is required'),
-  sellingPrice: z.string().min(1, 'Selling price is required'),
-  initialQuantity: z.string().min(1, 'Initial quantity is required'),
-  minimumStockLevel: z.string().min(1, 'Minimum stock level is required'),
-  supplierName: z.string().min(1, 'Please select a supplier'),
-  storageArea: z.string().min(1, 'Please select a storage area'),
-  productImage: z.any().optional(),
+  adjustmentType: z.string().min(1, 'Adjustment type is required'),
+  quantityAdjusted: z.string().min(1, 'Quantity adjusted is required'),
+  reasonForAdjustment: z.string().min(1, 'Please select a reason'),
+  purchasePrice: z.date({
+    required_error: 'Purchase date is required',
+  }),
+  performedBy: z.string().min(1, 'Performed by is required'),
+  documents: z.any().optional(),
 });
 
-export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
+export default function MakeAdjustmentForm({ open, onOpenChange }) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
   // React Hook Form setup
   const form = useForm({
-    resolver: zodResolver(addProductSchema),
+    resolver: zodResolver(makeAdjustmentSchema),
     defaultValues: {
       productName: '',
-      skuBarcode: '',
-      category: '',
-      unitOfMeasurement: '',
-      purchasePrice: '',
-      sellingPrice: '',
-      initialQuantity: '',
-      minimumStockLevel: '',
-      supplierName: '',
-      storageArea: '',
-      productImage: null,
+      adjustmentType: '',
+      quantityAdjusted: '',
+      reasonForAdjustment: '',
+      purchasePrice: undefined,
+      performedBy: 'John Doe',
+      documents: null,
     },
   });
 
@@ -100,15 +101,9 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
   };
 
   const onSubmit = (data) => {
-    console.log('Form data:', data);
-    // Logic to save product
-    reset();
-    setUploadedFiles([]);
-    if (onProductAdded) {
-      onProductAdded();
-    } else {
-      onOpenChange?.(false);
-    }
+    console.log('Adjustment data:', data);
+    // Logic to save adjustment
+    onOpenChange?.(false);
   };
 
   return (
@@ -116,16 +111,14 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
       <DialogContent className="max-h-[90vh] w-[90%] max-w-4xl overflow-y-auto p-8 sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Add New Product
+            Make Adjustment
           </DialogTitle>
-          <DialogDescription>
-            Enter the details for the new product item.
-          </DialogDescription>
+          <DialogDescription>Enter the details</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
-            {/* First Row: Product Name and SKU/Barcode */}
+            {/* First Row: Product Name and Adjustment Type */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={control}
@@ -140,12 +133,18 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="office-supplies">
-                          Office Supplies
+                        <SelectItem value="fresh-apples">
+                          Fresh Apples
                         </SelectItem>
-                        <SelectItem value="electronics">Electronics</SelectItem>
-                        <SelectItem value="stationery">Stationery</SelectItem>
-                        <SelectItem value="furniture">Furniture</SelectItem>
+                        <SelectItem value="fresh-bananas">
+                          Fresh Bananas
+                        </SelectItem>
+                        <SelectItem value="fresh-oranges">
+                          Fresh Oranges
+                        </SelectItem>
+                        <SelectItem value="fresh-tomatoes">
+                          Fresh Tomatoes
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -155,10 +154,10 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
 
               <FormField
                 control={control}
-                name="skuBarcode"
+                name="adjustmentType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SKU/Barcode</FormLabel>
+                    <FormLabel>Adjustment Type</FormLabel>
                     <FormControl>
                       <Input
                         className={'h-10 w-full'}
@@ -172,29 +171,22 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
               />
             </div>
 
-            {/* Second Row: Category and Unit of Measurement */}
+            {/* Second Row: Quantity Adjusted and Reason for Adjustment */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={control}
-                name="category"
+                name="quantityAdjusted"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className={'w-full'}>
-                          <SelectValue placeholder="Select Category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="office-supplies">
-                          Office Supplies
-                        </SelectItem>
-                        <SelectItem value="electronics">Electronics</SelectItem>
-                        <SelectItem value="stationery">Stationery</SelectItem>
-                        <SelectItem value="furniture">Furniture</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Quantity Adjusted</FormLabel>
+                    <FormControl>
+                      <Input
+                        type={'number'}
+                        placeholder="Enter no"
+                        {...field}
+                        className="h-10 w-full"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -202,21 +194,27 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
 
               <FormField
                 control={control}
-                name="unitOfMeasurement"
+                name="reasonForAdjustment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit of Measurement</FormLabel>
+                    <FormLabel>Reason for Adjustment</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className={'w-full'}>
-                          <SelectValue placeholder="Select Unit" />
+                          <SelectValue placeholder="Select reason" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="pieces">Pieces</SelectItem>
-                        <SelectItem value="kg">Kilograms</SelectItem>
-                        <SelectItem value="liters">Liters</SelectItem>
-                        <SelectItem value="boxes">Boxes</SelectItem>
+                        <SelectItem value="expiration">Expiration</SelectItem>
+                        <SelectItem value="damage">Damage</SelectItem>
+                        <SelectItem value="theft">Theft</SelectItem>
+                        <SelectItem value="inventory-count">
+                          Inventory Count
+                        </SelectItem>
+                        <SelectItem value="supplier-return">
+                          Supplier Return
+                        </SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -225,7 +223,7 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
               />
             </div>
 
-            {/* Third Row: Purchase Price and Selling Price */}
+            {/* Third Row: Purchase Price and Performed By */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={control}
@@ -233,127 +231,54 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Purchase Price</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={`h-10 w-full pl-3 text-left font-normal ${
+                              !field.value && 'text-muted-foreground'
+                            }`}
+                          >
+                            {field.value ? (
+                              format(field.value, 'PPP')
+                            ) : (
+                              <span>Choose date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date('1900-01-01')
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={control}
+                name="performedBy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Performed By</FormLabel>
                     <FormControl>
                       <Input
-                        type={'number'}
-                        placeholder="Enter no"
+                        placeholder="John Doe"
                         {...field}
                         className="h-10 w-full"
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={control}
-                name="sellingPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Selling Price</FormLabel>
-                    <FormControl>
-                      <Input
-                        type={'number'}
-                        placeholder="Enter no"
-                        {...field}
-                        className="h-10 w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Fourth Row: Initial Quantity and Minimum Stock Level */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <FormField
-                control={control}
-                name="initialQuantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Initial Quantity</FormLabel>
-                    <FormControl>
-                      <Input
-                        type={'number'}
-                        placeholder="Enter no"
-                        {...field}
-                        className="h-10 w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={control}
-                name="minimumStockLevel"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Minimum Stock Level</FormLabel>
-                    <FormControl>
-                      <Input
-                        type={'number'}
-                        placeholder="Enter no"
-                        {...field}
-                        className="h-10 w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Fifth Row: Supplier Name and Storage Area */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <FormField
-                control={control}
-                name="supplierName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Supplier Name</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className={'w-full'}>
-                          <SelectValue placeholder="Select Supplier" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="supplier-1">Supplier One</SelectItem>
-                        <SelectItem value="supplier-2">Supplier Two</SelectItem>
-                        <SelectItem value="supplier-3">
-                          Supplier Three
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={control}
-                name="storageArea"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Storage Area</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className={'w-full'}>
-                          <SelectValue placeholder="Select Storage Area" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="warehouse-a">Warehouse A</SelectItem>
-                        <SelectItem value="warehouse-b">Warehouse B</SelectItem>
-                        <SelectItem value="storage-room">
-                          Storage Room
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -362,7 +287,6 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
 
             {/* File Upload Area */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Product Image</Label>
               <div
                 className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
                   dragActive ? 'border-primary bg-blue-50' : 'border-gray-300'
@@ -445,7 +369,7 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
                 Cancel
               </Button>
               <Button type="submit" className={'h-10'}>
-                Create product
+                Record Adjustment
               </Button>
             </div>
           </form>
