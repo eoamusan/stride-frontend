@@ -22,7 +22,7 @@ import CustomersAR from './dashboard/accounting/accounts-receivable/customers/pa
 import PaymentsAR from './dashboard/accounting/accounts-receivable/payments/page';
 import CustomerLedgerAR from './dashboard/accounting/accounts-receivable/customer-ledger/page';
 import CreditNotesAR from './dashboard/accounting/accounts-receivable/credit-notes/page';
-import OverviewAP from './dashboard/accounting/accounts-payable/page';
+import VendorManagement from './dashboard/accounting/accounts-payable/page';
 import InventoryManagement from './dashboard/accounting/inventory-management/page';
 import StockAdjustment from './dashboard/accounting/inventory-management/stock-adjustment.jsx/page';
 import InventoryMovement from './dashboard/accounting/inventory-management/movement/page';
@@ -150,19 +150,19 @@ const router = createBrowserRouter([
                     children: [
                       {
                         index: true,
-                        Component: OverviewAP,
+                        Component: VendorManagement,
                       },
                       {
-                        path: 'vendors',
-                        Component: () => <div>Vendors Management</div>,
+                        path: 'vendor-invoices',
+                        Component: () => <div>Vendor Invoices</div>,
                       },
                       {
-                        path: 'invoices',
-                        Component: () => <div>Invoices Page</div>,
+                        path: 'payment-scheduling',
+                        Component: () => <div>Payment Scheduling</div>,
                       },
                       {
-                        path: 'payments',
-                        Component: () => <div>Payments Page</div>,
+                        path: 'approval-workflow',
+                        Component: () => <div>Approval Workflow</div>,
                       },
                       {
                         path: 'reports',

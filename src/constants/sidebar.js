@@ -156,16 +156,20 @@ const accountsReceivableItems = [
 
 const accountsPayableItems = [
   {
-    title: 'Overview',
+    title: 'Vendor Management',
     link: '/dashboard/accounting/accounts-payable',
   },
   {
-    title: 'Vendor Management',
-    link: '/dashboard/accounting/accounts-payable/vendors',
+    title: 'Vendor Invoices',
+    link: '/dashboard/accounting/accounts-payable/vendor-invoices',
   },
   {
-    title: 'Payments',
-    link: '/dashboard/accounting/accounts-payable/payments',
+    title: 'Payment Scheduling',
+    link: '/dashboard/accounting/accounts-payable/payment-scheduling',
+  },
+  {
+    title: 'Approval Workflow',
+    link: '/dashboard/accounting/accounts-payable/approval-workflow',
   },
   {
     title: 'Reports',

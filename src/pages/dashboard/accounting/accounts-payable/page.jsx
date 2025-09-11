@@ -1,7 +1,7 @@
-export default function Overview() {
+export default function VendorManagement() {
   return (
     <div>
-      <h1>Accounts Payable</h1>
+      <h1>Vendor Management</h1>
     </div>
   );
 }
