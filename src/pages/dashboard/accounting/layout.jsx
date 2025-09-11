@@ -19,7 +19,7 @@ export default function AccountingLayout() {
     if (pathname.includes('/financial-reports')) return 'financialReports';
     if (pathname.includes('/accounts-receivable')) return 'accountsReceivable';
     if (pathname.includes('/accounts-payable')) return 'accountsPayable';
-    if (pathname.includes('/inventory-management'))
+    if (pathname.includes('/inventory'))
       return 'inventoryManagement';
     if (pathname.includes('/budgeting')) return 'budgeting';
     if (pathname.includes('/fixed-asset-management'))

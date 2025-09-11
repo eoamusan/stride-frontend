@@ -23,6 +23,8 @@ import PaymentsAR from './dashboard/accounting/accounts-receivable/payments/page
 import CustomerLedgerAR from './dashboard/accounting/accounts-receivable/customer-ledger/page';
 import CreditNotesAR from './dashboard/accounting/accounts-receivable/credit-notes/page';
 import OverviewAP from './dashboard/accounting/accounts-payable/page';
+import InventoryManagement from './dashboard/accounting/inventory-management/page';
+import StockAdjustment from './dashboard/accounting/inventory-management/stock-adjustment.jsx/page';
 
 const router = createBrowserRouter([
   {
@@ -169,7 +171,16 @@ const router = createBrowserRouter([
                   },
                   {
                     path: 'inventory',
-                    Component: () => <div>Inventory Management</div>,
+                    children: [
+                      {
+                        index: true,
+                        Component: InventoryManagement,
+                      },
+                      {
+                        path: 'stock-adjustment',
+                        Component: StockAdjustment,
+                      },
+                    ],
                   },
                   {
                     path: 'budgeting',

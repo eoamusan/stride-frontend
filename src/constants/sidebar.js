@@ -61,7 +61,7 @@ const accountingItems = [
   {
     title: 'Inventory Management',
     icon: Building,
-    link: '/dashboard/accounting/inventory-management',
+    link: '/dashboard/accounting/inventory',
   },
   {
     title: 'Budgeting & Forecasting',
@@ -173,6 +173,37 @@ const accountsPayableItems = [
   },
 ];
 
+const inventoryManagementItems = [
+  {
+    title: 'Product Catalog',
+    link: '/dashboard/accounting/inventory',
+  },
+  {
+    title: 'Stock Adjustment',
+    link: '/dashboard/accounting/inventory/stock-adjustment',
+  },
+  {
+    title: 'Inventory Movement',
+    link: '/dashboard/accounting/inventory/movement',
+  },
+  {
+    title: 'Inventory Reports',
+    link: '/dashboard/accounting/inventory/reports',
+  },
+  {
+    title: 'Sales',
+    link: '/dashboard/accounting/inventory/sales',
+  },
+  {
+    title: 'Advanced Reports',
+    link: '/dashboard/accounting/inventory/advanced-reports',
+  },
+  {
+    title: 'User Roles & Alerts',
+    link: '/dashboard/accounting/inventory/user-roles',
+  },
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -244,7 +275,7 @@ const accountingTopItems = {
   financialReports: [],
   accountsReceivable: accountsReceivableItems,
   accountsPayable: accountsPayableItems,
-  inventoryManagement: [],
+  inventoryManagement: inventoryManagementItems,
   budgeting: [],
   fixedAssetManagement: [],
   taxManagement: [],
