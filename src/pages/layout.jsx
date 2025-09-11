@@ -25,6 +25,7 @@ import CreditNotesAR from './dashboard/accounting/accounts-receivable/credit-not
 import OverviewAP from './dashboard/accounting/accounts-payable/page';
 import InventoryManagement from './dashboard/accounting/inventory-management/page';
 import StockAdjustment from './dashboard/accounting/inventory-management/stock-adjustment.jsx/page';
+import InventoryMovement from './dashboard/accounting/inventory-management/movement/page';
 
 const router = createBrowserRouter([
   {
@@ -179,6 +180,10 @@ const router = createBrowserRouter([
                       {
                         path: 'stock-adjustment',
                         Component: StockAdjustment,
+                      },
+                      {
+                        path: 'movement',
+                        Component: InventoryMovement,
                       },
                     ],
                   },
