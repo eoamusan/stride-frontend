@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -14,8 +15,103 @@ import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import EmptyVendor from '@/components/dashboard/accounting/accounts-payable/empty-vendor-state';
 import AddVendorForm from '@/components/dashboard/accounting/accounts-payable/vendor-form';
 import VendorSuccessModal from '@/components/dashboard/accounting/accounts-payable/vendor-success-modal';
+import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
+import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
 
-const vendorData = [];
+// Vendor data from the image
+const vendorData = [
+  {
+    id: 1,
+    img: 'https://placehold.co/40',
+    vendor: 'JI Solutions',
+    category: 'Marketing',
+    totalInvoices: 40,
+    totalAmount: '$15,400.00',
+    onTimeRate: '100%',
+    lastPayment: '1/10/2024',
+    status: 'Active',
+  },
+  {
+    id: 2,
+    img: 'https://placehold.co/40',
+    vendor: 'Adam craft',
+    category: 'Marketing',
+    totalInvoices: 40,
+    totalAmount: '$15,400.00',
+    onTimeRate: '83%',
+    lastPayment: '1/10/2024',
+    status: 'Pending',
+  },
+];
+
+// Table columns configuration
+const vendorColumns = [
+  {
+    key: 'img',
+    label: 'Img',
+    render: (value) => (
+      <div className="flex h-10 w-10 items-center justify-center rounded">
+        <img
+          src={value}
+          alt="Vendor"
+          className="h-10 w-10 rounded object-cover"
+        />
+      </div>
+    ),
+  },
+  { key: 'vendor', label: 'Vendor' },
+  { key: 'category', label: 'Category' },
+  { key: 'totalInvoices', label: 'Total Invoices' },
+  { key: 'totalAmount', label: 'Total Amount' },
+  {
+    key: 'onTimeRate',
+    label: 'On-Time Rate',
+    render: (value) => (
+      <span
+        className={
+          value === '100%'
+            ? 'font-medium text-green-600'
+            : 'font-medium text-orange-600'
+        }
+      >
+        {value}
+      </span>
+    ),
+  },
+  { key: 'lastPayment', label: 'Last Payment' },
+  { key: 'status', label: 'Status' },
+];
+
+const statusStyles = {
+  Active: 'bg-green-100 text-green-800 hover:bg-green-100',
+  Pending: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
+  Inactive: 'bg-red-100 text-red-800 hover:bg-red-100',
+};
+
+const paginationData = {
+  page: 1,
+  totalPages: 10,
+  pageSize: 50,
+  totalCount: 500,
+};
+const vendorMetricsData = [
+  {
+    title: 'Total Vendors',
+    value: '200',
+  },
+  {
+    title: 'Active This Month',
+    value: '50',
+  },
+  {
+    title: 'Pending Verification',
+    value: '4',
+  },
+  {
+    title: 'Top Vendor',
+    value: 'JJ Solutions',
+  },
+];
 
 export default function VendorManagement() {
   const [openVendorForm, setOpenVendorForm] = useState(false);
@@ -202,8 +298,23 @@ export default function VendorManagement() {
       {vendorData && vendorData.length === 0 ? (
         <EmptyVendor onClick={() => setOpenVendorForm(true)} />
       ) : (
-        <div>
-          
+        <div className="mt-10">
+          <Metrics metrics={vendorMetricsData} />
+          <InvoicingTable
+            className="mt-10"
+            title="Vendor Management"
+            data={vendorData}
+            columns={vendorColumns}
+            searchFields={['vendor', 'category', 'status']}
+            searchPlaceholder="Search vendor......."
+            statusStyles={statusStyles}
+            paginationData={paginationData}
+            dropdownActions={[
+              { key: 'edit', label: 'Edit' },
+              { key: 'view', label: 'View' },
+              { key: 'delete', label: 'Delete' },
+            ]}
+          />
         </div>
       )}
 
