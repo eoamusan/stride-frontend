@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -114,6 +115,7 @@ const vendorMetricsData = [
 ];
 
 export default function VendorManagement() {
+  const navigate = useNavigate();
   const [openVendorForm, setOpenVendorForm] = useState(false);
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
   const [columns, setColumns] = useState({
@@ -127,6 +129,27 @@ export default function VendorManagement() {
   const [showAccountTypeBadges, setShowAccountTypeBadges] = useState(true);
   const [pageSize, setPageSize] = useState('50');
   const [tableDensity, setTableDensity] = useState('Cozy');
+
+  // Handle row actions for the table
+  const handleRowAction = (action, item) => {
+    console.log(`Action: ${action}`, item);
+    switch (action) {
+      case 'edit':
+        // Add edit logic here
+        console.log('Edit vendor:', item.id);
+        break;
+      case 'view':
+        // Navigate to vendor detail page
+        navigate(`/dashboard/accounting/accounts-payable/${item.id}`);
+        break;
+      case 'delete':
+        // Add delete logic here
+        console.log('Delete vendor:', item.id);
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
+  };
 
   // Event handlers
   const onDownloadFormats = (format, checked) => {
@@ -314,6 +337,7 @@ export default function VendorManagement() {
               { key: 'view', label: 'View' },
               { key: 'delete', label: 'Delete' },
             ]}
+            onRowAction={handleRowAction}
           />
         </div>
       )}
