@@ -27,6 +27,8 @@ import InventoryManagement from './dashboard/accounting/inventory-management/pag
 import StockAdjustment from './dashboard/accounting/inventory-management/stock-adjustment.jsx/page';
 import InventoryMovement from './dashboard/accounting/inventory-management/movement/page';
 import VendorDetails from './dashboard/accounting/accounts-payable/[vendor_id]/page';
+import VendorInvoices from './dashboard/accounting/accounts-payable/vendor-invoices/page';
+import PaymentScheduling from './dashboard/accounting/accounts-payable/payment-scheduling/page';
 
 const router = createBrowserRouter([
   {
@@ -159,11 +161,11 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'vendor-invoices',
-                        Component: () => <div>Vendor Invoices</div>,
+                        Component: VendorInvoices,
                       },
                       {
                         path: 'payment-scheduling',
-                        Component: () => <div>Payment Scheduling</div>,
+                        Component: PaymentScheduling,
                       },
                       {
                         path: 'approval-workflow',

@@ -18,6 +18,8 @@ import AddVendorForm from '@/components/dashboard/accounting/accounts-payable/ve
 import VendorSuccessModal from '@/components/dashboard/accounting/accounts-payable/vendor-success-modal';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import SettingsDropdown from '@/components/dashboard/accounting/settings-dropdown';
+import DownloadDropdown from '@/components/dashboard/accounting/download-dropdown';
 
 // Vendor data from the image
 const vendorData = [
@@ -197,124 +199,19 @@ export default function VendorManagement() {
             <PlusCircleIcon className="size-4" />
             Add Vendor
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size={'icon'} className={'size-10'} variant={'outline'}>
-                <DownloadIcon size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-11 min-w-24 text-xs" align="end">
-              <DropdownMenuCheckboxItem
-                onCheckedChange={(checked) => onDownloadFormats('pdf', checked)}
-              >
-                Pdf
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                onCheckedChange={(checked) =>
-                  onDownloadFormats('excel', checked)
-                }
-              >
-                Excel
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                onCheckedChange={(checked) => onDownloadFormats('csv', checked)}
-              >
-                csv**
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size={'icon'}
-                className={'mr-1 size-10'}
-                variant={'outline'}
-              >
-                <SettingsIcon size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 text-xs" align="end">
-              <DropdownMenuLabel>Columns</DropdownMenuLabel>
-              <DropdownMenuCheckboxItem
-                checked={columns.number}
-                onCheckedChange={(checked) =>
-                  onColumnsChange('number', checked)
-                }
-              >
-                Number
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={columns.type}
-                onCheckedChange={(checked) => onColumnsChange('type', checked)}
-              >
-                Type
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={columns.detailType}
-                onCheckedChange={(checked) =>
-                  onColumnsChange('detailType', checked)
-                }
-              >
-                Detail type
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={columns.currency}
-                onCheckedChange={(checked) =>
-                  onColumnsChange('currency', checked)
-                }
-              >
-                Currency
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={columns.bankBalance}
-                onCheckedChange={(checked) =>
-                  onColumnsChange('bankBalance', checked)
-                }
-              >
-                Bank balance
-              </DropdownMenuCheckboxItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Others</DropdownMenuLabel>
-              <DropdownMenuCheckboxItem
-                checked={includeInactive}
-                onCheckedChange={onIncludeInactiveChange}
-              >
-                Include inactive
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={showAccountTypeBadges}
-                onCheckedChange={onShowAccountTypeBadgesChange}
-              >
-                Show account type badges
-              </DropdownMenuCheckboxItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Page sizes</DropdownMenuLabel>
-              <DropdownMenuRadioGroup
-                value={pageSize}
-                onValueChange={onPageSizeChange}
-              >
-                <DropdownMenuRadioItem value="50">50</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="75">75</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="100">100</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="200">200</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="300">300</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Table Density</DropdownMenuLabel>
-              <DropdownMenuRadioGroup
-                value={tableDensity}
-                onValueChange={onTableDensityChange}
-              >
-                <DropdownMenuRadioItem value="Cozy">Cozy</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="Compact">
-                  Compact
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <DownloadDropdown onDownloadFormats={onDownloadFormats} />
+          <SettingsDropdown
+            columns={columns}
+            onColumnsChange={onColumnsChange}
+            includeInactive={includeInactive}
+            onIncludeInactiveChange={onIncludeInactiveChange}
+            showAccountTypeBadges={showAccountTypeBadges}
+            onShowAccountTypeBadgesChange={onShowAccountTypeBadgesChange}
+            pageSize={pageSize}
+            onPageSizeChange={onPageSizeChange}
+            tableDensity={tableDensity}
+            onTableDensityChange={onTableDensityChange}
+          />
         </div>
       </div>
 

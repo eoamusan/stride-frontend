@@ -46,6 +46,7 @@ const vendorSchema = z.object({
     required_error: 'Gender is required',
   }),
   phoneNumber: z.string().min(1, 'Phone number is required'),
+  phoneNumber2: z.string().optional(),
   businessName: z.string().min(1, 'Business name is required'),
   dateOfRegistration: z.date({
     required_error: 'Date of registration is required',
@@ -87,6 +88,7 @@ export default function AddVendorForm({
       nationality: '',
       gender: '',
       phoneNumber: '',
+      phoneNumber2: '',
       businessName: '',
       dateOfRegistration: undefined,
       websitePortfolioLink: '',
@@ -369,24 +371,44 @@ export default function AddVendorForm({
                 />
               </div>
 
-              {/* Phone Number - Full Width */}
-              <FormField
-                control={control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter phone number"
-                        {...field}
-                        className="h-10 w-full md:w-1/2"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
+                {/* Phone Number - Full Width */}
+                <FormField
+                  control={control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter phone number"
+                          {...field}
+                          className="h-10 w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="phoneNumber2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number 2 optional</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter phone number"
+                          {...field}
+                          className="h-10 w-full"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Business Information Section */}
