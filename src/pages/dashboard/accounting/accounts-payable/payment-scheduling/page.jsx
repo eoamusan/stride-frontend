@@ -138,6 +138,10 @@ export default function PaymentScheduling() {
     }
   };
 
+  const clearAllTableSelections = () => {
+    setSelectPaymentInvoices([]);
+  };
+
   // Handle row actions
   const handleRowAction = (action, item) => {
     console.log(`Action: ${action}`, item);
@@ -211,6 +215,7 @@ export default function PaymentScheduling() {
         allInvoices={paymentQueueData}
         selectedInvoices={selectPaymentInvoices}
         handleSelectInvoice={handleSelectTableItem}
+        clearSelections={clearAllTableSelections}
       />
     </div>
   );

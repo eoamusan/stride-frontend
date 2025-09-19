@@ -49,7 +49,6 @@ import { format } from 'date-fns';
 import {
   CalendarIcon,
   Search,
-  DollarSign,
   Plus,
   FileText,
   CreditCardIcon,
@@ -78,6 +77,7 @@ export default function SchedulePaymentForm({
   allInvoices = [],
   selectedInvoices = [],
   handleSelectInvoice,
+  clearSelections,
 }) {
   const [paymentType, setPaymentType] = useState('invoice');
   const [showSelectInvoices, setShowSelectInvoices] = useState(false);
@@ -110,6 +110,9 @@ export default function SchedulePaymentForm({
     // Logic to schedule payment
     reset();
     onOpenChange?.(false);
+    if (clearSelections) {
+      clearSelections();
+    }
   };
 
   const handlePaymentTypeChange = (type) => {
