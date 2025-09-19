@@ -44,37 +44,29 @@ export default function InvoicingTable({
     totalCount: 0,
   },
   onRowAction,
-  onSelectionChange,
   className = '',
+  selectedItems = [],
+  handleSelectAll,
+  handleSelectItem,
 }) {
-  const [selectedItems, setSelectedItems] = useState([]);
+  // const [selectedItems, setSelectedItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Expose selectedItems to parent component
-  useEffect(() => {
-    if (onSelectionChange) {
-      const selectedData = data.filter((item) =>
-        selectedItems.includes(item.id)
-      );
-      onSelectionChange(selectedItems, selectedData);
-    }
-  }, [selectedItems, data, onSelectionChange]);
+  // const handleSelectAll = (checked) => {
+  //   if (checked) {
+  //     setSelectedItems(data.map((item) => item.id));
+  //   } else {
+  //     setSelectedItems([]);
+  //   }
+  // };
 
-  const handleSelectAll = (checked) => {
-    if (checked) {
-      setSelectedItems(data.map((item) => item.id));
-    } else {
-      setSelectedItems([]);
-    }
-  };
-
-  const handleSelectItem = (itemId, checked) => {
-    if (checked) {
-      setSelectedItems([...selectedItems, itemId]);
-    } else {
-      setSelectedItems(selectedItems.filter((id) => id !== itemId));
-    }
-  };
+  // const handleSelectItem = (itemId, checked) => {
+  //   if (checked) {
+  //     setSelectedItems([...selectedItems, itemId]);
+  //   } else {
+  //     setSelectedItems(selectedItems.filter((id) => id !== itemId));
+  //   }
+  // };
 
   const getStatusBadge = (status) => {
     const defaultStyles = 'bg-gray-100 text-gray-800 hover:bg-gray-100';
@@ -192,7 +184,10 @@ export default function InvoicingTable({
                   checked={
                     selectedItems.length === data.length && data.length > 0
                   }
-                  onCheckedChange={handleSelectAll}
+                  onCheckedChange={(checked) => {
+                    if (!handleSelectAll) return;
+                    handleSelectAll(checked);
+                  }}
                 />
               </TableHead>
               {columns.map((column, index) => (
@@ -215,9 +210,10 @@ export default function InvoicingTable({
                   <TableCell>
                     <Checkbox
                       checked={selectedItems.includes(item.id)}
-                      onCheckedChange={(checked) =>
-                        handleSelectItem(item.id, checked)
-                      }
+                      onCheckedChange={(checked) => {
+                        if (!handleSelectItem) return;
+                        handleSelectItem(item.id, checked);
+                      }}
                     />
                   </TableCell>
                   {columns.map((column, colIndex) => (

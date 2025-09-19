@@ -1,8 +1,9 @@
+import PaymentScheduleForm from '@/components/dashboard/accounting/accounts-payable/payment-scheduling/schedule-form';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
 import { Button } from '@/components/ui/button';
 import { PlusCircleIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 // Payment queue data from the image
 const paymentQueueData = [
@@ -27,6 +28,39 @@ const paymentQueueData = [
     dueDate: '1/10/2024',
     overdueDays: '574 days overdue',
     status: 'Pending',
+  },
+  {
+    id: 3,
+    img: 'https://placehold.co/28/2D9CDB/FFFFFF?text=AC',
+    vendor: 'Acme Corp',
+    invoiceId: 'INV-2024-002',
+    amount: '$8,200.00',
+    category: 'Consulting',
+    dueDate: '2/15/2024',
+    overdueDays: '540 days overdue',
+    status: 'Pending',
+  },
+  {
+    id: 4,
+    img: 'https://placehold.co/28/27AE60/FFFFFF?text=GL',
+    vendor: 'GreenLeaf',
+    invoiceId: 'INV-2024-003',
+    amount: '$2,500.00',
+    category: 'Maintenance',
+    dueDate: '3/01/2024',
+    overdueDays: '0 days overdue',
+    status: 'Paid',
+  },
+  {
+    id: 5,
+    img: 'https://placehold.co/28/EB5757/FFFFFF?text=TS',
+    vendor: 'Tech Solutions',
+    invoiceId: 'INV-2024-004',
+    amount: '$12,000.00',
+    category: 'IT Services',
+    dueDate: '3/20/2024',
+    overdueDays: '507 days overdue',
+    status: 'Overdue',
   },
 ];
 
@@ -84,16 +118,24 @@ const vendorInvoicesData = [
 
 export default function PaymentScheduling() {
   const [openScheduleForm, setOpenScheduleForm] = useState(false);
-  const [selectedInvoices, setSelectedInvoices] = useState([]);
-  const [selectedCount, setSelectedCount] = useState(0);
+  const [selectPaymentInvoices, setSelectPaymentInvoices] = useState([]);
 
-  // Handle selection changes from the table
-  const handleSelectionChange = (selectedItems, selectedData) => {
-    setSelectedCount(selectedItems.length);
-    // Use the selectedData directly from the table (full invoice objects)
-    setSelectedInvoices(selectedData);
-    console.log('Selected invoice IDs:', selectedItems);
-    console.log('Selected invoice objects:', selectedData);
+  const handleSelectAllTableItems = (checked) => {
+    if (checked) {
+      setSelectPaymentInvoices(paymentQueueData.map((item) => item.id));
+    } else {
+      setSelectPaymentInvoices([]);
+    }
+  };
+
+  const handleSelectTableItem = (itemId, checked) => {
+    if (checked) {
+      setSelectPaymentInvoices([...selectPaymentInvoices, itemId]);
+    } else {
+      setSelectPaymentInvoices(
+        selectPaymentInvoices.filter((id) => id !== itemId)
+      );
+    }
   };
 
   // Handle row actions
@@ -126,15 +168,15 @@ export default function PaymentScheduling() {
 
         <div className="flex items-center space-x-4">
           <p className="text-sm font-medium text-[#434343]">
-            {selectedCount} Invoices selected
+            {selectPaymentInvoices.length || '0'} Invoices selected
           </p>
           <Button
             className={'h-10 rounded-2xl text-sm'}
             onClick={() => setOpenScheduleForm(true)}
-            disabled={selectedCount === 0}
+            disabled={selectPaymentInvoices.length === 0}
           >
             <PlusCircleIcon className="size-4" />
-            Schedule Payment ({selectedCount})
+            Schedule Payment ({selectPaymentInvoices.length})
           </Button>
         </div>
       </div>
@@ -144,7 +186,7 @@ export default function PaymentScheduling() {
 
         <InvoicingTable
           className="mt-10"
-          title="Payment Queue (2 invoices)"
+          title={`Payment Queue (${paymentQueueData.length} invoices)`}
           data={paymentQueueData}
           columns={paymentColumns}
           searchFields={['vendor', 'invoiceId', 'amount', 'category']}
@@ -156,10 +198,20 @@ export default function PaymentScheduling() {
             { key: 'view', label: 'View' },
             { key: 'schedule', label: 'Schedule Payment' },
           ]}
+          selectedItems={selectPaymentInvoices}
+          handleSelectAll={handleSelectAllTableItems}
+          handleSelectItem={handleSelectTableItem}
           onRowAction={handleRowAction}
-          onSelectionChange={handleSelectionChange}
         />
       </div>
+
+      <PaymentScheduleForm
+        open={openScheduleForm}
+        onOpenChange={setOpenScheduleForm}
+        allInvoices={paymentQueueData}
+        selectedInvoices={selectPaymentInvoices}
+        handleSelectInvoice={handleSelectTableItem}
+      />
     </div>
   );
 }

@@ -35,7 +35,7 @@ export default function DashboardLayout() {
                 externalLink="#"
               />
             )}
-            <div className="h-full overflow-hidden">
+            <div className="h-full overflow-hidden px-4">
               <Outlet />
             </div>
           </div>
