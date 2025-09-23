@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, SettingsIcon } from 'lucide-react';
 
@@ -90,9 +91,27 @@ const paymentMetrics = [
 ];
 
 export default function Payments() {
+  const [selectedItems, setSelectedItems] = useState([]);
+
   const handlePaymentAction = (action, payment) => {
     console.log('Payment action:', action, payment);
     // Handle different actions here
+  };
+
+  const handleSelectTableItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, itemId]);
+    } else {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    }
+  };
+
+  const handleSelectAllItems = (checked) => {
+    if (checked) {
+      setSelectedItems(paymentData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
   };
 
   return (
@@ -119,7 +138,7 @@ export default function Payments() {
         <Metrics metrics={paymentMetrics} />
       </div>
       <div className="mt-10">
-        <InvoicingTable
+        <AccountingTable
           title={'Recent Payments'}
           data={paymentData}
           columns={paymentColumns}
@@ -129,6 +148,9 @@ export default function Payments() {
           dropdownActions={paymentDropdownActions}
           paginationData={paymentPaginationData}
           onRowAction={handlePaymentAction}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectTableItem}
+          handleSelectAll={handleSelectAllItems}
         />
       </div>
     </div>

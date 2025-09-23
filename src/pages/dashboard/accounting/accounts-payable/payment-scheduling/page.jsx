@@ -1,6 +1,6 @@
 import PaymentScheduleForm from '@/components/dashboard/accounting/accounts-payable/payment-scheduling/schedule-form';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { PlusCircleIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -188,7 +188,7 @@ export default function PaymentScheduling() {
       <div className="mt-10">
         <Metrics metrics={vendorInvoicesData} />
 
-        <InvoicingTable
+        <AccountingTable
           className="mt-10"
           title={`Payment Queue (${paymentQueueData.length} invoices)`}
           data={paymentQueueData}

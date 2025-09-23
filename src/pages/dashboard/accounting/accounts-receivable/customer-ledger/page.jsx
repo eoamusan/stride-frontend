@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CalendarDaysIcon, DownloadIcon, SettingsIcon } from 'lucide-react';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import temporaryImg from '@/assets/images/customer-ledger-temp.png';
 
 const ledgerMetrics = [
@@ -46,6 +46,29 @@ export default function CustomerLedger() {
   const [showAccountTypeBadges, setShowAccountTypeBadges] = useState(true);
   const [pageSize, setPageSize] = useState('50');
   const [tableDensity, setTableDensity] = useState('Cozy');
+
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Handle table item selection
+  const handleSelectItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  // Handle select all functionality
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedItems(customerLedgerData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
 
   // Customer Ledger data based on the image
   const customerLedgerData = [
@@ -340,7 +363,7 @@ export default function CustomerLedger() {
         )}
       </div>
       <div className="mt-10 flex gap-6">
-        <InvoicingTable
+        <AccountingTable
           title={'Customer Ledger'}
           data={customerLedgerData}
           columns={tableColumns}
@@ -348,6 +371,9 @@ export default function CustomerLedger() {
           searchPlaceholder="Search customer......"
           dropdownActions={dropdownActions}
           paginationData={paginationData}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectItem}
+          handleSelectAll={handleSelectAll}
           onRowAction={handleRowAction}
         />
         <div className="hidden w-full max-w-[188px] lg:block">

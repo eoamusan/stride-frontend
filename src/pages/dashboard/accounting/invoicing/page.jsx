@@ -5,7 +5,7 @@ import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-in
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircle, SettingsIcon } from 'lucide-react';
 import MetricCard from '@/components/dashboard/metric-card';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 
 const invoice = [''];
 
@@ -127,6 +127,7 @@ const invoiceStats = [
 export default function Invoicing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [toggleCreateInvoice, setToggleCreateInvoice] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   // Handle row actions for the table
   const handleRowAction = (action, item) => {
@@ -146,6 +147,22 @@ export default function Invoicing() {
         break;
       default:
         console.log('Unknown action:', action);
+    }
+  };
+
+  const handleSelectTableItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, itemId]);
+    } else {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    }
+  };
+
+  const handleSelectAllItems = (checked) => {
+    if (checked) {
+      setSelectedItems(invoiceData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
     }
   };
 
@@ -227,7 +244,7 @@ export default function Invoicing() {
               ))}
           </div>
 
-          <InvoicingTable
+          <AccountingTable
             title="Invoice Management"
             data={invoiceData}
             columns={invoiceColumns}
@@ -237,6 +254,9 @@ export default function Invoicing() {
             dropdownActions={invoiceDropdownActions}
             paginationData={invoiceListData.pagination}
             onRowAction={handleRowAction}
+            selectedItems={selectedItems}
+            handleSelectItem={handleSelectTableItem}
+            handleSelectAll={handleSelectAllItems}
           />
         </div>
       )}

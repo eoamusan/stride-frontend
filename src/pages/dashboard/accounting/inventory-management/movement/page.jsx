@@ -1,5 +1,5 @@
 import RecordMovementForm from '@/components/dashboard/accounting/inventory/record-movement-form';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
@@ -80,6 +80,29 @@ const statusStyles = {
 
 export default function InventoryMovement() {
   const [openRecordMovementForm, setOpenRecordMovementForm] = useState(false);
+
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Handle table item selection
+  const handleSelectItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  // Handle select all functionality
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedItems(movementData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -109,7 +132,7 @@ export default function InventoryMovement() {
       </div>
 
       <div className="mt-10">
-        <InvoicingTable
+        <AccountingTable
           title="Adjustment History"
           data={movementData}
           columns={movementColumns}
@@ -122,6 +145,12 @@ export default function InventoryMovement() {
             { key: 'delete', label: 'Delete Movement' },
             { key: 'duplicate', label: 'Duplicate' },
           ]}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectItem}
+          handleSelectAll={handleSelectAll}
+          onRowAction={(action, item) => {
+            console.log(`Action: ${action}`, item);
+          }}
         />
       </div>
 

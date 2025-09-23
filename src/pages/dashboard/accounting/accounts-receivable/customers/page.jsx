@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AddCustomerModal from '@/components/dashboard/accounting/invoicing/customers/add-customer';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 
 const customerData = [
   {
@@ -73,15 +73,15 @@ const customerDropdownActions = [
   { key: 'create-statement', label: 'Create Statement' },
   { key: 'create-task', label: 'Create Task' },
 ];
-const customerPaginationData = {
-  page: 1,
-  totalPages: 10,
-  pageSize: 10,
-  totalCount: 100,
-};
 
 export default function Customers() {
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
+  const [customerPaginationData, setCustomerPaginationData] = useState({
+    page: 1,
+    totalPages: 10,
+    pageSize: 10,
+    totalCount: 100,
+  });
   // State for column visibility
   const [columns, setColumns] = useState({
     number: true,
@@ -96,6 +96,7 @@ export default function Customers() {
   const [showAccountTypeBadges, setShowAccountTypeBadges] = useState(true);
   const [pageSize, setPageSize] = useState('50');
   const [tableDensity, setTableDensity] = useState('Cozy');
+  const [selectedItems, setSelectedItems] = useState([]);
 
   // Handler functions
   const handleToggleCreateCustomer = () => {
@@ -133,6 +134,33 @@ export default function Customers() {
   const handleCustomerTableAction = (action, customer) => {
     console.log('Customer action:', action, customer);
     // Handle different actions here
+  };
+
+  const handleSelectTableItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, itemId]);
+    } else {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    }
+  };
+
+  const handleSelectAllItems = (checked) => {
+    console.log(checked);
+    if (checked) {
+      setSelectedItems(customerData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
+  // Mock pagination handler
+  const handlePageChange = (newPage) => {
+    console.log('Page changed to:', newPage);
+    setCustomerPaginationData((prev) => ({
+      ...prev,
+      page: newPage,
+    }));
+    // In a real app, you would fetch new data here
   };
 
   return (
@@ -270,7 +298,7 @@ export default function Customers() {
         </div>
       </div>
 
-      <InvoicingTable
+      <AccountingTable
         className="mt-10"
         title={'Customer Management'}
         data={customerData}
@@ -281,6 +309,10 @@ export default function Customers() {
         dropdownActions={customerDropdownActions}
         paginationData={customerPaginationData}
         onRowAction={handleCustomerTableAction}
+        selectedItems={selectedItems}
+        handleSelectItem={handleSelectTableItem}
+        handleSelectAll={handleSelectAllItems}
+        onPageChange={handlePageChange}
       />
 
       <AddCustomerModal

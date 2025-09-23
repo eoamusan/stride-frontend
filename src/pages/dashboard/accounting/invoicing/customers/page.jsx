@@ -2,7 +2,7 @@ import { useState } from 'react';
 import AddCustomerModal from '@/components/dashboard/accounting/invoicing/customers/add-customer';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 
 const customers = [''];
@@ -90,10 +90,27 @@ const customerMetrics = [
 
 export default function Customers() {
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   const handleCustomerTableAction = (action, customer) => {
     console.log('Customer action:', action, customer);
     // Handle different actions here
+  };
+
+  const handleSelectTableItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, itemId]);
+    } else {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    }
+  };
+
+  const handleSelectAllItems = (checked) => {
+    if (checked) {
+      setSelectedItems(customerData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
   };
 
   return (
@@ -127,7 +144,7 @@ export default function Customers() {
         <Metrics metrics={customerMetrics} />
 
         <div className="mt-10">
-          <InvoicingTable
+          <AccountingTable
             title={'Customer Management'}
             data={customerData}
             columns={tableColumns}
@@ -137,6 +154,9 @@ export default function Customers() {
             dropdownActions={customerDropdownActions}
             paginationData={customerPaginationData}
             onRowAction={handleCustomerTableAction}
+            selectedItems={selectedItems}
+            handleSelectItem={handleSelectTableItem}
+            handleSelectAll={handleSelectAllItems}
           />
         </div>
       </div>

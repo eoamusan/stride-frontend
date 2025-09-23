@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import MakeAdjustmentForm from '@/components/dashboard/accounting/inventory/make-adjustment-form';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -114,6 +114,29 @@ const paginationData = {
 
 export default function StockAdjustment() {
   const [openAddProductForm, setOpenAddProductForm] = useState(false);
+
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Handle table item selection
+  const handleSelectItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  // Handle select all functionality
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedItems(adjustmentData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -143,7 +166,7 @@ export default function StockAdjustment() {
       </div>
       <div className="mt-10">
         <Metrics metrics={stockMetrics} />
-        <InvoicingTable
+        <AccountingTable
           className="mt-10"
           title="Adjustment History"
           data={adjustmentData}
@@ -156,6 +179,12 @@ export default function StockAdjustment() {
             { key: 'delete', label: 'Delete Adjustment' },
             { key: 'duplicate', label: 'Duplicate' },
           ]}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectItem}
+          handleSelectAll={handleSelectAll}
+          onRowAction={(action, item) => {
+            console.log(`Action: ${action}`, item);
+          }}
         />
       </div>
 

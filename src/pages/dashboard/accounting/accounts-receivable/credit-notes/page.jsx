@@ -13,7 +13,7 @@ import {
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AddCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/add-credit';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import ViewCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/view-credit';
 
 const creditNotes = [
@@ -108,6 +108,29 @@ export default function CreditNotes() {
   const [showAccountTypeBadges, setShowAccountTypeBadges] = useState(true);
   const [pageSize, setPageSize] = useState('50');
   const [tableDensity, setTableDensity] = useState('Cozy');
+
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Handle table item selection
+  const handleSelectItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  // Handle select all functionality
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedItems(creditNotes.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
 
   // Handler functions
   const onDownloadFormats = (format, checked) => {
@@ -301,7 +324,7 @@ export default function CreditNotes() {
       )}
 
       <div className="mt-10">
-        <InvoicingTable
+        <AccountingTable
           title={'Credit notes & returns'}
           data={creditNotes}
           columns={creditNoteColumns}
@@ -310,6 +333,9 @@ export default function CreditNotes() {
           statusStyles={creditNoteStatusStyles}
           dropdownActions={creditNoteDropdownActions}
           paginationData={creditNotePaginationData}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectItem}
+          handleSelectAll={handleSelectAll}
           onRowAction={handleCreditNoteAction}
         />
       </div>

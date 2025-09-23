@@ -1,5 +1,5 @@
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
-import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import TrialBalanceCta from '@/components/dashboard/accounting/bookkeeping/trial-balance-cta';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -10,6 +10,7 @@ export default function TrialBalance() {
   const [toDate, setToDate] = useState(null);
   const [accountingMethod, setAccountingMethod] = useState('accrual');
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   // Trial Balance Data based on the image
   const trialBalanceData = [
@@ -74,6 +75,22 @@ export default function TrialBalance() {
     totalCount: trialBalanceData.length,
   };
 
+  const handleSelectTableItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, itemId]);
+    } else {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    }
+  };
+
+  const handleSelectAllItems = (checked) => {
+    if (checked) {
+      setSelectedItems(trialBalanceData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -106,28 +123,23 @@ export default function TrialBalance() {
         />
       </div>
 
-      <BookkeepingTable
+      <AccountingTable
         className="mt-10"
+        title="Trial Balance"
         data={trialBalanceData}
         columns={trialBalanceColumns}
+        searchFields={['accountName', 'accountCode']}
+        searchPlaceholder="Search accounts..."
         paginationData={paginationData}
-        summaryRow={
-          <div className="border-t bg-red-100 px-4 py-2">
-            <div className="grid grid-cols-10 gap-4 text-sm font-semibold">
-              <div className="col-span-3 text-left">Total NGN</div>
-              <div className="text-right col-start-8">NGN{totalDebit.toLocaleString()}</div>
-              <div className="text-right">
-                NGN{totalCredit.toLocaleString()}
-              </div>
-            </div>
-          </div>
-        }
         dropdownActions={[
           { key: 'edit', label: 'Edit' },
           { key: 'view', label: 'View' },
           { key: 'delete', label: 'Delete' },
         ]}
         onRowAction={() => {}}
+        selectedItems={selectedItems}
+        handleSelectItem={handleSelectTableItem}
+        handleSelectAll={handleSelectAllItems}
       />
 
       <RunReportForm

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import JournalEntriesCta from '@/components/dashboard/accounting/bookkeeping/journals-cta';
 import JournalEntryForm from '@/components/dashboard/accounting/bookkeeping/journal-entry-form';
 import { Button } from '@/components/ui/button';
-import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
 import JournalEntrySuccess from '@/components/dashboard/accounting/bookkeeping/journal-entry-success';
 import { se } from 'date-fns/locale';
@@ -89,15 +89,26 @@ export default function JournalEntries() {
   const [recurringTemplateOpen, setRecurringTemplateOpen] = useState(false);
 
   // State for table selection
-  const [selectedRowIds, setSelectedRowIds] = useState([]);
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
 
-  // Handle selection changes from BookkeepingTable
-  const handleSelectionChange = (selectedIds, selectedRowData) => {
-    setSelectedRowIds(selectedIds);
-    setSelectedRows(selectedRowData);
-    console.log('Selected IDs:', selectedIds);
-    console.log('Selected Rows:', selectedRowData);
+  // Handle table item selection
+  const handleSelectTableItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  // Handle select all functionality
+  const handleSelectAllItems = (checked) => {
+    if (checked) {
+      setSelectedItems(journalEntriesData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
   };
 
   // Handlers
@@ -134,7 +145,7 @@ export default function JournalEntries() {
 
   const handleRecurringStatusChange = (checked) => {
     setRecurringStatus(checked);
-    if (checked && selectedRows.length > 0 && selectedRowIds.length > 0) {
+    if (checked && selectedItems.length > 0) {
       setRecurringTemplateOpen(true);
     }
   };
@@ -176,9 +187,12 @@ export default function JournalEntries() {
         />
       </div>
       <div className="mt-10">
-        <BookkeepingTable
+        <AccountingTable
+          title="Journal Entries"
           data={journalEntriesData}
           columns={journalTableColumns}
+          searchFields={['ref', 'type', 'assigned']}
+          searchPlaceholder="Search journal entries..."
           dropdownActions={[
             { key: 'edit', label: 'Edit' },
             { key: 'view', label: 'View' },
@@ -189,7 +203,9 @@ export default function JournalEntries() {
             pageSize: 10,
             totalCount: journalEntriesData.length,
           }}
-          onSelectionChange={handleSelectionChange}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectTableItem}
+          handleSelectAll={handleSelectAllItems}
           onRowAction={(action, item) => {
             console.log(`Action: ${action}, Item:`, item);
             // Handle different actions here

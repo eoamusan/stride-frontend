@@ -3,7 +3,7 @@ import EmptyInventory from '@/components/dashboard/accounting/inventory/empty-in
 import InventoryCategoryForm from '@/components/dashboard/accounting/inventory/inventory-category-form';
 import ProductSuccessModal from '@/components/dashboard/accounting/inventory/product-success';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import ActivityCard from '@/components/dashboard/activity-card';
 import { Button } from '@/components/ui/button';
 import {
@@ -108,6 +108,29 @@ export default function InventoryManagement() {
   const [openCategoryForm, setOpenCategoryForm] = useState(false);
   const [openAddProductForm, setOpenAddProductForm] = useState(false);
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
+
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Handle table item selection
+  const handleSelectItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  // Handle select all functionality
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedItems(productData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
 
   const handleProductAdded = () => {
     setOpenAddProductForm(false);
@@ -237,7 +260,7 @@ export default function InventoryManagement() {
                 ))}
               </div>
               <div className="mt-10">
-                <InvoicingTable
+                <AccountingTable
                   title="Product Catalog"
                   data={productData}
                   columns={tableColumns}
@@ -252,6 +275,9 @@ export default function InventoryManagement() {
                   }}
                   dropdownActions={dropdownActions}
                   paginationData={paginationData}
+                  selectedItems={selectedItems}
+                  handleSelectItem={handleSelectItem}
+                  handleSelectAll={handleSelectAll}
                   onRowAction={handleRowAction}
                 />
               </div>

@@ -1,6 +1,6 @@
 import LedgerViewCta from '@/components/dashboard/accounting/bookkeeping/ledger-view-cta';
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
-import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
@@ -14,6 +14,27 @@ const ledgercolumns = [
   { key: 'status', label: 'Status' },
 ];
 
+const ledgerData = [
+  {
+    id: 'L001',
+    customer: 'ABC Company',
+    originalInvoice: 'INV-001',
+    reason: 'Service Payment',
+    amount: '₦50,000',
+    issueDate: '2024-01-15',
+    status: 'Completed',
+  },
+  {
+    id: 'L002',
+    customer: 'XYZ Corp',
+    originalInvoice: 'INV-002',
+    reason: 'Product Sale',
+    amount: '₦75,000',
+    issueDate: '2024-01-16',
+    status: 'Pending',
+  },
+];
+
 export default function LedgerView() {
   // State for LedgerViewCta
   const [reportPeriod, setReportPeriod] = useState('');
@@ -22,6 +43,29 @@ export default function LedgerView() {
   const [accountType, setAccountType] = useState('');
   const [accountingMethod, setAccountingMethod] = useState('cash');
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
+
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Handle table item selection
+  const handleSelectTableItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  // Handle select all functionality
+  const handleSelectAllItems = (checked) => {
+    if (checked) {
+      setSelectedItems(ledgerData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
 
   // Handlers
   const handleReportPeriodChange = (value) => {
@@ -91,7 +135,28 @@ export default function LedgerView() {
         />
       </div>
       <div className="mt-10">
-        <BookkeepingTable columns={ledgercolumns} />
+        <AccountingTable
+          title="Ledger Entries"
+          data={ledgerData}
+          columns={ledgercolumns}
+          searchFields={['customer', 'originalInvoice', 'reason']}
+          searchPlaceholder="Search ledger entries..."
+          paginationData={{
+            page: 1,
+            totalPages: 1,
+            pageSize: 10,
+            totalCount: ledgerData.length,
+          }}
+          dropdownActions={[
+            { key: 'edit', label: 'Edit' },
+            { key: 'view', label: 'View' },
+            { key: 'delete', label: 'Delete' },
+          ]}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectTableItem}
+          handleSelectAll={handleSelectAllItems}
+          onRowAction={() => {}}
+        />
       </div>
 
       <RunReportForm

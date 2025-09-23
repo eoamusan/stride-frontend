@@ -2,7 +2,7 @@ import AccountActions from '@/components/dashboard/accounting/bookkeeping/accoun
 import AccountSuccess from '@/components/dashboard/accounting/bookkeeping/account-success';
 import AddAccountForm from '@/components/dashboard/accounting/bookkeeping/add-account';
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
-import BookkeepingTable from '@/components/dashboard/accounting/bookkeeping/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
@@ -57,6 +57,7 @@ export default function ChartOfAccounts() {
   // State for AccountActions
   const [batchAction, setBatchAction] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedItems, setSelectedItems] = useState([]);
   const [columns, setColumns] = useState({
     number: true,
     type: true,
@@ -152,6 +153,23 @@ export default function ChartOfAccounts() {
     }
   };
 
+  const handleSelectTableItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, itemId]);
+    } else {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    }
+  };
+
+  const handleSelectAllItems = (checked) => {
+    const filteredData = getFilteredAccounts();
+    if (checked) {
+      setSelectedItems(filteredData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
   // Filter accounts based on search term and column visibility
   const getFilteredAccounts = () => {
     let filtered = accountsData;
@@ -232,16 +250,22 @@ export default function ChartOfAccounts() {
           onRunReport={handleRunReport}
         />
 
-        <BookkeepingTable
+        <AccountingTable
           className="mt-10"
+          title="Chart of Accounts"
           data={getFilteredAccounts()}
           columns={getVisibleColumns()}
+          searchFields={['name', 'codeSeries', 'type']}
+          searchPlaceholder="Search accounts..."
           dropdownActions={accountDropdownActions}
           paginationData={{
             ...accountPaginationData,
             pageSize: parseInt(pageSize),
           }}
           onRowAction={handleAccountRowAction}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectTableItem}
+          handleSelectAll={handleSelectAllItems}
         />
       </div>
 

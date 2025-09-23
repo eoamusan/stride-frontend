@@ -17,7 +17,7 @@ import EmptyVendor from '@/components/dashboard/accounting/accounts-payable/empt
 import AddVendorForm from '@/components/dashboard/accounting/accounts-payable/vendor-form';
 import VendorSuccessModal from '@/components/dashboard/accounting/accounts-payable/vendor-success-modal';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import SettingsDropdown from '@/components/dashboard/accounting/settings-dropdown';
 import DownloadDropdown from '@/components/dashboard/accounting/download-dropdown';
 
@@ -132,6 +132,29 @@ export default function VendorManagement() {
   const [pageSize, setPageSize] = useState('50');
   const [tableDensity, setTableDensity] = useState('Cozy');
 
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Handle table item selection
+  const handleSelectItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  // Handle select all functionality
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedItems(vendorData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
   // Handle row actions for the table
   const handleRowAction = (action, item) => {
     console.log(`Action: ${action}`, item);
@@ -220,7 +243,7 @@ export default function VendorManagement() {
       ) : (
         <div className="mt-10">
           <Metrics metrics={vendorMetricsData} />
-          <InvoicingTable
+          <AccountingTable
             className="mt-10"
             title="Vendor Management"
             data={vendorData}
@@ -234,6 +257,9 @@ export default function VendorManagement() {
               { key: 'view', label: 'View' },
               { key: 'delete', label: 'Delete' },
             ]}
+            selectedItems={selectedItems}
+            handleSelectItem={handleSelectItem}
+            handleSelectAll={handleSelectAll}
             onRowAction={handleRowAction}
           />
         </div>

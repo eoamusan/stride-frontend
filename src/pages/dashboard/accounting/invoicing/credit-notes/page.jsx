@@ -1,7 +1,7 @@
 import AddCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/add-credit';
 import ViewCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/view-credit';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -84,6 +84,7 @@ const creditMetrics = [
 export default function CreditNotes() {
   const [isCreateCreditNoteOpen, setIsCreateCreditNoteOpen] = useState(false);
   const [isViewCreditNoteOpen, setIsViewCreditNoteOpen] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   const handleCreditNoteAction = (action, creditNote) => {
     console.log('Credit note action:', action, creditNote);
@@ -99,6 +100,22 @@ export default function CreditNotes() {
         break;
       default:
         break;
+    }
+  };
+
+  const handleSelectTableItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, itemId]);
+    } else {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    }
+  };
+
+  const handleSelectAllItems = (checked) => {
+    if (checked) {
+      setSelectedItems(creditNotes.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
     }
   };
 
@@ -132,7 +149,7 @@ export default function CreditNotes() {
       <div className="mt-10">
         <Metrics metrics={creditMetrics} />
         <div className="mt-10">
-          <InvoicingTable
+          <AccountingTable
             title={'Credit notes & returns'}
             data={creditNotes}
             columns={creditNoteColumns}
@@ -142,6 +159,9 @@ export default function CreditNotes() {
             dropdownActions={creditNoteDropdownActions}
             paginationData={creditNotePaginationData}
             onRowAction={handleCreditNoteAction}
+            selectedItems={selectedItems}
+            handleSelectItem={handleSelectTableItem}
+            handleSelectAll={handleSelectAllItems}
           />
         </div>
       </div>

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 
 const paymentMetrics = [
   { title: 'Total Payments', value: '264' },
@@ -115,6 +115,29 @@ export default function Payments() {
   const [showAccountTypeBadges, setShowAccountTypeBadges] = useState(true);
   const [pageSize, setPageSize] = useState('50');
   const [tableDensity, setTableDensity] = useState('Cozy');
+
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Handle table item selection
+  const handleSelectItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
+
+  // Handle select all functionality
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedItems(paymentData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
 
   // Handler functions
   const handleToggleCreatePayment = () => {
@@ -300,9 +323,9 @@ export default function Payments() {
         )}
       </div>
 
-      <InvoicingTable
+      <AccountingTable
         className="mt-10"
-        title={'Payments'}
+        title={'Incoming Payments'}
         data={paymentData}
         columns={paymentColumns}
         searchFields={['customer', 'invoice', 'id']}
@@ -310,6 +333,9 @@ export default function Payments() {
         statusStyles={paymentStatusStyles}
         dropdownActions={paymentDropdownActions}
         paginationData={paymentPaginationData}
+        selectedItems={selectedItems}
+        handleSelectItem={handleSelectItem}
+        handleSelectAll={handleSelectAll}
         onRowAction={handlePaymentAction}
       />
     </div>

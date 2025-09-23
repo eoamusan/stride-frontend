@@ -17,7 +17,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FilterIcon, MoreHorizontalIcon, SearchIcon } from 'lucide-react';
+import {
+  BanIcon,
+  FilterIcon,
+  LayoutGridIcon,
+  ListIcon,
+  MoreHorizontalIcon,
+  SearchIcon,
+  Trash2Icon,
+  UploadIcon,
+} from 'lucide-react';
 import {
   Pagination,
   PaginationContent,
@@ -29,7 +38,7 @@ import {
 } from '@/components/ui/pagination';
 import emptyTableImg from '@/assets/icons/empty-table.svg';
 
-export default function InvoicingTable({
+export default function AccountingTable({
   title,
   data = [],
   columns = [],
@@ -43,30 +52,17 @@ export default function InvoicingTable({
     pageSize: 10,
     totalCount: 0,
   },
+  onPageChange,
   onRowAction,
   className = '',
   selectedItems = [],
   handleSelectAll,
   handleSelectItem,
+  showDataSize = false,
+  isProductTable = false,
 }) {
-  // const [selectedItems, setSelectedItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // const handleSelectAll = (checked) => {
-  //   if (checked) {
-  //     setSelectedItems(data.map((item) => item.id));
-  //   } else {
-  //     setSelectedItems([]);
-  //   }
-  // };
-
-  // const handleSelectItem = (itemId, checked) => {
-  //   if (checked) {
-  //     setSelectedItems([...selectedItems, itemId]);
-  //   } else {
-  //     setSelectedItems(selectedItems.filter((id) => id !== itemId));
-  //   }
-  // };
+  const [activeProductView, setActiveProductView] = useState('list');
 
   const getStatusBadge = (status) => {
     const defaultStyles = 'bg-gray-100 text-gray-800 hover:bg-gray-100';
@@ -97,39 +93,84 @@ export default function InvoicingTable({
   const { page, totalPages } = paginationData;
   const renderPaginationItems = () => {
     const items = [];
-    if (totalPages <= 6) {
+    const delta = 1; // Number of pages to show on each side of current page
+
+    if (totalPages <= 7) {
+      // Show all pages if total is 7 or less
       for (let i = 1; i <= totalPages; i++) {
         items.push(
           <PaginationItem key={i}>
-            <PaginationLink className={'size-7 text-sm'} isActive={i === page}>
+            <PaginationLink
+              className={'size-7 cursor-pointer text-sm'}
+              isActive={i === page}
+              onClick={() => onPageChange?.(i)}
+            >
               {i}
             </PaginationLink>
           </PaginationItem>
         );
       }
     } else {
-      // First three
-      for (let i = 1; i <= 3; i++) {
+      // Always show first page
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            className={'size-7 cursor-pointer text-sm'}
+            isActive={1 === page}
+            onClick={() => onPageChange?.(1)}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+
+      // Calculate the range around current page
+      let startPage = Math.max(2, page - delta);
+      let endPage = Math.min(totalPages - 1, page + delta);
+
+      // Add left ellipsis if needed
+      if (startPage > 2) {
+        items.push(
+          <PaginationItem key="ellipsis-left">
+            <PaginationEllipsis className={'size-7 text-sm'} />
+          </PaginationItem>
+        );
+      }
+
+      // Add pages around current page
+      for (let i = startPage; i <= endPage; i++) {
         items.push(
           <PaginationItem key={i}>
-            <PaginationLink className={'size-7 text-sm'} isActive={i === page}>
+            <PaginationLink
+              className={'size-7 cursor-pointer text-sm'}
+              isActive={i === page}
+              onClick={() => onPageChange?.(i)}
+            >
               {i}
             </PaginationLink>
           </PaginationItem>
         );
       }
-      // Ellipsis
-      items.push(
-        <PaginationItem key="ellipsis">
-          <PaginationEllipsis className={'size-7 text-sm'} />
-        </PaginationItem>
-      );
-      // Last three
-      for (let i = totalPages - 2; i <= totalPages; i++) {
+
+      // Add right ellipsis if needed
+      if (endPage < totalPages - 1) {
         items.push(
-          <PaginationItem key={i}>
-            <PaginationLink className={'size-7 text-sm'} isActive={i === page}>
-              {i}
+          <PaginationItem key="ellipsis-right">
+            <PaginationEllipsis className={'size-7 text-sm'} />
+          </PaginationItem>
+        );
+      }
+
+      // Always show last page (if it's not page 1)
+      if (totalPages > 1) {
+        items.push(
+          <PaginationItem key={totalPages}>
+            <PaginationLink
+              className={'size-7 cursor-pointer text-sm'}
+              isActive={totalPages === page}
+              onClick={() => onPageChange?.(totalPages)}
+            >
+              {totalPages}
             </PaginationLink>
           </PaginationItem>
         );
@@ -156,22 +197,57 @@ export default function InvoicingTable({
     <div className={`w-full rounded-2xl bg-white p-6 ${className}`}>
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-6">
-        <h2 className="text-xl font-bold">{title}</h2>
+        {selectedItems.length > 0 ? (
+          <>
+            <div />
+            <div className="flex items-center gap-2">
+              <Button size={'icon'} variant={'outline'}>
+                <Trash2Icon />
+              </Button>
+              <Button size={'icon'} variant={'outline'}>
+                <BanIcon />
+              </Button>
+              <Button size={'icon'} variant={'outline'}>
+                <UploadIcon />
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-bold">{title}</h2>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-            <Input
-              placeholder={searchPlaceholder}
-              className="w-full max-w-80 pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Button variant="outline" size="icon">
-            <FilterIcon className="h-4 w-4" />
-          </Button>
-        </div>
+            <div className="flex items-center gap-3">
+              {isProductTable && (
+                <div className="mr-5 flex items-center gap-2">
+                  <div
+                    onClick={() => setActiveProductView('grid')}
+                    className={`flex h-9 items-center gap-2 px-2 font-medium cursor-pointer ${activeProductView === 'grid' ? 'border-primary text-primary border-b' : ''}`}
+                  >
+                    <LayoutGridIcon size={16} /> <span>Grid</span>
+                  </div>
+                  <div
+                    onClick={() => setActiveProductView('list')}
+                    className={`flex h-9 items-center gap-2 px-2 font-medium cursor-pointer ${activeProductView === 'list' ? 'border-primary text-primary border-b' : ''}`}
+                  >
+                    <ListIcon size={16} /> <span>List</span>
+                  </div>
+                </div>
+              )}
+              <div className="relative">
+                <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                <Input
+                  placeholder={searchPlaceholder}
+                  className="w-full max-w-80 pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Button variant="outline" size="icon">
+                <FilterIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Table */}
@@ -269,28 +345,39 @@ export default function InvoicingTable({
         </Table>
       </div>
 
-      {/* Pagination */}
-      <Pagination className={'mt-6'}>
-        <PaginationContent className={'w-full justify-between'}>
-          <PaginationItem>
-            <PaginationPrevious
-              className={
-                'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 border text-sm text-[#414651] shadow-xs'
-              }
-            />
-          </PaginationItem>
-          <span className="flex items-center md:gap-1">
-            {renderPaginationItems()}
-          </span>
-          <PaginationItem>
-            <PaginationNext
-              className={
-                'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 border text-sm text-[#414651] shadow-xs'
-              }
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+      <div className="mt-6 flex items-center justify-between">
+        {showDataSize && (
+          <p className="text-sm font-medium text-zinc-600">
+            Showing{' '}
+            {`${paginationData.page * paginationData.pageSize - paginationData.pageSize + 1}-${paginationData.page * paginationData.pageSize} of ${paginationData.totalCount}`}
+          </p>
+        )}
+
+        {/* Pagination */}
+        <Pagination className={`${showDataSize ? 'mx-0 w-fit' : 'w-full'}`}>
+          <PaginationContent className={'w-full justify-between'}>
+            <PaginationItem>
+              <PaginationPrevious
+                className={
+                  'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 cursor-pointer border text-sm text-[#414651] shadow-xs'
+                }
+                onClick={() => page > 1 && onPageChange?.(page - 1)}
+              />
+            </PaginationItem>
+            <span className="flex items-center md:gap-1">
+              {renderPaginationItems()}
+            </span>
+            <PaginationItem>
+              <PaginationNext
+                className={
+                  'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 cursor-pointer border text-sm text-[#414651] shadow-xs'
+                }
+                onClick={() => page < totalPages && onPageChange?.(page + 1)}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
 }

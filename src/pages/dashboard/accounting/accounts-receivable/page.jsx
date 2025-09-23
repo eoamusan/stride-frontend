@@ -15,14 +15,14 @@ import {
   DownloadIcon,
   PlusCircleIcon,
   SettingsIcon,
-  SearchIcon,
 } from 'lucide-react';
-import InvoicingTable from '@/components/dashboard/accounting/invoicing/table';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-invoice';
 
 export default function AccountsReceivable() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [createInvoice, setCreateInvoice] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   // State for column visibility
   const [columns, setColumns] = useState({
@@ -148,6 +148,22 @@ export default function AccountsReceivable() {
   const handleRowAction = (action, item) => {
     console.log(`Action ${action} on item:`, item);
     // Implement row action logic here
+  };
+
+  const handleSelectTableItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, itemId]);
+    } else {
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+    }
+  };
+
+  const handleSelectAllItems = (checked) => {
+    if (checked) {
+      setSelectedItems(accountsReceivableData.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
   };
 
   const handleToggleCreateInvoice = () => {
@@ -309,7 +325,7 @@ export default function AccountsReceivable() {
       </div>
 
       {/* Accounts Receivable Table */}
-      <InvoicingTable
+      <AccountingTable
         title="Accounts Receivable (A/R)"
         data={accountsReceivableData}
         columns={tableColumns}
@@ -318,6 +334,9 @@ export default function AccountsReceivable() {
         dropdownActions={dropdownActions}
         paginationData={paginationData}
         onRowAction={handleRowAction}
+        selectedItems={selectedItems}
+        handleSelectItem={handleSelectTableItem}
+        handleSelectAll={handleSelectAllItems}
         className="mt-10"
       />
     </div>
