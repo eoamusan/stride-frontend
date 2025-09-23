@@ -20,6 +20,7 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import SettingsDropdown from '@/components/dashboard/accounting/settings-dropdown';
 import DownloadDropdown from '@/components/dashboard/accounting/download-dropdown';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import CreateBidForm from '@/components/dashboard/accounting/accounts-payable/create-bid-form';
 
 // Vendor data from the image
 const vendorData = [
@@ -119,7 +120,11 @@ const vendorMetricsData = [
 export default function VendorManagement() {
   const navigate = useNavigate();
   const [openVendorForm, setOpenVendorForm] = useState(false);
-  const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [openBidForm, setOpenBidForm] = useState(false);
+  const [openSuccessModal, setOpenSuccessModal] = useState({
+    open: false,
+    for: '',
+  });
   const [columns, setColumns] = useState({
     number: true,
     type: true,
@@ -167,9 +172,9 @@ export default function VendorManagement() {
         // Navigate to vendor detail page
         navigate(`/dashboard/accounting/accounts-payable/${item.id}`);
         break;
-      case 'delete':
-        // Add delete logic here
-        console.log('Delete vendor:', item.id);
+      case 'blacklist':
+        // Add blacklist logic here
+        console.log('Blacklist vendor:', item.id);
         break;
       default:
         console.log('Unknown action:', action);
@@ -222,6 +227,14 @@ export default function VendorManagement() {
             <PlusCircleIcon className="size-4" />
             Add Vendor
           </Button>
+          <Button
+            variant={'outline'}
+            className={'h-10 rounded-2xl text-sm'}
+            onClick={() => setOpenBidForm(true)}
+          >
+            <PlusCircleIcon className="size-4" />
+            Create a Bid
+          </Button>
           <DownloadDropdown onDownloadFormats={onDownloadFormats} />
           <SettingsDropdown
             columns={columns}
@@ -255,7 +268,8 @@ export default function VendorManagement() {
             dropdownActions={[
               { key: 'edit', label: 'Edit' },
               { key: 'view', label: 'View' },
-              { key: 'delete', label: 'Delete' },
+              { key: 'sendRequest', label: 'Send Request' },
+              { key: 'blacklist', label: 'Blacklist' },
             ]}
             selectedItems={selectedItems}
             handleSelectItem={handleSelectItem}
@@ -267,22 +281,29 @@ export default function VendorManagement() {
 
       <AddVendorForm
         open={openVendorForm}
-        showSuccessModal={() => setOpenSuccessModal(true)}
+        showSuccessModal={() =>
+          setOpenSuccessModal({ open: true, for: 'vendor' })
+        }
         onOpenChange={setOpenVendorForm}
       />
 
-      <VendorSuccessModal
-        open={openSuccessModal}
-        onOpenChange={setOpenSuccessModal}
-        handleBack={() => setOpenSuccessModal(false)}
+      <CreateBidForm
+        open={openBidForm}
+        onOpenChange={setOpenBidForm}
+        onSuccess={() => setOpenSuccessModal({ open: true, for: 'bid' })}
       />
+
       <SuccessModal
-        title={'Vendor Added'}
-        description={`You've successfully added a vendor`}
-        open={openSuccessModal}
-        onOpenChange={setOpenSuccessModal}
+        title={`${openSuccessModal.for === 'vendor' ? 'Vendor' : 'Bid'} Added`}
+        description={`You've successfully added a ${openSuccessModal.for === 'vendor' ? 'vendor' : 'bid'}`}
+        open={openSuccessModal.open}
+        onOpenChange={(open) =>
+          setOpenSuccessModal({ ...openSuccessModal, open })
+        }
         backText={'Back'}
-        handleBack={() => setOpenSuccessModal(false)}
+        handleBack={() =>
+          setOpenSuccessModal({ ...openSuccessModal, open: false })
+        }
       />
     </div>
   );

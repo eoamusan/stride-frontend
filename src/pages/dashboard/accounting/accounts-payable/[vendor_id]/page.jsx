@@ -338,6 +338,9 @@ export default function VendorDetails() {
                 <PencilLineIcon className="mr-1" /> Edit Vendor
               </Button>
               <Button className={'h-10 w-full text-sm'} variant={'outline'}>
+                <FileInput className="mr-1" /> Send Request
+              </Button>
+              <Button className={'h-10 w-full text-sm'} variant={'outline'}>
                 <FileInput className="mr-1" /> Export Data
               </Button>
             </div>
