@@ -2,7 +2,6 @@ import checkmarkIcon from '@/assets/icons/checkmark.svg';
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -10,10 +9,15 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-export default function JournalEntrySuccess({
+export default function SuccessModal({
+  title,
+  description,
+  nextText,
+  backText,
   open,
   onOpenChange,
   handleBack,
+  handleNext,
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -22,18 +26,37 @@ export default function JournalEntrySuccess({
           <div className="mx-auto mb-4 flex h-30 w-30 items-center justify-center">
             <img src={checkmarkIcon} alt="Success" className="" />
           </div>
-          <AlertDialogTitle className="text-center">
-            Entry Added
-          </AlertDialogTitle>
+          <AlertDialogTitle className="text-center">{title}</AlertDialogTitle>
           <AlertDialogDescription className="mt-1 text-center text-base">
-            You&apos;ve successfully added an entry.
+            {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <hr className="my-4" />
         <AlertDialogFooter className={'w-full'}>
-          <AlertDialogAction onClick={handleBack} className="mb-4 h-10 w-full">
-            Back
-          </AlertDialogAction>
+          {handleNext ? (
+            <>
+              <AlertDialogAction
+                onClick={handleNext}
+                className="mb-4 h-10 w-full md:max-w-[50%]"
+              >
+                {nextText}
+              </AlertDialogAction>
+
+              <AlertDialogCancel
+                onClick={handleBack}
+                className="mb-4 h-10 w-full md:max-w-[48%]"
+              >
+                {backText}
+              </AlertDialogCancel>
+            </>
+          ) : (
+            <AlertDialogAction
+              onClick={handleBack}
+              className="mb-4 h-10 w-full"
+            >
+              {backText}
+            </AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -1,7 +1,7 @@
 import AccountActions from '@/components/dashboard/accounting/bookkeeping/account-cta';
-import AccountSuccess from '@/components/dashboard/accounting/bookkeeping/account-success';
 import AddAccountForm from '@/components/dashboard/accounting/bookkeeping/add-account';
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -275,9 +275,13 @@ export default function ChartOfAccounts() {
         showSuccessModal={() => setShowAccountSuccess(true)}
       />
 
-      <AccountSuccess
+      <SuccessModal
+        title={'Account Added'}
+        description={`You've successfully added an account.`}
         open={showAccountSuccess}
         onOpenChange={setShowAccountSuccess}
+        backText={'Back'}
+        handleBack={() => setShowAccountSuccess(false)}
       />
 
       <RunReportForm

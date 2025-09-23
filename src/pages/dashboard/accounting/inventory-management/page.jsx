@@ -1,7 +1,7 @@
 import AddProductForm from '@/components/dashboard/accounting/inventory/add-product-form';
 import EmptyInventory from '@/components/dashboard/accounting/inventory/empty-inventory';
 import InventoryCategoryForm from '@/components/dashboard/accounting/inventory/inventory-category-form';
-import ProductSuccessModal from '@/components/dashboard/accounting/inventory/product-success';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import ActivityCard from '@/components/dashboard/activity-card';
@@ -295,7 +295,10 @@ export default function InventoryManagement() {
         open={openCategoryForm}
         onOpenChange={setOpenCategoryForm}
       />
-      <ProductSuccessModal
+      <SuccessModal
+        title={'Product Added'}
+        description={"You've successfully added a product"}
+        backText={'Back'}
         open={openSuccessModal}
         onOpenChange={setOpenSuccessModal}
         handleBack={handleBackFromSuccess}

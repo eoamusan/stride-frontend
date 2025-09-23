@@ -15,11 +15,11 @@ import {
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import EmptyVendor from '@/components/dashboard/accounting/accounts-payable/empty-vendor-state';
 import AddVendorForm from '@/components/dashboard/accounting/accounts-payable/vendor-form';
-import VendorSuccessModal from '@/components/dashboard/accounting/accounts-payable/vendor-success-modal';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import SettingsDropdown from '@/components/dashboard/accounting/settings-dropdown';
 import DownloadDropdown from '@/components/dashboard/accounting/download-dropdown';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 
 // Vendor data from the image
 const vendorData = [
@@ -274,6 +274,14 @@ export default function VendorManagement() {
       <VendorSuccessModal
         open={openSuccessModal}
         onOpenChange={setOpenSuccessModal}
+        handleBack={() => setOpenSuccessModal(false)}
+      />
+      <SuccessModal
+        title={'Vendor Added'}
+        description={`You've successfully added a vendor`}
+        open={openSuccessModal}
+        onOpenChange={setOpenSuccessModal}
+        backText={'Back'}
         handleBack={() => setOpenSuccessModal(false)}
       />
     </div>

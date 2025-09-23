@@ -41,7 +41,7 @@ import { format } from 'date-fns';
 import PreviewInvoice from './preview-invoice';
 import AddCustomerModal from './customers/add-customer';
 import AddBankModal from './add-bank';
-import InvoiceSentModal from './invoice-sent-modal';
+import SuccessModal from '../success-modal';
 
 const formSchema = z.object({
   invoice_number: z.string().min(1, { message: 'Invoice number is required' }),
@@ -944,10 +944,14 @@ export default function CreateInvoice() {
         onOpenChange={setIsAddBankModalOpen}
       />
 
-      <InvoiceSentModal
+      <SuccessModal
+        title={'Invoice Sent'}
+        description={"You've successfully sent the invoice."}
         open={isSuccessModalOpen}
         onOpenChange={setIsSuccessModalOpen}
-        handleView={handlePreview}
+        nextText={'View'}
+        handleNext={handlePreview}
+        backText={'Back'}
         handleBack={() => {
           const url = new URL(window.location.href);
           url.searchParams.delete('create');

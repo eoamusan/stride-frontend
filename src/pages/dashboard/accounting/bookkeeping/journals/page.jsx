@@ -4,9 +4,8 @@ import JournalEntryForm from '@/components/dashboard/accounting/bookkeeping/jour
 import { Button } from '@/components/ui/button';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
-import JournalEntrySuccess from '@/components/dashboard/accounting/bookkeeping/journal-entry-success';
-import { se } from 'date-fns/locale';
 import RecurringTemplateForm from '@/components/dashboard/accounting/bookkeeping/recurring-template-form';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 
 const journalTableColumns = [
   { key: 'date', label: 'Date' },
@@ -236,9 +235,13 @@ export default function JournalEntries() {
         onClose={() => setOpenJournalEntryForm(false)}
         onSuccess={handleEntryAdded}
       />
-      <JournalEntrySuccess
+
+      <SuccessModal
+        title={'Entry Added'}
+        description={`You've successfully added an entry.`}
         open={entrySuccessOpen}
         onOpenChange={setEntrySuccessOpen}
+        backText={'Back'}
         handleBack={() => setEntrySuccessOpen(false)}
       />
 
