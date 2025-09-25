@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SearchIcon, Trash2Icon, BanIcon, UploadIcon } from 'lucide-react';
-import VendorCard from './vendor-card';
-import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  SearchIcon,
+  Trash2Icon,
+  BanIcon,
+  UploadIcon,
+  FilterIcon,
+} from 'lucide-react';
+import BidCard from './bid-card';
 import {
   Pagination,
   PaginationContent,
@@ -22,151 +20,149 @@ import {
 } from '@/components/ui/pagination';
 import emptyTableImg from '@/assets/icons/empty-table.svg';
 
-// Sample vendor data
-const vendorData = [
+// Sample bid data
+const bidsData = [
   {
     id: 1,
-    name: 'JJ Solutions',
-    category: 'IT Services',
-    contactPerson: 'Adeniyi James',
-    email: 'jjsolutions@gmail.com',
-    phone: '+2347065724230',
-    address: '2118 Thornridge Cir. Syracuse, Connecticut 35624',
-    services: 'IT Support, Cloud Services',
-    rating: 4.8,
-    joinDate: '2025-01-12',
-    verified: true,
-    avatar: null,
+    title: 'Office Cleaning Services',
+    description: 'Regular cleaning services for corporate office space',
+    category: 'Cleaning Services',
+    responses: 12,
+    startDate: '2025-02-01',
+    deadline: '2025-02-03',
+    status: 'Active',
+    bidType: 'Public',
+    isDeadlinePassed: true,
   },
   {
     id: 2,
-    name: 'Adam Craft',
-    category: 'Marketing',
-    contactPerson: 'Adam Johnson',
-    email: 'adam.craft@gmail.com',
-    phone: '+2347065724231',
-    address: '1234 Business Ave, Lagos, Nigeria',
-    services: 'Digital Marketing, Brand Strategy',
-    rating: 4.2,
-    joinDate: '2024-11-08',
-    verified: false,
-    avatar: null,
+    title: 'IT Support Services',
+    description: '24/7 technical support for business operations',
+    category: 'IT Services',
+    responses: 8,
+    startDate: '2025-02-15',
+    deadline: '2025-03-01',
+    status: 'Active',
+    bidType: 'Private',
+    isDeadlinePassed: false,
   },
   {
     id: 3,
-    name: 'Tech Innovators',
-    category: 'Technology',
-    contactPerson: 'Sarah Wilson',
-    email: 'info@techinnovators.com',
-    phone: '+2347065724232',
-    address: '567 Innovation Drive, Abuja, Nigeria',
-    services: 'Software Development, AI Solutions',
-    rating: 4.9,
-    joinDate: '2024-09-15',
-    verified: true,
-    avatar: null,
+    title: 'Marketing Campaign',
+    description: 'Digital marketing campaign for product launch',
+    category: 'Marketing',
+    responses: 15,
+    startDate: '2025-01-20',
+    deadline: '2025-02-20',
+    status: 'Closed',
+    bidType: 'Public',
+    isDeadlinePassed: true,
   },
   {
     id: 4,
-    name: 'Tech Innovators',
+    title: 'Software Development',
+    description: 'Custom software solution development',
     category: 'Technology',
-    contactPerson: 'Sarah Wilson',
-    email: 'info@techinnovators.com',
-    phone: '+2347065724232',
-    address: '567 Innovation Drive, Abuja, Nigeria',
-    services: 'Software Development, AI Solutions',
-    rating: 4.9,
-    joinDate: '2024-09-15',
-    verified: true,
-    avatar: null,
+    responses: 6,
+    startDate: '2025-03-01',
+    deadline: '2025-04-01',
+    status: 'Active',
+    bidType: 'Private',
+    isDeadlinePassed: false,
   },
   {
     id: 5,
-    name: 'Tech Innovators',
-    category: 'Technology',
-    contactPerson: 'Sarah Wilson',
-    email: 'info@techinnovators.com',
-    phone: '+2347065724232',
-    address: '567 Innovation Drive, Abuja, Nigeria',
-    services: 'Software Development, AI Solutions',
-    rating: 4.9,
-    joinDate: '2024-09-15',
-    verified: true,
-    avatar: null,
+    title: 'Legal Consultation',
+    description: 'Business legal advisory services',
+    category: 'Legal Services',
+    responses: 4,
+    startDate: '2025-02-10',
+    deadline: '2025-02-25',
+    status: 'Pending',
+    bidType: 'Public',
+    isDeadlinePassed: false,
   },
   {
     id: 6,
-    name: 'Tech Innovators',
-    category: 'Technology',
-    contactPerson: 'Sarah Wilson',
-    email: 'info@techinnovators.com',
-    phone: '+2347065724232',
-    address: '567 Innovation Drive, Abuja, Nigeria',
-    services: 'Software Development, AI Solutions',
-    rating: 4.9,
-    joinDate: '2024-09-15',
-    verified: true,
-    avatar: null,
+    title: 'Accounting Services',
+    description: 'Monthly bookkeeping and financial reporting',
+    category: 'Finance',
+    responses: 10,
+    startDate: '2025-01-15',
+    deadline: '2025-02-15',
+    status: 'Active',
+    bidType: 'Public',
+    isDeadlinePassed: false,
   },
 ];
 
-export default function VendorsList({
+export default function BidList({
   className,
-  vendorsData = vendorData,
-  searchPlaceholder = 'Search vendors...',
-  onVendorEdit,
-  onVendorDelete,
-  onVendorView,
+  bidsData: propBidsData = bidsData,
+  searchPlaceholder = 'Search bids...',
+  onBidEdit,
+  onBidDelete,
+  onBidView,
+  onBidClose,
   paginationData = { page: 1, totalPages: 1 },
   onPageChange,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
-  // Filter vendors based on search term
-  const filteredVendors = vendorsData.filter(
-    (vendor) =>
-      vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.services.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter bids based on search term and filters
+  const filteredBids = propBidsData.filter((bid) => {
+    const matchesSearch =
+      bid.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bid.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bid.category.toLowerCase().includes(searchTerm.toLowerCase());
 
-  // Handle vendor actions
-  const handleEditVendor = (vendor) => {
-    console.log('Edit vendor:', vendor);
-    onVendorEdit?.(vendor);
+    const matchesCategory =
+      !categoryFilter ||
+      bid.category.toLowerCase() === categoryFilter.toLowerCase();
+    const matchesStatus =
+      !statusFilter || bid.status.toLowerCase() === statusFilter.toLowerCase();
+
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
+  // Handle bid actions
+  const handleEditBid = (bid) => {
+    console.log('Edit bid:', bid);
+    onBidEdit?.(bid);
   };
 
-  const handleDeleteVendor = (vendor) => {
-    console.log('Delete vendor:', vendor);
-    onVendorDelete?.(vendor);
+  const handleDeleteBid = (bid) => {
+    console.log('Delete bid:', bid);
+    onBidDelete?.(bid);
   };
 
-  const handleViewVendor = (vendor) => {
-    console.log('View vendor:', vendor);
-    onVendorView?.(vendor);
+  const handleViewBid = (bid) => {
+    console.log('View bid:', bid);
+    onBidView?.(bid);
   };
 
-  const handleContactVendor = (vendor) => {
-    console.log('Contact vendor:', vendor);
-    // Handle contact logic here
+  const handleCloseBid = (bid) => {
+    console.log('Close bid:', bid);
+    onBidClose?.(bid);
   };
 
   // Handle bulk actions
   const handleBulkDelete = () => {
-    console.log('Bulk delete vendors:', selectedItems);
+    console.log('Bulk delete bids:', selectedItems);
   };
 
-  const handleBulkBan = () => {
-    console.log('Bulk ban vendors:', selectedItems);
+  const handleBulkClose = () => {
+    console.log('Bulk close bids:', selectedItems);
   };
 
   const handleBulkExport = () => {
-    console.log('Bulk export vendors:', selectedItems);
+    console.log('Bulk export bids:', selectedItems);
   };
 
-  const vendors = filteredVendors;
+  const bids = filteredBids;
 
   const { page, totalPages } = paginationData;
   const renderPaginationItems = () => {
@@ -269,15 +265,15 @@ export default function VendorsList({
                 size={'icon'}
                 variant={'outline'}
                 onClick={handleBulkDelete}
-                title="Delete selected vendors"
+                title="Delete selected bids"
               >
                 <Trash2Icon className="h-4 w-4" />
               </Button>
               <Button
                 size={'icon'}
                 variant={'outline'}
-                onClick={handleBulkBan}
-                title="Ban selected vendors"
+                onClick={handleBulkClose}
+                title="Close selected bids"
               >
                 <BanIcon className="h-4 w-4" />
               </Button>
@@ -285,17 +281,17 @@ export default function VendorsList({
                 size={'icon'}
                 variant={'outline'}
                 onClick={handleBulkExport}
-                title="Export selected vendors"
+                title="Export selected bids"
               >
                 <UploadIcon className="h-4 w-4" />
               </Button>
             </div>
           </>
         ) : (
-          <div className="grid w-full gap-6 md:grid-cols-3">
-            <div className="w-full space-y-2">
-              <Label>Search vendors</Label>
-              <div className="relative">
+          <>
+            <h2 className="text-xl font-bold">Bids History</h2>
+            <div className="flex w-full max-w-lg items-center gap-3">
+              <div className="relative w-full max-w-lg">
                 <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder={searchPlaceholder}
@@ -304,47 +300,26 @@ export default function VendorsList({
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-            </div>
-            <div className="w-full space-y-2">
-              <Label>Category</Label>
-              <Select onValueChange={() => {}} value={''}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="consulting">Consulting</SelectItem>
-                  <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="services">Services</SelectItem>
-                  <SelectItem value="retail">Retail</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div className="w-full space-y-2">
-              <Label>Status</Label>
-              <Select onValueChange={() => {}} value={''}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                </SelectContent>
-              </Select>
+              <Button variant="outline" size="icon">
+                <FilterIcon className="h-4 w-4" />
+              </Button>
+
+              <Button variant={'outline'} size="icon">
+                <UploadIcon className="size-4" />
+              </Button>
             </div>
-          </div>
+          </>
         )}
       </div>
 
-      {/* Vendor Cards Grid */}
-      <div className="flex flex-wrap gap-6">
-        {vendors.length > 0 ? (
-          vendors.map((vendor) => (
-            <VendorCard
-              key={vendor.id}
-              vendor={vendor}
+      {/* Bid Cards Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {bids.length > 0 ? (
+          bids.map((bid) => (
+            <BidCard
+              key={bid.id}
+              bid={bid}
               onSelected={({ id, checked }) => {
                 setSelectedItems((prev) => {
                   if (checked) {
@@ -354,10 +329,10 @@ export default function VendorsList({
                   }
                 });
               }}
-              onViewDetails={handleViewVendor}
-              onContact={handleContactVendor}
-              onEdit={handleEditVendor}
-              onDelete={handleDeleteVendor}
+              onViewDetails={handleViewBid}
+              onEdit={handleEditBid}
+              onClose={handleCloseBid}
+              onDelete={handleDeleteBid}
             />
           ))
         ) : (
@@ -370,13 +345,14 @@ export default function VendorsList({
             <div className="text-sm text-gray-400">
               {searchTerm
                 ? 'Try adjusting your search criteria'
-                : 'Add your first vendor to get started'}
+                : 'Add your first bid to get started'}
             </div>
           </div>
         )}
       </div>
+
+      {/* Pagination */}
       <div className="mt-6 flex items-center justify-between">
-        {/* Pagination */}
         <Pagination className={`w-full`}>
           <PaginationContent className={'w-full justify-between'}>
             <PaginationItem>

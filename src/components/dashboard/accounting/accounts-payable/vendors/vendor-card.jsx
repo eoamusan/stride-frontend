@@ -69,7 +69,7 @@ export default function VendorCard({
   };
 
   return (
-    <Card className="w-full max-w-sm bg-white shadow-sm">
+    <Card className="w-full max-w-sm">
       <CardContent className="space-y-4 px-6">
         {/* Header Section */}
         <div className="flex items-start space-x-3">

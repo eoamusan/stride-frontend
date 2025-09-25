@@ -7,7 +7,7 @@ import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import SettingsDropdown from '@/components/dashboard/accounting/settings-dropdown';
 import DownloadDropdown from '@/components/dashboard/accounting/download-dropdown';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
-import CreateBidForm from '@/components/dashboard/accounting/accounts-payable/create-bid-form';
+import CreateBidForm from '@/components/dashboard/accounting/accounts-payable/bids/create-bid-form';
 import VendorsList from '@/components/dashboard/accounting/accounts-payable/vendors/vendors-list';
 
 // Vendor data from the image

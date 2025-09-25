@@ -9,7 +9,7 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import SettingsDropdown from '@/components/dashboard/accounting/settings-dropdown';
 import DownloadDropdown from '@/components/dashboard/accounting/download-dropdown';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
-import CreateBidForm from '@/components/dashboard/accounting/accounts-payable/create-bid-form';
+import CreateBidForm from '@/components/dashboard/accounting/accounts-payable/bids/create-bid-form';
 
 // Vendor data from the image
 const vendorData = [

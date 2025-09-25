@@ -30,6 +30,7 @@ import VendorDetails from './dashboard/accounting/accounts-payable/[vendor_id]/p
 import VendorInvoices from './dashboard/accounting/accounts-payable/vendor-invoices/page';
 import PaymentScheduling from './dashboard/accounting/accounts-payable/payment-scheduling/page';
 import Vendors from './dashboard/accounting/accounts-payable/vendors/page';
+import Bids from './dashboard/accounting/accounts-payable/bids/page';
 
 const router = createBrowserRouter([
   {
@@ -167,6 +168,10 @@ const router = createBrowserRouter([
                       {
                         path: 'vendors',
                         Component: Vendors,
+                      },
+                      {
+                        path: 'bids',   
+                        Component: Bids,
                       },
                       {
                         path: 'payment-scheduling',
