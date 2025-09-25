@@ -164,6 +164,10 @@ const accountsPayableItems = [
     link: '/dashboard/accounting/accounts-payable/vendor-invoices',
   },
   {
+    title: 'Vendors',
+    link: '/dashboard/accounting/accounts-payable/vendors',
+  },
+  {
     title: 'Payment Scheduling',
     link: '/dashboard/accounting/accounts-payable/payment-scheduling',
   },

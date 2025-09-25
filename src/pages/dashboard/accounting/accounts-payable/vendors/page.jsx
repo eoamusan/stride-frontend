@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { PlusCircleIcon } from 'lucide-react';
 import EmptyVendor from '@/components/dashboard/accounting/accounts-payable/vendors/empty-vendor-state';
 import AddVendorForm from '@/components/dashboard/accounting/accounts-payable/vendors/vendor-form';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import AccountingTable from '@/components/dashboard/accounting/table';
 import SettingsDropdown from '@/components/dashboard/accounting/settings-dropdown';
 import DownloadDropdown from '@/components/dashboard/accounting/download-dropdown';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import CreateBidForm from '@/components/dashboard/accounting/accounts-payable/create-bid-form';
+import VendorsList from '@/components/dashboard/accounting/accounts-payable/vendors/vendors-list';
 
 // Vendor data from the image
 const vendorData = [
@@ -37,56 +36,6 @@ const vendorData = [
   },
 ];
 
-// Table columns configuration
-const vendorColumns = [
-  {
-    key: 'img',
-    label: 'Img',
-    render: (value) => (
-      <div className="flex h-10 w-10 items-center justify-center rounded">
-        <img
-          src={value}
-          alt="Vendor"
-          className="h-10 w-10 rounded object-cover"
-        />
-      </div>
-    ),
-  },
-  { key: 'vendor', label: 'Vendor' },
-  { key: 'category', label: 'Category' },
-  { key: 'totalInvoices', label: 'Total Invoices' },
-  { key: 'totalAmount', label: 'Total Amount' },
-  {
-    key: 'onTimeRate',
-    label: 'On-Time Rate',
-    render: (value) => (
-      <span
-        className={
-          value === '100%'
-            ? 'font-medium text-green-600'
-            : 'font-medium text-orange-600'
-        }
-      >
-        {value}
-      </span>
-    ),
-  },
-  { key: 'lastPayment', label: 'Last Payment' },
-  { key: 'status', label: 'Status' },
-];
-
-const statusStyles = {
-  Active: 'bg-green-100 text-green-800 hover:bg-green-100',
-  Pending: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
-  Inactive: 'bg-red-100 text-red-800 hover:bg-red-100',
-};
-
-const paginationData = {
-  page: 1,
-  totalPages: 10,
-  pageSize: 50,
-  totalCount: 500,
-};
 const vendorMetricsData = [
   {
     title: 'Total Vendors',
@@ -106,8 +55,7 @@ const vendorMetricsData = [
   },
 ];
 
-export default function VendorManagement() {
-  const navigate = useNavigate();
+export default function Vendors() {
   const [openVendorForm, setOpenVendorForm] = useState(false);
   const [openBidForm, setOpenBidForm] = useState(false);
   const [openSuccessModal, setOpenSuccessModal] = useState({
@@ -125,50 +73,6 @@ export default function VendorManagement() {
   const [showAccountTypeBadges, setShowAccountTypeBadges] = useState(true);
   const [pageSize, setPageSize] = useState('50');
   const [tableDensity, setTableDensity] = useState('Cozy');
-
-  // State for table selection
-  const [selectedItems, setSelectedItems] = useState([]);
-
-  // Handle table item selection
-  const handleSelectItem = (itemId, checked) => {
-    setSelectedItems((prevItems) => {
-      if (checked) {
-        return [...prevItems, itemId];
-      } else {
-        return prevItems.filter((id) => id !== itemId);
-      }
-    });
-  };
-
-  // Handle select all functionality
-  const handleSelectAll = (checked) => {
-    if (checked) {
-      setSelectedItems(vendorData.map((item) => item.id));
-    } else {
-      setSelectedItems([]);
-    }
-  };
-
-  // Handle row actions for the table
-  const handleRowAction = (action, item) => {
-    console.log(`Action: ${action}`, item);
-    switch (action) {
-      case 'edit':
-        // Add edit logic here
-        console.log('Edit vendor:', item.id);
-        break;
-      case 'view':
-        // Navigate to vendor detail page
-        navigate(`/dashboard/accounting/accounts-payable/${item.id}`);
-        break;
-      case 'blacklist':
-        // Add blacklist logic here
-        console.log('Blacklist vendor:', item.id);
-        break;
-      default:
-        console.log('Unknown action:', action);
-    }
-  };
 
   // Event handlers
   const onDownloadFormats = (format, checked) => {
@@ -198,13 +102,14 @@ export default function VendorManagement() {
   const onTableDensityChange = (value) => {
     setTableDensity(value);
   };
+
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
         <hgroup>
-          <h1 className="text-2xl font-bold">Vendor Mangement</h1>
+          <h1 className="text-2xl font-bold">Vendors</h1>
           <p className="text-sm text-[#7D7D7D]">
-            Manage vendor profiles and relationships
+            Manage your vendor network and build strong business relationships.
           </p>
         </hgroup>
 
@@ -245,26 +150,7 @@ export default function VendorManagement() {
       ) : (
         <div className="mt-10">
           <Metrics metrics={vendorMetricsData} />
-          <AccountingTable
-            className="mt-10"
-            title="Vendor Management"
-            data={vendorData}
-            columns={vendorColumns}
-            searchFields={['vendor', 'category', 'status']}
-            searchPlaceholder="Search vendor......."
-            statusStyles={statusStyles}
-            paginationData={paginationData}
-            dropdownActions={[
-              { key: 'edit', label: 'Edit' },
-              { key: 'view', label: 'View' },
-              { key: 'sendRequest', label: 'Send Request' },
-              { key: 'blacklist', label: 'Blacklist' },
-            ]}
-            selectedItems={selectedItems}
-            handleSelectItem={handleSelectItem}
-            handleSelectAll={handleSelectAll}
-            onRowAction={handleRowAction}
-          />
+          <VendorsList className={'mt-10'} />
         </div>
       )}
 

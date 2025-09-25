@@ -29,6 +29,7 @@ import InventoryMovement from './dashboard/accounting/inventory-management/movem
 import VendorDetails from './dashboard/accounting/accounts-payable/[vendor_id]/page';
 import VendorInvoices from './dashboard/accounting/accounts-payable/vendor-invoices/page';
 import PaymentScheduling from './dashboard/accounting/accounts-payable/payment-scheduling/page';
+import Vendors from './dashboard/accounting/accounts-payable/vendors/page';
 
 const router = createBrowserRouter([
   {
@@ -162,6 +163,10 @@ const router = createBrowserRouter([
                       {
                         path: 'vendor-invoices',
                         Component: VendorInvoices,
+                      },
+                      {
+                        path: 'vendors',
+                        Component: Vendors,
                       },
                       {
                         path: 'payment-scheduling',
