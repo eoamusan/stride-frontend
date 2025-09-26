@@ -236,7 +236,12 @@ export default function InventoryManagement() {
             <Button size={'icon'} className={'size-10'} variant={'outline'}>
               <DownloadIcon size={16} />
             </Button>
-            <Button size={'icon'} className={'size-10'} variant={'outline'}>
+            <Button
+              size={'icon'}
+              className={'size-10'}
+              variant={'outline'}
+              onClick={() => setOpenCategoryForm(true)}
+            >
               <ShapesIcon size={16} />
             </Button>
             <Button size={'icon'} className={'size-10'} variant={'outline'}>

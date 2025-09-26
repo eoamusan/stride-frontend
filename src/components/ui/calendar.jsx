@@ -214,6 +214,7 @@ function Calendar({
           );
 
           const handleYearChange = (selectedValue) => {
+            console.log(selectedValue)
             const yearValue = parseInt(selectedValue);
             if (onChange) {
               onChange(yearValue);
