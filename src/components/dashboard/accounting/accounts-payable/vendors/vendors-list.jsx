@@ -339,7 +339,7 @@ export default function VendorsList({
       </div>
 
       {/* Vendor Cards Grid */}
-      <div className="flex flex-wrap gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {vendors.length > 0 ? (
           vendors.map((vendor) => (
             <VendorCard

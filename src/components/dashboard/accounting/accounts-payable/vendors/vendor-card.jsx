@@ -72,7 +72,7 @@ export default function VendorCard({
     <Card className="w-full max-w-sm">
       <CardContent className="space-y-4 px-6">
         {/* Header Section */}
-        <div className="flex items-start space-x-3">
+        <div className="flex flex-wrap items-start space-x-3">
           {/* Avatar */}
           <div className="mr-4">
             <Checkbox
@@ -140,7 +140,7 @@ export default function VendorCard({
         </div>
 
         {/* Rating and Join Date */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1">
               {renderStars(vendor.rating)}

@@ -396,7 +396,7 @@ export default function AddVendorForm({
                   name="phoneNumber2"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number 2 optional</FormLabel>
+                      <FormLabel>Phone Number 2 (optional)</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter phone number"
@@ -460,8 +460,9 @@ export default function AddVendorForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="min-w-80 p-0" align="start">
                           <Calendar
+                            className={'w-full'}
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}

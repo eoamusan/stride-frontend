@@ -31,6 +31,7 @@ import VendorInvoices from './dashboard/accounting/accounts-payable/vendor-invoi
 import PaymentScheduling from './dashboard/accounting/accounts-payable/payment-scheduling/page';
 import Vendors from './dashboard/accounting/accounts-payable/vendors/page';
 import Bids from './dashboard/accounting/accounts-payable/bids/page';
+import ApprovalWorkflow from './dashboard/accounting/accounts-payable/approval-workflow/page';
 
 const router = createBrowserRouter([
   {
@@ -179,7 +180,7 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'approval-workflow',
-                        Component: () => <div>Approval Workflow</div>,
+                        Component: ApprovalWorkflow,
                       },
                       {
                         path: 'reports',
