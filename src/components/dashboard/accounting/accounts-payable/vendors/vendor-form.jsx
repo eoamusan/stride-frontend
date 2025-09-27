@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,7 +27,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { UploadIcon, X, CalendarIcon, StoreIcon } from 'lucide-react';
+import {
+  UploadIcon,
+  X,
+  CalendarIcon,
+  StoreIcon,
+  ChevronsUpDown,
+  Check,
+} from 'lucide-react';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -36,6 +43,15 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { format } from 'date-fns';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 // Zod schema for form validation
 const vendorSchema = z.object({
@@ -52,6 +68,9 @@ const vendorSchema = z.object({
     required_error: 'Date of registration is required',
   }),
   websitePortfolioLink: z.string().optional(),
+  countryOfRegistration: z
+    .string()
+    .min(1, 'Country of registration is required'),
   registrationNumber: z.string().min(1, 'Registration number is required'),
   taxId: z.string().min(1, 'Tax ID is required'),
   typeOfIncorporation: z.string().min(1, 'Type of incorporation is required'),
@@ -78,6 +97,7 @@ export default function AddVendorForm({
     companyLogo: [],
     picture: [],
   });
+  const [countries, setCountries] = useState([]);
 
   // React Hook Form setup
   const form = useForm({
@@ -95,6 +115,7 @@ export default function AddVendorForm({
       registrationNumber: '',
       taxId: '',
       typeOfIncorporation: '',
+      countryOfRegistration: '',
       taxClearanceCertificate: null,
       incorporationCertificate: null,
       companyLogo: null,
@@ -165,6 +186,20 @@ export default function AddVendorForm({
       showSuccessModal();
     }
   };
+
+  useEffect(() => {
+    async function fetchCountries() {
+      if (!open) return;
+      const response = await fetch(
+        'https://restcountries.com/v3.1/all?fields=name,flags,cca2'
+      );
+      const data = await response.json();
+      setCountries(data);
+    }
+    fetchCountries();
+  }, [open]);
+
+  console.log(countries);
 
   const renderUploadArea = (uploadType, label) => (
     <div className="space-y-2">
@@ -460,7 +495,10 @@ export default function AddVendorForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="min-w-80 p-0" align="start">
+                        <PopoverContent
+                          className="w-full min-w-80 p-0"
+                          align="start"
+                        >
                           <Calendar
                             className={'w-full'}
                             mode="single"
@@ -574,6 +612,112 @@ export default function AddVendorForm({
                     </FormItem>
                   )}
                 />
+
+                {/* Country of Registration */}
+
+                <FormField
+                  control={form.control}
+                  name="countryOfRegistration"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Country of Registration</FormLabel>
+                      <Popover modal={true}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                'h-10 w-full justify-between',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value ? (
+                                <span className="flex items-center gap-2">
+                                  <img
+                                    src={
+                                      countries.find(
+                                        (country) =>
+                                          country.cca2 === field.value
+                                      )?.flags.svg
+                                    }
+                                    alt={
+                                      countries.find(
+                                        (country) =>
+                                          country.cca2 === field.value
+                                      )?.flags.alt
+                                    }
+                                    width={20}
+                                    height={15}
+                                  />
+                                  <span>
+                                    {
+                                      countries.find(
+                                        (country) =>
+                                          country.cca2 === field.value
+                                      )?.name.common
+                                    }
+                                  </span>
+                                </span>
+                              ) : (
+                                'Select country'
+                              )}
+
+                              <ChevronsUpDown className="opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-74 p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search countries..."
+                              className="h-9"
+                            />
+                            <CommandList>
+                              <CommandEmpty>Country(s) not found.</CommandEmpty>
+                              <CommandGroup>
+                                {countries.length > 0 &&
+                                  countries
+                                    .sort((a, b) =>
+                                      a.name.common.localeCompare(b.name.common)
+                                    )
+                                    .map((country, i) => (
+                                      <CommandItem
+                                        value={country.name.common}
+                                        key={i}
+                                        onSelect={() => {
+                                          form.setValue(
+                                            'countryOfRegistration',
+                                            country.cca2
+                                          );
+                                        }}
+                                      >
+                                        <img
+                                          src={country.flags.svg}
+                                          alt={country.flags.alt}
+                                          width={20}
+                                          height={15}
+                                        />
+                                        {country.name.common}
+                                        <Check
+                                          className={cn(
+                                            'ml-auto',
+                                            country.cca2 === field.value
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
 
@@ -594,7 +738,10 @@ export default function AddVendorForm({
                 'companyLogo',
                 'Upload Company Logo (optional)'
               )}
-              {renderUploadArea('picture', 'Upload Picture (optional)')}
+              {renderUploadArea(
+                'picture',
+                "Vendor's Means of Identification (optional)"
+              )}
             </div>
 
             {/* Footer Buttons */}

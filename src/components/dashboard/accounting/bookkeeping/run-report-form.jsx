@@ -165,7 +165,10 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent
+                          className="w-full min-w-80 p-0"
+                          align="start"
+                        >
                           <Calendar
                             mode="single"
                             selected={field.value}
@@ -211,7 +214,10 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent
+                          className="w-full min-w-80 p-0"
+                          align="start"
+                        >
                           <Calendar
                             mode="single"
                             selected={field.value}

@@ -61,7 +61,7 @@ export default function JournalEntriesCta({
                 <CalendarIcon className="h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-full min-w-80 p-0" align="start">
               <Calendar
                 mode="single"
                 selected={selectedDate}

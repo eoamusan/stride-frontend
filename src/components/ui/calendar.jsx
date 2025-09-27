@@ -8,13 +8,7 @@ import { DayPicker, getDefaultClassNames } from 'react-day-picker';
 
 import { cn } from '@/lib/utils';
 import { Button, buttonVariants } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './select';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
 
 function Calendar({
   className,
@@ -56,12 +50,12 @@ function Calendar({
         ),
         button_previous: cn(
           buttonVariants({ variant: buttonVariant }),
-          'size-(--cell-size) aria-disabled:opacity-50 p-0 select-none',
+          'size-[34px] aria-disabled:opacity-50 p-0 select-none',
           defaultClassNames.button_previous
         ),
         button_next: cn(
           buttonVariants({ variant: buttonVariant }),
-          'size-(--cell-size) aria-disabled:opacity-50 p-0 select-none',
+          'size-[34px] aria-disabled:opacity-50 p-0 select-none',
           defaultClassNames.button_next
         ),
         month_caption: cn(
@@ -69,11 +63,11 @@ function Calendar({
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
-          'w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5 relative overflow-visible',
+          'w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-2 relative overflow-visible',
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
-          'relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md',
+          'relative px-4 py-0.5 has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md',
           defaultClassNames.dropdown_root
         ),
         dropdown: cn(
@@ -158,82 +152,34 @@ function Calendar({
             <ChevronDownIcon className={cn('size-4', className)} {...props} />
           );
         },
-        MonthsDropdown: (props) => {
-          const { value, onChange, children, ...rest } = props;
-          const months = [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
-          ];
-
-          const handleMonthChange = (selectedValue) => {
-            const monthIndex = parseInt(selectedValue);
-            if (onChange) {
-              onChange(monthIndex);
-            }
+        Dropdown: (props) => {
+          const createEvt = (value) => {
+            return {
+              target: {
+                value: value,
+              },
+            };
           };
 
           return (
             <Select
-              value={value?.toString()}
-              onValueChange={handleMonthChange}
-              {...rest}
+              value={props.value}
+              onValueChange={(val) => {
+                const evt = createEvt(val);
+                props.onChange(evt);
+              }}
             >
-              <SelectTrigger className="h-9! w-auto">
-                <SelectValue>
-                  {value !== undefined
-                    ? months[value]
-                    : months[new Date().getMonth()]}
-                </SelectValue>
+              <SelectTrigger className={'h-9!'}>
+                <SelectValue />
               </SelectTrigger>
-              <SelectContent className="z-[100] max-h-72">
-                {months.map((month, index) => (
-                  <SelectItem key={index} value={index.toString()}>
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          );
-        },
-        YearsDropdown: (props) => {
-          const { value, onChange, children, ...rest } = props;
-          const currentYear = new Date().getFullYear();
-          const years = Array.from(
-            { length: 100 },
-            (_, i) => currentYear - 50 + i
-          );
-
-          const handleYearChange = (selectedValue) => {
-            console.log(selectedValue)
-            const yearValue = parseInt(selectedValue);
-            if (onChange) {
-              onChange(yearValue);
-            }
-          };
-
-          return (
-            <Select
-              value={value?.toString()}
-              onValueChange={handleYearChange}
-              {...rest}
-            >
-              <SelectTrigger className="h-9! w-auto">
-                <SelectValue>{value || currentYear}</SelectValue>
-              </SelectTrigger>
-              <SelectContent className="z-[100] max-h-72">
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
+              <SelectContent>
+                {props.options.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    disabled={option.disabled}
+                    value={option.value}
+                  >
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
