@@ -32,6 +32,7 @@ import PaymentScheduling from './dashboard/accounting/accounts-payable/payment-s
 import Vendors from './dashboard/accounting/accounts-payable/vendors/page';
 import Bids from './dashboard/accounting/accounts-payable/bids/page';
 import ApprovalWorkflow from './dashboard/accounting/accounts-payable/approval-workflow/page';
+import ReportsAP from './dashboard/accounting/accounts-payable/reports/page';
 
 const router = createBrowserRouter([
   {
@@ -184,7 +185,7 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'reports',
-                        Component: () => <div>Reports Page</div>,
+                        Component: ReportsAP,
                       },
                     ],
                   },

@@ -190,7 +190,7 @@ export default function VendorInvoices() {
             onClick={() => setOpenInvoiceForm(true)}
           >
             <PlusCircleIcon className="size-4" />
-            Create Invoice
+            Record Invoice
           </Button>
           <DownloadDropdown onDownloadFormats={onDownloadFormats} />
           <SettingsDropdown
