@@ -64,7 +64,7 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10 ml-1">
         <Select onValueChange={setCurrentReport} value={currentReport}>
           <SelectTrigger className="w-full max-w-sm bg-white">
             <SelectValue />
