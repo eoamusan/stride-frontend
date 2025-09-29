@@ -1,4 +1,5 @@
 import PaymentScheduleForm from '@/components/dashboard/accounting/accounts-payable/payment-scheduling/schedule-form';
+import ViewScheduleModal from '@/components/dashboard/accounting/accounts-payable/payment-scheduling/view-schedule';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
@@ -119,6 +120,7 @@ const vendorInvoicesData = [
 export default function PaymentScheduling() {
   const [openScheduleForm, setOpenScheduleForm] = useState(false);
   const [selectPaymentInvoices, setSelectPaymentInvoices] = useState([]);
+  const [openViewSchedule, setOpenViewSchedule] = useState(false);
 
   const handleSelectAllTableItems = (checked) => {
     if (checked) {
@@ -151,6 +153,7 @@ export default function PaymentScheduling() {
         break;
       case 'view':
         console.log('View invoice:', item.id);
+        setOpenViewSchedule(true);
         break;
       case 'schedule':
         console.log('Schedule payment for:', item.id);
@@ -216,6 +219,12 @@ export default function PaymentScheduling() {
         selectedInvoices={selectPaymentInvoices}
         handleSelectInvoice={handleSelectTableItem}
         clearSelections={clearAllTableSelections}
+      />
+
+      <ViewScheduleModal
+        open={openViewSchedule}
+        onOpenChange={setOpenViewSchedule}
+        // paymentData={}
       />
     </div>
   );
