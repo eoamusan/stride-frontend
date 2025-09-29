@@ -4,6 +4,7 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckIcon, XIcon } from 'lucide-react';
+import ApprovalRequestForm from '@/components/dashboard/accounting/accounts-payable/approval-request/approval-form';
 
 const invoicesData = [
   {
@@ -62,11 +63,11 @@ const approvalColumns = [
     key: 'img',
     label: 'Img',
     render: (value) => (
-      <div className="flex h-10 w-10 items-center justify-center rounded">
+      <div className="flex h-6 w-8 items-center justify-center rounded">
         <img
           src={value}
           alt="Vendor"
-          className="h-10 w-10 rounded object-cover"
+          className="h-6 w-8 rounded object-cover"
         />
       </div>
     ),
@@ -81,7 +82,7 @@ const approvalColumns = [
     render: (value, row) => (
       <div className="text-sm">
         <div className="font-medium">{value}</div>
-        <div className="text-gray-500">{row.submittedDate}</div>
+        <div className="text-[#434343]">{row.submittedDate}</div>
       </div>
     ),
   },
@@ -91,7 +92,7 @@ const approvalColumns = [
     render: (value, row) => (
       <div className="text-sm">
         <div className="font-medium">{value}</div>
-        <div className="text-gray-500">{row.approverStatus}</div>
+        <div className="text-[#434343]">{row.approverStatus}</div>
       </div>
     ),
   },
@@ -131,6 +132,7 @@ const paginationData = {
 
 export default function ApprovalWorkflow() {
   const [selectedItems, setSelectedItems] = useState([]);
+  const [openRequestForm, setOpenRequestForm] = useState(false);
 
   // Handle table item selection
   const handleSelectItem = (itemId, checked) => {
@@ -190,7 +192,7 @@ export default function ApprovalWorkflow() {
             className={
               'h-10 rounded-2xl bg-[#24A959] text-sm hover:bg-[#24A959]/80'
             }
-            onClick={() => console.log('Approve selected:', selectedItems)}
+            onClick={() => setOpenRequestForm(true)}
             disabled={selectedItems.length === 0}
           >
             <CheckIcon className="size-4" />
@@ -200,7 +202,7 @@ export default function ApprovalWorkflow() {
             className={
               'h-10 rounded-2xl bg-[#EF4444] text-sm hover:bg-[#EF4444]/80'
             }
-            onClick={() => console.log('Reject selected:', selectedItems)}
+            onClick={() => setOpenRequestForm(true)}
             disabled={selectedItems.length === 0}
           >
             <XIcon className="size-4" />
@@ -237,6 +239,14 @@ export default function ApprovalWorkflow() {
         handleSelectItem={handleSelectItem}
         handleSelectAll={handleSelectAll}
         onRowAction={handleRowAction}
+      />
+
+      <ApprovalRequestForm
+        open={openRequestForm}
+        onOpenChange={setOpenRequestForm}
+        // requestData={requestData}
+        onApprove={() => {}}
+        onReject={() => {}}
       />
     </div>
   );
