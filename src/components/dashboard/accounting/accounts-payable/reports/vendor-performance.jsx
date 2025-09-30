@@ -233,10 +233,10 @@ export default function VendorPerformance() {
     }
   };
   return (
-    <div className="mb-10 space-y-10">
+    <div className="mb-10 space-y-6 md:space-y-10">
       <Metrics metrics={metricsData} />
-      <div className="flex gap-10">
-        <div className="w-full space-y-10">
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
+        <div className="w-full space-y-6 lg:space-y-10">
           <AccountingTable
             title="Vendors"
             data={vendorsData}
@@ -253,11 +253,12 @@ export default function VendorPerformance() {
             showDataSize={false}
           />
         </div>
-        <div className="w-full max-w-[369px] space-y-10">
+        <div className="w-full space-y-6 lg:w-auto lg:max-w-[369px] lg:min-w-[369px] lg:space-y-10">
           <PieMetricCard
             title="Top Vendors by Amount"
             chartConfig={pieChartConfig}
             chartData={pieChartData}
+            className="w-full"
           />
           <ListCard
             title={'Vendor Performance Details'}

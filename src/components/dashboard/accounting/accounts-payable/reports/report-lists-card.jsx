@@ -21,7 +21,7 @@ export default function ListCard({ title, items }) {
                 <div>
                   <h3 className="text-sm font-semibold">{item.period}</h3>
                   <p className="text-sm text-[#434343]">
-                    {item.invoiceCount} invoices
+                    {item.invoiceCount > 0 && `${item.invoiceCount} invoices`} 
                   </p>
                 </div>
                 <div className="text-right">

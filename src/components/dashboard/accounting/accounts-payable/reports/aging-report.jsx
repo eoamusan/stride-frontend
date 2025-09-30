@@ -218,10 +218,10 @@ export default function AgingReport() {
   };
 
   return (
-    <div className="space-y-10 mb-10">
+    <div className="mb-10 space-y-6 md:space-y-10">
       <Metrics metrics={metricsData} />
-      <div className="flex gap-10">
-        <div className="w-full space-y-10">
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
+        <div className="w-full space-y-6 lg:space-y-10">
           <BarChartOverview
             title="Account Payable Aging"
             chartData={agingChartData}
@@ -244,7 +244,7 @@ export default function AgingReport() {
           />
         </div>
 
-        <div className="min-w-xs">
+        <div className="w-full lg:w-auto lg:max-w-[400px] lg:min-w-[320px]">
           <ListCard title="Aging Summary" items={agingData} />
         </div>
       </div>
