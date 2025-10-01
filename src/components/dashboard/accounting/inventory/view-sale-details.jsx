@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Copy, ShoppingBasket } from 'lucide-react';
 import geishaImage from '@/assets/images/geisha.png';
 
-export default function ViewProductModal({
+export default function ViewSaleModal({
   open,
   onOpenChange,
   productData = {
@@ -29,7 +29,6 @@ export default function ViewProductModal({
   },
 }) {
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(productData.currentQuantity);
 
   const images = [geishaImage, geishaImage, geishaImage, geishaImage];
 
@@ -56,7 +55,7 @@ export default function ViewProductModal({
           <div className="flex items-center justify-center rounded-full bg-[#254C00] p-2">
             <ShoppingBasket color="#fff" size={16} />
           </div>
-          <DialogTitle className="font-semibold">Product Details</DialogTitle>
+          <DialogTitle className="font-semibold">Sale Information</DialogTitle>
         </DialogHeader>
 
         <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-2">
@@ -115,77 +114,98 @@ export default function ViewProductModal({
                   <span className="font-medium">{productData.category}</span>
                 </div>
                 <div>
-                  <span className="text-[#5F6C72]">Stock Level: </span>
-                  <span className="font-medium text-[#24A959]">
-                    {productData.stockLevel}
+                  <span className="text-[#5F6C72]">Quantity: </span>
+                  <span className="font-medium">
+                    {productData.currentQuantity}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600"></span>
-                  <span className="font-medium text-[#24A959]">Perishable</span>
+                  <span className="text-[#5F6C72]">Unit Price: </span>
+                  <span className="font-medium">
+                    ${productData.sellingPrice}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Total Value */}
             <div className="border-b py-4 text-2xl font-semibold text-[#292D32]">
-              <span className="pr-1.5">Total Value:</span>
               <span className="text-[#24A959]">${productData.totalValue}</span>
             </div>
 
-            {/* Stock Information */}
+            {/* Customer Information */}
             <div>
-              <h3 className="mb-3 text-sm font-semibold">Stock Information</h3>
+              <h3 className="mb-3 text-sm font-semibold">
+                Customer Information
+              </h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="space-y-2">
-                  <div className="">Current Quantity</div>
-                  <div className="font-medium text-[#475156]">
-                    {productData.currentQuantity}
-                  </div>
+                  <div className="">Name</div>
+                  <div className="font-medium text-[#475156]">{'John Doe'}</div>
                 </div>
                 <div className="space-y-2">
-                  <div className="">Minimum Stock Level</div>
+                  <div className="">Email Address</div>
                   <div className="font-medium text-[#475156]">
-                    {productData.minimumStockLevel}
+                    {'john.doe@example.com'}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Pricing */}
+            {/* Sales Information */}
             <div>
-              <h3 className="mt-4 mb-3 text-sm font-semibold">Pricing</h3>
+              <h3 className="mb-3 text-sm font-semibold">Sale Information</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="space-y-2">
-                  <div className="">Purchase Price</div>
+                  <div className="">Sale Date</div>
                   <div className="font-medium text-[#475156]">
-                    ${productData.purchasePrice}
+                    {'2023-10-01'}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <div className="">Selling Price</div>
+                  <div className="">Sale Person</div>
                   <div className="font-medium text-[#475156]">
-                    ${productData.sellingPrice}
+                    {'Jane Smith'}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Storage */}
+            {/* Notes */}
             <div>
-              <h3 className="mt-4 mb-3 text-sm font-semibold">Storage</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-2">
-                  <div className="">Storage Area</div>
-                  <div className="font-medium text-[#475156]">
-                    {productData.storageArea}
-                  </div>
+              <h3 className="mb-3 text-sm font-semibold">Notes</h3>
+              <div className="font-medium text-[#475156]">
+                {'Very good product.'}
+              </div>
+            </div>
+
+            {/* Sale Summary */}
+            <div>
+              <h3 className="mt-4 mb-3 text-sm font-semibold">Sale Summary</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <div className="text-[#475156]">Product</div>
+                  <div className="font-medium">{'Geisha'}</div>
                 </div>
-                <div className="space-y-2">
-                  <div className="">Expiry Date</div>
-                  <div className="font-medium text-[#EF4444]">
-                    {productData.expiryDate}
-                  </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-[#475156]">Unit Price</div>
+                  <div className="font-medium">{'$10.00'}</div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-[#475156]">Tax</div>
+                  <div className="font-medium">{'$1.00'}</div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-[#475156]">Quantity</div>
+                  <div className="font-medium">{'1'}</div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-[#475156]">Sub-Total</div>
+                  <div className="font-medium">{'$10.00'}</div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold text-[#292D32]">Total</div>
+                  <div className="font-semibold text-[#24A959]">{'$11.00'}</div>
                 </div>
               </div>
             </div>
@@ -196,21 +216,21 @@ export default function ViewProductModal({
                 onClick={handleAdjustStock}
                 className="h-10 flex-1 rounded-2xl text-sm"
               >
-                Adjust Stock
+                Refund
               </Button>
               <Button
                 variant="outline"
                 onClick={handlePrint}
                 className="h-10 flex-1 rounded-2xl text-sm"
               >
-                Print
+                Resell
               </Button>
               <Button
                 variant="outline"
                 onClick={handleExport}
                 className="h-10 flex-1 rounded-2xl text-sm"
               >
-                Export
+                Sell on Shobu
               </Button>
             </div>
 

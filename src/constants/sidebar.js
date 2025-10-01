@@ -199,16 +199,16 @@ const inventoryManagementItems = [
     link: '/dashboard/accounting/inventory/movement',
   },
   {
-    title: 'Inventory Reports',
-    link: '/dashboard/accounting/inventory/reports',
-  },
-  {
     title: 'Sales',
     link: '/dashboard/accounting/inventory/sales',
   },
   {
-    title: 'Advanced Reports',
-    link: '/dashboard/accounting/inventory/advanced-reports',
+    title: 'Suppliers',
+    link: '/dashboard/accounting/inventory/suppliers',
+  },
+  {
+    title: 'Reports',
+    link: '/dashboard/accounting/inventory/reports',
   },
   {
     title: 'User Roles & Alerts',
