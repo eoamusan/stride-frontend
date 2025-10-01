@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import AddProductForm from '@/components/dashboard/accounting/inventory/add-product-form';
 import EmptyInventory from '@/components/dashboard/accounting/inventory/empty-inventory';
 import InventoryCategoryForm from '@/components/dashboard/accounting/inventory/inventory-category-form';
@@ -12,7 +13,9 @@ import {
   SettingsIcon,
   ShapesIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import adContainerPlaceholder from '@/assets/images/ad-container-product.png';
+import cameraIcon from '@/assets/icons/camera.svg';
+import ProductCard from '@/components/dashboard/accounting/inventory/product-card';
 
 const products = [''];
 const productMetrics = [
@@ -264,7 +267,12 @@ export default function InventoryManagement() {
                   <ActivityCard key={index} />
                 ))}
               </div>
-              <div className="mt-10">
+
+              <div className="mt-10 w-full">
+                <img src={adContainerPlaceholder} alt="add placeholder" />
+              </div>
+
+              <div className="relative mt-10">
                 <AccountingTable
                   title="Product Catalog"
                   data={productData}
@@ -284,7 +292,13 @@ export default function InventoryManagement() {
                   handleSelectItem={handleSelectItem}
                   handleSelectAll={handleSelectAll}
                   onRowAction={handleRowAction}
+                  isProductTable
+                  showDataSize
+                  itemComponent={ProductCard}
                 />
+                <button className="bg-primary/10 absolute -top-10 right-0 cursor-pointer rounded-full p-5">
+                  <img src={cameraIcon} alt="add product" />
+                </button>
               </div>
             </div>
           </div>

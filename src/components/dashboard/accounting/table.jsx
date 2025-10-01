@@ -60,6 +60,7 @@ export default function AccountingTable({
   handleSelectItem,
   showDataSize = false,
   isProductTable = false,
+  itemComponent,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeProductView, setActiveProductView] = useState('list');
@@ -193,6 +194,9 @@ export default function AccountingTable({
     return value;
   };
 
+
+  const ProductCard = itemComponent
+
   return (
     <div className={`w-full rounded-2xl bg-white p-6 ${className}`}>
       {/* Header */}
@@ -221,13 +225,13 @@ export default function AccountingTable({
                 <div className="mr-5 flex items-center gap-2">
                   <div
                     onClick={() => setActiveProductView('grid')}
-                    className={`flex h-9 items-center gap-2 px-2 font-medium cursor-pointer ${activeProductView === 'grid' ? 'border-primary text-primary border-b' : ''}`}
+                    className={`flex h-9 cursor-pointer items-center gap-2 px-2 font-medium ${activeProductView === 'grid' ? 'border-primary text-primary border-b' : ''}`}
                   >
                     <LayoutGridIcon size={16} /> <span>Grid</span>
                   </div>
                   <div
                     onClick={() => setActiveProductView('list')}
-                    className={`flex h-9 items-center gap-2 px-2 font-medium cursor-pointer ${activeProductView === 'list' ? 'border-primary text-primary border-b' : ''}`}
+                    className={`flex h-9 cursor-pointer items-center gap-2 px-2 font-medium ${activeProductView === 'list' ? 'border-primary text-primary border-b' : ''}`}
                   >
                     <ListIcon size={16} /> <span>List</span>
                   </div>
@@ -251,99 +255,115 @@ export default function AccountingTable({
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-zinc-50">
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={
-                    selectedItems.length === data.length && data.length > 0
-                  }
-                  onCheckedChange={(checked) => {
-                    if (!handleSelectAll) return;
-                    handleSelectAll(checked);
-                  }}
-                />
-              </TableHead>
-              {columns.map((column, index) => (
-                <TableHead
-                  key={index}
-                  className={`font-semibold text-gray-600 ${column.className || ''}`}
-                >
-                  {column.label}
+      {activeProductView === 'list' ? (
+        <div className="overflow-hidden rounded-lg border">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-zinc-50">
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={
+                      selectedItems.length === data.length && data.length > 0
+                    }
+                    onCheckedChange={(checked) => {
+                      if (!handleSelectAll) return;
+                      handleSelectAll(checked);
+                    }}
+                  />
                 </TableHead>
-              ))}
-              {dropdownActions.length > 0 && (
-                <TableHead className="w-12"></TableHead>
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item, index) => (
-                <TableRow key={index} className="hover:bg-zinc-50">
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedItems.includes(item.id)}
-                      onCheckedChange={(checked) => {
-                        if (!handleSelectItem) return;
-                        handleSelectItem(item.id, checked);
-                      }}
+                {columns.map((column, index) => (
+                  <TableHead
+                    key={index}
+                    className={`font-semibold text-gray-600 ${column.className || ''}`}
+                  >
+                    {column.label}
+                  </TableHead>
+                ))}
+                {dropdownActions.length > 0 && (
+                  <TableHead className="w-12"></TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredData.length > 0 ? (
+                filteredData.map((item, index) => (
+                  <TableRow key={index} className="hover:bg-zinc-50">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedItems.includes(item.id)}
+                        onCheckedChange={(checked) => {
+                          if (!handleSelectItem) return;
+                          handleSelectItem(item.id, checked);
+                        }}
+                      />
+                    </TableCell>
+                    {columns.map((column, colIndex) => (
+                      <TableCell
+                        key={colIndex}
+                        className={colIndex === 0 ? 'font-medium' : ''}
+                      >
+                        {renderCellContent(item, column)}
+                      </TableCell>
+                    ))}
+                    {dropdownActions.length > 0 && (
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontalIcon className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {dropdownActions.map((action, actionIndex) => (
+                              <DropdownMenuItem
+                                key={actionIndex}
+                                onClick={() =>
+                                  handleDropdownAction(action.key, item)
+                                }
+                              >
+                                {action.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={
+                      columns.length + 1 + (dropdownActions.length > 0 ? 1 : 0)
+                    }
+                    className="h-24 text-center text-gray-500"
+                  >
+                    <img
+                      src={emptyTableImg}
+                      alt="Empty Table"
+                      className="mx-auto my-4 block w-[220px]"
                     />
                   </TableCell>
-                  {columns.map((column, colIndex) => (
-                    <TableCell
-                      key={colIndex}
-                      className={colIndex === 0 ? 'font-medium' : ''}
-                    >
-                      {renderCellContent(item, column)}
-                    </TableCell>
-                  ))}
-                  {dropdownActions.length > 0 && (
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontalIcon className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {dropdownActions.map((action, actionIndex) => (
-                            <DropdownMenuItem
-                              key={actionIndex}
-                              onClick={() =>
-                                handleDropdownAction(action.key, item)
-                              }
-                            >
-                              {action.label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  )}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={
-                    columns.length + 1 + (dropdownActions.length > 0 ? 1 : 0)
-                  }
-                  className="h-24 text-center text-gray-500"
-                >
-                  <img
-                    src={emptyTableImg}
-                    alt="Empty Table"
-                    className="mx-auto my-4 block w-[220px]"
-                  />
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {filteredData.map((item, i) => (
+            <ProductCard
+              key={i}
+              isSelected={selectedItems.includes(item.id)}
+              handleSelect={(checked) => {
+                if (!handleSelectItem) return;
+                handleSelectItem(item.id, checked);
+              }}
+              data={item}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="mt-6 flex items-center justify-between">
         {showDataSize && (

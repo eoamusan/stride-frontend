@@ -8,9 +8,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
+import sampleImg from '@/assets/images/geisha.png';
 
 const ProductCard = ({
-  product = {
+  isSelected,
+  handleSelect,
+  item = {
     id: 'GE-001',
     name: 'Geisha',
     code: 'GE-001',
@@ -25,9 +29,9 @@ const ProductCard = ({
 }) => {
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'In stock': 'bg-green-100 text-green-700 hover:bg-green-100',
-      'Out of stock': 'bg-red-100 text-red-700 hover:bg-red-100',
-      'Low stock': 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
+      'In stock': 'bg-[#24A959]/10 text-[#24A959]',
+      'Out of stock': 'bg-red-100 text-red-700',
+      'Low stock': 'bg-yellow-100 text-yellow-700',
     };
 
     return (
@@ -41,11 +45,11 @@ const ProductCard = ({
   };
 
   return (
-    <Card className="w-full max-w-sm overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <CardContent className="p-6">
+    <Card className="w-full max-w-xs overflow-hidden p-4">
+      <CardContent className={'px-0'}>
         {/* Header with checkbox and menu */}
-        <div className="mb-4 flex items-center justify-between">
-          <div className="h-6 w-6 rounded border-2 border-gray-300"></div>
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <Checkbox checked={isSelected} onCheckedChange={handleSelect} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -54,75 +58,67 @@ const ProductCard = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>Edit</DropdownMenuItem>
-              <DropdownMenuItem>Duplicate</DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
-                Delete
-              </DropdownMenuItem>
+              <DropdownMenuItem>View</DropdownMenuItem>
+              <DropdownMenuItem>Delete</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
         {/* Product Image */}
-        <div className="mb-6 flex justify-center">
-          <div className="flex h-32 w-32 items-center justify-center rounded-lg bg-gray-100">
+        <div className="mb-2 flex justify-center">
+          <div className="h-[88px]">
             <img
-              src={product.image}
-              alt={product.name}
-              className="h-full w-full rounded-lg object-contain"
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
+              src={sampleImg}
+              alt={item.name}
+              className="h-full w-full object-contain"
             />
-            <div className="hidden h-full w-full items-center justify-center rounded-lg bg-gray-200">
-              <span className="text-sm text-gray-500">No Image</span>
+            <div className="hidden h-full w-full items-center justify-center rounded-lg bg-[#434343]/10">
+              <span className="text-sm text-[#434343]">No Image</span>
             </div>
           </div>
         </div>
 
         {/* Product Info */}
-        <div className="mb-6 space-y-3">
+        <div className="mb-3 space-y-1">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {product.name}
-            </h3>
-            <p className="text-sm text-gray-500">{product.code}</p>
+            <h3 className="text-sm font-semibold">{item.name}</h3>
+            <p className="text-sm font-semibold text-[#434343]/50">
+              {item.code}
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Price:</span>
-              <span className="text-lg font-semibold text-gray-900">
-                ${product.price}
-              </span>
+          <div>
+            <div className="flex items-center justify-between py-0.5">
+              <span className="text-sm font-medium text-[#434343]">Price:</span>
+              <span className="text-sm font-semibold">${item.price}</span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Stock:</span>
-              <span className="text-sm font-medium text-gray-900">
-                {product.stock}
-              </span>
+            <div className="flex items-center justify-between py-0.5">
+              <span className="text-sm font-medium text-[#434343]">Stock:</span>
+              <span className="text-sm font-medium">{item.stock}</span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Status:</span>
-              {getStatusBadge(product.status)}
+            <div className="flex items-center justify-between py-0.5">
+              <span className="text-sm font-medium text-[#434343]">
+                Status:
+              </span>
+              {getStatusBadge(item.status)}
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-4 flex gap-3">
+        <div className="mb-2 flex gap-3">
           <Button
             variant="outline"
-            className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
-            onClick={() => onSell?.(product)}
+            className="flex-1 rounded-2xl text-sm"
+            onClick={() => onSell()}
           >
             Sell
           </Button>
           <Button
-            className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
-            onClick={() => onView?.(product)}
+            className="flex-1 rounded-2xl text-sm"
+            onClick={() => onView()}
           >
             View
           </Button>
@@ -131,8 +127,8 @@ const ProductCard = ({
         {/* Sell On Shobu Link */}
         <div className="text-center">
           <button
-            onClick={() => onSellOnShobu?.(product)}
-            className="text-sm font-medium text-blue-600 underline decoration-1 underline-offset-2 hover:text-blue-700"
+            onClick={() => onSellOnShobu()}
+            className="text-primary hover:text-primary/90 cursor-pointer text-sm font-medium underline decoration-1 underline-offset-2"
           >
             Sell On Shobu
           </button>
