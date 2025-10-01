@@ -12,6 +12,7 @@ import {
   ArrowDownIcon,
   FileTextIcon,
 } from 'lucide-react';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 
 const stockMetrics = [
   { title: 'Total Adjustments', value: '34' },
@@ -114,6 +115,7 @@ const paginationData = {
 
 export default function StockAdjustment() {
   const [openAddProductForm, setOpenAddProductForm] = useState(false);
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
 
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
@@ -175,9 +177,9 @@ export default function StockAdjustment() {
           searchPlaceholder="Search by SKU or name......."
           paginationData={paginationData}
           dropdownActions={[
-            { key: 'edit', label: 'Edit Adjustment' },
-            { key: 'delete', label: 'Delete Adjustment' },
-            { key: 'duplicate', label: 'Duplicate' },
+            { key: 'edit', label: 'Edit' },
+            { key: 'view', label: 'View' },
+            { key: 'delete', label: 'Delete' },
           ]}
           selectedItems={selectedItems}
           handleSelectItem={handleSelectItem}
@@ -192,7 +194,17 @@ export default function StockAdjustment() {
       <MakeAdjustmentForm
         open={openAddProductForm}
         onOpenChange={setOpenAddProductForm}
+        onSuccess={() => setOpenSuccessModal(true)}
       />
+      <SuccessModal
+        open={openSuccessModal}
+        onOpenChange={setOpenSuccessModal}
+        title="Adjustment Done"
+        backText={'Back'}
+        description="You've successfully adjusted a product"
+      />
+
+
     </div>
   );
 }

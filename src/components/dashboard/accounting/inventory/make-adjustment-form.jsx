@@ -49,7 +49,7 @@ const makeAdjustmentSchema = z.object({
   documents: z.any().optional(),
 });
 
-export default function MakeAdjustmentForm({ open, onOpenChange }) {
+export default function MakeAdjustmentForm({ open, onOpenChange, onSuccess }) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
@@ -104,6 +104,7 @@ export default function MakeAdjustmentForm({ open, onOpenChange }) {
     console.log('Adjustment data:', data);
     // Logic to save adjustment
     onOpenChange?.(false);
+    onSuccess?.();
   };
 
   return (

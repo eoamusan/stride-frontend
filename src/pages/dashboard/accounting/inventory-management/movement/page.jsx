@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useState } from 'react';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import { set } from 'zod';
+import ViewMovementModal from '@/components/dashboard/accounting/inventory/view-movement-modal';
 
 // Movement history data based on the image
 const movementData = [
@@ -80,6 +83,8 @@ const statusStyles = {
 
 export default function InventoryMovement() {
   const [openRecordMovementForm, setOpenRecordMovementForm] = useState(false);
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [openViewMovementModal, setOpenViewMovementModal] = useState(false);
 
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
@@ -141,15 +146,20 @@ export default function InventoryMovement() {
           statusStyles={statusStyles}
           paginationData={paginationData}
           dropdownActions={[
-            { key: 'edit', label: 'Edit Movement' },
-            { key: 'delete', label: 'Delete Movement' },
-            { key: 'duplicate', label: 'Duplicate' },
+            { key: 'view', label: 'View' },
+            { key: 'edit', label: 'Edit' },
+            { key: 'delete', label: 'Delete' },
           ]}
           selectedItems={selectedItems}
           handleSelectItem={handleSelectItem}
           handleSelectAll={handleSelectAll}
           onRowAction={(action, item) => {
             console.log(`Action: ${action}`, item);
+            switch (action) {
+              case 'view':
+                setOpenViewMovementModal(true);
+                break;
+            }
           }}
         />
       </div>
@@ -157,6 +167,23 @@ export default function InventoryMovement() {
       <RecordMovementForm
         open={openRecordMovementForm}
         onOpenChange={setOpenRecordMovementForm}
+        onMovementRecorded={() => {
+          setOpenRecordMovementForm(false);
+          setOpenSuccessModal(true);
+        }}
+      />
+
+      <SuccessModal
+        open={openSuccessModal}
+        onOpenChange={setOpenSuccessModal}
+        title="Movement Recorded"
+        description="The inventory movement has been successfully recorded."
+        backText={'Back'}
+      />
+
+      <ViewMovementModal
+        open={openViewMovementModal}
+        onOpenChange={setOpenViewMovementModal}
       />
     </div>
   );
