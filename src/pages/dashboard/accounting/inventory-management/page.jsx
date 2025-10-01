@@ -16,6 +16,7 @@ import {
 import adContainerPlaceholder from '@/assets/images/ad-container-product.png';
 import cameraIcon from '@/assets/icons/camera.svg';
 import ProductCard from '@/components/dashboard/accounting/inventory/product-card';
+import ViewProductModal from '@/components/dashboard/accounting/inventory/view-product-modal';
 
 const products = [''];
 const productMetrics = [
@@ -111,6 +112,7 @@ export default function InventoryManagement() {
   const [openCategoryForm, setOpenCategoryForm] = useState(false);
   const [openAddProductForm, setOpenAddProductForm] = useState(false);
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [openViewProduct, setOpenViewProduct] = useState(false);
 
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
@@ -214,7 +216,13 @@ export default function InventoryManagement() {
 
   const handleRowAction = (action, item) => {
     console.log(`Action ${action} on item:`, item);
+    
     // Implement row action logic here
+    switch (action) {
+      case 'view':
+        setOpenViewProduct(true);
+        break;
+    }
   };
 
   return (
@@ -321,6 +329,10 @@ export default function InventoryManagement() {
         open={openSuccessModal}
         onOpenChange={setOpenSuccessModal}
         handleBack={handleBackFromSuccess}
+      />
+      <ViewProductModal
+        open={openViewProduct}
+        onOpenChange={setOpenViewProduct}
       />
     </div>
   );

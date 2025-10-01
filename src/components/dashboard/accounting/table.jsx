@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -194,8 +194,7 @@ export default function AccountingTable({
     return value;
   };
 
-
-  const ProductCard = itemComponent
+  const ProductCard = itemComponent;
 
   return (
     <div className={`w-full rounded-2xl bg-white p-6 ${className}`}>
@@ -350,7 +349,7 @@ export default function AccountingTable({
           </Table>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {filteredData.map((item, i) => (
             <ProductCard
               key={i}
@@ -359,6 +358,7 @@ export default function AccountingTable({
                 if (!handleSelectItem) return;
                 handleSelectItem(item.id, checked);
               }}
+              handleDropdownAction={handleDropdownAction}
               data={item}
             />
           ))}

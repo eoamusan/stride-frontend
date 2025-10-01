@@ -26,6 +26,7 @@ const ProductCard = ({
   onSell,
   onView,
   onSellOnShobu,
+  handleDropdownAction,
 }) => {
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -57,9 +58,21 @@ const ProductCard = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Edit</DropdownMenuItem>
-              <DropdownMenuItem>View</DropdownMenuItem>
-              <DropdownMenuItem>Delete</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDropdownAction('edit', item)}
+              >
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDropdownAction('view', item)}
+              >
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDropdownAction('delete', item)}
+              >
+                Delete
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
