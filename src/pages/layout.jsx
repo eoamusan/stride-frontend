@@ -35,6 +35,8 @@ import ApprovalWorkflow from './dashboard/accounting/accounts-payable/approval-w
 import ReportsAP from './dashboard/accounting/accounts-payable/reports/page';
 import Sales from './dashboard/accounting/inventory-management/sales/page';
 import Suppliers from './dashboard/accounting/inventory-management/suppliers/page';
+import ReportsInv from './dashboard/accounting/inventory-management/reports/page';
+import UserRoles from './dashboard/accounting/inventory-management/user-roles/page';
 
 const router = createBrowserRouter([
   {
@@ -213,6 +215,14 @@ const router = createBrowserRouter([
                       {
                         path: 'suppliers',
                         Component: Suppliers,
+                      },
+                      {
+                        path: 'reports',
+                        Component: ReportsInv,
+                      },
+                      {
+                        path: 'user-roles',
+                        Component: UserRoles,
                       },
                     ],
                   },

@@ -54,7 +54,7 @@ export default function PieMetricCard({
                   data={chartData}
                   className="w-full pt-4"
                   label
-                  nameKey="value"
+                  nameKey="name"
                   dataKey="value"
                 >
                   {chartData.map((entry, index) => (

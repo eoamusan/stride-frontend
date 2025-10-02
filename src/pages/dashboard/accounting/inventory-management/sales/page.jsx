@@ -20,6 +20,7 @@ import ProductCard from '@/components/dashboard/accounting/inventory/products/pr
 import RecordSaleForm from '@/components/dashboard/accounting/inventory/sales/record-sale-form';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import ViewSaleModal from '@/components/dashboard/accounting/inventory/sales/view-sale-details';
+import geishaImg from '@/assets/images/geisha.png';
 
 const salesMetrics = [
   {
@@ -116,7 +117,7 @@ const topSellingProducts = [
 const productData = [
   {
     id: 1,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -127,7 +128,7 @@ const productData = [
   },
   {
     id: 2,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -138,7 +139,7 @@ const productData = [
   },
   {
     id: 3,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -149,7 +150,7 @@ const productData = [
   },
   {
     id: 4,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -160,7 +161,7 @@ const productData = [
   },
   {
     id: 5,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -171,7 +172,7 @@ const productData = [
   },
   {
     id: 6,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -182,7 +183,7 @@ const productData = [
   },
   {
     id: 7,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -228,17 +229,12 @@ export default function Sales() {
       key: 'img',
       label: 'IMG',
       render: (value) => (
-        <div className="bg-muted-foreground flex h-10 w-10 items-center justify-center rounded">
+        <div className="flex h-10 w-10 items-center justify-center rounded">
           <img
             src={value}
             alt="Product"
             className="h-8 w-8 rounded object-cover"
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'block';
-            }}
           />
-          <div className="hidden h-8 w-8 rounded bg-amber-100"></div>
         </div>
       ),
     },

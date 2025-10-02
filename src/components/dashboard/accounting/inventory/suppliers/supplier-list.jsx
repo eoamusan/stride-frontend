@@ -120,6 +120,7 @@ export default function SuppliersList({
   paginationData = { page: 1, totalPages: 10 },
   onPageChange,
   openContactForm,
+  disableCategoryFilter = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
@@ -294,7 +295,9 @@ export default function SuppliersList({
             </div>
           </>
         ) : (
-          <div className="grid w-full gap-6 md:grid-cols-3">
+          <div
+            className={`grid w-full gap-6 ${disableCategoryFilter ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}
+          >
             <div className="w-full space-y-2">
               <Label>Search suppliers</Label>
               <div className="relative">
@@ -307,21 +310,23 @@ export default function SuppliersList({
                 />
               </div>
             </div>
-            <div className="w-full space-y-2">
-              <Label>Category</Label>
-              <Select onValueChange={() => {}} value={''}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="consulting">Consulting</SelectItem>
-                  <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="services">Services</SelectItem>
-                  <SelectItem value="retail">Retail</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {!disableCategoryFilter && (
+              <div className="w-full space-y-2">
+                <Label>Category</Label>
+                <Select onValueChange={() => {}} value={''}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="technology">Technology</SelectItem>
+                    <SelectItem value="consulting">Consulting</SelectItem>
+                    <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="services">Services</SelectItem>
+                    <SelectItem value="retail">Retail</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="w-full space-y-2">
               <Label>Status</Label>
@@ -341,7 +346,9 @@ export default function SuppliersList({
       </div>
 
       {/* Supplier Cards Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+      <div
+        className={`grid grid-cols-1 gap-6 ${disableCategoryFilter ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}
+      >
         {suppliers.length > 0 ? (
           suppliers.map((supplier) => (
             <SupplierCard

@@ -8,6 +8,8 @@ import {
 } from 'recharts';
 import {
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
@@ -20,6 +22,8 @@ export default function BarChartOverview({
   chartData,
   className,
   emptyState = false,
+  showLegend = false,
+  numberOfBars = 1,
 }) {
   return (
     <Card className={`p-6 ${className}`}>
@@ -112,19 +116,25 @@ export default function BarChartOverview({
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12, fill: '#6B7280' }}
-                domain={[0, 100]}
-                ticks={[0, 20, 40, 60, 80, 100]}
               />
               <ChartTooltip
                 cursor={{ fill: 'rgba(139, 92, 246, 0.1)' }}
                 content={<ChartTooltipContent />}
               />
-              <Bar
-                dataKey="value"
-                fill="#8B5CF6"
-                radius={[4, 4, 0, 0]}
-                maxBarSize={60}
-              />
+              {Array.from({ length: numberOfBars }).map((_, index) => (
+                <Bar
+                  key={index}
+                  dataKey={numberOfBars > 1 ? `value${index + 1}` : 'value'}
+                  fill={
+                    numberOfBars > 1
+                      ? `var(--color-value${index + 1})`
+                      : `var(--color-value)`
+                  }
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={400}
+                />
+              ))}
+              {showLegend && <ChartLegend content={<ChartLegendContent />} />}
             </BarChart>
           </ChartContainer>
         </ResponsiveContainer>

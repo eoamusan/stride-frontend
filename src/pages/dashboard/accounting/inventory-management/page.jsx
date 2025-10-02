@@ -17,6 +17,7 @@ import adContainerPlaceholder from '@/assets/images/ad-container-product.png';
 import cameraIcon from '@/assets/icons/camera.svg';
 import ProductCard from '@/components/dashboard/accounting/inventory/products/product-card';
 import ViewProductModal from '@/components/dashboard/accounting/inventory/products/view-product-modal';
+import geishaImg from '@/assets/images/geisha.png';
 
 const products = [''];
 const productMetrics = [
@@ -31,7 +32,7 @@ const recentActivities = ['1', '2', '3'];
 const productData = [
   {
     id: 1,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -42,7 +43,7 @@ const productData = [
   },
   {
     id: 2,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -53,7 +54,7 @@ const productData = [
   },
   {
     id: 3,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -64,7 +65,7 @@ const productData = [
   },
   {
     id: 4,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -75,7 +76,7 @@ const productData = [
   },
   {
     id: 5,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -86,7 +87,7 @@ const productData = [
   },
   {
     id: 6,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -97,7 +98,7 @@ const productData = [
   },
   {
     id: 7,
-    img: 'https://placehold.co/100',
+    img: geishaImg,
     sku: 'BILL-2001',
     itemName: 'Office Supplies Co',
     category: 'Office Supplies',
@@ -152,17 +153,12 @@ export default function InventoryManagement() {
       key: 'img',
       label: 'IMG',
       render: (value) => (
-        <div className="bg-muted-foreground flex h-10 w-10 items-center justify-center rounded">
+        <div className="flex h-10 w-10 items-center justify-center rounded">
           <img
             src={value}
             alt="Product"
             className="h-8 w-8 rounded object-cover"
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'block';
-            }}
           />
-          <div className="hidden h-8 w-8 rounded bg-amber-100"></div>
         </div>
       ),
     },
