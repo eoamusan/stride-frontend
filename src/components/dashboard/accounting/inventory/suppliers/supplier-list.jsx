@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchIcon, Trash2Icon, BanIcon, UploadIcon } from 'lucide-react';
-import VendorCard from './vendor-card';
+import SupplierCard from './supplier-card';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -22,8 +22,8 @@ import {
 } from '@/components/ui/pagination';
 import emptyTableImg from '@/assets/icons/empty-table.svg';
 
-// Sample vendor data
-const vendorData = [
+// Sample supplier data
+const supplierData = [
   {
     id: 1,
     name: 'JJ Solutions',
@@ -110,63 +110,65 @@ const vendorData = [
   },
 ];
 
-export default function VendorsList({
+export default function SuppliersList({
   className,
-  vendorsData = vendorData,
-  searchPlaceholder = 'Search vendors...',
-  onVendorEdit,
-  onVendorDelete,
-  onVendorView,
-  paginationData = { page: 3, totalPages: 10 },
+  suppliersData = supplierData,
+  searchPlaceholder = 'Search suppliers...',
+  onSupplierEdit,
+  onSupplierDelete,
+  onSupplierView,
+  paginationData = { page: 1, totalPages: 10 },
   onPageChange,
+  openContactForm,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
 
-  // Filter vendors based on search term
-  const filteredVendors = vendorsData.filter(
-    (vendor) =>
-      vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.services.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter suppliers based on search term
+  const filteredSuppliers = suppliersData.filter(
+    (supplier) =>
+      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.services.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handle vendor actions
-  const handleEditVendor = (vendor) => {
-    console.log('Edit vendor:', vendor);
-    onVendorEdit?.(vendor);
+  // Handle supplier actions
+  const handleEditSupplier = (supplier) => {
+    console.log('Edit supplier:', supplier);
+    onSupplierEdit?.(supplier);
   };
 
-  const handleDeleteVendor = (vendor) => {
-    console.log('Delete vendor:', vendor);
-    onVendorDelete?.(vendor);
+  const handleDeleteSupplier = (supplier) => {
+    console.log('Delete supplier:', supplier);
+    onSupplierDelete?.(supplier);
   };
 
-  const handleViewVendor = (vendor) => {
-    console.log('View vendor:', vendor);
-    onVendorView?.(vendor);
+  const handleViewSupplier = (supplier) => {
+    console.log('View supplier:', supplier);
+    onSupplierView?.(supplier);
   };
 
-  const handleContactVendor = (vendor) => {
-    console.log('Contact vendor:', vendor);
+  const handleContactSupplier = (supplier) => {
+    console.log('Contact supplier:', supplier);
     // Handle contact logic here
+    openContactForm(supplier);
   };
 
   // Handle bulk actions
   const handleBulkDelete = () => {
-    console.log('Bulk delete vendors:', selectedItems);
+    console.log('Bulk delete suppliers:', selectedItems);
   };
 
   const handleBulkBan = () => {
-    console.log('Bulk ban vendors:', selectedItems);
+    console.log('Bulk ban suppliers:', selectedItems);
   };
 
   const handleBulkExport = () => {
-    console.log('Bulk export vendors:', selectedItems);
+    console.log('Bulk export suppliers:', selectedItems);
   };
 
-  const vendors = filteredVendors;
+  const suppliers = filteredSuppliers;
 
   const { page, totalPages } = paginationData;
   const renderPaginationItems = () => {
@@ -269,7 +271,7 @@ export default function VendorsList({
                 size={'icon'}
                 variant={'outline'}
                 onClick={handleBulkDelete}
-                title="Delete selected vendors"
+                title="Delete selected suppliers"
               >
                 <Trash2Icon className="h-4 w-4" />
               </Button>
@@ -277,7 +279,7 @@ export default function VendorsList({
                 size={'icon'}
                 variant={'outline'}
                 onClick={handleBulkBan}
-                title="Ban selected vendors"
+                title="Ban selected suppliers"
               >
                 <BanIcon className="h-4 w-4" />
               </Button>
@@ -285,7 +287,7 @@ export default function VendorsList({
                 size={'icon'}
                 variant={'outline'}
                 onClick={handleBulkExport}
-                title="Export selected vendors"
+                title="Export selected suppliers"
               >
                 <UploadIcon className="h-4 w-4" />
               </Button>
@@ -294,7 +296,7 @@ export default function VendorsList({
         ) : (
           <div className="grid w-full gap-6 md:grid-cols-3">
             <div className="w-full space-y-2">
-              <Label>Search vendors</Label>
+              <Label>Search suppliers</Label>
               <div className="relative">
                 <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
@@ -338,13 +340,13 @@ export default function VendorsList({
         )}
       </div>
 
-      {/* Vendor Cards Grid */}
+      {/* Supplier Cards Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        {vendors.length > 0 ? (
-          vendors.map((vendor) => (
-            <VendorCard
-              key={vendor.id}
-              vendor={vendor}
+        {suppliers.length > 0 ? (
+          suppliers.map((supplier) => (
+            <SupplierCard
+              key={supplier.id}
+              supplier={supplier}
               onSelected={({ id, checked }) => {
                 setSelectedItems((prev) => {
                   if (checked) {
@@ -354,10 +356,10 @@ export default function VendorsList({
                   }
                 });
               }}
-              onViewDetails={handleViewVendor}
-              onContact={handleContactVendor}
-              onEdit={handleEditVendor}
-              onDelete={handleDeleteVendor}
+              onViewDetails={handleViewSupplier}
+              onContact={handleContactSupplier}
+              onEdit={handleEditSupplier}
+              onDelete={handleDeleteSupplier}
             />
           ))
         ) : (
@@ -370,7 +372,7 @@ export default function VendorsList({
             <div className="text-sm text-gray-400">
               {searchTerm
                 ? 'Try adjusting your search criteria'
-                : 'Add your first vendor to get started'}
+                : 'Add your first supplier to get started'}
             </div>
           </div>
         )}

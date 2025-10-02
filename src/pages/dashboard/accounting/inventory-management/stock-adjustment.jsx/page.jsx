@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
-import MakeAdjustmentForm from '@/components/dashboard/accounting/inventory/make-adjustment-form';
+import MakeAdjustmentForm from '@/components/dashboard/accounting/inventory/movement/make-adjustment-form';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {

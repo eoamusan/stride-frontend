@@ -1,4 +1,4 @@
-import RecordMovementForm from '@/components/dashboard/accounting/inventory/record-movement-form';
+import RecordMovementForm from '@/components/dashboard/accounting/inventory/movement/record-movement-form';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +6,7 @@ import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useState } from 'react';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import { set } from 'zod';
-import ViewMovementModal from '@/components/dashboard/accounting/inventory/view-movement-modal';
+import ViewMovementModal from '@/components/dashboard/accounting/inventory/movement/view-movement-modal';
 
 // Movement history data based on the image
 const movementData = [

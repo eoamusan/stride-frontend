@@ -34,6 +34,7 @@ import Bids from './dashboard/accounting/accounts-payable/bids/page';
 import ApprovalWorkflow from './dashboard/accounting/accounts-payable/approval-workflow/page';
 import ReportsAP from './dashboard/accounting/accounts-payable/reports/page';
 import Sales from './dashboard/accounting/inventory-management/sales/page';
+import Suppliers from './dashboard/accounting/inventory-management/suppliers/page';
 
 const router = createBrowserRouter([
   {
@@ -173,7 +174,7 @@ const router = createBrowserRouter([
                         Component: Vendors,
                       },
                       {
-                        path: 'bids',   
+                        path: 'bids',
                         Component: Bids,
                       },
                       {
@@ -208,7 +209,11 @@ const router = createBrowserRouter([
                       {
                         path: 'sales',
                         Component: Sales,
-                      }
+                      },
+                      {
+                        path: 'suppliers',
+                        Component: Suppliers,
+                      },
                     ],
                   },
                   {

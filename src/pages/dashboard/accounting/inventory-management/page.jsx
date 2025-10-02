@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import AddProductForm from '@/components/dashboard/accounting/inventory/add-product-form';
-import EmptyInventory from '@/components/dashboard/accounting/inventory/empty-inventory';
-import InventoryCategoryForm from '@/components/dashboard/accounting/inventory/inventory-category-form';
+import AddProductForm from '@/components/dashboard/accounting/inventory/products/add-product-form';
+import EmptyInventory from '@/components/dashboard/accounting/inventory/products/empty-inventory';
+import InventoryCategoryForm from '@/components/dashboard/accounting/inventory/products/inventory-category-form';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
@@ -15,8 +15,8 @@ import {
 } from 'lucide-react';
 import adContainerPlaceholder from '@/assets/images/ad-container-product.png';
 import cameraIcon from '@/assets/icons/camera.svg';
-import ProductCard from '@/components/dashboard/accounting/inventory/product-card';
-import ViewProductModal from '@/components/dashboard/accounting/inventory/view-product-modal';
+import ProductCard from '@/components/dashboard/accounting/inventory/products/product-card';
+import ViewProductModal from '@/components/dashboard/accounting/inventory/products/view-product-modal';
 
 const products = [''];
 const productMetrics = [
@@ -216,7 +216,7 @@ export default function InventoryManagement() {
 
   const handleRowAction = (action, item) => {
     console.log(`Action ${action} on item:`, item);
-    
+
     // Implement row action logic here
     switch (action) {
       case 'view':
@@ -304,7 +304,7 @@ export default function InventoryManagement() {
                   showDataSize
                   itemComponent={ProductCard}
                 />
-                <button className="bg-primary/10 absolute -top-10 right-0 cursor-pointer rounded-full p-5">
+                <button className="bg-primary/10 fixed right-8 bottom-16 cursor-pointer rounded-full p-5">
                   <img src={cameraIcon} alt="add product" />
                 </button>
               </div>

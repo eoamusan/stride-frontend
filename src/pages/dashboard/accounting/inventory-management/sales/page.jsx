@@ -16,10 +16,10 @@ import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import SimpleAreaMetricCard from '@/components/dashboard/simple-area-metric-card';
 import ListCard from '@/components/dashboard/accounting/accounts-payable/reports/report-lists-card';
 import AccountingTable from '@/components/dashboard/accounting/table';
-import ProductCard from '@/components/dashboard/accounting/inventory/product-card';
-import RecordSaleForm from '@/components/dashboard/accounting/inventory/record-sale-form';
+import ProductCard from '@/components/dashboard/accounting/inventory/products/product-card';
+import RecordSaleForm from '@/components/dashboard/accounting/inventory/sales/record-sale-form';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
-import ViewSaleModal from '@/components/dashboard/accounting/inventory/view-sale-details';
+import ViewSaleModal from '@/components/dashboard/accounting/inventory/sales/view-sale-details';
 
 const salesMetrics = [
   {
@@ -412,10 +412,7 @@ export default function Sales() {
         handleNext={() => {}}
       />
 
-      <ViewSaleModal 
-        open={openViewSale}
-        onOpenChange={setOpenViewSale}
-      />
+      <ViewSaleModal open={openViewSale} onOpenChange={setOpenViewSale} />
     </div>
   );
 }

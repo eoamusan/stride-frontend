@@ -29,7 +29,6 @@ export default function ViewProductModal({
   },
 }) {
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(productData.currentQuantity);
 
   const images = [geishaImage, geishaImage, geishaImage, geishaImage];
 
