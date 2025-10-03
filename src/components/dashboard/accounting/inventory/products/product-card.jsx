@@ -131,7 +131,7 @@ const ProductCard = ({
           </Button>
           <Button
             className="flex-1 rounded-2xl text-sm"
-            onClick={() => onView()}
+            onClick={() => handleDropdownAction('view', item)}
           >
             View
           </Button>
