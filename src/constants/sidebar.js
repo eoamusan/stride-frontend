@@ -230,8 +230,8 @@ const expenseManagementItems = [
     link: '/dashboard/accounting/expense-management/vendors',
   },
   {
-    title: 'Bids',
-    link: '/dashboard/accounting/expense-management/bids',
+    title: 'Bills',
+    link: '/dashboard/accounting/expense-management/bills',
   }
 ]
 
