@@ -62,7 +62,12 @@ const tnx = {
   },
 };
 
-export default function RecentTransactionCard({ className, recentTnx = tnx }) {
+export default function RecentTransactionCard({
+  className,
+  recentTnx = tnx,
+  title,
+  description,
+}) {
   // Helper to render pagination items
   const { page, totalPages } = recentTnx.pagination;
   const renderPaginationItems = () => {
@@ -113,8 +118,12 @@ export default function RecentTransactionCard({ className, recentTnx = tnx }) {
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Recent Transactions</h3>
-          <p className="text-xs text-[#434343]">Latest financial activity</p>
+          <h3 className="text-lg font-semibold">
+            {title || 'Recent Transactions'}
+          </h3>
+          <p className="text-xs text-[#434343]">
+            {description || 'Latest financial activity'}
+          </p>
         </div>
       </div>
       <div className="">

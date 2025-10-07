@@ -162,7 +162,7 @@ export default function ContactSupplierForm({
           <div>
             <DialogHeader>
               <DialogTitle>Contact Supplier</DialogTitle>
-              <DialogDescription>{supplierData.name}</DialogDescription>
+              <DialogDescription>{supplierData?.name}</DialogDescription>
             </DialogHeader>
           </div>
         </div>
@@ -171,15 +171,15 @@ export default function ContactSupplierForm({
         <div className="mt-2 flex flex-wrap items-center gap-6 text-sm text-[#434343]">
           <div className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            <span>{supplierData.contactPerson}</span>
+            <span>{supplierData?.contactPerson}</span>
           </div>
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
-            <span>{supplierData.email}</span>
+            <span>{supplierData?.email}</span>
           </div>
           <div className="flex items-center gap-2">
             <Phone className="h-4 w-4" />
-            <span>{supplierData.phone}</span>
+            <span>{supplierData?.phone}</span>
           </div>
         </div>
 

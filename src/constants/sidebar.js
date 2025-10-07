@@ -216,6 +216,25 @@ const inventoryManagementItems = [
   },
 ];
 
+const expenseManagementItems = [
+  {
+    title: 'Overview',
+    link: '/dashboard/accounting/expense-management',
+  }, 
+  {
+    title: 'Expenses Transactions',
+    link: '/dashboard/accounting/expense-management/transactions',
+  }, 
+  {
+    title: 'Vendors',
+    link: '/dashboard/accounting/expense-management/vendors',
+  },
+  {
+    title: 'Bids',
+    link: '/dashboard/accounting/expense-management/bids',
+  }
+]
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -282,7 +301,7 @@ const sidebarItems = [
 const accountingTopItems = {
   overview: accountingItems,
   invoicing: invoicingItems,
-  expenseManagement: [],
+  expenseManagement: expenseManagementItems,
   bookkeeping: bookkeepingItems,
   financialReports: [],
   accountsReceivable: accountsReceivableItems,

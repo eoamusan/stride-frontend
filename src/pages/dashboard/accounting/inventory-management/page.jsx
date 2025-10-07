@@ -300,7 +300,7 @@ export default function InventoryManagement() {
                   showDataSize
                   itemComponent={ProductCard}
                 />
-                <button className="bg-primary/10 fixed right-8 bottom-16 cursor-pointer rounded-full p-5">
+                <button className="bg-primary/10 fixed right-8 bottom-28 cursor-pointer rounded-full p-5 backdrop-blur-sm">
                   <img src={cameraIcon} alt="add product" />
                 </button>
               </div>

@@ -350,12 +350,12 @@ export default function AccountingTable({
                     colSpan={
                       columns.length + 1 + (dropdownActions.length > 0 ? 1 : 0)
                     }
-                    className="h-24 text-center text-gray-500"
+                    className="h-24 text-center py-12 text-gray-500"
                   >
                     <img
                       src={emptyTableImg}
                       alt="Empty Table"
-                      className="mx-auto my-4 block w-[220px]"
+                      className="mx-auto block w-[220px]"
                     />
                   </TableCell>
                 </TableRow>

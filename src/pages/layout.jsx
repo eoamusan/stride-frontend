@@ -37,6 +37,8 @@ import Sales from './dashboard/accounting/inventory-management/sales/page';
 import Suppliers from './dashboard/accounting/inventory-management/suppliers/page';
 import ReportsInv from './dashboard/accounting/inventory-management/reports/page';
 import UserRoles from './dashboard/accounting/inventory-management/user-roles/page';
+import ExpenseManagement from './dashboard/accounting/expense-management/page';
+import ExpenseTransactions from './dashboard/accounting/expense-management/transactions/page';
 
 const router = createBrowserRouter([
   {
@@ -100,7 +102,16 @@ const router = createBrowserRouter([
                   },
                   {
                     path: 'expense-management',
-                    Component: () => <div>Expense Management</div>,
+                    children: [
+                      {
+                        index: true,
+                        Component: ExpenseManagement,
+                      },
+                      {
+                        path: 'transactions',
+                        Component: ExpenseTransactions,
+                      },
+                    ],
                   },
                   {
                     path: 'bookkeeping',

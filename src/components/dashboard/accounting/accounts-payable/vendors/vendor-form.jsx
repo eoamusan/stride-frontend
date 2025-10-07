@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -35,7 +36,6 @@ import {
   ChevronsUpDown,
   Check,
 } from 'lucide-react';
-import { DialogDescription } from '@radix-ui/react-dialog';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -198,8 +198,6 @@ export default function AddVendorForm({
     }
     fetchCountries();
   }, [open]);
-
-  console.log(countries);
 
   const renderUploadArea = (uploadType, label) => (
     <div className="space-y-2">

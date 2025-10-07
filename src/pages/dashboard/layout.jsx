@@ -4,6 +4,7 @@ import Sidebar from '@/components/navigations/dashboard-sidebar';
 import MobileSidebar from '@/components/navigations/mobile-dashboard-sidebar';
 import { Outlet } from 'react-router';
 import TopAlert from '@/components/dashboard/top-alert';
+import ChatButton from '@/components/dashboard/chat-trigger';
 
 export default function DashboardLayout() {
   const [cancelNotification, setCancelNotification] = useState(false);
@@ -47,6 +48,8 @@ export default function DashboardLayout() {
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
       />
+
+      <ChatButton />
     </div>
   );
 }
