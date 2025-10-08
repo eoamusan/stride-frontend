@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -51,8 +51,14 @@ const billSchema = z.object({
   billAmount: z.string().min(1, 'Bill amount is required'),
 });
 
-export default function AddBillForm({ open, onOpenChange, onSuccess }) {
+export default function AddBillForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}) {
   const [showVendorSelect, setShowVendorSelect] = useState(false);
+  const isEditing = Boolean(initialData && initialData.billNo);
 
   const form = useForm({
     resolver: zodResolver(billSchema),
@@ -68,6 +74,33 @@ export default function AddBillForm({ open, onOpenChange, onSuccess }) {
   });
 
   const { handleSubmit, reset } = form;
+
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      const formData = {
+        vendorName: initialData.vendor || initialData.vendorName || '',
+        source: initialData.source || '',
+        billDate: initialData.billDate ? new Date(initialData.billDate) : null,
+        billNo: initialData.billNo || '',
+        dueDate: initialData.dueDate ? new Date(initialData.dueDate) : null,
+        category: initialData.category.toLowerCase() || '',
+        billAmount: Number(initialData.billAmount) || '',
+      };
+      reset(formData);
+    } else {
+      // Reset to empty values when no initialData
+      reset({
+        vendorName: '',
+        source: '',
+        billDate: null,
+        billNo: '',
+        dueDate: null,
+        category: '',
+        billAmount: '',
+      });
+    }
+  }, [initialData, reset]);
 
   const handleCancel = () => {
     reset();
@@ -100,7 +133,9 @@ export default function AddBillForm({ open, onOpenChange, onSuccess }) {
           </div>
           <div>
             <DialogHeader>
-              <DialogTitle>Add New Bill</DialogTitle>
+              <DialogTitle>
+                {isEditing ? 'Edit Bill' : 'Add New Bill'}
+              </DialogTitle>
               <DialogDescription>Enter the necessary details</DialogDescription>
             </DialogHeader>
           </div>
@@ -348,7 +383,7 @@ export default function AddBillForm({ open, onOpenChange, onSuccess }) {
                 Cancel
               </Button>
               <Button type="submit" className="h-10 min-w-[140px] text-sm">
-                Add Bill
+                {isEditing ? 'Update Bill' : 'Add Bill'}
               </Button>
             </div>
           </form>

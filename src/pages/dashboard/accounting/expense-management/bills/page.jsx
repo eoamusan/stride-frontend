@@ -1,4 +1,5 @@
 import AddBillForm from '@/components/dashboard/accounting/expense-mgmt/bills/add-bill-form';
+import ViewBills from '@/components/dashboard/accounting/expense-mgmt/bills/view-bills';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import AccountingTable from '@/components/dashboard/accounting/table';
@@ -73,6 +74,8 @@ export default function Bills() {
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [openViewBill, setOpenViewBill] = useState(false);
+  const [editData, setEditData] = useState({});
 
   // Selection handlers
   const handleSelectAll = (checked) => {
@@ -94,7 +97,16 @@ export default function Bills() {
   // Row action handler
   const handleRowAction = (action, item) => {
     console.log('Action:', action, 'Item:', item);
-    // Handle different actions here
+
+    switch (action) {
+      case 'view':
+        setOpenViewBill(true);
+        break;
+      case 'edit':
+        setEditData(() => ({ ...item }));
+        setOpenAddBill(true);
+        break;
+    }
   };
   return (
     <div className="my-4 min-h-screen">
@@ -108,7 +120,10 @@ export default function Bills() {
 
         <div className="flex space-x-4">
           <Button
-            onClick={() => setOpenAddBill(true)}
+            onClick={() => {
+              setEditData({});
+              setOpenAddBill(true);
+            }}
             className={'h-10 rounded-2xl text-sm'}
           >
             <PlusCircleIcon className="size-4" />
@@ -182,6 +197,7 @@ export default function Bills() {
         open={openAddBill}
         onOpenChange={setOpenAddBill}
         onSuccess={() => setOpenSuccessModal(true)}
+        initialData={editData}
       />
       <SuccessModal
         open={openSuccessModal}
@@ -190,6 +206,8 @@ export default function Bills() {
         title={'Bill Added'}
         description={"You've successfully added a bill."}
       />
+
+      <ViewBills open={openViewBill} onOpenChange={setOpenViewBill} />
     </div>
   );
 }
