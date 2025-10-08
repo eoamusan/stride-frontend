@@ -37,6 +37,8 @@ const vendorData = [
     joinDate: '2025-01-12',
     verified: true,
     avatar: null,
+    paymentStatus: 'paid',
+    totalSpent: '$23000',
   },
   {
     id: 2,
@@ -51,6 +53,8 @@ const vendorData = [
     joinDate: '2024-11-08',
     verified: false,
     avatar: null,
+    paymentStatus: 'unpaid',
+    totalSpent: '$23000',
   },
   {
     id: 3,
@@ -65,6 +69,8 @@ const vendorData = [
     joinDate: '2024-09-15',
     verified: true,
     avatar: null,
+    paymentStatus: 'paid',
+    totalSpent: '$23000',
   },
   {
     id: 4,
@@ -79,6 +85,8 @@ const vendorData = [
     joinDate: '2024-09-15',
     verified: true,
     avatar: null,
+    paymentStatus: 'unpaid',
+    totalSpent: '$23000',
   },
   {
     id: 5,
@@ -93,6 +101,8 @@ const vendorData = [
     joinDate: '2024-09-15',
     verified: true,
     avatar: null,
+    paymentStatus: 'paid',
+    totalSpent: '$23000',
   },
   {
     id: 6,
@@ -107,6 +117,8 @@ const vendorData = [
     joinDate: '2024-09-15',
     verified: true,
     avatar: null,
+    paymentStatus: 'paid',
+    totalSpent: '$23000',
   },
 ];
 
@@ -119,6 +131,7 @@ export default function VendorsList({
   onVendorView,
   paginationData = { page: 3, totalPages: 10 },
   onPageChange,
+  isBillingPage = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
@@ -343,6 +356,7 @@ export default function VendorsList({
         {vendors.length > 0 ? (
           vendors.map((vendor) => (
             <VendorCard
+              isBillingPage={isBillingPage}
               key={vendor.id}
               vendor={vendor}
               onSelected={({ id, checked }) => {

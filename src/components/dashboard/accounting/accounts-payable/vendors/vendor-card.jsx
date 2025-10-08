@@ -32,7 +32,10 @@ export default function VendorCard({
     joinDate: '2025-01-12',
     verified: true,
     avatar: null,
+    totalSpent: '$23000',
+    paymentStatus: 'paid',
   },
+  isBillingPage = false,
   onViewDetails,
   onSelected,
   onContact,
@@ -103,9 +106,15 @@ export default function VendorCard({
           <div>
             <Badge
               variant={'secondary'}
-              className={`rounded-full px-2 py-1 text-xs font-medium ${vendor.verified ? 'bg-[#254C00]/10 text-[#254C00]' : 'bg-red-100 text-red-800'}`}
+              className={`rounded-full px-2 py-1 text-xs font-medium ${vendor.verified || vendor.paymentStatus === 'paid' ? 'bg-[#254C00]/10 text-[#254C00]' : 'bg-red-100 text-red-800'}`}
             >
-              {vendor.verified ? 'verified' : 'unverified'}
+              {isBillingPage
+                ? vendor.paymentStatus === 'paid'
+                  ? 'Paid'
+                  : 'Unpaid'
+                : vendor.verified
+                  ? 'Verified'
+                  : 'Unverified'}
             </Badge>
           </div>
         </div>
@@ -141,23 +150,29 @@ export default function VendorCard({
 
         {/* Rating and Join Date */}
         <div className="flex flex-wrap items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-1">
-              {renderStars(vendor.rating)}
-            </div>
-            <span className="text-sm font-medium text-gray-700">
-              ({vendor.rating})
+          {isBillingPage ? (
+            <span className="text-sm font-medium text-[#434343]">
+              Total Spent: {vendor.totalSpent}
             </span>
-          </div>
+          ) : (
+            <>
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1">
+                  {renderStars(vendor.rating)}
+                </div>
+                <span className="text-sm font-medium">({vendor.rating})</span>
+              </div>
 
-          <span className="text-sm font-medium text-gray-500">
-            Joined{' '}
-            {new Date(vendor.joinDate).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-            })}
-          </span>
+              <span className="text-sm font-medium text-[#434343]">
+                Joined{' '}
+                {new Date(vendor.joinDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                })}
+              </span>
+            </>
+          )}
         </div>
 
         {/* Action Buttons */}

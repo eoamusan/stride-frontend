@@ -1,4 +1,7 @@
+import AddVendorForm from '@/components/dashboard/accounting/accounts-payable/vendors/vendor-form';
+import VendorsList from '@/components/dashboard/accounting/accounts-payable/vendors/vendors-list';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -24,6 +27,8 @@ const vendorMetrics = [
 
 export default function VendorsExpenses() {
   const [openAddVendor, setOpenAddVendor] = useState(false);
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
+
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -54,8 +59,22 @@ export default function VendorsExpenses() {
       <div className="my-10 space-y-10">
         <Metrics metrics={vendorMetrics} />
 
-        
+        <VendorsList isBillingPage={true} />
       </div>
+
+      <AddVendorForm
+        open={openAddVendor}
+        onOpenChange={setOpenAddVendor}
+        onSuccess={() => setOpenSuccessModal(false)}
+      />
+
+      <SuccessModal
+        open={openSuccessModal}
+        onOpenChange={setOpenSuccessModal}
+        backText={'Back'}
+        title={'Vendor added successfully!'}
+        description={'You have successfully added a vendor.'}
+      />
     </div>
   );
 }
