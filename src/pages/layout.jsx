@@ -41,6 +41,7 @@ import ExpenseManagement from './dashboard/accounting/expense-management/page';
 import ExpenseTransactions from './dashboard/accounting/expense-management/transactions/page';
 import VendorsExpenses from './dashboard/accounting/expense-management/vendors/page';
 import Bills from './dashboard/accounting/expense-management/bills/page';
+import { authMiddleware } from '@/middleware/auth-middleware';
 
 const router = createBrowserRouter([
   {
@@ -55,6 +56,7 @@ const router = createBrowserRouter([
       { path: 'forgot-password', Component: ForgotPassword },
       {
         path: 'dashboard',
+        middleware: [authMiddleware],
         children: [
           { path: 'onboarding', Component: Onboarding },
           {
