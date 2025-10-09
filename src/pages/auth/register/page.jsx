@@ -17,8 +17,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'react-router';
 import strideLogo from '@/assets/icons/stride.svg';
 import { useNavigate } from 'react-router';
-import AuthService from '@/api/auth';
 import toast from 'react-hot-toast';
+import { useUserStore } from '@/stores/user-store';
 
 const formSchema = z
   .object({
@@ -97,6 +97,7 @@ const formSchema = z
 export default function Register() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { register, isLoading } = useUserStore();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -116,15 +117,19 @@ export default function Register() {
   const onSubmit = async (data) => {
     const { acceptTerms, ...payload } = data;
     try {
-      const res = await AuthService.register(payload);
-      console.log(res);
-      // toast.success('Account created successfully!', {
-      //   icon: '🎉',
-      // });
+      await register(payload);
+
+      // Get the fresh message from the store after the operation
+      const currentMessage = useUserStore.getState().message;
+      toast.success(currentMessage || 'Registration successful!', {
+        icon: '🎉',
+      });
       navigate('/dashboard/onboarding');
     } catch (err) {
-      toast.error(err.message || 'Registration failed. Please try again.', {
-        icon: '😔',
+      // Get the fresh error message from the store
+      const currentMessage = useUserStore.getState().message;
+      toast.error(currentMessage || 'Registration failed. Please try again.', {
+        icon: '❌',
       });
     }
   };
@@ -294,7 +299,13 @@ export default function Register() {
                 />
               </div>
 
-              <Button className={'mt-4 h-10 w-full'} size={'lg'} type="submit">
+              <Button
+                className={'mt-4 h-10 w-full'}
+                size={'lg'}
+                disabled={isLoading}
+                isLoading={isLoading}
+                type="submit"
+              >
                 Create Account
               </Button>
             </form>

@@ -115,7 +115,8 @@ function PhoneNumberInput({ className, ...props }) {
 
     if (props.onChange && selectedCountry) {
       // Append country code to the phone number
-      const completeValue = `${selectedCountry.code} ${inputValue}`;
+      const completeValue = `${selectedCountry.code + (inputValue.startsWith('0') ? inputValue.slice(1) : inputValue)}`;
+      console.log(completeValue);
       const syntheticEvent = {
         target: { value: completeValue },
         currentTarget: { value: completeValue },
@@ -211,7 +212,10 @@ function PhoneNumberInput({ className, ...props }) {
           value={phoneNumber}
           onChange={handlePhoneChange}
           className="flex-1 bg-transparent py-1 pr-3 text-base outline-none md:text-sm"
-          {...props}
+          data-slot={props['data-slot']}
+          name={props.name}
+          id={props.id}
+          aria-describedby={props['aria-describedby']}
         />
       </div>
 

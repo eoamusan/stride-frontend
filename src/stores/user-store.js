@@ -1,20 +1,42 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import AuthService from '@/api/auth';
 
-const useUserStore = create((set, get) => ({
-  user: null,
-  token: localStorage.getItem('api-token') || null,
-  loading: false,
-  error: null,
+export const useUserStore = create(
+  persist(
+    (set, get) => ({
+      data: null,
+      isLoading: false,
+      message: null,
 
-  login: async (data) => {
-    set({ loading: true, error: null });
-    try {
-      const { token } = await AuthService.login(data);
-      localStorage.setItem('api-token', token);
-      set({ token, loading: false });
-    } catch (err) {
-      set({ error: err.message || 'Login failed', loading: false });
+      async register(data) {
+        try {
+          set({ isLoading: true });
+          const { data: res } = await AuthService.register(data);
+          set({
+            data: res.data,
+            message: res.data?.message || 'Registration successful',
+            isLoading: false,
+          });
+        } catch (error) {
+          set({
+            message:
+              error.response?.data?.message ||
+              error.message ||
+              'Registration failed. Please try again.',
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      async login(data) {},
+    }),
+    {
+      name: 'user-storage',
+      partialize: (state) => ({
+        data: state.data ? state.data : null,
+      }),
     }
-  },
-}));
+  )
+);
