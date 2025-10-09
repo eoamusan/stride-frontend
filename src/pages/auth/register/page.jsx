@@ -18,6 +18,7 @@ import { Link } from 'react-router';
 import strideLogo from '@/assets/icons/stride.svg';
 import { useNavigate } from 'react-router';
 import AuthService from '@/api/auth';
+import toast from 'react-hot-toast';
 
 const formSchema = z
   .object({
@@ -113,12 +114,18 @@ export default function Register() {
   });
 
   const onSubmit = async (data) => {
+    const { acceptTerms, ...payload } = data;
     try {
-      const res = await AuthService.register(data);
+      const res = await AuthService.register(payload);
       console.log(res);
-      // navigate('/dashboard/onboarding');
+      // toast.success('Account created successfully!', {
+      //   icon: '🎉',
+      // });
+      navigate('/dashboard/onboarding');
     } catch (err) {
-      
+      toast.error(err.message || 'Registration failed. Please try again.', {
+        icon: '😔',
+      });
     }
   };
 
