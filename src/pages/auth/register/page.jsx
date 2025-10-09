@@ -17,10 +17,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'react-router';
 import strideLogo from '@/assets/icons/stride.svg';
 import { useNavigate } from 'react-router';
+import AuthService from '@/api/auth';
 
 const formSchema = z
   .object({
-    first_name: z
+    firstName: z
       .string()
       .min(2, {
         error: 'First name must be atleast 2 characters long',
@@ -29,7 +30,7 @@ const formSchema = z
         error: 'First name is required',
       })
       .transform((val) => val.trim()),
-    last_name: z
+    lastName: z
       .string()
       .min(2, {
         error: 'Last name must be atleast 2 characters long',
@@ -38,14 +39,14 @@ const formSchema = z
         error: 'Last name is required',
       })
       .transform((val) => val.trim()),
-    business_name: z
+    businessName: z
       .string()
       .nonempty({
         error: 'Business name is required',
       })
       .transform((val) => val.trim()),
     email: z.email(),
-    phone_number: z
+    phoneNumber: z
       .string()
       .min(9, {
         error: 'Phone number must be atleast 9 characters long',
@@ -78,18 +79,18 @@ const formSchema = z
         error: 'Password is required',
       })
       .transform((val) => val.trim()),
-    confirm_password: z
+    confirmPassword: z
       .string()
       .nonempty({ error: 'Confirm password is required' })
       .transform((val) => val.trim()),
-    accept_terms: z.boolean().refine((val) => val === true, {
+    acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'You need to accept the terms and conditions',
     }),
-    marketing_consent: z.boolean().optional(),
+    marketing: z.boolean().optional(),
   })
-  .refine((data) => data.password === data.confirm_password, {
+  .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
-    path: ['confirm_password'],
+    path: ['confirmPassword'],
   });
 
 export default function Register() {
@@ -99,21 +100,26 @@ export default function Register() {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      first_name: '',
-      last_name: '',
-      business_name: '',
+      firstName: '',
+      lastName: '',
+      businessName: '',
       email: '',
-      phone_number: '',
+      phoneNumber: '',
       password: '',
-      confirm_password: '',
-      accept_terms: false,
-      marketing_consent: false,
+      confirmPassword: '',
+      acceptTerms: false,
+      marketing: false,
     },
   });
 
-  const onSubmit = (data) => {
-    console.log(data);
-    navigate('/dashboard/onboarding');
+  const onSubmit = async (data) => {
+    try {
+      const res = await AuthService.register(data);
+      console.log(res);
+      // navigate('/dashboard/onboarding');
+    } catch (err) {
+      
+    }
   };
 
   return (
@@ -140,7 +146,7 @@ export default function Register() {
             >
               <FormField
                 control={form.control}
-                name="first_name"
+                name="firstName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
@@ -153,7 +159,7 @@ export default function Register() {
               />
               <FormField
                 control={form.control}
-                name="last_name"
+                name="lastName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
@@ -166,7 +172,7 @@ export default function Register() {
               />
               <FormField
                 control={form.control}
-                name="business_name"
+                name="businessName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Business Name</FormLabel>
@@ -192,7 +198,7 @@ export default function Register() {
               />
               <FormField
                 control={form.control}
-                name="phone_number"
+                name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
@@ -225,7 +231,7 @@ export default function Register() {
               />
               <FormField
                 control={form.control}
-                name="confirm_password"
+                name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
@@ -239,7 +245,7 @@ export default function Register() {
               <div className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="accept_terms"
+                  name="acceptTerms"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className={'text-xs font-normal'}>
@@ -266,7 +272,7 @@ export default function Register() {
 
                 <FormField
                   control={form.control}
-                  name="marketing_consent"
+                  name="marketing"
                   render={({ field }) => (
                     <FormItem className={'flex'}>
                       <FormControl>
