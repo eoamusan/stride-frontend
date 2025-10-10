@@ -335,7 +335,10 @@ export default function VendorExpenseDetails() {
           <div>
             <h3 className="mb-3 text-sm font-semibold"> Actions </h3>
             <div className="flex flex-col gap-2">
-              <Button className={'h-10 w-full text-sm'}>
+              <Button
+                className={'h-10 w-full text-sm'}
+                onClick={() => setOpenExpenseForm(true)}
+              >
                 <CheckIcon className="mr-1" /> Create Expense
               </Button>
               <Button className={'h-10 w-full text-sm'} variant={'outline'}>
