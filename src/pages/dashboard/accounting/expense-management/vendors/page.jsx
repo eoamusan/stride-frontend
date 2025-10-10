@@ -5,6 +5,7 @@ import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 const vendorMetrics = [
   {
@@ -26,6 +27,7 @@ const vendorMetrics = [
 ];
 
 export default function VendorsExpenses() {
+  const navigate = useNavigate();
   const [openAddVendor, setOpenAddVendor] = useState(false);
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
 
@@ -59,7 +61,10 @@ export default function VendorsExpenses() {
       <div className="my-10 space-y-10">
         <Metrics metrics={vendorMetrics} />
 
-        <VendorsList isBillingPage={true} />
+        <VendorsList
+          isBillingPage={true}
+          onVendorView={(vendor) => navigate(`${vendor.id}`)}
+        />
       </div>
 
       <AddVendorForm
