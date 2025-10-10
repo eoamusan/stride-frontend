@@ -44,7 +44,7 @@ export default function ForgotPassword() {
     } else {
       searchParams.set('step', stepName);
     }
-    setSearchParams(searchParams, { replace: true });
+    setSearchParams(searchParams);
   }, [step, searchParams, setSearchParams]);
 
   // Update local step state when URL changes (e.g., back/forward navigation)

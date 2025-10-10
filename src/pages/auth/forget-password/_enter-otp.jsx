@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button';
 import { Edit2Icon, RotateCcwIcon } from 'lucide-react';
 import strideLogo from '@/assets/icons/stride.svg';
 import { Link } from 'react-router';
+import AuthService from '@/api/auth';
+import toast from 'react-hot-toast';
 
 const formSchema = z.object({
   otp: z.string().min(6).max(6).regex(/^\d+$/, 'OTP must be a 6-digit number'),
@@ -25,6 +27,8 @@ const formSchema = z.object({
 
 export default function EnterOTP({ setBack, setNext, setFormData, formData }) {
   const [timeLeft, setTimeLeft] = useState(90); // 1 minute and 30 seconds in seconds
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -50,14 +54,44 @@ export default function EnterOTP({ setBack, setNext, setFormData, formData }) {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const onSubmit = (data) => {
-    console.log(data);
-    setFormData({ ...formData, ...data });
-    setNext();
+  const onSubmit = async (data) => {
+    const email = formData?.email || sessionStorage.getItem('reset-email');
+    try {
+      setSubmitLoading(true);
+      const res = await AuthService.verifyResetToken({
+        email,
+        otp: data.otp,
+      });
+      toast.success(res.data?.message || 'OTP verified successfully');
+      setFormData({ ...formData, ...data });
+      sessionStorage.setItem('reset-otp', data.otp);
+      setNext();
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          'OTP verification failed. Please try again.'
+      );
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
-  const handleResendOTP = () => {
-    //logic here
+  const handleResendOTP = async () => {
+    const email = formData?.email || sessionStorage.getItem('reset-email');
+    try {
+      setResendLoading(true);
+      await AuthService.forgotPassword({ email });
+      toast.success('OTP resent successfully');
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          'Failed to resend OTP. Please try again.'
+      );
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   return (
@@ -139,8 +173,12 @@ export default function EnterOTP({ setBack, setNext, setFormData, formData }) {
                         type="button"
                         className="flex cursor-pointer items-center gap-0.5 text-sm text-zinc-600"
                         onClick={handleResendOTP}
+                        disabled={resendLoading}
                       >
-                        <RotateCcwIcon strokeWidth={3.5} className="size-3.5" />{' '}
+                        <RotateCcwIcon
+                          strokeWidth={3.5}
+                          className={`size-3.5 ${resendLoading ? 'animate-spin' : ''}`}
+                        />
                         Resend OTP
                       </button>
                     </div>
@@ -152,6 +190,8 @@ export default function EnterOTP({ setBack, setNext, setFormData, formData }) {
                 className={'mt-2 mb-12 h-10 w-full'}
                 size={'lg'}
                 type="submit"
+                isLoading={submitLoading}
+                disabled={submitLoading || resendLoading}
               >
                 Submit
               </Button>

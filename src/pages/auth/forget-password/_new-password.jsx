@@ -26,6 +26,9 @@ import {
 import strideLogo from '@/assets/icons/stride.svg';
 import checkmarkIcon from '@/assets/icons/checkmark.svg';
 import { Link } from 'react-router';
+import toast from 'react-hot-toast';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import AuthService from '@/api/auth';
 
 const formSchema = z
   .object({
@@ -63,6 +66,7 @@ const formSchema = z
 export default function NewPassword({ setFormData, formData }) {
   const [password, setPassword] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm({
@@ -73,14 +77,33 @@ export default function NewPassword({ setFormData, formData }) {
     },
   });
 
-  const onSubmit = (data) => {
-    console.log(data);
-    setFormData({ ...formData, ...data });
-    setShowSuccessModal(true);
+  const onSubmit = async (data) => {
+    try {
+      setSubmitLoading(true);
+      const payload = {
+        email: formData?.email || sessionStorage.getItem('reset-email'),
+        otp: formData?.otp || sessionStorage.getItem('reset-otp'),
+        password: data.password,
+        confirmPassword: data.confirm_password,
+      };
+      await AuthService.resetPassword(payload);
+      setFormData({ ...formData, ...data });
+      setShowSuccessModal(true);
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          'Something went wrong. Please try again.'
+      );
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   const handleSuccessConfirm = () => {
     setShowSuccessModal(false);
+    sessionStorage.removeItem('reset-email');
+    sessionStorage.removeItem('reset-otp');
     navigate('/login');
   };
 
@@ -152,6 +175,8 @@ export default function NewPassword({ setFormData, formData }) {
                 className={'mt-2 mb-12 h-10 w-full'}
                 size={'lg'}
                 type="submit"
+                isLoading={submitLoading}
+                disabled={submitLoading}
               >
                 Reset Password
               </Button>
@@ -160,30 +185,14 @@ export default function NewPassword({ setFormData, formData }) {
         </main>
       </div>
 
-      <AlertDialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <div className="mx-auto mb-4 flex h-30 w-30 items-center justify-center">
-              <img src={checkmarkIcon} alt="Success" className="" />
-            </div>
-            <AlertDialogTitle className="text-center">
-              Password Reset Successful!
-            </AlertDialogTitle>
-            <AlertDialogDescription className="mt-1 text-center text-base">
-              You&apos;ve successfully updated your password
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <hr className="my-4" />
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={handleSuccessConfirm}
-              className="mb-4 h-12 w-full"
-            >
-              Login
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <SuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        title={'Password Reset Successful!'}
+        description={"You've successfully updated your password"}
+        backText={'Login'}
+        handleBack={handleSuccessConfirm}
+      />
     </div>
   );
 }

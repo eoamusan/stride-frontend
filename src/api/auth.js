@@ -14,9 +14,36 @@ export default class AuthService {
   static async google() {
     try {
       const response = await axiosInstance.get('auth/google');
-      console.log(response);
+      return response;
     } catch (err) {
-      console.log(err);
+      throw err;
+    }
+  }
+
+  static async forgotPassword(data) {
+    try {
+      const res = await axiosInstance.post('auth/forgot-password', data);
+      return res;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  static async verifyResetToken(data) {
+    try {
+      const res = await axiosInstance.post('auth/forgot-password/verify', data);
+      return res;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  static async resetPassword(data) {
+    try {
+      const res = await axiosInstance.post('auth/forgot-password/reset', data);
+      return res;
+    } catch (err) {
+      throw err;
     }
   }
 

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Form,
   FormControl,
@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import strideLogo from '@/assets/icons/stride.svg';
 import { Link } from 'react-router';
+import AuthService from '@/api/auth';
+import toast from 'react-hot-toast';
 
 const formSchema = z.object({
   email: z.email({
@@ -28,20 +30,35 @@ export default function EmailForm({ setNext, setFormData, formData }) {
       email: formData?.email || '',
     },
   });
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   // Update form values when formData changes (e.g., when navigating back)
   useEffect(() => {
-    if (formData?.email) {
+    const sessionEmail = sessionStorage.getItem('reset-email');
+    if (sessionEmail || formData?.email) {
       form.reset({
-        email: formData.email,
+        email: sessionEmail || formData.email,
       });
     }
   }, [formData, form]);
 
-  const onSubmit = (data) => {
-    console.log(data);
-    setFormData({ ...formData, ...data });
-    setNext();
+  const onSubmit = async (data) => {
+    try {
+      setSubmitLoading(true);
+      await AuthService.forgotPassword(data);
+      setFormData({ ...formData, ...data });
+      toast.success('Reset link sent to your email');
+      sessionStorage.setItem('reset-email', data.email);
+      setNext();
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          'Failed to send reset link. Please try again.'
+      );
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   return (
@@ -89,6 +106,8 @@ export default function EmailForm({ setNext, setFormData, formData }) {
                 className={'mt-2 mb-12 h-10 w-full'}
                 size={'lg'}
                 type="submit"
+                disabled={submitLoading}
+                isLoading={submitLoading}
               >
                 Submit
               </Button>
