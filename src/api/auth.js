@@ -20,6 +20,17 @@ export default class AuthService {
     }
   }
 
+    static async googleSuccess({ token }) {
+    try {
+      const response = await axiosInstance.post('auth/google/success', {
+        token,
+      });
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   static async forgotPassword(data) {
     try {
       const res = await axiosInstance.post('auth/forgot-password', data);
@@ -44,17 +55,6 @@ export default class AuthService {
       return res;
     } catch (err) {
       throw err;
-    }
-  }
-
-  static async googleSuccess({ token }) {
-    try {
-      const response = await axiosInstance.post('auth/google/success', {
-        token,
-      });
-      console.log(response);
-    } catch (err) {
-      console.log(err);
     }
   }
 }

@@ -73,7 +73,7 @@ export default function Goals({ setBack, setFormData, formData }) {
                 name="goal"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>What do you want to do with Stride</FormLabel>
+                    <FormLabel>What do you want to do with Stride?</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
