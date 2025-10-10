@@ -121,14 +121,14 @@ export default function Register() {
 
       // Get the fresh message from the store after the operation
       const currentMessage = useUserStore.getState().message;
-      toast.success(currentMessage || 'Registration successful!', {
+      toast.success(currentMessage, {
         icon: '🎉',
       });
       navigate('/dashboard/onboarding');
     } catch (err) {
       // Get the fresh error message from the store
       const currentMessage = useUserStore.getState().message;
-      toast.error(currentMessage || 'Registration failed. Please try again.', {
+      toast.error(currentMessage, {
         icon: '❌',
       });
     }

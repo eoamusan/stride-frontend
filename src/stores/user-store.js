@@ -18,19 +18,41 @@ export const useUserStore = create(
             message: res.data?.message || 'Registration successful',
             isLoading: false,
           });
-        } catch (error) {
+        } catch (err) {
           set({
             message:
-              error.response?.data?.message ||
-              error.message ||
+              err.response?.data?.message ||
+              err.message ||
               'Registration failed. Please try again.',
             isLoading: false,
           });
-          throw error;
+          throw err;
         }
       },
 
-      async login(data) {},
+      async login(data) {
+        try {
+          set({ isLoading: true });
+          const { data: res } = await AuthService.login(data);
+          set({
+            data: res.data,
+            message: 'Login successful',
+            isLoading: false,
+          });
+          return res.data;
+        } catch (err) {
+          set({
+            message:
+              err.response?.data?.message ||
+              err.message ||
+              'Login Failed. Please try again.',
+            isLoading: false,
+          });
+          throw err;
+        }
+      },
+
+      async refresh() {},
     }),
     {
       name: 'user-storage',

@@ -7,12 +7,8 @@ export default class AuthService {
   }
 
   static async login(data) {
-    try {
-      const response = await axiosInstance.post('auth/signin', data);
-      console.log(response);
-    } catch (err) {
-      console.log(err);
-    }
+    const response = await axiosInstance.post('auth/signin', data);
+    return response;
   }
 
   static async google() {

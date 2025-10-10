@@ -16,6 +16,9 @@ import { Link } from 'react-router';
 import { Checkbox } from '@/components/ui/checkbox';
 import strideLogo from '@/assets/icons/stride.svg';
 import { useNavigate } from 'react-router';
+import { useUserStore } from '@/stores/user-store';
+import toast from 'react-hot-toast';
+import AuthService from '@/api/auth';
 
 const formSchema = z.object({
   email: z.email({
@@ -55,11 +58,36 @@ export default function Login() {
     },
   });
   const navigate = useNavigate();
+  const { login, isLoading } = useUserStore();
 
-  const onSubmit = (data) => {
-    console.log(data);
-    // Handle login login: -> Remember me Logic
-    navigate('/dashboard');
+  const onSubmit = async (data) => {
+    try {
+      const res = await login({ email: data.email, password: data.password });
+
+      const currentMessage = useUserStore.getState().message;
+      toast.success(currentMessage, {
+        icon: '🎉',
+      });
+
+      if (res.account?.onboardingCompleted) {
+        navigate('/dashboard');
+      } else {
+        navigate('/dashboard/onboarding');
+      }
+    } catch (err) {
+      const currentMessage = useUserStore.getState().message;
+      toast.error(currentMessage, {
+        icon: '❌',
+      });
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await AuthService.google();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -146,11 +174,22 @@ export default function Login() {
                 </div>
               </div>
 
-              <Button className={'mt-2 h-10 w-full'} size={'lg'} type="submit">
+              <Button
+                className={'mt-2 h-10 w-full'}
+                size={'lg'}
+                type="submit"
+                isLoading={isLoading}
+                disabled={isLoading}
+              >
                 Sign In
               </Button>
             </form>
-            <Button size={'lg'} variant={'outline'} className={'mt-4 w-full'}>
+            <Button
+              size={'lg'}
+              variant={'outline'}
+              className={'mt-4 w-full'}
+              onClick={handleGoogleSignIn}
+            >
               <img src={GoogleIcon} alt="google" className="h-6 w-6" />
               Sign in with Google
             </Button>
