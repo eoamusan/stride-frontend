@@ -1,12 +1,12 @@
 import axiosInstance from '@/lib/axios';
 
-export default class OnboardingService {
-  static async recordBusinessData(data) {
+export default class BusinessService {
+  static async create(data) {
     try {
       const response = await axiosInstance.post('business', data);
-      console.log(response);
+      return response;
     } catch (err) {
-      console.log(err);
+      throw err;
     }
   }
 }

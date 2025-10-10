@@ -21,7 +21,7 @@ import {
 import StrideLogo from '@/assets/icons/stride.svg';
 
 const formSchema = z.object({
-  business_name: z
+  businessName: z
     .string()
     .min(2, {
       message: 'Business name must be at least 2 characters long',
@@ -30,10 +30,10 @@ const formSchema = z.object({
       message: 'Business name is required',
     })
     .transform((val) => val.trim()),
-  num_of_employees: z.string().nonempty({
+  numberOfEmployees: z.string().nonempty({
     message: 'Number of employees is required',
   }),
-  business_location: z
+  businessLocation: z
     .string()
     .min(2, {
       message: 'Business location must be at least 2 characters long',
@@ -48,7 +48,7 @@ const formSchema = z.object({
   currency: z.string().nonempty({
     message: 'Currency is required',
   }),
-  time_zone: z.string().nonempty({
+  timezone: z.string().nonempty({
     message: 'Time zone is required',
   }),
 });
@@ -91,7 +91,7 @@ export default function Setup({ setNext, setFormData, formData }) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
-                name="business_name"
+                name="businessName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Business Name</FormLabel>
@@ -109,7 +109,7 @@ export default function Setup({ setNext, setFormData, formData }) {
 
               <FormField
                 control={form.control}
-                name="num_of_employees"
+                name="numberOfEmployees"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Number of Employees</FormLabel>
@@ -142,7 +142,7 @@ export default function Setup({ setNext, setFormData, formData }) {
 
               <FormField
                 control={form.control}
-                name="business_location"
+                name="businessLocation"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Business Location</FormLabel>
@@ -237,7 +237,7 @@ export default function Setup({ setNext, setFormData, formData }) {
 
               <FormField
                 control={form.control}
-                name="time_zone"
+                name="timezone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Time Zone</FormLabel>

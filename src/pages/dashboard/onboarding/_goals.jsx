@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import {
   Form,
   FormControl,
@@ -10,6 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -18,27 +20,78 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import StrideLogo from '@/assets/icons/stride.svg';
-import { ArrowLeftIcon } from 'lucide-react';
+import { ArrowLeftIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import toast from 'react-hot-toast';
+import BusinessService from '@/api/business';
 
 const formSchema = z.object({
-  goal: z.string().nonempty({
-    message: 'Goal is required',
+  goals: z.array(z.string()).min(1, {
+    message: 'At least one goal is required',
   }),
 });
 
 export default function Goals({ setBack, setFormData, formData }) {
   const navigate = useNavigate();
+  const [selectedGoals, setSelectedGoals] = useState(formData.goals || []);
+  const [submitLoading, setSubmitLoading] = useState(false);
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      goal: formData.goal || '',
+      goals: formData.goals || [],
     },
   });
 
-  const onSubmit = (data) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-    navigate('/dashboard');
+  const goalOptions = [
+    { value: 'manage-finances', label: 'Manage Business Finances' },
+    { value: 'track-expenses', label: 'Track Expenses' },
+    { value: 'generate-reports', label: 'Generate Financial Reports' },
+    { value: 'manage-inventory', label: 'Manage Inventory' },
+    { value: 'handle-invoicing', label: 'Handle Invoicing & Billing' },
+    { value: 'track-sales', label: 'Track Sales Performance' },
+    { value: 'manage-customers', label: 'Manage Customer Relationships' },
+    { value: 'payroll-management', label: 'Payroll Management' },
+    { value: 'tax-compliance', label: 'Tax Compliance & Filing' },
+    { value: 'business-analytics', label: 'Business Analytics & Insights' },
+    { value: 'other', label: 'Other' },
+  ];
+
+  const handleGoalSelect = (value) => {
+    if (!selectedGoals.includes(value)) {
+      const newGoals = [...selectedGoals, value];
+      setSelectedGoals(newGoals);
+      form.setValue('goals', newGoals);
+    }
+  };
+
+  const handleGoalRemove = (goalToRemove) => {
+    const newGoals = selectedGoals.filter((goal) => goal !== goalToRemove);
+    setSelectedGoals(newGoals);
+    form.setValue('goals', newGoals);
+  };
+
+  const getGoalLabel = (value) => {
+    return goalOptions.find((option) => option.value === value)?.label || value;
+  };
+
+  const onSubmit = async (data) => {
+    try {
+      setSubmitLoading(true);
+      setFormData((prev) => ({ ...prev, ...data }));
+      const res = await BusinessService.create({
+        ...formData,
+        goals: data.goals,
+      });
+      toast.success(res.data?.message || 'Form submitted successfully');
+      navigate('/dashboard');
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || "Couldn't complete setup! Try again."
+      );
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   return (
@@ -70,51 +123,52 @@ export default function Goals({ setBack, setFormData, formData }) {
             >
               <FormField
                 control={form.control}
-                name="goal"
+                name="goals"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>What do you want to do with Stride?</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+
+                    {/* Selected Goals as Badges */}
+                    {selectedGoals.length > 0 && (
+                      <div className="mt-4 mb-2 flex flex-wrap gap-2">
+                        {selectedGoals.map((goal) => (
+                          <Badge
+                            key={goal}
+                            variant="secondary"
+                            className="flex items-center gap-1 px-3 py-1 font-medium"
+                          >
+                            {getGoalLabel(goal)}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-4 w-4 p-0 hover:bg-transparent"
+                              onClick={() => handleGoalRemove(goal)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Select Dropdown */}
+                    <Select onValueChange={handleGoalSelect}>
                       <FormControl>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select your goal" />
+                          <SelectValue placeholder="Select your goals" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="manage-finances">
-                          Manage Business Finances
-                        </SelectItem>
-                        <SelectItem value="track-expenses">
-                          Track Expenses
-                        </SelectItem>
-                        <SelectItem value="generate-reports">
-                          Generate Financial Reports
-                        </SelectItem>
-                        <SelectItem value="manage-inventory">
-                          Manage Inventory
-                        </SelectItem>
-                        <SelectItem value="handle-invoicing">
-                          Handle Invoicing & Billing
-                        </SelectItem>
-                        <SelectItem value="track-sales">
-                          Track Sales Performance
-                        </SelectItem>
-                        <SelectItem value="manage-customers">
-                          Manage Customer Relationships
-                        </SelectItem>
-                        <SelectItem value="payroll-management">
-                          Payroll Management
-                        </SelectItem>
-                        <SelectItem value="tax-compliance">
-                          Tax Compliance & Filing
-                        </SelectItem>
-                        <SelectItem value="business-analytics">
-                          Business Analytics & Insights
-                        </SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        {goalOptions.map((option) => (
+                          <SelectItem
+                            key={option.value}
+                            value={option.value}
+                            disabled={selectedGoals.includes(option.value)}
+                          >
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -122,8 +176,14 @@ export default function Goals({ setBack, setFormData, formData }) {
                 )}
               />
 
-              <div className="flex justify-end">
-                <Button type="submit" size={'lg'} className="h-10">
+              <div className="mt-8 flex justify-end">
+                <Button
+                  type="submit"
+                  size={'lg'}
+                  className="h-10"
+                  disabled={submitLoading}
+                  isLoading={submitLoading}
+                >
                   Complete Setup
                 </Button>
               </div>
