@@ -31,7 +31,7 @@ import { useNavigate } from 'react-router';
 export default function VendorDetails() {
   const navigate = useNavigate();
   const handleGoBack = () => {
-    navigate('/dashboard/accounting/accounts-payable');
+    navigate(-1, { replace: true });
   };
 
   return (

@@ -56,7 +56,7 @@ const router = createBrowserRouter([
       { path: 'forgot-password', Component: ForgotPassword },
       {
         path: 'dashboard',
-        middleware: [authMiddleware],
+        // middleware: [authMiddleware],
         children: [
           { path: 'onboarding', Component: Onboarding },
           {
@@ -187,16 +187,21 @@ const router = createBrowserRouter([
                         Component: VendorManagement,
                       },
                       {
-                        path: ':id',
-                        Component: VendorDetails,
-                      },
-                      {
                         path: 'vendor-invoices',
                         Component: VendorInvoices,
                       },
                       {
                         path: 'vendors',
-                        Component: Vendors,
+                        children: [
+                          {
+                            index: true,
+                            Component: Vendors,
+                          },
+                          {
+                            path: ':id',
+                            Component: VendorDetails,
+                          },
+                        ],
                       },
                       {
                         path: 'bids',

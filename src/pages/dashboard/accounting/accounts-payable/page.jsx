@@ -159,7 +159,7 @@ export default function VendorManagement() {
         break;
       case 'view':
         // Navigate to vendor detail page
-        navigate(`/dashboard/accounting/accounts-payable/${item.id}`);
+        navigate(`vendors/${item.id}`);
         break;
       case 'blacklist':
         // Add blacklist logic here

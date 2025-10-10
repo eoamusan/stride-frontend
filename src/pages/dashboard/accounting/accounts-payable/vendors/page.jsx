@@ -9,6 +9,7 @@ import DownloadDropdown from '@/components/dashboard/accounting/download-dropdow
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import CreateBidForm from '@/components/dashboard/accounting/accounts-payable/bids/create-bid-form';
 import VendorsList from '@/components/dashboard/accounting/accounts-payable/vendors/vendors-list';
+import { useNavigate } from 'react-router';
 
 // Vendor data from the image
 const vendorData = [
@@ -58,6 +59,7 @@ const vendorMetricsData = [
 export default function Vendors() {
   const [openVendorForm, setOpenVendorForm] = useState(false);
   const [openBidForm, setOpenBidForm] = useState(false);
+  const navigate = useNavigate();
   const [openSuccessModal, setOpenSuccessModal] = useState({
     open: false,
     for: '',
@@ -150,7 +152,12 @@ export default function Vendors() {
       ) : (
         <div className="mt-10">
           <Metrics metrics={vendorMetricsData} />
-          <VendorsList className={'mt-10'} />
+          <VendorsList
+            className={'mt-10'}
+            onVendorView={(vendor) => {
+              navigate(`${vendor.id}`);
+            }}
+          />
         </div>
       )}
 
