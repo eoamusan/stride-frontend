@@ -40,12 +40,6 @@ const formSchema = z
         error: 'Last name is required',
       })
       .transform((val) => val.trim()),
-    businessName: z
-      .string()
-      .nonempty({
-        error: 'Business name is required',
-      })
-      .transform((val) => val.trim()),
     email: z.email(),
     phoneNumber: z
       .string()
@@ -104,7 +98,6 @@ export default function Register() {
     defaultValues: {
       firstName: '',
       lastName: '',
-      businessName: '',
       email: '',
       phoneNumber: '',
       password: '',
@@ -175,19 +168,6 @@ export default function Register() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input className={'h-10'} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="businessName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Business Name</FormLabel>
                     <FormControl>
                       <Input className={'h-10'} {...field} />
                     </FormControl>

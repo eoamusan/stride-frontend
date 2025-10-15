@@ -1,9 +1,15 @@
 import axiosInstance from '@/lib/axios';
+import { useUserStore } from '@/stores/user-store';
 
 export default class BusinessService {
-  static async edit(data) {
+  static async create(data) {
     try {
-      const response = await axiosInstance.patch('business', data);
+      const userStore = useUserStore.getState();
+      const response = await axiosInstance.post('business', data, {
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      });
       return response;
     } catch (err) {
       throw err;

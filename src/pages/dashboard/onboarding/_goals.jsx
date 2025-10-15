@@ -44,17 +44,39 @@ export default function Goals({ setBack, setFormData, formData }) {
   });
 
   const goalOptions = [
-    { value: 'manage-finances', label: 'Manage Business Finances' },
-    { value: 'track-expenses', label: 'Track Expenses' },
-    { value: 'generate-reports', label: 'Generate Financial Reports' },
-    { value: 'manage-inventory', label: 'Manage Inventory' },
-    { value: 'handle-invoicing', label: 'Handle Invoicing & Billing' },
-    { value: 'track-sales', label: 'Track Sales Performance' },
-    { value: 'manage-customers', label: 'Manage Customer Relationships' },
-    { value: 'payroll-management', label: 'Payroll Management' },
-    { value: 'tax-compliance', label: 'Tax Compliance & Filing' },
-    { value: 'business-analytics', label: 'Business Analytics & Insights' },
-    { value: 'other', label: 'Other' },
+    {
+      value: 'i want to use all of strides features',
+      label: "I want to use All of Stride's features",
+    },
+    { value: 'contact management', label: 'Contact Management' },
+    { value: 'hr management', label: 'HR Management' },
+    { value: 'task management', label: 'Task Management' },
+    { value: 'team management', label: 'Team Management' },
+    {
+      value: 'wish list and birthdays and life celebrations',
+      label: 'Wish List and Birthdays and Life Celebrations',
+    },
+    { value: 'report management', label: 'Report Management' },
+    { value: 'invoicing', label: 'Invoicing' },
+    {
+      value: 'bookkeeping and general ledger',
+      label: 'Bookkeeping and General Ledger',
+    },
+    { value: 'bid and vendor management', label: 'Bid and Vendor Management' },
+    { value: 'customer management', label: 'Customer Management' },
+    { value: 'inventory management', label: 'Inventory Management' },
+    { value: 'point of sale', label: 'Point of Sale' },
+    {
+      value: 'expense and bill management',
+      label: 'Expense and Bill Management',
+    },
+    { value: 'budgeting and forecasting', label: 'Budgeting and Forecasting' },
+    { value: 'fixed asset management', label: 'Fixed Asset Management' },
+    { value: 'tax management', label: 'Tax Management' },
+    {
+      value: 'banking and reconciliation',
+      label: 'Banking and Reconciliation',
+    },
   ];
 
   const handleGoalSelect = (value) => {

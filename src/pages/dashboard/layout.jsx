@@ -2,13 +2,17 @@ import { useState } from 'react';
 import Header from '@/components/navigations/dashboard-header';
 import Sidebar from '@/components/navigations/dashboard-sidebar';
 import MobileSidebar from '@/components/navigations/mobile-dashboard-sidebar';
-import { Outlet } from 'react-router';
+import { Outlet, useSearchParams } from 'react-router';
 import TopAlert from '@/components/dashboard/top-alert';
-import ChatButton from '@/components/dashboard/chat-trigger';
+import Messaging from '@/components/dashboard/messaging/message';
+import Chats from './chats/page';
 
 export default function DashboardLayout() {
   const [cancelNotification, setCancelNotification] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  const isChatPage = searchParams.get('chat') === 'fullpage';
 
   return (
     <div className="">
@@ -36,9 +40,15 @@ export default function DashboardLayout() {
                 externalLink="#"
               />
             )}
-            <div className="h-full overflow-hidden px-4">
-              <Outlet />
-            </div>
+            {isChatPage ? (
+              <div className="relative h-full">
+                <Chats />
+              </div>
+            ) : (
+              <div className="relative h-full overflow-hidden px-4">
+                <Outlet />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -49,7 +59,7 @@ export default function DashboardLayout() {
         onClose={() => setIsMobileSidebarOpen(false)}
       />
 
-      <ChatButton />
+      <Messaging />
     </div>
   );
 }
