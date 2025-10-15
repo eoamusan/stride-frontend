@@ -24,6 +24,7 @@ import { ArrowLeftIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import BusinessService from '@/api/business';
+import { useUserStore } from '@/stores/user-store';
 
 const formSchema = z.object({
   goals: z.array(z.string()).min(1, {
@@ -35,6 +36,7 @@ export default function Goals({ setBack, setFormData, formData }) {
   const navigate = useNavigate();
   const [selectedGoals, setSelectedGoals] = useState(formData.goals || []);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const userStore = useUserStore.getState();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -104,6 +106,7 @@ export default function Goals({ setBack, setFormData, formData }) {
       const res = await BusinessService.create({
         ...formData,
         goals: data.goals,
+        accountId: userStore.data?.account?._id,
       });
       toast.success(res.data?.message || 'Form submitted successfully');
       navigate('/dashboard');
