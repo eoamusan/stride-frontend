@@ -7,14 +7,38 @@ import {
   SchoolIcon,
   SearchIcon,
   MenuIcon,
+  LogOutIcon,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 import { useState } from 'react';
+import { useUserStore } from '@/stores/user-store';
+import { useNavigate } from 'react-router';
 
 export default function Header({ onMobileMenuToggle }) {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const userStore = useUserStore();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    userStore.logout();
+    navigate('/login');
+  };
+
+  // Helper function to generate initials
+  const getUserInitials = () => {
+    if (!userStore.data) return 'U';
+    const { account } = userStore.data;
+    const firstInitial = account?.firstName.charAt(0).toUpperCase();
+    const lastInitial = account?.lastName.charAt(0).toUpperCase();
+    return `${firstInitial}${lastInitial}` || 'E';
+  };
 
   return (
     <header className="relative flex items-center justify-between bg-white p-4">
@@ -72,13 +96,13 @@ export default function Header({ onMobileMenuToggle }) {
           {/* User Avatar */}
           <Avatar className="h-7 w-7">
             <AvatarImage src="" />
-            <AvatarFallback>OA</AvatarFallback>
+            <AvatarFallback>{getUserInitials()}</AvatarFallback>
           </Avatar>
         </div>
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden w-full items-center justify-between lg:flex gap-8">
+      <div className="hidden w-full items-center justify-between gap-8 lg:flex">
         {/* Logo */}
         <div>
           <img src={strideLogo} alt="Stride Logo" />
@@ -110,17 +134,38 @@ export default function Header({ onMobileMenuToggle }) {
             </p>
           </div>
 
-          {/* User Profile */}
-          <div className="flex w-fit items-center justify-center gap-2">
-            <Avatar className={'h-9 w-9'}>
-              <AvatarImage src={''} />
-              <AvatarFallback>OA</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">Oluwatosin Ayanwole</p>
-              <p className="text-xs text-gray-700">oluwatosin13@gmail.com</p>
-            </div>
-          </div>
+          {/* User Profile Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex w-fit items-center justify-center gap-2 p-2 hover:bg-gray-50"
+              >
+                <Avatar className={'h-9 w-9'}>
+                  <AvatarImage src={''} />
+                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                </Avatar>
+                <div className="text-left">
+                  <p className="text-sm font-medium">
+                    {`${userStore.data?.account?.firstName} ${userStore.data?.account?.lastName}`.trim() ||
+                      ''}
+                  </p>
+                  <p className="text-xs text-gray-700">
+                    {userStore.data?.account?.email || ''}
+                  </p>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="cursor-pointer"
+              >
+                <LogOutIcon className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Notification Button */}
           <div className="relative ml-4">

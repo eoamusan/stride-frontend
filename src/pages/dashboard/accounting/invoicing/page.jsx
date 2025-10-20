@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircle, SettingsIcon } from 'lucide-react';
 import MetricCard from '@/components/dashboard/metric-card';
 import AccountingTable from '@/components/dashboard/accounting/table';
+import InvoiceService from '@/api/invoice';
+import BusinessService from '@/api/business';
 
 const invoice = [''];
 
@@ -128,6 +130,19 @@ export default function Invoicing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [toggleCreateInvoice, setToggleCreateInvoice] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const res = await InvoiceService.fetch();
+        console.log(res);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchInvoices();
+  }, []);
 
   // Handle row actions for the table
   const handleRowAction = (action, item) => {

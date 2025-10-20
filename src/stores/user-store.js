@@ -53,6 +53,18 @@ export const useUserStore = create(
       },
 
       async refresh() {},
+
+      logout() {
+        // Clear user data from store
+        set({
+          data: null,
+          isLoading: false,
+          message: null,
+        });
+
+        // Clear persisted storage
+        localStorage.removeItem('user-storage');
+      },
     }),
     {
       name: 'user-storage',

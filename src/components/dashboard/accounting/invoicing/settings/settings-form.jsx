@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Form,
   FormControl,
@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { UploadIcon, PlusIcon } from 'lucide-react';
+import { UploadIcon, PlusIcon, RotateCcwIcon } from 'lucide-react';
 import AddBankModal from '../add-bank';
 
 const formSchema = z.object({
@@ -48,6 +48,9 @@ export default function SettingsForm() {
   const [uploadedLogo, setUploadedLogo] = useState(null);
   const [uploadedSignature, setUploadedSignature] = useState(null);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const canvasRef = useRef(null);
+  const contextRef = useRef(null);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -70,7 +73,56 @@ export default function SettingsForm() {
     },
   });
 
+  // Initialize canvas for signature drawing
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.width = canvas.offsetWidth * 2;
+    canvas.height = canvas.offsetHeight * 2;
+    canvas.style.width = `${canvas.offsetWidth}px`;
+    canvas.style.height = `${canvas.offsetHeight}px`;
+
+    const context = canvas.getContext('2d');
+    context.scale(2, 2);
+    context.lineCap = 'round';
+    context.strokeStyle = '#000000';
+    context.lineWidth = 2;
+    contextRef.current = context;
+  }, []);
+
+  // Canvas drawing functions
+  const startDrawing = ({ nativeEvent }) => {
+    const { offsetX, offsetY } = nativeEvent;
+    contextRef.current.beginPath();
+    contextRef.current.moveTo(offsetX, offsetY);
+    setIsDrawing(true);
+  };
+
+  const finishDrawing = () => {
+    contextRef.current.closePath();
+    setIsDrawing(false);
+  };
+
+  const draw = ({ nativeEvent }) => {
+    if (!isDrawing) return;
+    const { offsetX, offsetY } = nativeEvent;
+    contextRef.current.lineTo(offsetX, offsetY);
+    contextRef.current.stroke();
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    contextRef.current.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
   const onSubmit = (data) => {
+    // Convert canvas to image before submitting
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+      const signatureDataURL = canvas.toDataURL();
+      data.signature = signatureDataURL;
+    }
     console.log('Settings data:', data);
   };
 
@@ -307,33 +359,54 @@ export default function SettingsForm() {
           {/* Signature Section */}
           <div className="grid grid-cols-1 gap-8 pt-3 md:grid-cols-2">
             <div className="w-full max-w-md space-y-4">
-              <FormLabel>Your Signature</FormLabel>
-              <div className="border-muted-foreground/25 rounded-lg border-2 p-8">
-                <div className="h-[87px]"></div>
-              </div>
-            </div>
-
-            <div className="w-full max-w-md space-y-4">
-              <FormLabel>Draw Signature or Upload</FormLabel>
-              <div className="border-muted-foreground/25 flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleSignatureUpload}
-                  className="hidden"
-                  id="signature-upload"
-                />
-                <label htmlFor="signature-upload" className="cursor-pointer">
-                  <div className="flex flex-col items-center">
-                    <UploadIcon className="text-primary h-8 w-8" />
-                    <p className="mt-4 text-sm">
-                      Click or drag file to this area to upload
-                    </p>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      Support for a single or bulk upload.
+              <FormLabel>Draw Your Signature</FormLabel>
+              <div className="space-y-4">
+                <div className="border-muted-foreground/25 rounded-lg border-2 bg-white p-4">
+                  <canvas
+                    ref={canvasRef}
+                    className="h-32 w-full cursor-crosshair rounded border border-gray-200"
+                    onMouseDown={startDrawing}
+                    onMouseUp={finishDrawing}
+                    onMouseMove={draw}
+                    onTouchStart={(e) => {
+                      const touch = e.touches[0];
+                      const rect = e.target.getBoundingClientRect();
+                      startDrawing({
+                        nativeEvent: {
+                          offsetX: touch.clientX - rect.left,
+                          offsetY: touch.clientY - rect.top,
+                        },
+                      });
+                    }}
+                    onTouchEnd={finishDrawing}
+                    onTouchMove={(e) => {
+                      e.preventDefault();
+                      const touch = e.touches[0];
+                      const rect = e.target.getBoundingClientRect();
+                      draw({
+                        nativeEvent: {
+                          offsetX: touch.clientX - rect.left,
+                          offsetY: touch.clientY - rect.top,
+                        },
+                      });
+                    }}
+                  />
+                  <div className="mt-2 flex items-center justify-between">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearCanvas}
+                      className="h-7"
+                    >
+                      <RotateCcwIcon className="h-3 w-3" />
+                      Clear
+                    </Button>
+                    <p className="text-muted-foreground text-center text-xs">
+                      Draw your signature above using mouse or touch
                     </p>
                   </div>
-                </label>
+                </div>
               </div>
             </div>
           </div>

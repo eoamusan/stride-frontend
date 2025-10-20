@@ -1,11 +1,11 @@
 import axiosInstance from '@/lib/axios';
 import { useUserStore } from '@/stores/user-store';
 
-export default class BusinessService {
-  static async create(data) {
+export default class CustomerService {
+  static async create({ data }) {
     try {
       const userStore = useUserStore.getState();
-      const response = await axiosInstance.post('business', data, {
+      const response = await axiosInstance.post('customer', data, {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,
         },
@@ -15,10 +15,11 @@ export default class BusinessService {
       throw err;
     }
   }
+
   static async get({ id }) {
     try {
       const userStore = useUserStore.getState();
-      const response = await axiosInstance.get(`business/${id}`, {
+      const response = await axiosInstance.get(`customer/${id}`, {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,
         },
@@ -33,26 +34,8 @@ export default class BusinessService {
     try {
       const userStore = useUserStore.getState();
       const response = await axiosInstance.post(
-        `business/fetch`,
+        'customer/fetch',
         { accountId: userStore.data?.account?._id },
-        {
-          headers: {
-            Authorization: `Bearer ${userStore.data?.accessToken}`,
-          },
-        }
-      );
-      return response;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  static async patchSettings({ id, data }) {
-    try {
-      const userStore = useUserStore.getState();
-      const response = await axiosInstance.patch(
-        `business/${id}/invoice/settings`,
-        data,
         {
           headers: {
             Authorization: `Bearer ${userStore.data?.accessToken}`,

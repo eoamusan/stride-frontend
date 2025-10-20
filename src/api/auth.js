@@ -20,7 +20,7 @@ export default class AuthService {
     }
   }
 
-    static async googleSuccess({ token }) {
+  static async googleSuccess({ token }) {
     try {
       const response = await axiosInstance.post('auth/google/success', {
         token,
