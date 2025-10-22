@@ -30,12 +30,12 @@ export default class InvoiceService {
     }
   }
 
-  static async fetch() {
+  static async fetch({ businessId }) {
     try {
       const userStore = useUserStore.getState();
       const response = await axiosInstance.post(
         `invoice/fetch`,
-        { accountId: userStore.data?.account?._id },
+        { businessId },
         {
           headers: {
             Authorization: `Bearer ${userStore.data?.accessToken}`,

@@ -43,7 +43,7 @@ const RichTextEditor = forwardRef(
 
       // Create editor container
       const editorContainer = container.ownerDocument.createElement('div');
-      editorContainer.style.minHeight = '200px';
+      editorContainer.style.height = '200px';
       editorContainer.style.borderRadius = '0 0 6px 6px';
       container.appendChild(editorContainer);
 
@@ -78,7 +78,7 @@ const RichTextEditor = forwardRef(
         }
         container.innerHTML = '';
       };
-    }, []); // Remove currentValue from dependencies
+    }, []);
 
     // Update content when currentValue changes externally
     useEffect(() => {

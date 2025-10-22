@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import EmptyInvoice from '@/components/dashboard/accounting/invoicing/empty-state';
 import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-invoice';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import MetricCard from '@/components/dashboard/metric-card';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import InvoiceService from '@/api/invoice';
 import BusinessService from '@/api/business';
+import toast from 'react-hot-toast';
 
 const invoice = [''];
 
@@ -130,14 +131,31 @@ export default function Invoicing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [toggleCreateInvoice, setToggleCreateInvoice] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [hasBankAccount, setHasBankAccount] = useState(false);
+  const [invoiceList, setInvoiceList] = useState();
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const res = await InvoiceService.fetch();
-        console.log(res);
+        setIsLoadingData(true);
+        await BusinessService.fetch().then(async (res) => {
+          const businessId = res.data.data[0]?._id;
+          setHasBankAccount(
+            res.data.data[0]?.businessInvoiceSettings?.bankAccounts?.length > 0
+          );
+          const invoiceRes = await InvoiceService.fetch({ businessId });
+          if (invoiceRes.data && invoiceRes.data?.data?.length > 0) {
+            setInvoiceList(invoiceRes.data.data);
+          } else {
+            setInvoiceList([]);
+          }
+        });
       } catch (err) {
         console.log(err);
+      } finally {
+        setIsLoadingData(false);
       }
     };
 
@@ -192,6 +210,19 @@ export default function Invoicing() {
   }, [searchParams]);
 
   const handleToggleCreateInvoice = () => {
+    if (!isLoadingData && !hasBankAccount) {
+      toast.error(
+        <p className="text-xs font-semibold">
+          Please set up a bank account in your business invoice settings before
+          creating an invoice.
+        </p>,
+        {
+          duration: 7000,
+        }
+      );
+      navigate('/dashboard/accounting/invoicing/settings');
+      return;
+    }
     const newToggleState = !toggleCreateInvoice;
     setToggleCreateInvoice(newToggleState);
 

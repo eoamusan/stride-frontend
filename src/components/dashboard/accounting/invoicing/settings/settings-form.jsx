@@ -21,18 +21,27 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { UploadIcon, PlusIcon, RotateCcwIcon } from 'lucide-react';
+import {
+  UploadIcon,
+  PlusIcon,
+  RotateCcwIcon,
+  SlidersHorizontalIcon,
+  XIcon,
+} from 'lucide-react';
 import AddBankModal from '../add-bank';
+import RichTextEditor from '@/components/dashboard/rich-text-editor';
+import Coloris from '@melloware/coloris';
+import '@melloware/coloris/dist/coloris.css';
 
 const formSchema = z.object({
   invoice_prefix: z.string().min(1, { message: 'Invoice prefix is required' }),
-  customer: z.string().min(1, { message: 'Customer is required' }),
   logo: z.any().optional(),
   use_logo: z.boolean().default(false),
   invoice_template: z.string().optional(),
   terms: z.string().optional(),
   signature: z.any().optional(),
   tax_identification_number: z.string().optional(),
+  brand_color: z.string().default('#3B82F6'),
   bank: z
     .object({
       account_name: z.string(),
@@ -49,8 +58,30 @@ export default function SettingsForm() {
   const [uploadedSignature, setUploadedSignature] = useState(null);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [selectedColor, setSelectedColor] = useState('#3B82F6');
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
+  const colorPickerRef = useRef(null);
+
+  // Predefined brand colors
+  const brandColors = [
+    '#3B82F6', // Blue
+    '#000000', // Black
+    '#FFFFFF', // White
+    '#FFC107', // Yellow/Amber
+    '#FF5722', // Orange
+    '#E91E63', // Pink/Magenta
+  ];
+
+  // File removal functions
+  const removeLogo = () => {
+    setUploadedLogo(null);
+  };
+
+  const removeSignature = () => {
+    setUploadedSignature(null);
+  };
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -63,6 +94,7 @@ export default function SettingsForm() {
       terms: '',
       signature: null,
       tax_identification_number: '',
+      brand_color: '#3B82F6',
       bank: {
         account_name: 'James john',
         account_number: '25467587',
@@ -90,6 +122,26 @@ export default function SettingsForm() {
     context.lineWidth = 2;
     contextRef.current = context;
   }, []);
+  // Initialize Coloris
+  useEffect(() => {
+    // Initialize Coloris with configuration
+    Coloris.init();
+    Coloris({
+      themeMode: 'polaroid',
+      formatToggle: true,
+      selectInput: true,
+      onChange: (color, input) => {
+        console.log(`The new color is ${color}`);
+        setSelectedColor(color);
+        form.setValue('brand_color', color);
+      },
+    });
+
+    // Cleanup function
+    return () => {
+      Coloris.close();
+    };
+  }, [form]);
 
   // Canvas drawing functions
   const startDrawing = ({ nativeEvent }) => {
@@ -146,6 +198,18 @@ export default function SettingsForm() {
     setIsAddBankModalOpen(true);
   };
 
+  const handleColorSelect = (color) => {
+    setSelectedColor(color);
+    form.setValue('brand_color', color);
+    setShowColorPicker(false);
+  };
+
+  const handleCustomColorChange = (event) => {
+    const color = event.target.value;
+    setSelectedColor(color);
+    form.setValue('brand_color', color);
+  };
+
   const bank = form.watch('bank');
 
   return (
@@ -192,42 +256,12 @@ export default function SettingsForm() {
               )}
             />
           </div>
-
-          <FormField
-            control={form.control}
-            name="customer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Customer</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className={'w-full max-w-sm'}>
-                      <SelectValue placeholder="ABC Corporation" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="abc-corp">ABC Corporation</SelectItem>
-                    <SelectItem value="tech-solutions">
-                      Tech Solutions Ltd
-                    </SelectItem>
-                    <SelectItem value="global-ent">
-                      Global Enterprises
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           {/* Bank and Logo Section */}
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {/* Logo Upload Section */}
             <div className="w-full max-w-sm space-y-4">
               <FormLabel>Upload Logo</FormLabel>
-              <div className="border-muted-foreground/25 bg-foreground/2 flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8">
+              <div className="border-muted-foreground/25 flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-black/2 p-8">
                 <input
                   type="file"
                   accept="image/*"
@@ -247,6 +281,28 @@ export default function SettingsForm() {
                   </div>
                 </label>
               </div>
+
+              {uploadedLogo && (
+                <div className="mt-2 flex items-center justify-between rounded border bg-gray-50 p-2">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      📎 {uploadedLogo.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {(uploadedLogo.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={removeLogo}
+                    className="p-1 text-red-500 hover:text-red-700"
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
 
               <FormField
                 control={form.control}
@@ -271,7 +327,7 @@ export default function SettingsForm() {
               <FormLabel className={'font-semibold'}>Bank Accounts</FormLabel>
               {bank && (
                 <div className="space-y-2">
-                  <div className="text-sm">
+                  <div className="text-xs">
                     <p>
                       <span className="font-medium">Account Name:</span>{' '}
                       {bank.account_name}
@@ -309,7 +365,6 @@ export default function SettingsForm() {
               )}
             </div>
           </div>
-
           {/* Invoice Template and Terms Section */}
           <div className="grid grid-cols-1 gap-8 pt-3 md:grid-cols-2">
             <FormField
@@ -319,10 +374,10 @@ export default function SettingsForm() {
                 <FormItem className={'w-full max-w-md'}>
                   <FormLabel>Invoice Template</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <RichTextEditor
+                      currentValue={field.value}
+                      setCurrentValue={field.onChange}
                       placeholder=""
-                      className="min-h-[200px]"
-                      {...field}
                     />
                   </FormControl>
                   <div className="flex justify-between text-xs">
@@ -341,11 +396,7 @@ export default function SettingsForm() {
                 <FormItem className={'w-full max-w-md'}>
                   <FormLabel>Terms</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder=""
-                      className="min-h-[200px]"
-                      {...field}
-                    />
+                    <Textarea placeholder="" className="h-[240px]" {...field} />
                   </FormControl>
                   <div className="text-right text-xs">
                     {field.value?.length || 0}/1000
@@ -355,7 +406,53 @@ export default function SettingsForm() {
               )}
             />
           </div>
+          <div>
+            {/* Brand Color Picker Section */}
+            <div className="space-y-4">
+              <FormLabel>Choose Brand Color</FormLabel>
+              <div className="space-y-3">
+                <FormLabel className="text-[#434343]">Select Color</FormLabel>
+                <div className="flex items-center gap-3">
+                  {brandColors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => handleColorSelect(color)}
+                      className={`h-8 w-8 rounded-lg border-2 transition-all ${
+                        selectedColor === color
+                          ? 'border-gray-400 ring-2 ring-gray-300 ring-offset-2'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    >
+                      {color === '#FFFFFF' && (
+                        <div className="h-full w-full rounded-lg border border-gray-200" />
+                      )}
+                    </button>
+                  ))}
 
+                  <div
+                    className={`relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-2 transition-all ${
+                      !brandColors.includes(selectedColor)
+                        ? 'border-gray-400 ring-2 ring-gray-300 ring-offset-2'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    style={{ backgroundColor: selectedColor }}
+                  >
+                    <SlidersHorizontalIcon size={14} className="text-white" />
+                    <input
+                      type="text"
+                      data-coloris
+                      value={selectedColor}
+                      ref={colorPickerRef}
+                      className={`absolute -bottom-4 -left-6 h-8 w-8 cursor-pointer opacity-0`}
+                      readOnly
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>{' '}
           {/* Signature Section */}
           <div className="grid grid-cols-1 gap-8 pt-3 md:grid-cols-2">
             <div className="w-full max-w-md space-y-4">
@@ -409,8 +506,54 @@ export default function SettingsForm() {
                 </div>
               </div>
             </div>
-          </div>
 
+            {/* Upload Signature Section */}
+            <div className="w-full max-w-md space-y-4">
+              <FormLabel>Or Upload Signature</FormLabel>
+              <div className="border-muted-foreground/25 flex h-[198px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-black/2 p-8">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleSignatureUpload}
+                  className="hidden"
+                  id="signature-upload"
+                />
+                <label htmlFor="signature-upload" className="cursor-pointer">
+                  <div className="flex flex-col items-center">
+                    <UploadIcon className="text-primary h-8 w-8" />
+                    <p className="mt-4 text-base">
+                      Click or drag file to this area to upload
+                    </p>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      Upload your signature image (PNG, JPG, SVG)
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {uploadedSignature && (
+                <div className="mt-2 flex items-center justify-between rounded border bg-gray-50 p-2">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      📎 {uploadedSignature.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {(uploadedSignature.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={removeSignature}
+                    className="p-1 text-red-500 hover:text-red-700"
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-end gap-4 pt-6">
             <Button
