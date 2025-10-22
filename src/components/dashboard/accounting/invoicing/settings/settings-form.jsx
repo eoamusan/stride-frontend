@@ -12,13 +12,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -32,34 +25,53 @@ import AddBankModal from '../add-bank';
 import RichTextEditor from '@/components/dashboard/rich-text-editor';
 import Coloris from '@melloware/coloris';
 import '@melloware/coloris/dist/coloris.css';
+import { uploadToCloudinary } from '@/lib/cloudinary';
+import toast from 'react-hot-toast';
+import BusinessService from '@/api/business';
+import { formatDate } from 'date-fns';
 
 const formSchema = z.object({
-  invoice_prefix: z.string().min(1, { message: 'Invoice prefix is required' }),
-  logo: z.any().optional(),
-  use_logo: z.boolean().default(false),
-  invoice_template: z.string().optional(),
+  prefix: z.string().min(1, { message: 'Invoice prefix is required' }),
+  logoUrl: z.string().optional(),
+  useLogo: z.boolean(),
+  emailTemplate: z.string().optional(),
   terms: z.string().optional(),
-  signature: z.any().optional(),
-  tax_identification_number: z.string().optional(),
-  brand_color: z.string().default('#3B82F6'),
-  bank: z
-    .object({
-      account_name: z.string(),
-      account_number: z.string(),
-      bank_name: z.string(),
-      tax_id: z.string(),
-      sort_code: z.string(),
-    })
+  signatureUrl: z.string().optional(),
+  tin: z.string().optional(),
+  brandColor: z.string().default('#3B82F6'),
+  template: z.string().optional(),
+  bankAccounts: z
+    .array(
+      z.object({
+        accountName: z.string(),
+        accountNumber: z.string(),
+        bankName: z.string(),
+        tin: z.string(),
+        sortCode: z.string(),
+      })
+    )
     .optional(),
 });
 
-export default function SettingsForm() {
-  const [uploadedLogo, setUploadedLogo] = useState(null);
-  const [uploadedSignature, setUploadedSignature] = useState(null);
+export default function SettingsForm({ businessId, initialData }) {
+  const [uploadedLogo, setUploadedLogo] = useState(
+    initialData?.logoUrl
+      ? { url: initialData.logoUrl, name: 'Existing Logo', size: 0 }
+      : null
+  );
+  const [uploadedSignature, setUploadedSignature] = useState(
+    initialData?.signatureUrl
+      ? { url: initialData.signatureUrl, name: 'Existing Signature', size: 0 }
+      : null
+  );
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [selectedColor, setSelectedColor] = useState('#3B82F6');
+  const [selectedColor, setSelectedColor] = useState(
+    initialData?.brandColor || '#3B82F6'
+  );
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [signatureUploading, setSignatureUploading] = useState(false);
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
   const colorPickerRef = useRef(null);
@@ -77,31 +89,27 @@ export default function SettingsForm() {
   // File removal functions
   const removeLogo = () => {
     setUploadedLogo(null);
+    form.setValue('logoUrl', '');
   };
 
   const removeSignature = () => {
     setUploadedSignature(null);
+    form.setValue('signatureUrl', '');
   };
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      invoice_prefix: 'INV',
-      customer: '',
-      logo: null,
-      use_logo: false,
-      invoice_template: '',
-      terms: '',
-      signature: null,
-      tax_identification_number: '',
-      brand_color: '#3B82F6',
-      bank: {
-        account_name: 'James john',
-        account_number: '25467587',
-        bank_name: 'James Bank',
-        tax_id: '3545',
-        sort_code: '3545',
-      },
+      prefix: initialData?.prefix || '',
+      logoUrl: initialData?.logoUrl || '',
+      useLogo: initialData?.useLogo || false,
+      emailTemplate: initialData?.emailTemplate || '',
+      terms: initialData?.terms || '',
+      signatureUrl: initialData?.signatureUrl || '',
+      tin: initialData?.tin || '',
+      brandColor: initialData?.brandColor || '#3B82F6',
+      template: initialData?.template || '',
+      bankAccounts: initialData?.bankAccounts || [],
     },
   });
 
@@ -122,6 +130,49 @@ export default function SettingsForm() {
     context.lineWidth = 2;
     contextRef.current = context;
   }, []);
+
+  // Reset form when initialData changes (for async loading)
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        prefix: initialData.prefix || '',
+        logoUrl: initialData.logoUrl || '',
+        useLogo: initialData.useLogo || false,
+        emailTemplate: initialData.emailTemplate || '',
+        terms: initialData.terms || '',
+        signatureUrl: initialData.signatureUrl || '',
+        tin: initialData.tin || '',
+        brandColor: initialData.brandColor || '#3B82F6',
+        template: initialData.template || '',
+        bankAccounts: initialData.bankAccounts || [],
+      });
+
+      // Update file states
+      if (initialData.logoUrl) {
+        setUploadedLogo({
+          url: initialData.logoUrl,
+          name: 'Existing Logo',
+          size: 0,
+        });
+      } else {
+        setUploadedLogo(null);
+      }
+
+      if (initialData.signatureUrl) {
+        setUploadedSignature({
+          url: initialData.signatureUrl,
+          name: 'Existing Signature',
+          size: 0,
+        });
+      } else {
+        setUploadedSignature(null);
+      }
+
+      // Update color state
+      setSelectedColor(initialData.brandColor || '#3B82F6');
+    }
+  }, [initialData, form]);
+
   // Initialize Coloris
   useEffect(() => {
     // Initialize Coloris with configuration
@@ -133,7 +184,7 @@ export default function SettingsForm() {
       onChange: (color, input) => {
         console.log(`The new color is ${color}`);
         setSelectedColor(color);
-        form.setValue('brand_color', color);
+        form.setValue('brandColor', color);
       },
     });
 
@@ -168,29 +219,132 @@ export default function SettingsForm() {
     contextRef.current.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  const onSubmit = (data) => {
-    // Convert canvas to image before submitting
-    if (canvasRef.current) {
+  const saveCanvasSignature = async () => {
+    if (!canvasRef.current) return;
+
+    setSignatureUploading(true);
+    try {
       const canvas = canvasRef.current;
-      const signatureDataURL = canvas.toDataURL();
-      data.signature = signatureDataURL;
+
+      // Convert canvas to blob
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+
+        // Create a file from the blob
+        const file = new File([blob], `signature_${Date.now()}.png`, {
+          type: 'image/png',
+        });
+
+        const result = await uploadToCloudinary(file, {
+          folder: 'stride/signatures',
+          tags: ['signature', 'canvas', 'invoice'],
+        });
+
+        const signatureData = {
+          file: file,
+          url: result.url,
+          publicId: result.publicId,
+          name: file.name,
+          size: file.size,
+          isCanvas: true,
+        };
+
+        setUploadedSignature(signatureData);
+        form.setValue('signatureUrl', result.url);
+        setSignatureUploading(false);
+      }, 'image/png');
+    } catch (error) {
+      console.error('Canvas signature upload failed:', error);
+      alert('Failed to save signature. Please try again.');
+      setSignatureUploading(false);
     }
-    console.log('Settings data:', data);
   };
 
-  const handleLogoUpload = (event) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setUploadedLogo(file);
-      form.setValue('logo', file);
+  const onSubmit = async (data) => {
+    // Format the data according to the expected structure
+    const formattedData = {
+      prefix: data.prefix,
+      tin: data.tin || '',
+      logoUrl: uploadedLogo?.url || data.logoUrl || '',
+      useLogo: data.useLogo,
+      bankAccounts: data.bankAccounts || [],
+      emailTemplate: data.emailTemplate || '',
+      terms: data.terms || '',
+      signatureUrl: uploadedSignature?.url || data.signatureUrl || '',
+      brandColor: data.brandColor,
+      template: data.template || '',
+    };
+
+    try {
+      const res = await BusinessService.patchSettings({
+        id: businessId,
+        data: formattedData,
+      });
+      toast.success('Settings saved successfully');
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          'Failed to save settings. Please try again.'
+      );
     }
   };
 
-  const handleSignatureUpload = (event) => {
+  const handleLogoUpload = async (event) => {
     const file = event.target.files?.[0];
     if (file) {
-      setUploadedSignature(file);
-      form.setValue('signature', file);
+      setLogoUploading(true);
+      try {
+        const result = await uploadToCloudinary(file, {
+          folder: 'stride/logos',
+          tags: ['logo', 'invoice'],
+        });
+
+        const logoData = {
+          file: file,
+          url: result.url,
+          publicId: result.publicId,
+          name: file.name,
+          size: file.size,
+        };
+
+        setUploadedLogo(logoData);
+        form.setValue('logoUrl', result.url);
+      } catch (error) {
+        console.error('Logo upload failed:', error);
+        alert('Failed to upload logo. Please try again.');
+      } finally {
+        setLogoUploading(false);
+      }
+    }
+  };
+
+  const handleSignatureUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSignatureUploading(true);
+      try {
+        const result = await uploadToCloudinary(file, {
+          folder: 'stride/signatures',
+          tags: ['signature', 'invoice'],
+        });
+
+        const signatureData = {
+          file: file,
+          url: result.url,
+          publicId: result.publicId,
+          name: file.name,
+          size: file.size,
+        };
+
+        setUploadedSignature(signatureData);
+        form.setValue('signatureUrl', result.url);
+      } catch (error) {
+        console.error('Signature upload failed:', error);
+        alert('Failed to upload signature. Please try again.');
+      } finally {
+        setSignatureUploading(false);
+      }
     }
   };
 
@@ -200,24 +354,23 @@ export default function SettingsForm() {
 
   const handleColorSelect = (color) => {
     setSelectedColor(color);
-    form.setValue('brand_color', color);
+    form.setValue('brandColor', color);
     setShowColorPicker(false);
   };
 
-  const handleCustomColorChange = (event) => {
-    const color = event.target.value;
-    setSelectedColor(color);
-    form.setValue('brand_color', color);
-  };
-
-  const bank = form.watch('bank');
+  const bankAccounts = form.watch('bankAccounts');
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm">Last modified Sept 3, 2025</p>
+        <p className="text-sm">
+          Last modified{' '}
+          {initialData?.updatedAt
+            ? formatDate(initialData.updatedAt, 'PPpp')
+            : 'N/A'}
+        </p>
       </div>
 
       <Form {...form}>
@@ -226,7 +379,7 @@ export default function SettingsForm() {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="invoice_prefix"
+              name="prefix"
               render={({ field }) => (
                 <FormItem className={'max-w-sm'}>
                   <FormLabel>Invoice Prefix</FormLabel>
@@ -240,7 +393,7 @@ export default function SettingsForm() {
 
             <FormField
               control={form.control}
-              name="tax_identification_number"
+              name="tin"
               render={({ field }) => (
                 <FormItem className={'max-w-sm'}>
                   <FormLabel>Tax Identification Number</FormLabel>
@@ -268,15 +421,23 @@ export default function SettingsForm() {
                   onChange={handleLogoUpload}
                   className="hidden"
                   id="logo-upload"
+                  disabled={logoUploading}
                 />
-                <label htmlFor="logo-upload" className="cursor-pointer">
+                <label
+                  htmlFor="logo-upload"
+                  className={`cursor-pointer ${logoUploading ? 'opacity-50' : ''}`}
+                >
                   <div className="flex flex-col items-center">
                     <UploadIcon className="text-primary h-8 w-8" />
                     <p className="mt-4 text-base">
-                      Click or drag file to this area to upload
+                      {logoUploading
+                        ? 'Uploading...'
+                        : 'Click or drag file to this area to upload'}
                     </p>
                     <p className="text-muted-foreground mt-1 text-sm">
-                      Support for a single or bulk upload.
+                      {logoUploading
+                        ? 'Please wait while your logo is being uploaded'
+                        : 'Support for a single or bulk upload.'}
                     </p>
                   </div>
                 </label>
@@ -289,8 +450,20 @@ export default function SettingsForm() {
                       📎 {uploadedLogo.name}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {(uploadedLogo.size / 1024).toFixed(1)} KB
+                      {uploadedLogo.size > 0
+                        ? `${(uploadedLogo.size / 1024).toFixed(1)} KB`
+                        : 'Existing file'}
                     </p>
+                    {uploadedLogo.url && (
+                      <a
+                        href={uploadedLogo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        View Logo
+                      </a>
+                    )}
                   </div>
                   <Button
                     type="button"
@@ -306,7 +479,7 @@ export default function SettingsForm() {
 
               <FormField
                 control={form.control}
-                name="use_logo"
+                name="useLogo"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center space-y-0">
                     <FormControl>
@@ -325,54 +498,64 @@ export default function SettingsForm() {
             {/* Bank Accounts Section */}
             <div className="space-y-4">
               <FormLabel className={'font-semibold'}>Bank Accounts</FormLabel>
-              {bank && (
-                <div className="space-y-2">
-                  <div className="text-xs">
-                    <p>
-                      <span className="font-medium">Account Name:</span>{' '}
-                      {bank.account_name}
-                    </p>
-                    <p>
-                      <span className="font-medium">Account Number:</span>{' '}
-                      {bank.account_number}
-                    </p>
-                    <p>
-                      <span className="font-medium">Bank Name:</span>{' '}
-                      {bank.bank_name}
-                    </p>
-                    <p>
-                      <span className="font-medium">
-                        Tax identification No:
-                      </span>{' '}
-                      {bank.tax_id}
-                    </p>
-                    <p>
-                      <span className="font-medium">Sort Code:</span>{' '}
-                      {bank.sort_code}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={addNewBank}
-                    className="text-sm"
-                  >
-                    <PlusIcon className="h-4 w-4" />
-                    Add New bank
-                  </Button>
+              {bankAccounts && bankAccounts.length > 0 ? (
+                <div className="space-y-4">
+                  {bankAccounts.map((bank, index) => (
+                    <div key={index} className="space-y-2 rounded border p-3">
+                      <div className="space-y-2 text-sm">
+                        <p>
+                          <span className="font-medium">Account Name:</span>{' '}
+                          {bank.accountName}
+                        </p>
+                        <p>
+                          <span className="font-medium">Account Number:</span>{' '}
+                          {bank.accountNumber}
+                        </p>
+                        <p>
+                          <span className="font-medium">Bank Name:</span>{' '}
+                          {bank.bankName}
+                        </p>
+                        <p>
+                          <span className="font-medium">
+                            Tax identification No:
+                          </span>{' '}
+                          {bank.tin}
+                        </p>
+                        <p>
+                          <span className="font-medium">Sort Code:</span>{' '}
+                          {bank.sortCode}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-[#434343]">
+                    No bank accounts added yet.
+                  </p>
                 </div>
               )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={addNewBank}
+                className="text-sm"
+              >
+                <PlusIcon className="h-4 w-4" />
+                Add New bank
+              </Button>
             </div>
           </div>
           {/* Invoice Template and Terms Section */}
           <div className="grid grid-cols-1 gap-8 pt-3 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="invoice_template"
+              name="emailTemplate"
               render={({ field }) => (
                 <FormItem className={'w-full max-w-md'}>
-                  <FormLabel>Invoice Template</FormLabel>
+                  <FormLabel>Email Template</FormLabel>
                   <FormControl>
                     <RichTextEditor
                       currentValue={field.value}
@@ -489,16 +672,28 @@ export default function SettingsForm() {
                     }}
                   />
                   <div className="mt-2 flex items-center justify-between">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearCanvas}
-                      className="h-7"
-                    >
-                      <RotateCcwIcon className="h-3 w-3" />
-                      Clear
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearCanvas}
+                        className="h-7"
+                      >
+                        <RotateCcwIcon className="h-3 w-3" />
+                        Clear
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={saveCanvasSignature}
+                        disabled={signatureUploading}
+                        className="h-7"
+                      >
+                        {signatureUploading ? 'Saving...' : 'Save'}
+                      </Button>
+                    </div>
                     <p className="text-muted-foreground text-center text-xs">
                       Draw your signature above using mouse or touch
                     </p>
@@ -517,15 +712,23 @@ export default function SettingsForm() {
                   onChange={handleSignatureUpload}
                   className="hidden"
                   id="signature-upload"
+                  disabled={signatureUploading}
                 />
-                <label htmlFor="signature-upload" className="cursor-pointer">
+                <label
+                  htmlFor="signature-upload"
+                  className={`cursor-pointer ${signatureUploading ? 'opacity-50' : ''}`}
+                >
                   <div className="flex flex-col items-center">
                     <UploadIcon className="text-primary h-8 w-8" />
                     <p className="mt-4 text-base">
-                      Click or drag file to this area to upload
+                      {signatureUploading
+                        ? 'Uploading...'
+                        : 'Click or drag file to this area to upload'}
                     </p>
                     <p className="text-muted-foreground mt-1 text-sm">
-                      Upload your signature image (PNG, JPG, SVG)
+                      {signatureUploading
+                        ? 'Please wait while your signature is being uploaded'
+                        : 'Upload your signature image (PNG, JPG, SVG)'}
                     </p>
                   </div>
                 </label>
@@ -538,8 +741,20 @@ export default function SettingsForm() {
                       📎 {uploadedSignature.name}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {(uploadedSignature.size / 1024).toFixed(1)} KB
+                      {uploadedSignature.size > 0
+                        ? `${(uploadedSignature.size / 1024).toFixed(1)} KB`
+                        : 'Existing file'}
                     </p>
+                    {uploadedSignature.url && (
+                      <a
+                        href={uploadedSignature.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        View Signature
+                      </a>
+                    )}
                   </div>
                   <Button
                     type="button"
@@ -573,6 +788,10 @@ export default function SettingsForm() {
       <AddBankModal
         open={isAddBankModalOpen}
         onOpenChange={setIsAddBankModalOpen}
+        handleSubmit={(data) => {
+          const currentBanks = form.getValues('bankAccounts') || [];
+          form.setValue('bankAccounts', [...currentBanks, data]);
+        }}
       />
     </div>
   );

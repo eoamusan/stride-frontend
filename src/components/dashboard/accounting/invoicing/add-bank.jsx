@@ -18,30 +18,32 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 const bankFormSchema = z.object({
-  account_name: z.string().min(1, { message: 'Account name is required' }),
-  account_number: z.string().min(1, { message: 'Account number is required' }),
-  bank_name: z.string().min(1, { message: 'Bank name is required' }),
-  tax_identification_no: z
-    .string()
-    .min(1, { message: 'Tax identification number is required' }),
-  sort_code: z.string().min(1, { message: 'Sort code is required' }),
+  accountName: z.string().min(1, { message: 'Account name is required' }),
+  accountNumber: z.string().min(1, { message: 'Account number is required' }),
+  bankName: z.string().min(1, { message: 'Bank name is required' }),
+  tin: z.string().min(1, { message: 'Tax identification number is required' }),
+  sortCode: z.string().min(1, { message: 'Sort code is required' }),
 });
 
-export default function AddBankModal({ open, onOpenChange }) {
+export default function AddBankModal({ open, onOpenChange, handleSubmit }) {
   const form = useForm({
     resolver: zodResolver(bankFormSchema),
     defaultValues: {
-      account_name: '',
-      account_number: '',
-      bank_name: '',
-      tax_identification_no: '',
-      sort_code: '',
+      accountName: '',
+      accountNumber: '',
+      bankName: '',
+      tin: '',
+      sortCode: '',
     },
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     console.log('Bank data:', data);
-    // Handle form submission
+    if (handleSubmit) {
+      await handleSubmit(data);
+    } else {
+      // Use the default onSubmit behavior
+    }
     onOpenChange(false);
     form.reset();
   };
@@ -65,7 +67,7 @@ export default function AddBankModal({ open, onOpenChange }) {
             {/* Account Name */}
             <FormField
               control={form.control}
-              name="account_name"
+              name="accountName"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
@@ -83,7 +85,7 @@ export default function AddBankModal({ open, onOpenChange }) {
             {/* Account Number */}
             <FormField
               control={form.control}
-              name="account_number"
+              name="accountNumber"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
@@ -101,7 +103,7 @@ export default function AddBankModal({ open, onOpenChange }) {
             {/* Bank Name */}
             <FormField
               control={form.control}
-              name="bank_name"
+              name="bankName"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
@@ -119,7 +121,7 @@ export default function AddBankModal({ open, onOpenChange }) {
             {/* Tax Identification Number */}
             <FormField
               control={form.control}
-              name="tax_identification_no"
+              name="tin"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
@@ -137,7 +139,7 @@ export default function AddBankModal({ open, onOpenChange }) {
             {/* Sort Code */}
             <FormField
               control={form.control}
-              name="sort_code"
+              name="sortCode"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>

@@ -12,7 +12,7 @@ export default function InvoiceSettings() {
       try {
         setIsLoading(true);
         const res = await BusinessService.fetch();
-        console.log('Invoice Settings:', res.data);
+        setSettings(res.data.data[0]);
       } catch (err) {
         toast.error(
           err.response?.data?.message ||
@@ -29,7 +29,10 @@ export default function InvoiceSettings() {
   return (
     <div className="my-4 min-h-screen">
       <div className="rounded-2xl bg-white p-4 md:p-8">
-        <SettingsForm />
+        <SettingsForm
+          businessId={settings?._id}
+          initialData={settings?.businessInvoiceSettings}
+        />
       </div>
     </div>
   );
