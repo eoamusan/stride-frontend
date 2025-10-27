@@ -30,12 +30,12 @@ export default class CustomerService {
     }
   }
 
-  static async fetch() {
+  static async fetch({ businessId }) {
     try {
       const userStore = useUserStore.getState();
       const response = await axiosInstance.post(
         'customer/fetch',
-        { accountId: userStore.data?.account?._id },
+        { businessId },
         {
           headers: {
             Authorization: `Bearer ${userStore.data?.accessToken}`,

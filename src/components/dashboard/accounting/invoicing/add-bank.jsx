@@ -21,8 +21,8 @@ const bankFormSchema = z.object({
   accountName: z.string().min(1, { message: 'Account name is required' }),
   accountNumber: z.string().min(1, { message: 'Account number is required' }),
   bankName: z.string().min(1, { message: 'Bank name is required' }),
-  tin: z.string().min(1, { message: 'Tax identification number is required' }),
-  sortCode: z.string().min(1, { message: 'Sort code is required' }),
+  tin: z.string().optional(),
+  sortCode: z.string().optional(),
 });
 
 export default function AddBankModal({ open, onOpenChange, handleSubmit }) {
@@ -38,7 +38,6 @@ export default function AddBankModal({ open, onOpenChange, handleSubmit }) {
   });
 
   const onSubmit = async (data) => {
-    console.log('Bank data:', data);
     if (handleSubmit) {
       await handleSubmit(data);
     } else {

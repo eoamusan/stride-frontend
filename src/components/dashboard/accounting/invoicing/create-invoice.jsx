@@ -41,11 +41,19 @@ import { format } from 'date-fns';
 import PreviewInvoice from './preview-invoice';
 import AddCustomerModal from './customers/add-customer';
 import AddBankModal from './add-bank';
+import InvoiceTemplateSettings from './invoice-template';
 import SuccessModal from '../success-modal';
+import CustomerService from '@/api/customer';
+import BusinessService from '@/api/business';
+import toast from 'react-hot-toast';
+import InvoiceService from '@/api/invoice';
+import { useUserStore } from '@/stores/user-store';
+import { Switch } from '@/components/ui/switch';
+import { useNavigate } from 'react-router';
 
 const formSchema = z.object({
   invoice_number: z.string().min(1, { message: 'Invoice number is required' }),
-  customer_name: z.string().min(1, { message: 'Customer name is required' }),
+  customerId: z.string().min(1, { message: 'Customer name is required' }),
   currency: z.string().min(1, { message: 'Currency is required' }),
   category: z.string().min(1, { message: 'Category is required' }),
   c_o: z.string().optional(),
@@ -66,6 +74,7 @@ const formSchema = z.object({
         total_price: z
           .number()
           .min(0, { message: 'Total price must be positive' }),
+        vat_applicable: z.boolean().default(false),
       })
     )
     .min(1, { message: 'At least one product is required' }),
@@ -74,25 +83,32 @@ const formSchema = z.object({
   delivery_fee: z.number().min(0).optional(),
   terms: z.string().optional(),
   internal_notes: z.string().optional(),
-  paid_with_cash: z.boolean().default(false),
   display_bank_details: z.boolean().default(false),
-  invoice_paid: z.boolean().default(false),
   apply_signature: z.boolean().default(false),
 });
 
 const STORAGE_KEY = 'create_invoice_draft';
 
-export default function CreateInvoice() {
+// Extensive list of invoice categories
+const INVOICE_CATEGORIES = ['Services', 'Expenses', 'Others'];
+
+export default function CreateInvoice({ businessId }) {
   const [isPreview, setIsPreview] = useState(false);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [showTemplateSettings, setShowTemplateSettings] = useState(false);
+  const [customers, setCustomers] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCustomVat, setIsCustomVat] = useState(false);
+  const { businessData, getBusinessData } = useUserStore();
+  const navigate = useNavigate();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      invoice_number: 'INV-1001',
-      customer_name: '',
+      invoice_number: '',
+      customerId: '',
       currency: '',
       category: '',
       c_o: '',
@@ -106,6 +122,7 @@ export default function CreateInvoice() {
           unit_price: 0,
           quantity: 1,
           total_price: 0,
+          vat_applicable: true,
         },
       ],
       discount: 0,
@@ -113,9 +130,7 @@ export default function CreateInvoice() {
       delivery_fee: 0,
       terms: '',
       internal_notes: '',
-      paid_with_cash: false,
       display_bank_details: false,
-      invoice_paid: false,
       apply_signature: false,
     },
   });
@@ -137,6 +152,20 @@ export default function CreateInvoice() {
       }
     }
   }, [form]);
+
+  // Fetch customers data
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const response = await CustomerService.fetch({ businessId });
+        setCustomers(response.data?.data || []);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      }
+    };
+
+    fetchCustomers();
+  }, [isAddCustomerModalOpen, businessId]);
 
   // Save to localStorage whenever form data changes
   useEffect(() => {
@@ -171,6 +200,25 @@ export default function CreateInvoice() {
     }, 0);
   };
 
+  const calculateVatAmount = () => {
+    const vat = form.watch('vat') || 0;
+    const discount = form.watch('discount') || 0;
+
+    // Calculate VAT only for products where vat_applicable is true
+    const vatApplicableSubtotal = watchProducts.reduce((sum, product) => {
+      if (product.vat_applicable) {
+        const unitPrice = Number(product.unit_price) || 0;
+        const quantity = Number(product.quantity) || 1;
+        return sum + unitPrice * quantity;
+      }
+      return sum;
+    }, 0);
+
+    const vatApplicableAfterDiscount =
+      vatApplicableSubtotal * (1 - discount / 100);
+    return (vatApplicableAfterDiscount * vat) / 100;
+  };
+
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const discount = form.watch('discount') || 0;
@@ -179,7 +227,20 @@ export default function CreateInvoice() {
 
     const discountAmount = (subtotal * discount) / 100;
     const afterDiscount = subtotal - discountAmount;
-    const vatAmount = (afterDiscount * vat) / 100;
+
+    // Calculate VAT only for products where vat_applicable is true
+    const vatApplicableSubtotal = watchProducts.reduce((sum, product) => {
+      if (product.vat_applicable) {
+        const unitPrice = Number(product.unit_price) || 0;
+        const quantity = Number(product.quantity) || 1;
+        return sum + unitPrice * quantity;
+      }
+      return sum;
+    }, 0);
+
+    const vatApplicableAfterDiscount =
+      vatApplicableSubtotal * (1 - discount / 100);
+    const vatAmount = (vatApplicableAfterDiscount * vat) / 100;
 
     return afterDiscount + vatAmount + deliveryFee;
   };
@@ -191,6 +252,7 @@ export default function CreateInvoice() {
       unit_price: 0,
       quantity: 1,
       total_price: 0,
+      vat_applicable: true,
     });
   };
 
@@ -198,17 +260,102 @@ export default function CreateInvoice() {
     setIsAddBankModalOpen(true);
   };
 
+  const handleTemplateBack = () => {
+    setShowTemplateSettings(false);
+  };
+
+  const handleTemplateSave = async ({ selectedTemplate, selectedColor }) => {
+    try {
+      await BusinessService.patchSettings({
+        id: businessId,
+        data: {
+          template: selectedTemplate,
+          brandColor: selectedColor,
+        },
+      });
+      toast.success('Settings updated successfully');
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          'Failed to save template settings'
+      );
+    }
+    console.log('Template saved:', { selectedTemplate, selectedColor });
+    setShowTemplateSettings(false);
+    toast.success('Template settings updated');
+  };
+
+  const handleAddBank = async (newBankData) => {
+    try {
+      // Get current business settings
+      const currentBankAccounts =
+        businessData?.businessInvoiceSettings?.bankAccounts || [];
+
+      // Add the new bank to existing banks
+      const updatedBankAccounts = [...currentBankAccounts, newBankData];
+
+      // Update business settings
+      await BusinessService.patchSettings({
+        id: businessId,
+        data: {
+          bankAccounts: updatedBankAccounts,
+        },
+      });
+
+      toast.success('Bank account added successfully');
+
+      await getBusinessData();
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          'Failed to add bank account. Please try again.'
+      );
+    }
+  };
+
   const addPaymentGateway = () => {
     // Functionality to add payment gateway
     console.log('Add payment gateway');
   };
 
-  const onSubmit = (data) => {
-    console.log('Invoice data:', data);
-    // Clear localStorage after successful submission
-    localStorage.removeItem(STORAGE_KEY);
-    // Handle form submission
-    setIsSuccessModalOpen(true);
+  const onSubmit = async (data) => {
+    try {
+      setIsSubmitting(true);
+
+      // Format data according to the new structure
+      const formattedData = {
+        businessId: businessId,
+        invoice: {
+          customerId: data.customer_name,
+          currency: data.currency,
+          category: data.category,
+          co: data.c_o || '',
+          invoiceDate: data.invoice_date,
+          termsOfPayment: data.term_of_payment,
+          dueDate: data.due_date,
+        },
+        products: {
+          product: data.products,
+          banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
+          paymentGateways: [], // You can populate this with actual payment gateway data if available
+          terms: data.terms || '',
+          notes: data.internal_notes || '',
+          displayBankDetails: data.display_bank_details,
+          applySignature: data.apply_signature,
+        },
+      };
+
+      await InvoiceService.create(formattedData);
+      toast.success('Invoice created successfully');
+      setIsSuccessModalOpen(true);
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (err) {
+      toast.error(err.response?.message || err.message || 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePreview = () => {
@@ -225,746 +372,835 @@ export default function CreateInvoice() {
         formData={form.getValues()}
         calculateSubtotal={calculateSubtotal}
         onEdit={() => setIsPreview(false)}
+        customers={customers}
       />
     );
   }
 
   return (
     <div className="mx-auto max-w-7xl rounded-2xl bg-white p-6">
-      <div className="flex items-center justify-end gap-4">
-        <Button variant="outline" className={'h-11'}>
-          <NotepadTextIcon />
-          Template
-        </Button>
-        <Button variant="outline" className={'h-11'}>
-          <SettingsIcon />
-          Settings
-        </Button>
-      </div>
-      {/* Header */}
-      <div className="mt-4 mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">New Invoice</h1>
-            <p className="text-gray-600">{form.watch('invoice_number')}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Company Info */}
-      <div className="mb-6">
-        <p className="text-sm text-gray-600">4140 Parker Rd, Allentown,</p>
-        <p className="text-sm text-gray-600">New Mexico 31134</p>
-        <p className="text-sm text-gray-600">stridedev@dole.com</p>
-        <p className="text-sm text-gray-600">(308) 555-0121</p>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Customer and Basic Info */}
-          <div className="space-y-6">
-            <div className="flex flex-col justify-between gap-6 md:flex-row">
-              <div className="flex w-full max-w-xs items-end gap-2">
-                <FormField
-                  control={form.control}
-                  name="customer_name"
-                  render={({ field }) => (
-                    <FormItem className={'w-full'}>
-                      <FormLabel>Customer Name</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className={'w-full'}>
-                            <SelectValue placeholder="Select customer" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="customer1">Customer 1</SelectItem>
-                          <SelectItem value="customer2">Customer 2</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  onClick={() => setIsAddCustomerModalOpen(true)}
-                  className={'h-10 w-8'}
-                >
-                  <PlusIcon />
-                </Button>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="currency"
-                render={({ field }) => (
-                  <FormItem className={'w-full max-w-xs'}>
-                    <FormLabel>Currency</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className={'w-full'}>
-                          <SelectValue placeholder="Select currency" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="USD">USD - US Dollar</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
-                        <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                        <SelectItem value="NGN">
-                          NGN - Nigerian Naira
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex flex-col justify-between gap-6 md:flex-row">
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem className={'w-full max-w-xs'}>
-                    <FormLabel>Category</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className={'w-full'}>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="services">Services</SelectItem>
-                        <SelectItem value="products">Products</SelectItem>
-                        <SelectItem value="consulting">Consulting</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="c_o"
-                render={({ field }) => (
-                  <FormItem className={'w-full max-w-xs'}>
-                    <FormLabel>C/O (optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className={'w-full'}
-                        placeholder="Additional notes..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="mt-12 flex flex-wrap justify-between gap-6">
-              <FormField
-                control={form.control}
-                name="invoice_date"
-                render={({ field }) => (
-                  <FormItem className="flex w-full max-w-xs flex-col">
-                    <FormLabel>Invoice Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn(
-                              'h-10 w-full max-w-xs pl-3 text-left text-sm font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, 'PPP')
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-full min-w-80 p-0"
-                        align="start"
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          // disabled={(date) =>
-                          //   date > new Date() || date < new Date("1900-01-01")
-                          // }
-                          captionLayout="dropdown"
-                        />
-                      </PopoverContent>
-                    </Popover>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="term_of_payment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Term of payment</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className={'w-48'}>
-                          <SelectValue placeholder="Select term" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="1 day">1 day</SelectItem>
-                        <SelectItem value="2 days">2 days</SelectItem>
-                        <SelectItem value="7 days">7 days</SelectItem>
-                        <SelectItem value="14 days">14 days</SelectItem>
-                        <SelectItem value="30 days">30 days</SelectItem>
-                        <SelectItem value="60 days">60 days</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="due_date"
-                render={({ field }) => (
-                  <FormItem className="flex w-full max-w-xs flex-col">
-                    <FormLabel>Due Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn(
-                              'h-10 w-full max-w-xs pl-3 text-left text-sm font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, 'PPP')
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-full min-w-80 p-0"
-                        align="start"
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          // disabled={(date) =>
-                          //   date > new Date() || date < new Date("1900-01-01")
-                          // }
-                          captionLayout="dropdown"
-                        />
-                      </PopoverContent>
-                    </Popover>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Products Section */}
-          <div className="mt-4 space-y-4 border-t">
-            <h3 className="pt-6 text-xl font-semibold">Products</h3>
-
-            {/* Products Header */}
-            <div className="mb-2 grid grid-cols-10 gap-4 text-xs font-semibold tracking-wide text-[#434343] uppercase">
-              <div className="col-span-3">Product / Item Name</div>
-              <div className="col-span-2">Unit Price</div>
-              <div className="col-span-2">QTY</div>
-              <div className="col-span-2">Total Price</div>
-              <div className="col-span-1"></div>
-            </div>
-
-            {/* Product Rows */}
-            {fields.map((field, index) => (
-              <div key={field.id} className="space-y-2">
-                <div className="grid grid-cols-10 items-start gap-4">
-                  <div className="col-span-3">
-                    <FormField
-                      control={form.control}
-                      name={`products.${index}.name`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              className={'h-10'}
-                              placeholder="Enter product / item name"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name={`products.${index}.unit_price`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              className={'h-10'}
-                              placeholder="Enter price"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(parseFloat(e.target.value) || 0)
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name={`products.${index}.quantity`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              className={'h-10'}
-                              placeholder="QTY"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(parseInt(e.target.value) || 1)
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name={`products.${index}.total_price`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              placeholder="TOTAL PRICE"
-                              className={'h-10 bg-gray-50'}
-                              value={
-                                (watchProducts[index]?.unit_price || 0) *
-                                (watchProducts[index]?.quantity || 1)
-                              }
-                              readOnly
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-1">
-                    {fields.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => remove(index)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-12 gap-4">
-                  <div className="col-span-12 md:col-span-6">
-                    <FormField
-                      control={form.control}
-                      name={`products.${index}.description`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Enter Description"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-
+      {showTemplateSettings ? (
+        <InvoiceTemplateSettings
+          onBack={handleTemplateBack}
+          onSave={handleTemplateSave}
+          initialTemplate={businessData?.businessInvoiceSettings?.template}
+          initialColor={businessData?.businessInvoiceSettings?.brandColor}
+        />
+      ) : (
+        <>
+          <div className="flex items-center justify-end gap-4">
             <Button
-              type="button"
-              variant="ghost"
-              onClick={addProduct}
-              size={'sm'}
-              className="mt-2 text-sm"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Add Product
-            </Button>
-          </div>
-
-          {/* Bank Details */}
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-6">
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                  <p className="font-semibold">Account Name:</p>
-                  <p>James john</p>
-                </div>
-                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                  <p className="font-semibold">Account Number:</p>
-                  <p>25467587</p>
-                </div>
-                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                  <p className="font-semibold">Bank Name:</p>
-                  <p>Equity Bank</p>
-                </div>
-                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                  <p className="font-semibold">Tax identification No:</p>
-                  <p>123456789</p>
-                </div>
-                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                  <p className="font-semibold">Sort Code:</p>
-                  <p>123456789</p>
-                </div>
-                <Button
-                  type="button"
-                  className={'w-fit text-sm'}
-                  variant="ghost"
-                  size={'sm'}
-                  onClick={addNewBank}
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  Add New bank
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className={'w-fit text-sm'}
-                  size={'sm'}
-                  onClick={addPaymentGateway}
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  Add payment Gateway
-                </Button>
-              </div>
-              <div className="w-full max-w-sm space-y-4">
-                <div className="space-y-2 text-sm font-medium">
-                  <div className="flex justify-between">
-                    <span>Sub total</span>
-                    <span>{calculateSubtotal().toFixed(2)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span>Discount</span>
-                    <div className="flex items-center gap-2">
-                      <FormField
-                        control={form.control}
-                        name="discount"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Enter price"
-                                className="h-10 w-24 text-right"
-                                {...field}
-                                onChange={(e) =>
-                                  field.onChange(
-                                    parseFloat(e.target.value) || 0
-                                  )
-                                }
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <span>%</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span>Vax (7.5%)</span>
-                    <div className="flex items-center gap-2">
-                      <FormField
-                        control={form.control}
-                        name="vat"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Select
-                                onValueChange={(value) =>
-                                  field.onChange(parseFloat(value))
-                                }
-                                defaultValue={field.value?.toString()}
-                              >
-                                <SelectTrigger className="w-24">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="0">0%</SelectItem>
-                                  <SelectItem value="5">5%</SelectItem>
-                                  <SelectItem value="7.5">7.5%</SelectItem>
-                                  <SelectItem value="10">10%</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span>Delivery fee</span>
-                    <FormField
-                      control={form.control}
-                      name="delivery_fee"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Enter price"
-                              className="h-10 w-24 text-right"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(parseFloat(e.target.value) || 0)
-                              }
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between font-semibold">
-                      <span>Total</span>
-                      <span>{calculateTotal().toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Totals Section */}
-          <div className="grid grid-cols-1 gap-8 border-t pt-6 md:grid-cols-5">
-            <div className="space-y-4 md:col-span-2">
-              <h3 className="text-lg font-semibold">Terms</h3>
-              <FormField
-                control={form.control}
-                name="terms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Terms and conditions..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-4 md:col-span-2 md:col-start-4">
-              <h3 className="text-lg font-semibold">Internal Notes</h3>
-              <FormField
-                control={form.control}
-                name="internal_notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Terms and conditions..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Checkboxes */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-5">
-              <div className="space-y-4 md:col-span-2">
-                <FormField
-                  control={form.control}
-                  name="paid_with_cash"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-y-0 space-x-3">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">
-                        Paid with cash
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="display_bank_details"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-y-0 space-x-3">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">
-                        Display my bank details
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="invoice_paid"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-y-0 space-x-3">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">
-                        This invoice has been{' '}
-                        <span className="text-primary font-medium">paid</span>
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="md:col-span-2 md:col-start-4">
-                <FormField
-                  control={form.control}
-                  name="apply_signature"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-y-0 space-x-3">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">
-                        Apply signature
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-6">
-            <Button className={'h-10'} onClick={handleSend}>
-              <SendIcon className="size-4" />
-              Send
-            </Button>
-            <Button
-              type="button"
-              className={'h-10'}
               variant="outline"
-              onClick={handlePreview}
+              className={'h-11'}
+              onClick={() => setShowTemplateSettings(true)}
             >
-              <EyeIcon className="size-4" />
-              Preview
+              <NotepadTextIcon />
+              Template
+            </Button>
+            <Button
+              variant="outline"
+              className={'h-11'}
+              onClick={() =>
+                navigate('/dashboard/accounting/invoicing/settings')
+              }
+            >
+              <SettingsIcon />
+              Settings
             </Button>
           </div>
-        </form>
-      </Form>
-      <AddCustomerModal
-        open={isAddCustomerModalOpen}
-        onOpenChange={setIsAddCustomerModalOpen}
-      />
+          {/* Header */}
+          <div className="mt-4 mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold">New Invoice</h1>
+                <p className="text-gray-600">{form.watch('invoice_number')}</p>
+              </div>
+            </div>
+          </div>
 
-      <AddBankModal
-        open={isAddBankModalOpen}
-        onOpenChange={setIsAddBankModalOpen}
-      />
+          {/* Company Info */}
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold">
+              {businessData?.businessName || 'Business Name'}
+            </h2>
+            <p className="text-sm text-gray-600">
+              {businessData?.businessLocation || 'Business Location'}
+            </p>
+          </div>
 
-      <SuccessModal
-        title={'Invoice Sent'}
-        description={"You've successfully sent the invoice."}
-        open={isSuccessModalOpen}
-        onOpenChange={setIsSuccessModalOpen}
-        nextText={'View'}
-        handleNext={handlePreview}
-        backText={'Back'}
-        handleBack={() => {
-          const url = new URL(window.location.href);
-          url.searchParams.delete('create');
-          window.location.replace(url.pathname + url.search);
-          setIsSuccessModalOpen(false);
-        }}
-      />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Customer and Basic Info */}
+              <div className="space-y-6">
+                <div className="flex flex-col justify-between gap-6 md:flex-row">
+                  <div className="flex w-full max-w-xs items-end gap-2">
+                    <FormField
+                      control={form.control}
+                      name="customerId"
+                      render={({ field }) => (
+                        <FormItem className={'w-full'}>
+                          <FormLabel>Customer Name</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className={'w-full'}>
+                                <SelectValue placeholder="Select customer" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {customers?.map((customer) => (
+                                <SelectItem
+                                  key={customer.id}
+                                  value={customer.id.toString()}
+                                >
+                                  {customer.displayName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => setIsAddCustomerModalOpen(true)}
+                      className={'h-10 w-8 bg-[#254C00] hover:bg-[#254C00]/90'}
+                    >
+                      <PlusIcon />
+                    </Button>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem className={'w-full max-w-xs'}>
+                        <FormLabel>Currency</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className={'w-full'}>
+                              <SelectValue placeholder="Select currency" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="USD">USD - US Dollar</SelectItem>
+                            <SelectItem value="EUR">EUR - Euro</SelectItem>
+                            <SelectItem value="GBP">
+                              GBP - British Pound
+                            </SelectItem>
+                            <SelectItem value="NGN">
+                              NGN - Nigerian Naira
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="flex flex-col justify-between gap-6 md:flex-row">
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem className={'w-full max-w-xs'}>
+                        <FormLabel>Category</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className={'w-full'}>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {INVOICE_CATEGORIES.map((category) => (
+                              <SelectItem
+                                key={category}
+                                value={category
+                                  .toLowerCase()
+                                  .replace(/\s+/g, '-')}
+                              >
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="c_o"
+                    render={({ field }) => (
+                      <FormItem className={'w-full max-w-xs'}>
+                        <FormLabel>C/O (optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            className={'w-full'}
+                            placeholder="Additional notes..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="mt-12 flex flex-wrap justify-between gap-6">
+                  <FormField
+                    control={form.control}
+                    name="invoice_date"
+                    render={({ field }) => (
+                      <FormItem className="flex w-full max-w-xs flex-col">
+                        <FormLabel>Invoice Date</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={'outline'}
+                                className={cn(
+                                  'h-10 w-full max-w-xs pl-3 text-left text-sm font-normal',
+                                  !field.value && 'text-muted-foreground'
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, 'PPP')
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-full min-w-80 p-0"
+                            align="start"
+                          >
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              // disabled={(date) =>
+                              //   date > new Date() || date < new Date("1900-01-01")
+                              // }
+                              captionLayout="dropdown"
+                            />
+                          </PopoverContent>
+                        </Popover>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="term_of_payment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Term of payment</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className={'w-48'}>
+                              <SelectValue placeholder="Select term" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1 day">1 day</SelectItem>
+                            <SelectItem value="2 days">2 days</SelectItem>
+                            <SelectItem value="7 days">7 days</SelectItem>
+                            <SelectItem value="14 days">14 days</SelectItem>
+                            <SelectItem value="30 days">30 days</SelectItem>
+                            <SelectItem value="60 days">60 days</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="due_date"
+                    render={({ field }) => (
+                      <FormItem className="flex w-full max-w-xs flex-col">
+                        <FormLabel>Due Date</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={'outline'}
+                                className={cn(
+                                  'h-10 w-full max-w-xs pl-3 text-left text-sm font-normal',
+                                  !field.value && 'text-muted-foreground'
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, 'PPP')
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-full min-w-80 p-0"
+                            align="start"
+                          >
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              // disabled={(date) =>
+                              //   date > new Date() || date < new Date("1900-01-01")
+                              // }
+                              captionLayout="dropdown"
+                            />
+                          </PopoverContent>
+                        </Popover>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Products Section */}
+              <div className="mt-4 space-y-4 border-t">
+                <h3 className="pt-6 text-xl font-semibold">Products</h3>
+
+                {/* Products Header */}
+                <div className="mb-2 grid grid-cols-10 gap-4 text-xs font-semibold tracking-wide text-[#434343] uppercase">
+                  <div className="col-span-3">Product / Item Name</div>
+                  <div className="col-span-2">Unit Price</div>
+                  <div className="col-span-2">QTY</div>
+                  <div className="col-span-2">Total Price</div>
+                  <div className="col-span-1"></div>
+                </div>
+
+                {/* Product Rows */}
+                {fields.map((field, index) => (
+                  <div key={field.id} className="space-y-2">
+                    <div className="grid grid-cols-10 items-start gap-4">
+                      <div className="col-span-3">
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.name`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  className={'h-10'}
+                                  placeholder="Enter product / item name"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.unit_price`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  className={'h-10'}
+                                  placeholder="Enter price"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.quantity`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  className={'h-10'}
+                                  placeholder="QTY"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      parseInt(e.target.value) || 1
+                                    )
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.total_price`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  placeholder="TOTAL PRICE"
+                                  className={'h-10 bg-gray-50'}
+                                  value={
+                                    (watchProducts[index]?.unit_price || 0) *
+                                    (watchProducts[index]?.quantity || 1)
+                                  }
+                                  readOnly
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="col-span-1 flex h-full items-center gap-2">
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.vat_applicable`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex flex-col items-center">
+                                <label
+                                  htmlFor={`vat-${index}`}
+                                  className="text-xs"
+                                >
+                                  VAT
+                                </label>
+                                <FormControl>
+                                  <Switch
+                                    size="sm"
+                                    id={`vat-${index}`}
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        {fields.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => remove(index)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-12 gap-4">
+                      <div className="col-span-12 md:col-span-6">
+                        <FormField
+                          control={form.control}
+                          name={`products.${index}.description`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Enter Description"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={addProduct}
+                  size={'sm'}
+                  className="mt-2 text-sm"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  Add Product
+                </Button>
+              </div>
+
+              {/* Bank Details */}
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-6">
+                  <div className="flex flex-col gap-2">
+                    {businessData?.businessInvoiceSettings?.bankAccounts
+                      ?.length > 0 ? (
+                      businessData.businessInvoiceSettings.bankAccounts.map(
+                        (bank, index) => (
+                          <div
+                            key={index}
+                            className="mb-2 space-y-1 border-b pb-2 last:mb-0 last:border-b-0 last:pb-0"
+                          >
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">Account Name:</p>
+                              <p>{bank.accountName}</p>
+                            </div>
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">Account Number:</p>
+                              <p>{bank.accountNumber}</p>
+                            </div>
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">Bank Name:</p>
+                              <p>{bank.bankName}</p>
+                            </div>
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">
+                                Tax identification No:
+                              </p>
+                              <p>{bank.tin}</p>
+                            </div>
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">Sort Code:</p>
+                              <p>{bank.sortCode}</p>
+                            </div>
+                          </div>
+                        )
+                      )
+                    ) : (
+                      <div className="text-xs text-gray-500">
+                        No bank accounts configured
+                      </div>
+                    )}
+                    <Button
+                      type="button"
+                      className={'w-fit text-sm'}
+                      variant="ghost"
+                      size={'sm'}
+                      onClick={addNewBank}
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                      Add New bank
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className={'w-fit text-sm'}
+                      size={'sm'}
+                      disabled={true}
+                      onClick={addPaymentGateway}
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                      Add payment Gateway
+                    </Button>
+                  </div>
+                  <div className="w-full max-w-sm space-y-4">
+                    <div className="space-y-2 text-sm font-medium">
+                      <div className="flex justify-between">
+                        <span>Sub total</span>
+                        <span>{calculateSubtotal().toFixed(2)}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span>Discount</span>
+                        <div className="flex items-center gap-2">
+                          <FormField
+                            control={form.control}
+                            name="discount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    placeholder="Enter price"
+                                    className="h-10 w-24 text-right"
+                                    {...field}
+                                    onChange={(e) =>
+                                      field.onChange(
+                                        parseFloat(e.target.value) || 0
+                                      )
+                                    }
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span>VAT (%)</span>
+                        <div className="flex items-center gap-2">
+                          <FormField
+                            control={form.control}
+                            name="vat"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  {isCustomVat ? (
+                                    <div className="flex items-center gap-1">
+                                      <Input
+                                        type="number"
+                                        placeholder="0"
+                                        className="h-10 w-20 text-center"
+                                        value={field.value || ''}
+                                        onChange={(e) => {
+                                          const value =
+                                            parseFloat(e.target.value) || 0;
+                                          field.onChange(value);
+                                        }}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => setIsCustomVat(false)}
+                                        className="text-xs text-gray-500 hover:text-gray-700"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <Select
+                                      onValueChange={(value) => {
+                                        if (value === 'custom') {
+                                          setIsCustomVat(true);
+                                          return;
+                                        }
+                                        field.onChange(parseFloat(value));
+                                      }}
+                                      value={field.value?.toString()}
+                                    >
+                                      <SelectTrigger className="w-24">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="0">0%</SelectItem>
+                                        <SelectItem value="5">5%</SelectItem>
+                                        <SelectItem value="7.5">
+                                          7.5%
+                                        </SelectItem>
+                                        <SelectItem value="10">10%</SelectItem>
+                                        <SelectItem value="custom">
+                                          Custom
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between text-xs text-[#434343]">
+                        <span>VAT Amount</span>
+                        <span>{calculateVatAmount().toFixed(2)}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span>Delivery fee</span>
+                        <FormField
+                          control={form.control}
+                          name="delivery_fee"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Enter price"
+                                  className="h-10 w-24 text-right"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="border-t pt-2">
+                        <div className="flex justify-between font-semibold">
+                          <span>Total</span>
+                          <span>{calculateTotal().toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Totals Section */}
+              <div className="grid grid-cols-1 gap-8 border-t pt-6 md:grid-cols-5">
+                <div className="space-y-4 md:col-span-2">
+                  <h3 className="text-lg font-semibold">Terms</h3>
+                  <FormField
+                    control={form.control}
+                    name="terms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Terms and conditions..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-4 md:col-span-2 md:col-start-4">
+                  <h3 className="text-lg font-semibold">Internal Notes</h3>
+                  <FormField
+                    control={form.control}
+                    name="internal_notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Terms and conditions..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Checkboxes */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-5">
+                  <div className="space-y-4 md:col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="display_bank_details"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-y-0 space-x-3">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm font-normal">
+                            Display my bank details
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2 md:col-start-4">
+                    <FormField
+                      control={form.control}
+                      name="apply_signature"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-y-0 space-x-3">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm font-normal">
+                            Apply signature
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 pt-6">
+                <Button className={'h-10'} onClick={handleSend}>
+                  <SendIcon className="size-4" />
+                  Send
+                </Button>
+                <Button
+                  type="button"
+                  className={'h-10'}
+                  variant="outline"
+                  onClick={handlePreview}
+                >
+                  <EyeIcon className="size-4" />
+                  Preview
+                </Button>
+              </div>
+            </form>
+          </Form>
+          <AddCustomerModal
+            open={isAddCustomerModalOpen}
+            onOpenChange={setIsAddCustomerModalOpen}
+          />
+
+          <AddBankModal
+            open={isAddBankModalOpen}
+            onOpenChange={setIsAddBankModalOpen}
+            handleSubmit={handleAddBank}
+          />
+
+          <SuccessModal
+            title={'Invoice Sent'}
+            description={"You've successfully sent the invoice."}
+            open={isSuccessModalOpen}
+            onOpenChange={setIsSuccessModalOpen}
+            nextText={'View'}
+            handleNext={handlePreview}
+            backText={'Back'}
+            handleBack={() => {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('create');
+              window.location.replace(url.pathname + url.search);
+              setIsSuccessModalOpen(false);
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

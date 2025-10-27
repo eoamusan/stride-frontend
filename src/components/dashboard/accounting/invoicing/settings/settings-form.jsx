@@ -72,6 +72,8 @@ export default function SettingsForm({ businessId, initialData }) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [signatureUploading, setSignatureUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasFormChanged, setHasFormChanged] = useState(false);
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
   const colorPickerRef = useRef(null);
@@ -97,20 +99,23 @@ export default function SettingsForm({ businessId, initialData }) {
     form.setValue('signatureUrl', '');
   };
 
+  // Store initial values for comparison
+  const initialValues = {
+    prefix: initialData?.prefix || '',
+    logoUrl: initialData?.logoUrl || '',
+    useLogo: initialData?.useLogo || false,
+    emailTemplate: initialData?.emailTemplate || '',
+    terms: initialData?.terms || '',
+    signatureUrl: initialData?.signatureUrl || '',
+    tin: initialData?.tin || '',
+    brandColor: initialData?.brandColor || '#3B82F6',
+    template: initialData?.template || '',
+    bankAccounts: initialData?.bankAccounts || [],
+  };
+
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      prefix: initialData?.prefix || '',
-      logoUrl: initialData?.logoUrl || '',
-      useLogo: initialData?.useLogo || false,
-      emailTemplate: initialData?.emailTemplate || '',
-      terms: initialData?.terms || '',
-      signatureUrl: initialData?.signatureUrl || '',
-      tin: initialData?.tin || '',
-      brandColor: initialData?.brandColor || '#3B82F6',
-      template: initialData?.template || '',
-      bankAccounts: initialData?.bankAccounts || [],
-    },
+    defaultValues: initialValues,
   });
 
   // Initialize canvas for signature drawing
@@ -194,6 +199,21 @@ export default function SettingsForm({ businessId, initialData }) {
     };
   }, [form]);
 
+  // Watch for form changes to enable/disable submit button
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      // Check if current form values differ from initial values
+      const hasChanged =
+        JSON.stringify(values) !== JSON.stringify(initialValues) ||
+        uploadedLogo?.url !== initialValues.logoUrl ||
+        uploadedSignature?.url !== initialValues.signatureUrl;
+
+      setHasFormChanged(hasChanged);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form, initialValues, uploadedLogo, uploadedSignature]);
+
   // Canvas drawing functions
   const startDrawing = ({ nativeEvent }) => {
     const { offsetX, offsetY } = nativeEvent;
@@ -261,6 +281,8 @@ export default function SettingsForm({ businessId, initialData }) {
   };
 
   const onSubmit = async (data) => {
+    setIsSubmitting(true);
+
     // Format the data according to the expected structure
     const formattedData = {
       prefix: data.prefix,
@@ -276,7 +298,7 @@ export default function SettingsForm({ businessId, initialData }) {
     };
 
     try {
-      const res = await BusinessService.patchSettings({
+      await BusinessService.patchSettings({
         id: businessId,
         data: formattedData,
       });
@@ -287,6 +309,8 @@ export default function SettingsForm({ businessId, initialData }) {
           err.message ||
           'Failed to save settings. Please try again.'
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -628,7 +652,7 @@ export default function SettingsForm({ businessId, initialData }) {
                       data-coloris
                       value={selectedColor}
                       ref={colorPickerRef}
-                      className={`absolute -bottom-4 -left-6 h-8 w-8 cursor-pointer opacity-0`}
+                      className={`absolute bottom-0 left-0 h-[33px] w-[33px] cursor-pointer rounded-full opacity-0`}
                       readOnly
                     />
                   </div>
@@ -775,11 +799,16 @@ export default function SettingsForm({ businessId, initialData }) {
               className={'h-10 w-full max-w-[176px]'}
               type="button"
               variant="outline"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button className={'h-10 w-full max-w-[176px]'} type="submit">
-              Save settings
+            <Button
+              className={'h-10 w-full max-w-[176px]'}
+              type="submit"
+              disabled={isSubmitting || !hasFormChanged}
+            >
+              {isSubmitting ? 'Saving...' : 'Save settings'}
             </Button>
           </div>
         </form>

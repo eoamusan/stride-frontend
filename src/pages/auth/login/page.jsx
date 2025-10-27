@@ -58,7 +58,7 @@ export default function Login() {
     },
   });
   const navigate = useNavigate();
-  const { login, isLoading } = useUserStore();
+  const { login, isLoading, getBusinessData } = useUserStore();
 
   const onSubmit = async (data) => {
     try {
@@ -68,6 +68,7 @@ export default function Login() {
       toast.success(currentMessage, {
         icon: '🎉',
       });
+      await getBusinessData();
 
       if (res.account?.onboardingCompleted) {
         navigate('/dashboard');

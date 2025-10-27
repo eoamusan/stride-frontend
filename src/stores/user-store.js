@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import AuthService from '@/api/auth';
+import BusinessService from '@/api/business';
 
 export const useUserStore = create(
   persist(
     (set, get) => ({
       data: null,
+      businessData: null,
       isLoading: false,
       message: null,
 
@@ -54,6 +56,16 @@ export const useUserStore = create(
 
       async refresh() {},
 
+      async getBusinessData() {
+        try {
+          const { data: res } = await BusinessService.fetch();
+          set({ businessData: res.data[0] });
+          return res.data[0];
+        } catch (err) {
+          throw err;
+        }
+      },
+
       logout() {
         // Clear user data from store
         set({
@@ -70,6 +82,7 @@ export const useUserStore = create(
       name: 'user-storage',
       partialize: (state) => ({
         data: state.data ? state.data : null,
+        businessData: state.businessData ? state.businessData : null,
       }),
     }
   )

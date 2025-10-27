@@ -1,14 +1,37 @@
 import { Button } from '@/components/ui/button';
-import { NotepadTextIcon, SendIcon, XIcon } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  NotepadTextIcon,
+  SendIcon,
+  XIcon,
+  ChevronDownIcon,
+} from 'lucide-react';
 import { format } from 'date-fns';
-import invoiceLogo from '@/assets/images/invoice-sample.png';
+import { useUserStore } from '@/stores/user-store';
 
 export default function PreviewInvoice({
   formData,
   calculateSubtotal,
   onEdit,
+  customers = [],
 }) {
   const subtotal = calculateSubtotal();
+  const { businessData } = useUserStore();
+
+  // Use business brand color or default
+  const primaryColor =
+    businessData?.businessInvoiceSettings?.brandColor || '#00aa00';
+
+  // Find the selected customer
+  const selectedCustomer = customers.find(
+    (customer) => customer.id.toString() === formData.customerId
+  );
+
   const discount = (subtotal * (formData.discount || 0)) / 100;
   const afterDiscount = subtotal - discount;
   const vatAmount = (afterDiscount * (formData.vat || 0)) / 100;
@@ -34,32 +57,64 @@ export default function PreviewInvoice({
         <div className="">
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2 mb-4 grid w-fit grid-cols-1 gap-1 text-left">
-              <img src={invoiceLogo} alt="Company Logo" />
+              {businessData?.businessInvoiceSettings?.logoUrl ? (
+                <img
+                  src={businessData.businessInvoiceSettings.logoUrl}
+                  alt="Company Logo"
+                  className="h-16 w-auto object-contain"
+                />
+              ) : (
+                <div className="flex h-16 w-32 items-center justify-center bg-gray-100 text-sm font-medium text-gray-500">
+                  {businessData?.businessName || 'No Logo'}
+                </div>
+              )}
 
-              <p className="max-w-28 text-sm text-[#727273]">
-                4140 Parker Rd. Allentown, New Mexico 31134
+              <p className="text-sm font-semibold text-black">
+                {businessData?.businessName || 'Business Name'}
+              </p>
+              <p className="max-w-48 text-sm text-[#727273]">
+                {businessData?.businessLocation || ''}
               </p>
             </div>
 
             {/* Balance Due */}
             <div className="col-span-1 text-right">
-              <p className="text-base font-bold text-black">INV 3424</p>
+              <p className="text-base font-bold text-black">
+                {formData.invoice_number || ''}
+              </p>
               <p className="mt-6 text-xs font-semibold text-black">
                 Balance Due
               </p>
               <p className="text-sm font-bold">
-                ₦ {total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                {formData.currency === 'USD'
+                  ? '$'
+                  : formData.currency === 'EUR'
+                    ? '€'
+                    : formData.currency === 'GBP'
+                      ? '£'
+                      : '₦'}{' '}
+                {total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div className="space-y-1 text-sm text-gray-600">
               <p className="text-xs font-semibold text-black">Billed To:</p>
-              <p className="text-sm font-bold">Dianne Rusell</p>
+              <p className="text-sm font-bold">
+                {selectedCustomer?.displayName || 'Customer Name'}
+              </p>
 
-              <p className="max-w-46 text-sm text-[#727273]">ABC Corporation</p>
               <p className="max-w-46 text-sm text-[#727273]">
-                1901 Thornridge Cir. Shiloh, Hawaii 81063
+                {selectedCustomer?.companyName || 'Company Name'}
+              </p>
+              <p className="max-w-46 text-sm text-[#727273]">
+                {selectedCustomer?.address?.address1 || 'Customer Address'}
+                {selectedCustomer?.address?.city &&
+                  `, ${selectedCustomer.address.city}`}{' '}
+                {selectedCustomer?.address?.state &&
+                  `, ${selectedCustomer.address.state}`}
+                {selectedCustomer?.address?.country &&
+                  `, ${selectedCustomer.address.country}`}
               </p>
             </div>
 
@@ -88,12 +143,32 @@ export default function PreviewInvoice({
       {/* Items Table */}
       <div className="mb-6">
         {/* Table Header */}
-        <div className="bg-primary text-white">
+        <div className={`text-white`} style={{ backgroundColor: primaryColor }}>
           <div className="grid grid-cols-15 gap-4 p-4 font-semibold max-sm:p-2">
             <div className="col-span-6">Item</div>
             <div className="col-span-3 text-center">Qty</div>
-            <div className="col-span-3 text-center">Rate (₦)</div>
-            <div className="col-span-3 truncate text-right">Amount (₦)</div>
+            <div className="col-span-3 text-center">
+              Rate (
+              {formData.currency === 'USD'
+                ? '$'
+                : formData.currency === 'EUR'
+                  ? '€'
+                  : formData.currency === 'GBP'
+                    ? '£'
+                    : '₦'}
+              )
+            </div>
+            <div className="col-span-3 truncate text-right">
+              Amount (
+              {formData.currency === 'USD'
+                ? '$'
+                : formData.currency === 'EUR'
+                  ? '€'
+                  : formData.currency === 'GBP'
+                    ? '£'
+                    : '₦'}
+              )
+            </div>
           </div>
         </div>
 
@@ -101,6 +176,15 @@ export default function PreviewInvoice({
         <div className="border-r border-l border-gray-200">
           {formData.products.map((product, index) => {
             const amount = (product.unit_price || 0) * (product.quantity || 1);
+            const currencySymbol =
+              formData.currency === 'USD'
+                ? '$'
+                : formData.currency === 'EUR'
+                  ? '€'
+                  : formData.currency === 'GBP'
+                    ? '£'
+                    : '₦';
+
             return (
               <div
                 key={index}
@@ -108,23 +192,23 @@ export default function PreviewInvoice({
               >
                 <div className="col-span-6">
                   <p className="text-sm font-semibold">
-                    {product.name || 'Ui/Ux design'}
+                    {product.name || `Product ${index + 1}`}
                   </p>
                   <p className="text-xs">
-                    {product.description || 'This is a dummy description'}
+                    {product.description || 'No description provided'}
                   </p>
                 </div>
                 <div className="col-span-3 text-center">
                   {product.quantity || 1}
                 </div>
                 <div className="col-span-3 text-center">
-                  ₦{' '}
+                  {currencySymbol}{' '}
                   {(product.unit_price || 0).toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                   })}
                 </div>
                 <div className="col-span-3 text-right">
-                  ₦{' '}
+                  {currencySymbol}{' '}
                   {amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </div>
               </div>
@@ -140,7 +224,14 @@ export default function PreviewInvoice({
             <div className="col-span-9"></div>
             <div className="col-span-3 text-right font-medium">Sub Total:</div>
             <div className="col-span-3 text-right font-bold">
-              ₦ {subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {formData.currency === 'USD'
+                ? '$'
+                : formData.currency === 'EUR'
+                  ? '€'
+                  : formData.currency === 'GBP'
+                    ? '£'
+                    : '₦'}{' '}
+              {subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </div>
           </div>
           {formData.discount > 0 && (
@@ -150,7 +241,14 @@ export default function PreviewInvoice({
                 Discount ({formData.discount}%):
               </div>
               <div className="col-span-3 text-right font-bold">
-                -₦{' '}
+                -
+                {formData.currency === 'USD'
+                  ? '$'
+                  : formData.currency === 'EUR'
+                    ? '€'
+                    : formData.currency === 'GBP'
+                      ? '£'
+                      : '₦'}{' '}
                 {discount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </div>
             </div>
@@ -161,10 +259,16 @@ export default function PreviewInvoice({
               VAT ({formData.vat || 7.5}%):
             </div>
             <div className="col-span-3 text-right font-bold">
-              {formData.vat.toLocaleString('en-US', {
+              {formData.currency === 'USD'
+                ? '$'
+                : formData.currency === 'EUR'
+                  ? '€'
+                  : formData.currency === 'GBP'
+                    ? '£'
+                    : '₦'}{' '}
+              {vatAmount.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
               })}
-              %
             </div>
           </div>
           {formData.delivery_fee > 0 && (
@@ -172,7 +276,13 @@ export default function PreviewInvoice({
               <div className="col-span-9"></div>
               <div className="col-span-3 text-right">Delivery Fee:</div>
               <div className="col-span-3 text-right">
-                ₦{' '}
+                {formData.currency === 'USD'
+                  ? '$'
+                  : formData.currency === 'EUR'
+                    ? '€'
+                    : formData.currency === 'GBP'
+                      ? '£'
+                      : '₦'}{' '}
                 {(formData.delivery_fee || 0).toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                 })}
@@ -183,26 +293,97 @@ export default function PreviewInvoice({
             <div className="col-span-9"></div>
             <div className="col-span-3 text-right">Total:</div>
             <div className="col-span-3 text-right">
-              ₦ {total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {formData.currency === 'USD'
+                ? '$'
+                : formData.currency === 'EUR'
+                  ? '€'
+                  : formData.currency === 'GBP'
+                    ? '£'
+                    : '₦'}{' '}
+              {total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </div>
           </div>
         </div>
       </div>
 
       {/* Terms & Conditions */}
-      <div className="mb-8">
-        <p className="text-sm font-bold">Terms & Conditions:</p>
-        <p className="text-sm text-gray-600">
-          Please pay within 15 days of receiving this invoice.
-        </p>
-      </div>
+      {formData.terms && (
+        <div className="mb-8">
+          <p className="text-sm font-bold">Terms & Conditions:</p>
+          <p className="text-sm text-gray-600">{formData.terms}</p>
+        </div>
+      )}
+
+      {/* Bank Details */}
+      {formData.display_bank_details &&
+        businessData?.businessInvoiceSettings?.bankAccounts?.length > 0 && (
+          <div className="mb-8">
+            <p className="text-sm font-bold">Bank Details:</p>
+            {businessData.businessInvoiceSettings.bankAccounts.map(
+              (bank, index) => (
+                <div key={index} className="mt-2 text-sm text-gray-600">
+                  <p>
+                    <span className="font-medium">Account Name:</span>{' '}
+                    {bank.accountName}
+                  </p>
+                  <p>
+                    <span className="font-medium">Account Number:</span>{' '}
+                    {bank.accountNumber}
+                  </p>
+                  <p>
+                    <span className="font-medium">Bank Name:</span>{' '}
+                    {bank.bankName}
+                  </p>
+                  <p>
+                    <span className="font-medium">Sort Code:</span>{' '}
+                    {bank.sortCode}
+                  </p>
+                  {bank.tin && (
+                    <p>
+                      <span className="font-medium">TIN:</span> {bank.tin}
+                    </p>
+                  )}
+                  {index <
+                    businessData.businessInvoiceSettings.bankAccounts.length -
+                      1 && <hr className="my-2" />}
+                </div>
+              )
+            )}
+          </div>
+        )}
+
+      {/* Signature */}
+      {formData.apply_signature &&
+        businessData?.businessInvoiceSettings?.signatureUrl && (
+          <div className="mb-8">
+            <p className="text-sm font-bold">Authorized Signature:</p>
+            <img
+              src={businessData.businessInvoiceSettings.signatureUrl}
+              alt="Authorized Signature"
+              className="mt-2 h-16 w-auto object-contain"
+            />
+          </div>
+        )}
 
       {/* Action Buttons */}
       <div className="mt-6 flex justify-end gap-4">
-        <Button className="h-10 px-8">
-          <SendIcon className="mr-2 h-4 w-4" />
-          Send
-        </Button>
+        {/* Send Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="h-10 px-8"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <SendIcon className="mr-2 h-4 w-4" />
+              Send
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem>Send via Email</DropdownMenuItem>
+            <DropdownMenuItem>Send via Stride</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <Button variant="outline" className="h-10 px-8">
           <NotepadTextIcon className="mr-2 h-4 w-4" />
           Download
@@ -211,6 +392,44 @@ export default function PreviewInvoice({
           <NotepadTextIcon className="mr-2 h-4 w-4" />
           Print
         </Button>
+
+        {/* Record Payment Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="h-10 px-8">
+              Record Payment
+              <ChevronDownIcon className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <div className="space-y-1 p-2">
+              <DropdownMenuItem className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="bg-primary outline-primary mr-2 h-4 w-4 rounded-full outline"></div>
+                  Paid with cash
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="border-primary mr-2 h-4 w-4 rounded-full border"></div>
+                  Paid with Mobile transfer
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="border-primary mr-2 h-4 w-4 rounded-full border"></div>
+                  Paid with Credit Card
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="border-primary mr-2 h-4 w-4 rounded-full border"></div>
+                  Paid with POS
+                </div>
+              </DropdownMenuItem>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import InvoiceService from '@/api/invoice';
 import BusinessService from '@/api/business';
 import toast from 'react-hot-toast';
+import { useUserStore } from '@/stores/user-store';
 
 const invoice = [''];
 
@@ -133,25 +134,27 @@ export default function Invoicing() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [hasBankAccount, setHasBankAccount] = useState(false);
   const [invoiceList, setInvoiceList] = useState();
+  const [businessId, setBusinessId] = useState();
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const { businessData } = useUserStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
         setIsLoadingData(true);
-        await BusinessService.fetch().then(async (res) => {
-          const businessId = res.data.data[0]?._id;
-          setHasBankAccount(
-            res.data.data[0]?.businessInvoiceSettings?.bankAccounts?.length > 0
-          );
-          const invoiceRes = await InvoiceService.fetch({ businessId });
-          if (invoiceRes.data && invoiceRes.data?.data?.length > 0) {
-            setInvoiceList(invoiceRes.data.data);
-          } else {
-            setInvoiceList([]);
-          }
-        });
+
+        const businessId = businessData?._id;
+        setBusinessId(businessId);
+        setHasBankAccount(
+          businessData?.businessInvoiceSettings?.bankAccounts?.length > 0
+        );
+        const invoiceRes = await InvoiceService.fetch({ businessId });
+        if (invoiceRes.data && invoiceRes.data?.data?.length > 0) {
+          setInvoiceList(invoiceRes.data.data);
+        } else {
+          setInvoiceList([]);
+        }
       } catch (err) {
         console.log(err);
       } finally {
@@ -160,7 +163,7 @@ export default function Invoicing() {
     };
 
     fetchInvoices();
-  }, []);
+  }, [businessData]);
 
   // Handle row actions for the table
   const handleRowAction = (action, item) => {
@@ -240,7 +243,7 @@ export default function Invoicing() {
   if (toggleCreateInvoice) {
     return (
       <div className="my-4 min-h-screen">
-        <CreateInvoice />
+        <CreateInvoice businessId={businessId} />
       </div>
     );
   }

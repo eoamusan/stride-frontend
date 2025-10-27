@@ -25,58 +25,98 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { format } from 'date-fns';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import toast from 'react-hot-toast';
+import CustomerService from '@/api/customer';
+import BusinessService from '@/api/business';
+import { useUserStore } from '@/stores/user-store';
 
 const customerFormSchema = z.object({
-  title: z.string().optional(),
-  first_name: z.string().min(1, { message: 'First name is required' }),
-  middle_name: z.string().optional(),
-  last_name: z.string().min(1, { message: 'Last name is required' }),
-  customer_display_name: z
-    .string()
-    .min(1, { message: 'Customer display name is required' }),
-  company_name: z.string().optional(),
-  phone_number: z.string().min(1, { message: 'Phone number is required' }),
-  email_address: z.email({ message: 'Please enter a valid email address' }),
-  is_sub_customer: z.boolean().default(false),
-  street_address_1: z
-    .string()
-    .min(1, { message: 'Street address is required' }),
-  street_address_2: z.string().optional(),
-  city: z.string().min(1, { message: 'City is required' }),
-  state: z.string().min(1, { message: 'State is required' }),
-  zip_code: z.string().min(1, { message: 'ZIP code is required' }),
-  country: z.string().min(1, { message: 'Country is required' }),
-  same_as_billing_address: z.boolean().default(false),
+  customer: z.object({
+    title: z.string().optional(),
+    firstName: z.string().min(1, { message: 'First name is required' }),
+    middleName: z.string().optional(),
+    lastName: z.string().min(1, { message: 'Last name is required' }),
+    displayName: z.string().min(1, { message: 'Display name is required' }),
+    companyName: z.string().optional(),
+    phoneNumber: z.string().min(1, { message: 'Phone number is required' }),
+    email: z.email({ message: 'Please enter a valid email address' }),
+    creditLimit: z.string().optional(),
+    dueDate: z.date().optional(),
+    isSubCustomer: z.boolean().default(false),
+  }),
+  address: z.object({
+    address1: z.string().min(1, { message: 'Address is required' }),
+    address2: z.string().optional(),
+    city: z.string().min(1, { message: 'City is required' }),
+    state: z.string().min(1, { message: 'State is required' }),
+    zipcode: z.string().min(1, { message: 'ZIP code is required' }),
+    country: z.string().min(1, { message: 'Country is required' }),
+    sameAsBilling: z.boolean().default(false),
+  }),
 });
 
 export default function AddCustomerModal({ open, onOpenChange }) {
+  const { businessData } = useUserStore();
   const form = useForm({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
-      title: '',
-      first_name: '',
-      middle_name: '',
-      last_name: '',
-      customer_display_name: '',
-      company_name: '',
-      phone_number: '',
-      email_address: '',
-      is_sub_customer: false,
-      street_address_1: '',
-      street_address_2: '',
-      city: '',
-      state: '',
-      zip_code: '',
-      country: '',
-      same_as_billing_address: false,
+      customer: {
+        title: '',
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        displayName: '',
+        companyName: '',
+        phoneNumber: '',
+        email: '',
+        creditLimit: '',
+        dueDate: undefined,
+        isSubCustomer: false,
+      },
+      address: {
+        address1: '',
+        address2: '',
+        city: '',
+        state: '',
+        zipcode: '',
+        country: '',
+        sameAsBilling: false,
+      },
     },
   });
 
-  const onSubmit = (data) => {
-    console.log('Customer data:', data);
-    // Handle form submission
-    onOpenChange(false);
-    form.reset();
+  const onSubmit = async (data) => {
+    try {
+      const businessId = businessData?._id;
+      const dataWithAccountId = {
+        ...data,
+        businessId: businessId,
+      };
+
+      const customerRes = await CustomerService.create({
+        data: dataWithAccountId,
+      });
+
+      toast.success('Customer successfully added!');
+      onOpenChange(false);
+      form.reset();
+    } catch (err) {
+      console.log('Error submitting customer data:', err);
+      toast.error(
+        err.response.data.message ||
+          err.message ||
+          'Failed to add customer. Please try again.'
+      );
+    }
   };
 
   const handleCancel = () => {
@@ -105,7 +145,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-7">
                 <FormField
                   control={form.control}
-                  name="title"
+                  name="customer.title"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Title</FormLabel>
@@ -132,7 +172,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
                 <FormField
                   control={form.control}
-                  name="first_name"
+                  name="customer.firstName"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>First name</FormLabel>
@@ -150,7 +190,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
                 <FormField
                   control={form.control}
-                  name="middle_name"
+                  name="customer.middleName"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>Middle name</FormLabel>
@@ -168,7 +208,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
                 <FormField
                   control={form.control}
-                  name="last_name"
+                  name="customer.lastName"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>Last name</FormLabel>
@@ -189,7 +229,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
                 <FormField
                   control={form.control}
-                  name="customer_display_name"
+                  name="customer.displayName"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>Customer display name</FormLabel>
@@ -207,7 +247,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
                 <FormField
                   control={form.control}
-                  name="company_name"
+                  name="customer.companyName"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2 md:col-start-4'}>
                       <FormLabel>Company name</FormLabel>
@@ -228,7 +268,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
                 <FormField
                   control={form.control}
-                  name="phone_number"
+                  name="customer.phoneNumber"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>Phone number</FormLabel>
@@ -246,7 +286,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
                 <FormField
                   control={form.control}
-                  name="email_address"
+                  name="customer.email"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2 md:col-start-4'}>
                       <FormLabel>Email address</FormLabel>
@@ -264,10 +304,70 @@ export default function AddCustomerModal({ open, onOpenChange }) {
                 />
               </div>
 
+              {/* CreditLimit and DueDate */}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
+                <FormField
+                  control={form.control}
+                  name="customer.creditLimit"
+                  render={({ field }) => (
+                    <FormItem className={'md:col-span-2'}>
+                      <FormLabel>Credit Limit</FormLabel>
+                      <FormControl>
+                        <Input type={'number'} className={'h-10'} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="customer.dueDate"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col md:col-span-2 md:col-start-4">
+                      <FormLabel>Due Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={'outline'}
+                              className={cn(
+                                'h-10 w-full pl-3 text-left text-sm font-normal',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, 'PPP')
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-full min-w-80 p-0"
+                          align="start"
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            captionLayout="dropdown"
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               {/* Sub Customer Checkbox */}
               <FormField
                 control={form.control}
-                name="is_sub_customer"
+                name="customer.isSubCustomer"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-y-0">
                     <FormControl>
@@ -295,7 +395,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
                 <FormField
                   control={form.control}
-                  name="street_address_1"
+                  name="address.address1"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>Street address 1</FormLabel>
@@ -313,7 +413,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
                 <FormField
                   control={form.control}
-                  name="street_address_2"
+                  name="address.address2"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2 md:col-start-4'}>
                       <FormLabel>Street address 2</FormLabel>
@@ -334,7 +434,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
                 <FormField
                   control={form.control}
-                  name="city"
+                  name="address.city"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>City</FormLabel>
@@ -352,7 +452,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
                 <FormField
                   control={form.control}
-                  name="state"
+                  name="address.state"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2 md:col-start-4'}>
                       <FormLabel>State</FormLabel>
@@ -373,7 +473,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
                 <FormField
                   control={form.control}
-                  name="zip_code"
+                  name="address.zipcode"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>ZIP code</FormLabel>
@@ -391,7 +491,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
                 <FormField
                   control={form.control}
-                  name="country"
+                  name="address.country"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2 md:col-start-4'}>
                       <FormLabel>Country</FormLabel>
@@ -413,7 +513,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
                 <h4 className="text-sm font-medium">Shipping address</h4>
                 <FormField
                   control={form.control}
-                  name="same_as_billing_address"
+                  name="address.sameAsBilling"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-y-0">
                       <FormControl>
