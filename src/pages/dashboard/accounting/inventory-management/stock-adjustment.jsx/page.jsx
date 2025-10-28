@@ -203,8 +203,6 @@ export default function StockAdjustment() {
         backText={'Back'}
         description="You've successfully adjusted a product"
       />
-
-
     </div>
   );
 }

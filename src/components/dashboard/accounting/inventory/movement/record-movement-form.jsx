@@ -253,10 +253,10 @@ export default function RecordMovementForm({
             {/* Movement Information Section */}
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
               <div className="mb-3 flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
+                <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full text-white">
                   <InfoIcon className="h-3 w-3" />
                 </div>
-                <h3 className="text-sm font-semibold text-primary">
+                <h3 className="text-primary text-sm font-semibold">
                   Movement Information
                 </h3>
               </div>
@@ -265,13 +265,13 @@ export default function RecordMovementForm({
                   <span className="text-sm font-medium text-gray-700">
                     Moved By:
                   </span>
-                  <span className="text-sm text-primary">john Doe</span>
+                  <span className="text-primary text-sm">john Doe</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">
                     Date of Movement:
                   </span>
-                  <span className="text-sm text-primary">
+                  <span className="text-primary text-sm">
                     {getCurrentDateTime()}
                   </span>
                 </div>

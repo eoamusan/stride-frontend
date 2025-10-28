@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Form,
   FormControl,
@@ -69,7 +69,6 @@ export default function SettingsForm({ businessId, initialData }) {
   const [selectedColor, setSelectedColor] = useState(
     initialData?.brandColor || '#3B82F6'
   );
-  const [showColorPicker, setShowColorPicker] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [signatureUploading, setSignatureUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,18 +99,21 @@ export default function SettingsForm({ businessId, initialData }) {
   };
 
   // Store initial values for comparison
-  const initialValues = {
-    prefix: initialData?.prefix || '',
-    logoUrl: initialData?.logoUrl || '',
-    useLogo: initialData?.useLogo || false,
-    emailTemplate: initialData?.emailTemplate || '',
-    terms: initialData?.terms || '',
-    signatureUrl: initialData?.signatureUrl || '',
-    tin: initialData?.tin || '',
-    brandColor: initialData?.brandColor || '#3B82F6',
-    template: initialData?.template || '',
-    bankAccounts: initialData?.bankAccounts || [],
-  };
+  const initialValues = useMemo(
+    () => ({
+      prefix: initialData?.prefix || '',
+      logoUrl: initialData?.logoUrl || '',
+      useLogo: initialData?.useLogo || false,
+      emailTemplate: initialData?.emailTemplate || '',
+      terms: initialData?.terms || '',
+      signatureUrl: initialData?.signatureUrl || '',
+      tin: initialData?.tin || '',
+      brandColor: initialData?.brandColor || '#3B82F6',
+      template: initialData?.template || '',
+      bankAccounts: initialData?.bankAccounts || [],
+    }),
+    [initialData]
+  );
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -186,7 +188,7 @@ export default function SettingsForm({ businessId, initialData }) {
       themeMode: 'polaroid',
       formatToggle: true,
       selectInput: true,
-      onChange: (color, input) => {
+      onChange: (color) => {
         console.log(`The new color is ${color}`);
         setSelectedColor(color);
         form.setValue('brandColor', color);
@@ -379,7 +381,6 @@ export default function SettingsForm({ businessId, initialData }) {
   const handleColorSelect = (color) => {
     setSelectedColor(color);
     form.setValue('brandColor', color);
-    setShowColorPicker(false);
   };
 
   const bankAccounts = form.watch('bankAccounts');
@@ -603,7 +604,7 @@ export default function SettingsForm({ businessId, initialData }) {
                 <FormItem className={'w-full max-w-md'}>
                   <FormLabel>Terms</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="" className="h-[240px]" {...field} />
+                    <Textarea placeholder="" className="h-60" {...field} />
                   </FormControl>
                   <div className="text-right text-xs">
                     {field.value?.length || 0}/1000
@@ -796,7 +797,7 @@ export default function SettingsForm({ businessId, initialData }) {
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-end gap-4 pt-6">
             <Button
-              className={'h-10 w-full max-w-[176px]'}
+              className={'h-10 w-full max-w-44'}
               type="button"
               variant="outline"
               disabled={isSubmitting}
@@ -804,7 +805,7 @@ export default function SettingsForm({ businessId, initialData }) {
               Cancel
             </Button>
             <Button
-              className={'h-10 w-full max-w-[176px]'}
+              className={'h-10 w-full max-w-44'}
               type="submit"
               disabled={isSubmitting || !hasFormChanged}
             >

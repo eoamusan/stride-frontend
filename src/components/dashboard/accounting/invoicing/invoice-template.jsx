@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { SlidersHorizontalIcon, ArrowLeftIcon } from 'lucide-react';
+import { SlidersHorizontalIcon } from 'lucide-react';
 import Coloris from '@melloware/coloris';
 import '@melloware/coloris/dist/coloris.css';
 import { useUserStore } from '@/stores/user-store';
@@ -58,7 +58,7 @@ export default function InvoiceTemplateSettings({
       themeMode: 'polaroid',
       formatToggle: true,
       selectInput: true,
-      onChange: (color, input) => {
+      onChange: (color) => {
         setSelectedColor(color);
       },
     });

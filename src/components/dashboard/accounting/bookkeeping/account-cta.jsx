@@ -188,11 +188,7 @@ export default function AccountActions({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button
-          size={'sm'}
-          className={'h-10 text-sm'}
-          onClick={onRunReport}
-        >
+        <Button size={'sm'} className={'h-10 text-sm'} onClick={onRunReport}>
           Run Report
         </Button>
       </div>

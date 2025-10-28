@@ -58,7 +58,7 @@ export default function CallToAction() {
               <span className="text-sm font-medium">Quick Links</span>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent  className="w-fit mr-4 mt-1">
+          <DropdownMenuContent className="mt-1 mr-4 w-fit">
             {ctaButtons.map((button, index) => (
               <DropdownMenuItem
                 key={index}
@@ -70,7 +70,13 @@ export default function CallToAction() {
                   className="h-10 text-sm font-medium"
                   onClick={() => handleButtonClick(button.action)}
                 >
-                  <CirclePlusIcon color={button.variant === 'outline' ? 'currentColor' : 'white'} size={24} className="mr-2" />
+                  <CirclePlusIcon
+                    color={
+                      button.variant === 'outline' ? 'currentColor' : 'white'
+                    }
+                    size={24}
+                    className="mr-2"
+                  />
                   {button.text}
                 </Button>
               </DropdownMenuItem>

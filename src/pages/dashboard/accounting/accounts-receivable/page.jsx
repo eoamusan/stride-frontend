@@ -11,11 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  DownloadIcon,
-  PlusCircleIcon,
-  SettingsIcon,
-} from 'lucide-react';
+import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-invoice';
 

@@ -10,9 +10,16 @@ import {
   SendIcon,
   XIcon,
   ChevronDownIcon,
+  PrinterIcon,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUserStore } from '@/stores/user-store';
+import { useRef, useState } from 'react';
+import html2canvas from 'html2canvas-pro';
+import jsPDF from 'jspdf';
+import toast from 'react-hot-toast';
+import SendInvoiceEmail from './send-email';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 export default function PreviewInvoice({
   formData,
@@ -22,6 +29,9 @@ export default function PreviewInvoice({
 }) {
   const subtotal = calculateSubtotal();
   const { businessData } = useUserStore();
+  const invoiceRef = useRef(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [uploadedPdfUrl, setUploadedPdfUrl] = useState(null);
 
   // Use business brand color or default
   const primaryColor =
@@ -37,10 +47,138 @@ export default function PreviewInvoice({
   const vatAmount = (afterDiscount * (formData.vat || 0)) / 100;
   const total = afterDiscount + vatAmount + (formData.delivery_fee || 0);
 
+  // Function to upload PDF to Cloudinary
+  const uploadPdfToCloudinary = async (pdfBlob, fileName) => {
+    const loadingToast = toast.loading('Uploading PDF to cloud...');
+    try {
+      // Create a File object from the blob
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+      // Upload to Cloudinary
+      const result = await uploadToCloudinary(file, {
+        folder: 'invoices',
+        tags: ['invoice', 'pdf', formData.invoice_number || 'draft'],
+      });
+
+      setUploadedPdfUrl(result.url);
+      toast.dismiss(loadingToast);
+      toast.success('PDF uploaded successfully!');
+      return result.url;
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      toast.error('Failed to upload PDF to cloud');
+      throw error;
+    }
+  };
+
+  const handleSendEmail = async () => {
+    setShowEmailModal(true);
+    try {
+      // Generate and upload PDF before opening email modal
+      await generatePDF(true);
+    } catch (error) {
+      console.error('Error preparing email:', error);
+    }
+  };
+
+  const generatePDF = async (uploadToCloud = false) => {
+    if (!invoiceRef.current) return;
+
+    const loadingToast = toast.loading('Generating PDF...');
+    try {
+      // Hide the action buttons temporarily
+      const actionButtons = invoiceRef.current.querySelector('.action-buttons');
+      const editButton = invoiceRef.current.querySelector('.edit-button');
+
+      if (actionButtons) actionButtons.style.display = 'none';
+      if (editButton) editButton.style.display = 'none';
+
+      // Generate canvas from the invoice content
+      const canvas = await html2canvas(invoiceRef.current, {
+        useCORS: true,
+        allowTaint: true,
+        ignoreElements: (element) => {
+          return (
+            element.classList?.contains('action-buttons') ||
+            element.classList?.contains('edit-button')
+          );
+        },
+      });
+
+      // Create PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      // Calculate dimensions to fit the page
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 0;
+
+      pdf.addImage(
+        imgData,
+        'PNG',
+        imgX,
+        imgY,
+        imgWidth * ratio,
+        imgHeight * ratio
+      );
+
+      // Generate filename
+      const fileName = `invoice-${formData.invoice_number || 'draft'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+
+      let pdfUrl = null;
+
+      if (uploadToCloud) {
+        // Upload to Cloudinary if requested
+        const pdfBlob = pdf.output('blob');
+        pdfUrl = await uploadPdfToCloudinary(pdfBlob, fileName);
+      } else {
+        // Download the PDF normally
+        pdf.save(fileName);
+      }
+
+      // Show the action buttons again
+      if (actionButtons) actionButtons.style.display = 'flex';
+      if (editButton) editButton.style.display = 'flex';
+
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      if (!uploadToCloud) {
+        toast.success('PDF generated successfully!');
+      }
+
+      return pdfUrl;
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Error generating PDF:', error);
+      // Show the action buttons again in case of error
+      const actionButtons =
+        invoiceRef.current?.querySelector('.action-buttons');
+      const editButton = invoiceRef.current?.querySelector('.edit-button');
+      if (actionButtons) actionButtons.style.display = 'flex';
+      if (editButton) editButton.style.display = 'flex';
+
+      // Show error toast
+      toast.error('Error generating PDF. Please try again.');
+      throw error;
+    }
+  };
+
   return (
-    <div className="mx-auto max-w-2xl rounded-2xl bg-white p-8">
+    <div
+      className="mx-auto max-w-2xl rounded-2xl bg-white p-8"
+      ref={invoiceRef}
+    >
       {/* Header with Edit Button */}
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="edit-button mb-8 flex items-center justify-between gap-4">
         <Button size={'icon'} variant={'ghost'} onClick={onEdit}>
           <XIcon className="h-4 w-4" />
         </Button>
@@ -366,7 +504,7 @@ export default function PreviewInvoice({
         )}
 
       {/* Action Buttons */}
-      <div className="mt-6 flex justify-end gap-4">
+      <div className="action-buttons mt-6 flex justify-end gap-4">
         {/* Send Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -379,17 +517,19 @@ export default function PreviewInvoice({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem>Send via Email</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSendEmail}>
+              Send via Email
+            </DropdownMenuItem>
             <DropdownMenuItem>Send via Stride</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button variant="outline" className="h-10 px-8">
-          <NotepadTextIcon className="mr-2 h-4 w-4" />
-          Download
-        </Button>
-        <Button variant="outline" className="h-10 px-8">
-          <NotepadTextIcon className="mr-2 h-4 w-4" />
+        <Button
+          variant="outline"
+          className="h-10 px-8"
+          onClick={() => generatePDF(false)}
+        >
+          <PrinterIcon className="mr-2 h-4 w-4" />
           Print
         </Button>
 
@@ -431,6 +571,22 @@ export default function PreviewInvoice({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Send Email Modal */}
+      <SendInvoiceEmail
+        open={showEmailModal}
+        onOpenChange={setShowEmailModal}
+        invoiceData={{
+          ...formData,
+          customer: selectedCustomer,
+          businessSettings: businessData?.businessInvoiceSettings,
+          total,
+          subtotal,
+          vatAmount,
+          discount,
+          pdfUrl: uploadedPdfUrl,
+        }}
+      />
     </div>
   );
 }

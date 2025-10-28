@@ -12,12 +12,8 @@ export default class AuthService {
   }
 
   static async google() {
-    try {
-      const response = await axiosInstance.get('auth/google');
-      return response;
-    } catch (err) {
-      throw err;
-    }
+    const response = await axiosInstance.get('auth/google');
+    return response;
   }
 
   static async googleSuccess({ token }) {
@@ -32,29 +28,17 @@ export default class AuthService {
   }
 
   static async forgotPassword(data) {
-    try {
-      const res = await axiosInstance.post('auth/forgot-password', data);
-      return res;
-    } catch (err) {
-      throw err;
-    }
+    const res = await axiosInstance.post('auth/forgot-password', data);
+    return res;
   }
 
   static async verifyResetToken(data) {
-    try {
-      const res = await axiosInstance.post('auth/forgot-password/verify', data);
-      return res;
-    } catch (err) {
-      throw err;
-    }
+    const res = await axiosInstance.post('auth/forgot-password/verify', data);
+    return res;
   }
 
   static async resetPassword(data) {
-    try {
-      const res = await axiosInstance.post('auth/forgot-password/reset', data);
-      return res;
-    } catch (err) {
-      throw err;
-    }
+    const res = await axiosInstance.post('auth/forgot-password/reset', data);
+    return res;
   }
 }

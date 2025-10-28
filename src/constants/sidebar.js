@@ -220,11 +220,11 @@ const expenseManagementItems = [
   {
     title: 'Overview',
     link: '/dashboard/accounting/expense-management',
-  }, 
+  },
   {
     title: 'Expenses Transactions',
     link: '/dashboard/accounting/expense-management/transactions',
-  }, 
+  },
   {
     title: 'Vendors',
     link: '/dashboard/accounting/expense-management/vendors',
@@ -232,8 +232,8 @@ const expenseManagementItems = [
   {
     title: 'Bills',
     link: '/dashboard/accounting/expense-management/bills',
-  }
-]
+  },
+];
 
 const sidebarItems = [
   {

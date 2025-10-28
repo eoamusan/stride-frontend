@@ -20,7 +20,7 @@ export default function Chats() {
   };
 
   return (
-    <div className="mt-2 flex h-full w-full overflow-y-auto bg-white gap-4">
+    <div className="mt-2 flex h-full w-full gap-4 overflow-y-auto bg-white">
       <MessageList
         onChatSelect={handleChatSelect}
         onCloseChatPage={closeChatPage}

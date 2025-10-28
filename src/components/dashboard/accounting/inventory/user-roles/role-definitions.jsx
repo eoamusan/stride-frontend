@@ -321,7 +321,7 @@ export default function RoleDefinitions({
           </>
         ) : (
           <div className={`grid w-full gap-6 md:grid-cols-3`}>
-            <div className="w-full flex items-center">
+            <div className="flex w-full items-center">
               <h3 className="text-lg font-semibold">Roles</h3>
             </div>
             <div className="w-full space-y-2">

@@ -5,7 +5,7 @@ import BusinessService from '@/api/business';
 
 export const useUserStore = create(
   persist(
-    (set, get) => ({
+    (set) => ({
       data: null,
       businessData: null,
       isLoading: false,
@@ -57,13 +57,9 @@ export const useUserStore = create(
       async refresh() {},
 
       async getBusinessData() {
-        try {
-          const { data: res } = await BusinessService.fetch();
-          set({ businessData: res.data[0] });
-          return res.data[0];
-        } catch (err) {
-          throw err;
-        }
+        const { data: res } = await BusinessService.fetch();
+        set({ businessData: res.data[0] });
+        return res.data[0];
       },
 
       logout() {

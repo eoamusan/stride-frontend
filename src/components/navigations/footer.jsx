@@ -9,7 +9,7 @@ import instagramLogo from '@/assets/icons/instagram.svg';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#060212] text-white w-full">
+    <footer className="w-full bg-[#060212] text-white">
       <div className="mx-auto px-[5%] py-8">
         <div className="grid grid-cols-2 gap-12 lg:grid-cols-7">
           {/* Logo and Newsletter Section */}
@@ -28,7 +28,7 @@ export default function Footer() {
                 <Input
                   type="email"
                   placeholder="Email address"
-                  className="focus:border-primary h-10 min-w-[260px] flex-1 bg-[#5B5656] text-white placeholder:text-gray-400 max-w-sm"
+                  className="focus:border-primary h-10 max-w-sm min-w-[260px] flex-1 bg-[#5B5656] text-white placeholder:text-gray-400"
                 />
                 <Button className="h-10 max-w-sm">Subscribe</Button>
               </div>
@@ -52,7 +52,7 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div className='hidden lg:block'/>
+          <div className="hidden lg:block" />
           <div>
             <h4 className="mb-6 text-lg font-semibold">Quick Links</h4>
             <ul className="space-y-3">

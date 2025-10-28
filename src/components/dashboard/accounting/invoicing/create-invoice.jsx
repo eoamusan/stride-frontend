@@ -52,16 +52,16 @@ import { Switch } from '@/components/ui/switch';
 import { useNavigate } from 'react-router';
 
 const formSchema = z.object({
-  invoice_number: z.string().min(1, { message: 'Invoice number is required' }),
+  invoice_number: z.string().optional(),
   customerId: z.string().min(1, { message: 'Customer name is required' }),
   currency: z.string().min(1, { message: 'Currency is required' }),
   category: z.string().min(1, { message: 'Category is required' }),
   c_o: z.string().optional(),
-  invoice_date: z.string().min(1, { message: 'Invoice date is required' }),
+  invoice_date: z.date(),
   term_of_payment: z
     .string()
     .min(1, { message: 'Term of payment is required' }),
-  due_date: z.string().min(1, { message: 'Due date is required' }),
+  due_date: z.date().optional(),
   products: z
     .array(
       z.object({
@@ -107,7 +107,7 @@ export default function CreateInvoice({ businessId }) {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      invoice_number: '',
+      invoice_number: `INV-${format(new Date(), 'yyyy-MM-dd')}`,
       customerId: '',
       currency: '',
       category: '',
@@ -315,12 +315,13 @@ export default function CreateInvoice({ businessId }) {
     }
   };
 
-  const addPaymentGateway = () => {
-    // Functionality to add payment gateway
-    console.log('Add payment gateway');
-  };
+  // const addPaymentGateway = () => {
+  //   // Functionality to add payment gateway
+  //   console.log('Add payment gateway');
+  // };
 
   const onSubmit = async (data) => {
+    console.log('Form submitted with data:', data);
     try {
       setIsSubmitting(true);
 
@@ -328,7 +329,7 @@ export default function CreateInvoice({ businessId }) {
       const formattedData = {
         businessId: businessId,
         invoice: {
-          customerId: data.customer_name,
+          customerId: data.customerId,
           currency: data.currency,
           category: data.category,
           co: data.c_o || '',
@@ -347,11 +348,15 @@ export default function CreateInvoice({ businessId }) {
         },
       };
 
-      await InvoiceService.create(formattedData);
+      console.log('Formatted data:', formattedData);
+      const res = await InvoiceService.create({ data: formattedData });
+      console.log(res);
       toast.success('Invoice created successfully');
-      setIsSuccessModalOpen(true);
       localStorage.removeItem(STORAGE_KEY);
+      form.reset();
+      setIsSuccessModalOpen(true);
     } catch (err) {
+      console.error('Error submitting form:', err);
       toast.error(err.response?.message || err.message || 'An error occurred');
     } finally {
       setIsSubmitting(false);
@@ -362,8 +367,30 @@ export default function CreateInvoice({ businessId }) {
     setIsPreview(true);
   };
 
-  const handleSend = () => {
-    form.handleSubmit(onSubmit)();
+  const handleSave = async () => {
+    console.log('Save button clicked');
+    if (isSubmitting) {
+      console.log('Already submitting, returning');
+      return;
+    }
+
+    // Check form validity
+    const formData = form.getValues();
+    console.log('Current form data:', formData);
+
+    // Trigger form validation and submission
+    const isValid = await form.trigger();
+    console.log('Form validation result:', isValid);
+
+    if (isValid) {
+      console.log('Form is valid, submitting...');
+      form.handleSubmit(onSubmit)();
+    } else {
+      console.log('Form validation failed');
+      const errors = form.formState.errors;
+      console.log('Form errors:', errors);
+      toast.error('Please fill in all required fields');
+    }
   };
 
   if (isPreview) {
@@ -388,25 +415,34 @@ export default function CreateInvoice({ businessId }) {
         />
       ) : (
         <>
-          <div className="flex items-center justify-end gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <Button
-              variant="outline"
-              className={'h-11'}
-              onClick={() => setShowTemplateSettings(true)}
+              size={'sm'}
+              variant={'outline'}
+              onClick={() => navigate(-1)}
             >
-              <NotepadTextIcon />
-              Template
+              Back
             </Button>
-            <Button
-              variant="outline"
-              className={'h-11'}
-              onClick={() =>
-                navigate('/dashboard/accounting/invoicing/settings')
-              }
-            >
-              <SettingsIcon />
-              Settings
-            </Button>
+            <div className="flex items-center justify-end gap-4">
+              <Button
+                variant="outline"
+                className={'h-11'}
+                onClick={() => setShowTemplateSettings(true)}
+              >
+                <NotepadTextIcon />
+                Template
+              </Button>
+              <Button
+                variant="outline"
+                className={'h-11'}
+                onClick={() =>
+                  navigate('/dashboard/accounting/invoicing/settings')
+                }
+              >
+                <SettingsIcon />
+                Settings
+              </Button>
+            </div>
           </div>
           {/* Header */}
           <div className="mt-4 mb-8 flex items-center justify-between">
@@ -731,9 +767,7 @@ export default function CreateInvoice({ businessId }) {
                                   placeholder="Enter price"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(
-                                      parseFloat(e.target.value) || 0
-                                    )
+                                    field.onChange(parseFloat(e.target.value))
                                   }
                                 />
                               </FormControl>
@@ -756,9 +790,7 @@ export default function CreateInvoice({ businessId }) {
                                   placeholder="QTY"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(
-                                      parseInt(e.target.value) || 1
-                                    )
+                                    field.onChange(parseInt(e.target.value))
                                   }
                                 />
                               </FormControl>
@@ -772,7 +804,7 @@ export default function CreateInvoice({ businessId }) {
                         <FormField
                           control={form.control}
                           name={`products.${index}.total_price`}
-                          render={({ field }) => (
+                          render={() => (
                             <FormItem>
                               <FormControl>
                                 <Input
@@ -916,7 +948,7 @@ export default function CreateInvoice({ businessId }) {
                       <PlusIcon className="h-4 w-4" />
                       Add New bank
                     </Button>
-
+                    {/* 
                     <Button
                       type="button"
                       variant="ghost"
@@ -927,7 +959,7 @@ export default function CreateInvoice({ businessId }) {
                     >
                       <PlusIcon className="h-4 w-4" />
                       Add payment Gateway
-                    </Button>
+                    </Button> */}
                   </div>
                   <div className="w-full max-w-sm space-y-4">
                     <div className="space-y-2 text-sm font-medium">
@@ -951,9 +983,7 @@ export default function CreateInvoice({ businessId }) {
                                     className="h-10 w-24 text-right"
                                     {...field}
                                     onChange={(e) =>
-                                      field.onChange(
-                                        parseFloat(e.target.value) || 0
-                                      )
+                                      field.onChange(parseFloat(e.target.value))
                                     }
                                   />
                                 </FormControl>
@@ -1047,9 +1077,7 @@ export default function CreateInvoice({ businessId }) {
                                   className="h-10 w-24 text-right"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(
-                                      parseFloat(e.target.value) || 0
-                                    )
+                                    field.onChange(parseFloat(e.target.value))
                                   }
                                 />
                               </FormControl>
@@ -1099,7 +1127,7 @@ export default function CreateInvoice({ businessId }) {
                       <FormItem>
                         <FormControl>
                           <Textarea
-                            placeholder="Terms and conditions..."
+                            placeholder="Internal notes..."
                             {...field}
                           />
                         </FormControl>
@@ -1157,15 +1185,20 @@ export default function CreateInvoice({ businessId }) {
 
               {/* Action Buttons */}
               <div className="flex gap-4 pt-6">
-                <Button className={'h-10'} onClick={handleSend}>
-                  <SendIcon className="size-4" />
-                  Send
+                <Button
+                  type="button"
+                  className={'h-10'}
+                  onClick={handleSave}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>
                 <Button
                   type="button"
                   className={'h-10'}
                   variant="outline"
                   onClick={handlePreview}
+                  disabled={isSubmitting}
                 >
                   <EyeIcon className="size-4" />
                   Preview

@@ -65,7 +65,7 @@ export default function Header({ onMobileMenuToggle }) {
             </p>
             <ChevronLeftIcon size={14} className="rotate-180" />
             <p className="flex items-center gap-0.5">
-              <span className="max-w-[80px] truncate">Grace bank</span>
+              <span className="max-w-20 truncate">Grace bank</span>
               <LandmarkIcon size={12} color="#434343" />
             </p>
           </div>

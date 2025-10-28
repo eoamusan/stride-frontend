@@ -131,7 +131,7 @@ export default function AccountingOverview() {
       </div>
       <div className="mt-6 flex flex-col gap-6 lg:flex-row">
         <RecentTransactionCard className={'w-full lg:w-[59%]'} />
-        <AccountBalanceCard className={'w-full lg:w-[39%] h-fit'} />
+        <AccountBalanceCard className={'h-fit w-full lg:w-[39%]'} />
       </div>
     </div>
   );

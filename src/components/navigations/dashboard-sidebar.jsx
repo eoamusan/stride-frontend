@@ -86,7 +86,7 @@ export default function Sidebar() {
         className="sticky top-0 flex cursor-pointer items-center bg-white pt-2 pb-1"
         onClick={handleBackClick}
       >
-        <button className="flex items-center gap-2 px-4 py-2 text-gray-600 transition-colors cursor-pointer duration-200 hover:text-gray-800">
+        <button className="flex cursor-pointer items-center gap-2 px-4 py-2 text-gray-600 transition-colors duration-200 hover:text-gray-800">
           <ArrowLeftIcon size={24} />
         </button>
         <h2 className="text-lg font-semibold text-gray-800">

@@ -118,7 +118,7 @@ export default function ChatBox({
       className={`z-40 flex ${isModal ? '' : 'h-[calc(100vh-9rem)]'} w-full flex-col bg-white`}
     >
       {/* Chat Header */}
-      <div className="flex flex-shrink-0 items-center justify-between border-b p-4">
+      <div className="flex shrink-0 items-center justify-between border-b p-4">
         <div className="flex items-center gap-3">
           {onBack && (
             <Button
@@ -152,14 +152,14 @@ export default function ChatBox({
       </div>
 
       {/* Date Separator */}
-      <div className="flex flex-shrink-0 justify-center py-2">
+      <div className="flex shrink-0 justify-center py-2">
         <span className="text-xs text-[#434343]">Today</span>
       </div>
 
       {/* Messages Container */}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2">
         <div className="space-y-6">
-          {conversationData.map((msg, index) => (
+          {conversationData.map((msg) => (
             <div key={msg.id} className="space-y-1">
               {/* Message Bubble */}
               <div
@@ -207,7 +207,7 @@ export default function ChatBox({
       </div>
 
       {/* Message Input */}
-      <div className="flex-shrink-0 p-6">
+      <div className="shrink-0 p-6">
         {/* File Attachments Preview */}
         {attachedFiles.length > 0 && (
           <div className="mb-4 space-y-2">
@@ -243,7 +243,7 @@ export default function ChatBox({
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="border-0 bg-transparent pl-6 text-sm shadow-none placeholder:text-[#434343] focus:ring-0 focus-visible:ring-0 h-9 overflow-y-auto max-h-[60px]"
+            className="h-9 max-h-[60px] overflow-y-auto border-0 bg-transparent pl-6 text-sm shadow-none placeholder:text-[#434343] focus:ring-0 focus-visible:ring-0"
           />
           <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
             <PopoverTrigger asChild>
