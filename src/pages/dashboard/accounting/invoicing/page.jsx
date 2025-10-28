@@ -10,48 +10,9 @@ import InvoiceService from '@/api/invoice';
 import BusinessService from '@/api/business';
 import toast from 'react-hot-toast';
 import { useUserStore } from '@/stores/user-store';
+import { format } from 'date-fns';
 
 const invoice = [''];
-
-// Invoice data from invoice-table.jsx
-const invoiceData = [
-  {
-    id: 'INV-1001',
-    customer: 'ABC Corporation',
-    currency: 'NGN',
-    amount: '$15,400.00',
-    issueDate: '$15,400.00',
-    dueDate: 'Jul 20, 2024',
-    status: 'Overdue',
-  },
-  {
-    id: 'INV-1002',
-    customer: 'ABC Corporation',
-    currency: 'EUR',
-    amount: '$15,400.00',
-    issueDate: '$15,400.00',
-    dueDate: 'Jul 20, 2024',
-    status: 'Paid',
-  },
-  {
-    id: 'INV-1003',
-    customer: 'ABC Corporation',
-    currency: 'USD',
-    amount: '$15,400.00',
-    issueDate: '$15,400.00',
-    dueDate: 'Jul 20, 2024',
-    status: 'Pending',
-  },
-  {
-    id: 'INV-1004',
-    customer: 'ABC Corporation',
-    currency: 'GBP',
-    amount: '$15,400.00',
-    issueDate: '$15,400.00',
-    dueDate: 'Jul 20, 2024',
-    status: 'Overdue',
-  },
-];
 
 // Table configuration
 const invoiceColumns = [
@@ -65,9 +26,9 @@ const invoiceColumns = [
 ];
 
 const invoiceStatusStyles = {
-  Paid: 'bg-green-100 text-green-800 hover:bg-green-100',
-  Pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-  Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
+  PAID: 'bg-green-100 text-green-800 hover:bg-green-100',
+  PENDING: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+  OVERDUE: 'bg-red-100 text-red-800 hover:bg-red-100',
 };
 
 const invoiceDropdownActions = [
@@ -89,42 +50,22 @@ const invoiceStats = [
   {
     title: 'Total Invoices',
     unit: '',
-    value: 120,
-    isPositive: true,
-    percentage: '2.45',
-    chartData: [20, 25, 30, 28, 35, 40, 38, 45, 50],
   },
   {
     title: 'Total Amount',
     unit: '$',
-    value: 45000,
-    isPositive: true,
-    percentage: '3.75',
-    chartData: [2000, 2500, 3000, 2800, 3500, 4000, 3800, 4500, 5000],
   },
   {
     title: 'Outstanding Invoices',
     unit: '$',
-    value: 15000,
-    isPositive: false,
-    percentage: '1.25',
-    chartData: [500, 600, 550, 580, 620, 700, 680, 720, 750],
   },
   {
     title: 'Unpaid Invoices',
     unit: '',
-    value: 45,
-    isPositive: false,
-    percentage: '0.75',
-    chartData: [300, 350, 400, 380, 420, 450, 430, 470, 500],
   },
   {
     title: 'Collection Rate',
     unit: '%',
-    value: 88,
-    percentage: '92.5',
-    isPositive: true,
-    chartData: [80, 82, 85, 83, 87, 90, 88, 92, 95],
   },
 ];
 
@@ -138,6 +79,21 @@ export default function Invoicing() {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const { businessData } = useUserStore();
   const navigate = useNavigate();
+
+  // Transform invoice data to match table format
+  const transformInvoiceData = (invoices) => {
+    if (!invoices || !Array.isArray(invoices)) return [];
+
+    return invoices.map((invoice) => ({
+      id: invoice._id,
+      customer: invoice.customerId, // You might want to fetch customer name based on ID
+      currency: invoice.currency,
+      amount: '$0.00', // Calculate from products when available
+      issueDate: format(invoice.invoiceDate, 'PP'),
+      dueDate: format(invoice.dueDate, 'PP'),
+      status: invoice.product?.status || 'PENDING',
+    }));
+  };
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -168,7 +124,6 @@ export default function Invoicing() {
   // Handle row actions for the table
   const handleRowAction = (action, item) => {
     console.log(`Action: ${action}`, item);
-    console.log(invoiceList);
     switch (action) {
       case 'edit':
         // Add edit logic here
@@ -197,7 +152,8 @@ export default function Invoicing() {
 
   const handleSelectAllItems = (checked) => {
     if (checked) {
-      setSelectedItems(invoiceData.map((item) => item.id));
+      const transformedData = transformInvoiceData(invoiceList);
+      setSelectedItems(transformedData.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
@@ -289,14 +245,14 @@ export default function Invoicing() {
                   className="w-full max-w-[259px]"
                   title={stat.title}
                   unit={stat.unit}
-                  {...stat}
+                  emptyState
                 />
               ))}
           </div>
 
           <AccountingTable
             title="Invoice Management"
-            data={invoiceData}
+            data={transformInvoiceData(invoiceList)}
             columns={invoiceColumns}
             searchFields={['customer', 'id']}
             searchPlaceholder="Search invoices......"
