@@ -135,7 +135,7 @@ export default function Register() {
           <Link to="/" className="mx-auto block w-[131px]">
             <img
               src={strideLogo}
-              alt="Stride"
+              alt="Oneda"
               className="mx-auto block w-[131px]"
             />
           </Link>
@@ -272,7 +272,7 @@ export default function Register() {
                         <Checkbox onCheckedChange={field.onChange} {...field} />
                       </FormControl>
                       <FormLabel className={'text-xs font-normal'}>
-                        I agree to receive marketing messages from Stride
+                        I agree to receive marketing messages from Oneda.
                       </FormLabel>
                       <FormMessage />
                     </FormItem>

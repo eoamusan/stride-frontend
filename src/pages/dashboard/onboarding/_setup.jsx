@@ -77,7 +77,7 @@ export default function Setup({ setNext, setFormData, formData }) {
         <header>
           <img
             src={StrideLogo}
-            alt="Stride"
+            alt="Oneda"
             className="mx-auto block w-[131px]"
           />
           <hgroup className="mt-6 max-w-[420px] text-center">

@@ -114,7 +114,7 @@ export default function NewPassword({ setFormData, formData }) {
           <Link to="/" className="mx-auto block w-[131px]">
             <img
               src={strideLogo}
-              alt="Stride"
+              alt="Oneda"
               className="mx-auto block w-[131px]"
             />
           </Link>

@@ -158,7 +158,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
       <div className="fixed top-0 bottom-0 left-0 z-50 flex w-80 flex-col bg-white shadow-xl lg:hidden">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 p-4">
-          <img src={strideLogo} alt="Stride Logo" className="h-8" />
+          <img src={strideLogo} alt="Oneda Logo" className="h-8" />
           <Button
             variant="ghost"
             size="icon"

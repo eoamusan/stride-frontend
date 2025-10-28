@@ -105,7 +105,7 @@ export default function Header({ onMobileMenuToggle }) {
       <div className="hidden w-full items-center justify-between gap-8 lg:flex">
         {/* Logo */}
         <div>
-          <img src={strideLogo} alt="Stride Logo" />
+          <img src={strideLogo} alt="Oneda Logo" />
         </div>
 
         <div className="flex items-center justify-evenly gap-8">

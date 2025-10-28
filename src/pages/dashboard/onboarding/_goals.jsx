@@ -133,7 +133,7 @@ export default function Goals({ setBack, setFormData, formData }) {
           </Button>
           <img
             src={StrideLogo}
-            alt="Stride"
+            alt="Oneda"
             className="mx-auto block w-[131px]"
           />
           <hgroup className="mt-6 max-w-[420px] text-center">
@@ -151,7 +151,7 @@ export default function Goals({ setBack, setFormData, formData }) {
                 name="goals"
                 render={() => (
                   <FormItem>
-                    <FormLabel>What do you want to do with Stride?</FormLabel>
+                    <FormLabel>What do you want to do with Oneda?</FormLabel>
 
                     {/* Selected Goals as Badges */}
                     {selectedGoals.length > 0 && (

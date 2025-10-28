@@ -15,7 +15,7 @@ export default function Footer() {
           {/* Logo and Newsletter Section */}
           <div className="col-span-2">
             <div className="mb-8">
-              <img src={strideLogo} alt="Stride" className="mb-6 h-10 w-auto" />
+              <img src={strideLogo} alt="Oneda" className="mb-6 h-10 w-auto" />
               <h3 className="text-xl font-semibold">
                 Subscribe to our Newsletter!
               </h3>
@@ -36,16 +36,16 @@ export default function Footer() {
 
             {/* Social Media Links */}
             <div className="flex gap-4">
-              <Link to="https://twitter.com/stride">
+              <Link to="https://twitter.com/oneda">
                 <img src={facebookLogo} alt="Facebook" />
               </Link>
-              <Link to={'https://www.linkedin.com/company/stride'}>
+              <Link to={'https://www.linkedin.com/company/oneda'}>
                 <img src={linkedinLogo} alt="LinkedIn" />
               </Link>
-              <Link to={'https://www.instagram.com/stride'}>
+              <Link to={'https://www.instagram.com/oneda'}>
                 <img src={instagramLogo} alt="Instagram" />
               </Link>
-              <Link to={'https://www.x.com/stride'}>
+              <Link to={'https://www.x.com/oneda'}>
                 <img src={xLogo} alt="X" />
               </Link>
             </div>
@@ -150,7 +150,7 @@ export default function Footer() {
       <div>
         <div className="mx-auto px-[5%] py-6">
           <p className="text-center text-gray-400">
-            Copyright © Stride All Right Reserved
+            Copyright ©Oneda All Right Reserved
           </p>
         </div>
       </div>

@@ -160,7 +160,7 @@ const testimonials = [
     role: 'Freelance Marketing Consultant',
     avatar: containerPlaceholder, // Using placeholder for now
     testimonial:
-      "Before Stride, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
+      "Before Oneda, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
   },
   {
     id: 2,
@@ -168,7 +168,7 @@ const testimonials = [
     role: 'Freelance Marketing Consultant',
     avatar: containerPlaceholder, // Using placeholder for now
     testimonial:
-      "Before Stride, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
+      "Before Oneda, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
   },
   {
     id: 3,
@@ -176,7 +176,7 @@ const testimonials = [
     role: 'Freelance Marketing Consultant',
     avatar: containerPlaceholder, // Using placeholder for now
     testimonial:
-      "Before Stride, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
+      "Before Oneda, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
   },
   {
     id: 4,
@@ -184,7 +184,7 @@ const testimonials = [
     role: 'Freelance Marketing Consultant',
     avatar: containerPlaceholder, // Using placeholder for now
     testimonial:
-      "Before Stride, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
+      "Before Oneda, I was drowning in spreadsheets and juggling five different apps just to track my time and send invoices. Now everything flows seamlessly from project planning to getting paid. My client relationships have never been stronger, and I've reduced my admin time by 60%. The mobile app is a game changer when I'm meeting clients on-site",
   },
 ];
 
@@ -201,10 +201,10 @@ export default function Landing() {
           <div className="w-full max-w-2xl">
             <h1 className="mb-6 text-3xl font-bold md:text-4xl lg:text-5xl">
               Transform Your Business Operations with{' '}
-              <span className="text-primary">Stride</span>
+              <span className="text-primary">Oneda</span>
             </h1>
             <p className="mb-6 text-sm md:text-base">
-              Stride combines project management, invoicing, asset management,
+              Oneda combines project management, invoicing, asset management,
               accounting, and HR functionalities in one intuitive platform
               designed for modern businesses. Stop juggling multiple tools and
               start focusing on what matters the most.
@@ -423,10 +423,10 @@ export default function Landing() {
               </div>
               <h2 className="mx-auto max-w-xl text-2xl font-bold text-gray-900 md:text-4xl">
                 What our clients think about{' '}
-                <span className="text-primary">Stride</span>
+                <span className="text-primary">Oneda</span>
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-600">
-                See how freelancers, agencies, and startups use Stride to
+                See how freelancers, agencies, and startups use Oneda to
                 streamline their workflow, stay organized, and get paid faster
               </p>
             </div>
@@ -484,7 +484,7 @@ export default function Landing() {
                 </h2>
                 <p className="mb-8 text-base text-white/90">
                   Join thousands of professionals who've streamlined their
-                  workflow and boosted productivity with Stride. Start your free
+                  workflow and boosted productivity with Oneda. Start your free
                   trial today and see the difference.
                 </p>
 

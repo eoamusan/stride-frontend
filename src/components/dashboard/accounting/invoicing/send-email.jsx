@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 
 export default function SendInvoiceEmail({ open, onOpenChange, invoiceData }) {
   const businessName =
-    invoiceData?.businessSettings?.businessName || 'Stride Business';
+    invoiceData?.businessSettings?.businessName || 'Oneda Business';
   const defaultSubject = `Invoice from ${businessName}`;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
