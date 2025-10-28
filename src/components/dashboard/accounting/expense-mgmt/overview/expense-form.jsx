@@ -715,7 +715,7 @@ export default function ExpenseForm({
                       <FormControl>
                         <Textarea
                           placeholder="Add any additional notes..."
-                          className="min-h-[160px] resize-none"
+                          className="min-h-40 resize-none"
                           {...field}
                         />
                       </FormControl>

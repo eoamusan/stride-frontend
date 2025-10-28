@@ -128,6 +128,7 @@ export default function VendorInvoices() {
   const onDownloadFormats = (format, checked) => {
     console.log(`Download ${format}:`, checked);
     // Handle download logic here
+    console.log(openInvoiceForm);
   };
 
   const onColumnsChange = (columnKey, checked) => {

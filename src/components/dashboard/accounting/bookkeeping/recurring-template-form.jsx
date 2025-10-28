@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -431,13 +430,13 @@ export default function RecurringTemplateForm({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="h-10 w-full max-w-[176px] text-sm"
+                className="h-10 w-full max-w-44 text-sm"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="h-10 w-full max-w-[176px] text-sm"
+                className="h-10 w-full max-w-44 text-sm"
               >
                 Save
               </Button>

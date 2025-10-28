@@ -109,7 +109,7 @@ export default function AddBillForm({
 
   const onFormSubmit = (data) => {
     console.log('Bill data:', data);
-
+    console.log(showVendorSelect);
     reset();
     onOpenChange?.(false);
     if (onSuccess) {

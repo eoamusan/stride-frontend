@@ -166,7 +166,7 @@ export default function MessageList({ onChatSelect, onCloseChatPage }) {
     message.company.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleChatClick = (message) => {
+  const _handleChatClick = (message) => {
     if (onChatSelect) {
       onChatSelect(message);
     }

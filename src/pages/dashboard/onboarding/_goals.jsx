@@ -149,7 +149,7 @@ export default function Goals({ setBack, setFormData, formData }) {
               <FormField
                 control={form.control}
                 name="goals"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormLabel>What do you want to do with Stride?</FormLabel>
 

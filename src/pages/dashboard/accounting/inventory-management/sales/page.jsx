@@ -21,6 +21,7 @@ import RecordSaleForm from '@/components/dashboard/accounting/inventory/sales/re
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import ViewSaleModal from '@/components/dashboard/accounting/inventory/sales/view-sale-details';
 import geishaImg from '@/assets/images/geisha.png';
+import { format } from 'date-fns';
 
 const salesMetrics = [
   {

@@ -37,7 +37,7 @@ export default function SupplierCard({
   onSelected,
   onContact,
   onEdit,
-  onDelete,
+  // onDelete,
 }) {
   // Generate avatar initials
   const getInitials = (name) => {
@@ -53,7 +53,7 @@ export default function SupplierCard({
   const renderStars = (rating) => {
     const stars = [];
     const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
+    // const hasHalfStar = rating % 1 !== 0;
 
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
@@ -114,17 +114,17 @@ export default function SupplierCard({
         {/* Contact Information */}
         <div className="space-y-3 font-medium">
           <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <User className="h-4 w-4 flex-shrink-0" />
+            <User className="h-4 w-4 shrink-0" />
             <span>{supplier.contactPerson}</span>
           </div>
 
           <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <Mail className="h-4 w-4 flex-shrink-0" />
+            <Mail className="h-4 w-4 shrink-0" />
             <span className="truncate">{supplier.email}</span>
           </div>
 
           <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <Phone className="h-4 w-4 flex-shrink-0" />
+            <Phone className="h-4 w-4 shrink-0" />
             <span>{supplier.phone}</span>
           </div>
         </div>

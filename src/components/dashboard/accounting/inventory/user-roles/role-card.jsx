@@ -55,7 +55,7 @@ export default function RoleCard({
           <div className="space-y-3">
             {role.permissions.map((permission, index) => (
               <div key={index} className="flex items-center space-x-2">
-                <Check className="h-4 w-4 flex-shrink-0 text-[#254C00]" />
+                <Check className="h-4 w-4 shrink-0 text-[#254C00]" />
                 <span className="text-sm text-gray-600">{permission}</span>
               </div>
             ))}

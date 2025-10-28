@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import strideLogo from '@/assets/icons/stride.svg';
-import checkmarkIcon from '@/assets/icons/checkmark.svg';
+// import checkmarkIcon from '@/assets/icons/checkmark.svg';
 import { Link } from 'react-router';
 import toast from 'react-hot-toast';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';

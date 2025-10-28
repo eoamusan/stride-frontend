@@ -98,7 +98,7 @@ export default function SchedulePaymentForm({
     },
   });
 
-  const { handleSubmit, control, reset, watch } = form;
+  const { handleSubmit, control, reset } = form;
 
   const handleCancel = () => {
     reset();

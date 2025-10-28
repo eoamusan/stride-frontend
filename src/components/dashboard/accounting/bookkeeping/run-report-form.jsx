@@ -89,12 +89,12 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
     form.reset();
   };
 
-  const handleCancel = () => {
-    form.reset();
-    if (onClose) {
-      onClose();
-    }
-  };
+  // const handleCancel = () => {
+  //   form.reset();
+  //   if (onClose) {
+  //     onClose();
+  //   }
+  // };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -281,7 +281,7 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
 
               {/* Run Report Button */}
               <div className="flex items-end justify-end">
-                <Button type="submit" className="w-full max-w-[176px] text-sm">
+                <Button type="submit" className="w-full max-w-44 text-sm">
                   Run report
                 </Button>
               </div>

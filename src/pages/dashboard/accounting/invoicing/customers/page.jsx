@@ -5,7 +5,7 @@ import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 
-const customers = [''];
+// const customers = [''];
 const customerData = [
   {
     id: 'CUST-1001',

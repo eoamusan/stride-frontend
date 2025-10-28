@@ -108,7 +108,7 @@ export default function Register() {
   });
 
   const onSubmit = async (data) => {
-    const { acceptTerms, ...payload } = data;
+    const { _acceptTerms, ...payload } = data;
     try {
       await register(payload);
 
@@ -119,6 +119,7 @@ export default function Register() {
       });
       navigate('/dashboard/onboarding');
     } catch (err) {
+      console.log(err);
       // Get the fresh error message from the store
       const currentMessage = useUserStore.getState().message;
       toast.error(currentMessage, {

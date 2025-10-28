@@ -334,11 +334,11 @@ export default function Landing() {
             {/* Section Header */}
             <div className="mb-10 text-center">
               <div className="mx-auto mb-6 flex w-full max-w-32 items-center">
-                <div className="flex-grow border-t border-gray-300"></div>
+                <div className="grow border-t border-gray-300"></div>
                 <span className="mx-1 text-xs font-medium text-[#292D32]">
                   Features
                 </span>
-                <div className="flex-grow border-t border-gray-300"></div>
+                <div className="grow border-t border-gray-300"></div>
               </div>
               <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
                 Packed With Power. Built for{' '}
@@ -393,7 +393,7 @@ export default function Landing() {
                   {/* Image */}
                   <div className="flex-1">
                     <div
-                      className="aspect-[4/3] rounded-lg bg-gray-100 bg-cover bg-center"
+                      className="aspect-4/3 rounded-lg bg-gray-100 bg-cover bg-center"
                       style={{ backgroundImage: `url(${feature.image})` }}
                     >
                       <img
@@ -415,11 +415,11 @@ export default function Landing() {
             {/* Section Header */}
             <div className="mb-16 text-center">
               <div className="mx-auto mb-6 flex w-full max-w-32 items-center">
-                <div className="flex-grow border-t border-gray-300"></div>
+                <div className="grow border-t border-gray-300"></div>
                 <span className="mx-1 text-xs font-medium text-[#292D32]">
                   Testimonials
                 </span>
-                <div className="flex-grow border-t border-gray-300"></div>
+                <div className="grow border-t border-gray-300"></div>
               </div>
               <h2 className="mx-auto max-w-xl text-2xl font-bold text-gray-900 md:text-4xl">
                 What our clients think about{' '}

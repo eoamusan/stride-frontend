@@ -40,7 +40,7 @@ export default function VendorCard({
   onSelected,
   onContact,
   onEdit,
-  onDelete,
+  // onDelete,
 }) {
   // Generate avatar initials
   const getInitials = (name) => {
@@ -56,7 +56,7 @@ export default function VendorCard({
   const renderStars = (rating) => {
     const stars = [];
     const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
+    // const hasHalfStar = rating % 1 !== 0;
 
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
@@ -122,22 +122,22 @@ export default function VendorCard({
         {/* Contact Information */}
         <div className="space-y-3 font-medium">
           <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <User className="h-4 w-4 flex-shrink-0" />
+            <User className="h-4 w-4 shrink-0" />
             <span>{vendor.contactPerson}</span>
           </div>
 
           <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <Mail className="h-4 w-4 flex-shrink-0" />
+            <Mail className="h-4 w-4 shrink-0" />
             <span className="truncate">{vendor.email}</span>
           </div>
 
           <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <Phone className="h-4 w-4 flex-shrink-0" />
+            <Phone className="h-4 w-4 shrink-0" />
             <span>{vendor.phone}</span>
           </div>
 
           <div className="flex items-start space-x-3 text-sm text-gray-600">
-            <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
             <span className="leading-relaxed">{vendor.address}</span>
           </div>
         </div>

@@ -24,7 +24,7 @@ const ProductCard = ({
     image: '/api/placeholder/200/200',
   },
   onSell,
-  onView,
+  // onView,
   onSellOnShobu,
   handleDropdownAction,
 }) => {

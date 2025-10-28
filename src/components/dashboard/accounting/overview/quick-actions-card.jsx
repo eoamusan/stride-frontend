@@ -29,7 +29,7 @@ export default function QuickActionsCard({ className }) {
           <div
             onClick={() => handleActionClick(action)}
             key={i}
-            className="flex min-h-[104px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-2xl border-1 border-[#F0EEFF]"
+            className="flex min-h-[104px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-2xl border border-[#F0EEFF]"
           >
             <img src={action.icon} alt={action.title} width={20} height={20} />
             <div className="text-center">

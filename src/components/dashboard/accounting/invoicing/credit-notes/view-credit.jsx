@@ -268,13 +268,13 @@ export default function ViewCreditNote({ open, onOpenChange, creditNote }) {
             <Button
               variant="outline"
               onClick={handleDownload}
-              className="h-10 w-full max-w-[176px] text-sm"
+              className="h-10 w-full max-w-44 text-sm"
             >
               Download
             </Button>
             <Button
               onClick={handleSend}
-              className="h-10 w-full max-w-[176px] text-sm"
+              className="h-10 w-full max-w-44 text-sm"
             >
               Send
             </Button>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router';
 import EmailForm from './_email';
 import EnterOTP from './_enter-otp';
@@ -11,17 +11,23 @@ export default function ForgotPassword() {
   const [direction, setDirection] = useState(0);
 
   // Map step names to numbers for internal state management
-  const stepMapping = {
-    email: 0,
-    'enter-otp': 1,
-    'new-password': 2,
-  };
+  const stepMapping = useMemo(
+    () => ({
+      email: 0,
+      'enter-otp': 1,
+      'new-password': 2,
+    }),
+    []
+  );
 
-  const reverseStepMapping = {
-    0: 'email',
-    1: 'enter-otp',
-    2: 'new-password',
-  };
+  const reverseStepMapping = useMemo(
+    () => ({
+      0: 'email',
+      1: 'enter-otp',
+      2: 'new-password',
+    }),
+    []
+  );
 
   // Get current step from URL params, default to 'email' (0)
   const urlStepName = searchParams.get('step') || 'email';
@@ -45,7 +51,7 @@ export default function ForgotPassword() {
       searchParams.set('step', stepName);
     }
     setSearchParams(searchParams);
-  }, [step, searchParams, setSearchParams]);
+  }, [step, searchParams, setSearchParams, reverseStepMapping]);
 
   // Update local step state when URL changes (e.g., back/forward navigation)
   useEffect(() => {
@@ -54,7 +60,7 @@ export default function ForgotPassword() {
     if (urlStep !== step) {
       setStep(urlStep);
     }
-  }, [searchParams]);
+  }, [searchParams, step, stepMapping]);
 
   const nextStep = () => {
     setDirection(1);

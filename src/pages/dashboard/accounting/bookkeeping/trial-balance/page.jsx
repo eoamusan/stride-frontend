@@ -89,6 +89,7 @@ export default function TrialBalance() {
     } else {
       setSelectedItems([]);
     }
+    console.log(totalCredit, totalDebit);
   };
 
   return (

@@ -35,6 +35,7 @@ export default function TrialBalanceCta({
   onAccountingMethodChange,
   onRunReport,
   onFilter,
+  onDownloadFormats,
 }) {
   const reportPeriodOptions = [
     { value: 'empty', label: 'Select Date' },

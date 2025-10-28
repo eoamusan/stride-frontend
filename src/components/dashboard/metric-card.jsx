@@ -39,7 +39,7 @@ export default function MetricCard({
 
           {/* Chart Area */}
           {emptyChartData && (
-            <div className="ml-4 flex-shrink-0">
+            <div className="ml-4 shrink-0">
               <div className="relative h-12 w-20">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
@@ -121,7 +121,7 @@ export default function MetricCard({
 
         {/* Chart Area */}
         {chartData && (
-          <div className="ml-4 flex-shrink-0">
+          <div className="ml-4 shrink-0">
             <div className="relative h-12 w-20">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart

@@ -102,7 +102,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
         businessId: businessId,
       };
 
-      const customerRes = await CustomerService.create({
+      await CustomerService.create({
         data: dataWithAccountId,
       });
 

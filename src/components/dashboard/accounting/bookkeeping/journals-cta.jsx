@@ -35,6 +35,7 @@ export default function JournalEntriesCta({
   onRunReport,
   recurringStatus,
   onRecurringStatusChange,
+  onDownloadFormats,
 }) {
   const transactionTypeOptions = [
     { value: 'all', label: 'All Types' },

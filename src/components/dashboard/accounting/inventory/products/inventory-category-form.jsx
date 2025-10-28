@@ -81,12 +81,12 @@ export default function InventoryCategoryForm({ open, onOpenChange }) {
 
   const { handleSubmit, control, watch, setValue, getValues, reset } = form;
 
-  const handleAddProductName = () => {
-    // Logic to add product name
-    console.log('Add product name');
-    const currentNames = getValues('productNames');
-    setValue('productNames', [...currentNames, 'New Product']);
-  };
+  // const handleAddProductName = () => {
+  //   // Logic to add product name
+  //   console.log('Add product name');
+  //   const currentNames = getValues('productNames');
+  //   setValue('productNames', [...currentNames, 'New Product']);
+  // };
 
   const handleAddStorageArea = () => {
     if (newStorageAreaName.trim()) {
@@ -263,7 +263,7 @@ export default function InventoryCategoryForm({ open, onOpenChange }) {
                   <FormControl>
                     <Textarea
                       placeholder="Short explanation of the category"
-                      className="min-h-[80px]"
+                      className="min-h-20"
                       {...field}
                     />
                   </FormControl>
@@ -389,7 +389,7 @@ export default function InventoryCategoryForm({ open, onOpenChange }) {
                     onChange={(e) =>
                       setNewStorageAreaDescription(e.target.value)
                     }
-                    className="min-h-[80px]"
+                    className="min-h-20"
                   />
                 </div>
                 <div className="flex space-x-2">

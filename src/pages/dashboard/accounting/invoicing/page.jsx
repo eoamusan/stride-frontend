@@ -168,6 +168,7 @@ export default function Invoicing() {
   // Handle row actions for the table
   const handleRowAction = (action, item) => {
     console.log(`Action: ${action}`, item);
+    console.log(invoiceList);
     switch (action) {
       case 'edit':
         // Add edit logic here

@@ -42,6 +42,7 @@ export default function Messaging() {
   const handleContactSelect = (contact) => {
     // When a contact is selected, go to chat view
     setShowChatBox(true);
+    console.log(contact)
     setShowContactList(false);
   };
 

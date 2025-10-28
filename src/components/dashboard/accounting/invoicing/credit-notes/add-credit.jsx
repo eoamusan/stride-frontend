@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Form,
   FormControl,
@@ -143,7 +143,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
 
   const clearItems = () => {
     // Keep at least one item
-    const itemsToKeep = fields.slice(0, 1);
+    // const itemsToKeep = fields.slice(0, 1);
     form.setValue('line_items', [
       {
         service_date: undefined,
@@ -627,7 +627,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                       <FormControl>
                         <Textarea
                           placeholder=""
-                          className="min-h-[80px]"
+                          className="min-h-20"
                           {...field}
                         />
                       </FormControl>
@@ -647,7 +647,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                       <FormControl>
                         <Textarea
                           placeholder=""
-                          className="min-h-[80px]"
+                          className="min-h-20"
                           {...field}
                         />
                       </FormControl>
@@ -729,7 +729,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                 <Button
                   type="button"
                   variant="outline"
-                  className={'h-10 w-full max-w-[176px] text-sm'}
+                  className={'h-10 w-full max-w-44 text-sm'}
                   onClick={saveDraft}
                 >
                   Cancel
@@ -737,7 +737,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                 <Button
                   type="button"
                   variant="outline"
-                  className={'h-10 w-full max-w-[176px] text-sm'}
+                  className={'h-10 w-full max-w-44 text-sm'}
                   onClick={saveDraft}
                 >
                   Save
@@ -745,7 +745,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                 <Button
                   type="button"
                   onClick={saveAndSend}
-                  className={'h-10 w-full max-w-[176px] text-sm'}
+                  className={'h-10 w-full max-w-44 text-sm'}
                 >
                   Save and send
                 </Button>

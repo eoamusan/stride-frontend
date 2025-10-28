@@ -4,7 +4,7 @@ import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { PlusCircleIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 // Payment queue data from the image
 const paymentQueueData = [

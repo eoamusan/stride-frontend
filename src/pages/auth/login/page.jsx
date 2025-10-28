@@ -76,6 +76,7 @@ export default function Login() {
         navigate('/dashboard/onboarding');
       }
     } catch (err) {
+      console.log(err);
       const currentMessage = useUserStore.getState().message;
       toast.error(currentMessage, {
         icon: '❌',

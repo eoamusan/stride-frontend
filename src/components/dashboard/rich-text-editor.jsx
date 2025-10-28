@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useRef,
   useImperativeHandle,
+  useMemo,
 } from 'react';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
@@ -23,14 +24,17 @@ const RichTextEditor = forwardRef(
     const isUpdatingRef = useRef(false);
 
     // Default modules configuration
-    const defaultModules = {
-      toolbar: [
-        [{ header: [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'link', 'image'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['clean'],
-      ],
-    };
+    const defaultModules = useMemo(
+      () => ({
+        toolbar: [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'link', 'image'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['clean'],
+        ],
+      }),
+      []
+    );
 
     // Initialize Quill only once
     useEffect(() => {
@@ -78,7 +82,7 @@ const RichTextEditor = forwardRef(
         }
         container.innerHTML = '';
       };
-    }, []);
+    }, [currentValue, placeholder, setCurrentValue, defaultModules]);
 
     // Update content when currentValue changes externally
     useEffect(() => {

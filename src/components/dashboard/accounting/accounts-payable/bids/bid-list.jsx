@@ -109,8 +109,8 @@ export default function BidList({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [categoryFilter, _setCategoryFilter] = useState('');
+  const [statusFilter, _setStatusFilter] = useState('');
 
   // Filter bids based on search term and filters
   const filteredBids = propBidsData.filter((bid) => {

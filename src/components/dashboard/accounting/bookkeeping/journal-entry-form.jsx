@@ -734,7 +734,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
               >
                 Clear all
               </Button>
-              <Button type="submit" className="h-10 w-[176px] text-sm">
+              <Button type="submit" className="h-10 w-44 text-sm">
                 Save
               </Button>
             </div>
