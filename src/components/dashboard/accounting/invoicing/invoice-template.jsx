@@ -1,8 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { SlidersHorizontalIcon } from 'lucide-react';
-import Coloris from '@melloware/coloris';
-import '@melloware/coloris/dist/coloris.css';
+import ColorPicker from '@/components/ui/color-picker';
 import { useUserStore } from '@/stores/user-store';
 
 export default function InvoiceTemplateSettings({
@@ -18,13 +16,12 @@ export default function InvoiceTemplateSettings({
       businessData?.businessInvoiceSettings?.brandColor ||
       '#3300C9'
   );
-  const colorPickerRef = useRef(null);
 
   // Predefined brand colors for color picker
   const brandColors = [
     '#3300C9', // Blue
     '#000000', // Black
-    '#FFaabb', // White
+    '#FFaabb', // Pink
     '#FFC107', // Yellow/Amber
     '#FF5722', // Orange
     '#E91E63', // Pink/Magenta
@@ -49,29 +46,6 @@ export default function InvoiceTemplateSettings({
       );
     }
   }, [businessData, initialTemplate, initialColor]);
-
-  // Initialize Coloris for custom color picker
-  useEffect(() => {
-    // Initialize Coloris with configuration
-    Coloris.init();
-    Coloris({
-      themeMode: 'polaroid',
-      formatToggle: true,
-      selectInput: true,
-      onChange: (color) => {
-        setSelectedColor(color);
-      },
-    });
-
-    // Cleanup function
-    return () => {
-      Coloris.close();
-    };
-  }, []);
-
-  const handleColorSelect = (color) => {
-    setSelectedColor(color);
-  };
 
   const handleSave = () => {
     // Call the parent's save function with the selected values
@@ -178,48 +152,11 @@ export default function InvoiceTemplateSettings({
         {/* Brand Color Selection */}
         <div>
           <h3 className="mb-4 text-lg font-semibold">Choose Brand Color</h3>
-          <div className="space-y-3">
-            <p className="text-sm text-gray-600">Select Color</p>
-            <div className="flex items-center gap-3">
-              {brandColors.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => handleColorSelect(color)}
-                  className={`h-8 w-8 rounded-lg border-2 transition-all ${
-                    selectedColor === color
-                      ? 'border-gray-400 ring-2 ring-gray-300 ring-offset-2'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  style={{ backgroundColor: color }}
-                >
-                  {color === '#FFFFFF' && (
-                    <div className="h-full w-full rounded-lg border border-gray-200" />
-                  )}
-                </button>
-              ))}
-
-              {/* Custom Color Picker */}
-              <div
-                className={`relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-2 transition-all ${
-                  !brandColors.includes(selectedColor)
-                    ? 'border-gray-400 ring-2 ring-gray-300 ring-offset-2'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                style={{ backgroundColor: selectedColor }}
-              >
-                <SlidersHorizontalIcon size={14} className="text-white" />
-                <input
-                  type="text"
-                  data-coloris-1
-                  value={selectedColor}
-                  ref={colorPickerRef}
-                  className="absolute bottom-0 left-0 h-[33px] w-[33px] cursor-pointer rounded-full opacity-0"
-                  readOnly
-                />
-              </div>
-            </div>
-          </div>
+          <ColorPicker
+            selectedColor={selectedColor}
+            onColorChange={setSelectedColor}
+            brandColors={brandColors}
+          />
         </div>
 
         {/* Action Buttons */}

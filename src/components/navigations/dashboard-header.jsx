@@ -1,4 +1,3 @@
-import strideLogo from '@/assets/icons/stride.svg';
 import { Input } from '../ui/input';
 import {
   BellIcon,
@@ -41,7 +40,7 @@ export default function Header({ onMobileMenuToggle }) {
   };
 
   return (
-    <header className="relative flex items-center justify-between bg-white p-4">
+    <header className="relative flex items-center justify-between bg-white p-4 lg:ml-72">
       {/* Mobile Layout */}
       <div className="flex w-full items-center justify-between lg:hidden">
         {/* Left side - Hamburger + Breadcrumb */}
@@ -103,10 +102,7 @@ export default function Header({ onMobileMenuToggle }) {
 
       {/* Desktop Layout */}
       <div className="hidden w-full items-center justify-between gap-8 lg:flex">
-        {/* Logo */}
-        <div>
-          <img src={strideLogo} alt="Oneda Logo" className="h-10" />
-        </div>
+        <div className='size-2'/>
 
         <div className="flex items-center justify-evenly gap-8">
           {/* Search Input */}

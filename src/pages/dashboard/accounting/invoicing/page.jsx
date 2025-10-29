@@ -37,56 +37,31 @@ const invoiceDropdownActions = [
   { key: 'generate-receipt', label: 'Generate receipt' },
 ];
 
-const invoiceListData = {
-  pagination: {
-    page: 1,
-    totalPages: 10,
-    pageSize: 10,
-    totalCount: 100,
-  },
-};
-
-const invoiceStats = [
-  {
-    title: 'Total Invoices',
-    unit: '',
-  },
-  {
-    title: 'Total Amount',
-    unit: '$',
-  },
-  {
-    title: 'Outstanding Invoices',
-    unit: '$',
-  },
-  {
-    title: 'Unpaid Invoices',
-    unit: '',
-  },
-  {
-    title: 'Collection Rate',
-    unit: '%',
-  },
-];
-
 export default function Invoicing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [toggleCreateInvoice, setToggleCreateInvoice] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [hasBankAccount, setHasBankAccount] = useState(false);
   const [invoiceList, setInvoiceList] = useState();
-  // const [invoiceStatsData, setInvoiceStatsData] = useState([]);
+  const [invoiceStatsData, setInvoiceStatsData] = useState({});
   const [businessId, setBusinessId] = useState();
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationData, setPaginationData] = useState({
+    page: 1,
+    totalPages: 1,
+    pageSize: 10,
+    totalCount: 0,
+  });
   const { businessData } = useUserStore();
   const navigate = useNavigate();
 
   // Transform invoice data to match table format
   const transformInvoiceData = (invoices) => {
     if (!invoices || !Array.isArray(invoices)) return [];
-    
+
     return invoices.map((invoice) => ({
-      id: invoice._id,
+      id: invoice.invoiceNo,
       customer: invoice.customerId.displayName, // You might want to fetch customer name based on ID
       currency: invoice.currency,
       amount: '$0.00', // Calculate from products when available
@@ -106,15 +81,39 @@ export default function Invoicing() {
         setHasBankAccount(
           businessData?.businessInvoiceSettings?.bankAccounts?.length > 0
         );
-        const invoiceRes = await InvoiceService.fetch({ businessId });
+
+        // Fetch invoices with pagination
+        const invoiceRes = await InvoiceService.fetch({
+          businessId,
+          page: currentPage,
+          limit: paginationData.pageSize,
+        });
+
         if (invoiceRes.data && invoiceRes.data?.data?.length > 0) {
           setInvoiceList(invoiceRes.data.data);
+
+          // Update pagination data from API response
+          setPaginationData({
+            page: invoiceRes.data.pagination?.page || currentPage,
+            totalPages: invoiceRes.data.pagination?.totalPages || 1,
+            pageSize: invoiceRes.data.pagination?.pageSize || 10,
+            totalCount:
+              invoiceRes.data.pagination?.totalCount ||
+              invoiceRes.data.data.length,
+          });
         } else {
           setInvoiceList([]);
+          setPaginationData({
+            page: 1,
+            totalPages: 1,
+            pageSize: 10,
+            totalCount: 0,
+          });
         }
 
-        const invoiceStats = await InvoiceService.getAnalytics({businessId});
+        const invoiceStats = await InvoiceService.getAnalytics({ businessId });
         console.log('Invoice Stats:', invoiceStats.data);
+        setInvoiceStatsData(invoiceStats.data?.data || {});
       } catch (err) {
         console.log(err);
       } finally {
@@ -122,8 +121,10 @@ export default function Invoicing() {
       }
     };
 
-    fetchInvoices();
-  }, [businessData]);
+    if (businessData?._id) {
+      fetchInvoices();
+    }
+  }, [businessData, currentPage, paginationData.pageSize]);
 
   // Handle row actions for the table
   const handleRowAction = (action, item) => {
@@ -161,6 +162,12 @@ export default function Invoicing() {
     } else {
       setSelectedItems([]);
     }
+  };
+
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    setSelectedItems([]); // Clear selections when changing pages
   };
 
   // Check for create parameter on component mount
@@ -242,16 +249,61 @@ export default function Invoicing() {
       ) : (
         <div>
           <div className="my-10 flex w-full flex-wrap gap-4">
-            {invoiceStats.length > 0 &&
-              invoiceStats.map((stat, index) => (
-                <MetricCard
-                  key={index}
-                  className="w-full max-w-[259px]"
-                  title={stat.title}
-                  unit={stat.unit}
-                  emptyState
-                />
-              ))}
+            {/* Total Invoices Metric */}
+            <MetricCard
+              className="w-full max-w-[259px]"
+              title="Total Invoices"
+              unit=""
+              value={invoiceStatsData?.totalInvoices || 0}
+              isPositive={true}
+              percentage="0"
+              chartData={[]}
+            />
+
+            {/* Total Amount Metric */}
+            <MetricCard
+              className="w-full max-w-[259px]"
+              title="Total Amount"
+              unit="$"
+              value={invoiceStatsData?.totalAmount || 0}
+              isPositive={true}
+              percentage="0"
+              chartData={[]}
+            />
+
+            {/* Placeholder metrics for future data */}
+            <MetricCard
+              className="w-full max-w-[259px]"
+              title="Outstanding Invoices"
+              unit="$"
+              value={0}
+              isPositive={false}
+              percentage="0"
+              chartData={[]}
+              emptyState
+            />
+
+            <MetricCard
+              className="w-full max-w-[259px]"
+              title="Unpaid Invoices"
+              unit=""
+              value={0}
+              isPositive={false}
+              percentage="0"
+              chartData={[]}
+              emptyState
+            />
+
+            <MetricCard
+              className="w-full max-w-[259px]"
+              title="Collection Rate"
+              unit="%"
+              value={0}
+              isPositive={true}
+              percentage="0"
+              chartData={[]}
+              emptyState
+            />
           </div>
 
           <AccountingTable
@@ -262,7 +314,8 @@ export default function Invoicing() {
             searchPlaceholder="Search invoices......"
             statusStyles={invoiceStatusStyles}
             dropdownActions={invoiceDropdownActions}
-            paginationData={invoiceListData.pagination}
+            paginationData={paginationData}
+            onPageChange={handlePageChange}
             onRowAction={handleRowAction}
             selectedItems={selectedItems}
             handleSelectItem={handleSelectTableItem}

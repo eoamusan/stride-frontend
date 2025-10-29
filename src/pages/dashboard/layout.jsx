@@ -28,12 +28,12 @@ export default function DashboardLayout() {
         style={{ overscrollBehavior: 'none' }}
       >
         <div
-          className="fixed top-16 bottom-0 left-0 z-30 bg-white pt-6 max-md:hidden"
+          className="fixed top-16 bottom-0 left-0 z-30 bg-white pt-6 max-lg:hidden"
           style={{ overscrollBehavior: 'none' }}
         >
           <Sidebar />
         </div>
-        <div className="ml-4 flex-1 overflow-y-auto md:ml-76">
+        <div className="ml-4 flex-1 overflow-y-auto lg:ml-76">
           <div className="pt-4 pr-4">
             {!cancelNotification && (
               <TopAlert

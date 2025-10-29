@@ -51,7 +51,6 @@ import { Switch } from '@/components/ui/switch';
 import { useNavigate } from 'react-router';
 
 const formSchema = z.object({
-  invoice_number: z.string().optional(),
   customerId: z.string().min(1, { message: 'Customer name is required' }),
   currency: z.string().min(1, { message: 'Currency is required' }),
   category: z.string().min(1, { message: 'Category is required' }),
@@ -130,7 +129,6 @@ export default function CreateInvoice({ businessId }) {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      invoice_number: `INV-${format(new Date(), 'yyyy-MM-dd')}`,
       customerId: '',
       currency: '',
       category: '',
@@ -208,19 +206,6 @@ export default function CreateInvoice({ businessId }) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
     });
     return () => subscription.unsubscribe();
-  }, [form]);
-
-  // Generate unuiquee invoice number on component mount
-  useEffect(() => {
-    const generateInvoiceNumber = async () => {
-      try {
-        const response = await InvoiceService.generateInvoiceNumber();
-        form.setValue('invoice_number', 'INV-' + response.data?.data || '');
-      } catch (error) {
-        console.error('Error generating invoice number:', error);
-      }
-    };
-    generateInvoiceNumber();
   }, [form]);
 
   // Calculate product total when unit price or quantity changes
@@ -379,7 +364,6 @@ export default function CreateInvoice({ businessId }) {
           currency: data.currency,
           category: data.category,
           co: data.c_o || '',
-          invoiceNumber: data.invoice_number,
           invoiceDate: data.invoice_date,
           termsOfPayment: data.term_of_payment,
           dueDate: data.due_date,
@@ -392,15 +376,19 @@ export default function CreateInvoice({ businessId }) {
           notes: data.internal_notes || '',
           displayBankDetails: data.display_bank_details,
           applySignature: data.apply_signature,
+          subTotal: calculateSubtotal().toString(),
+          discount: (data.discount || 0).toString(),
+          vat: (data.vat || 0).toString(),
+          deliveryFee: (data.delivery_fee || 0).toString(),
+          total: calculateTotal().toString(),
         },
       };
-
-      console.log('Formatted data:', formattedData);
+      
       const res = await InvoiceService.create({ data: formattedData });
       console.log(res);
-      toast.success('Invoice created successfully');
       localStorage.removeItem(STORAGE_KEY);
       form.reset();
+      toast.success('Invoice created successfully');
       setIsSuccessModalOpen(true);
     } catch (err) {
       console.error('Error submitting form:', err);
@@ -496,7 +484,6 @@ export default function CreateInvoice({ businessId }) {
             <div className="flex items-center gap-4">
               <div>
                 <h1 className="text-2xl font-semibold">New Invoice</h1>
-                <p className="text-gray-600">{form.watch('invoice_number')}</p>
               </div>
             </div>
           </div>

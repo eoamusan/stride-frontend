@@ -14,17 +14,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  UploadIcon,
-  PlusIcon,
-  RotateCcwIcon,
-  SlidersHorizontalIcon,
-  XIcon,
-} from 'lucide-react';
+import { UploadIcon, PlusIcon, RotateCcwIcon, XIcon } from 'lucide-react';
 import AddBankModal from '../add-bank';
 import RichTextEditor from '@/components/dashboard/rich-text-editor';
-import Coloris from '@melloware/coloris';
-import '@melloware/coloris/dist/coloris.css';
+import ColorPicker from '@/components/ui/color-picker';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import toast from 'react-hot-toast';
 import BusinessService from '@/api/business';
@@ -75,17 +68,6 @@ export default function SettingsForm({ businessId, initialData }) {
   const [hasFormChanged, setHasFormChanged] = useState(false);
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
-  const colorPickerRef = useRef(null);
-
-  // Predefined brand colors
-  const brandColors = [
-    '#3B82F6', // Blue
-    '#000000', // Black
-    '#FFFFFF', // White
-    '#FFC107', // Yellow/Amber
-    '#FF5722', // Orange
-    '#E91E63', // Pink/Magenta
-  ];
 
   // File removal functions
   const removeLogo = () => {
@@ -179,27 +161,6 @@ export default function SettingsForm({ businessId, initialData }) {
       setSelectedColor(initialData.brandColor || '#3B82F6');
     }
   }, [initialData, form]);
-
-  // Initialize Coloris
-  useEffect(() => {
-    // Initialize Coloris with configuration
-    Coloris.init();
-    Coloris({
-      themeMode: 'polaroid',
-      formatToggle: true,
-      selectInput: true,
-      onChange: (color) => {
-        console.log(`The new color is ${color}`);
-        setSelectedColor(color);
-        form.setValue('brandColor', color);
-      },
-    });
-
-    // Cleanup function
-    return () => {
-      Coloris.close();
-    };
-  }, [form]);
 
   // Watch for form changes to enable/disable submit button
   useEffect(() => {
@@ -376,11 +337,6 @@ export default function SettingsForm({ businessId, initialData }) {
 
   const addNewBank = () => {
     setIsAddBankModalOpen(true);
-  };
-
-  const handleColorSelect = (color) => {
-    setSelectedColor(color);
-    form.setValue('brandColor', color);
   };
 
   const bankAccounts = form.watch('bankAccounts');
@@ -618,47 +574,14 @@ export default function SettingsForm({ businessId, initialData }) {
             {/* Brand Color Picker Section */}
             <div className="space-y-4">
               <FormLabel>Choose Brand Color</FormLabel>
-              <div className="space-y-3">
-                <FormLabel className="text-[#434343]">Select Color</FormLabel>
-                <div className="flex items-center gap-3">
-                  {brandColors.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => handleColorSelect(color)}
-                      className={`h-8 w-8 rounded-lg border-2 transition-all ${
-                        selectedColor === color
-                          ? 'border-gray-400 ring-2 ring-gray-300 ring-offset-2'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      style={{ backgroundColor: color }}
-                    >
-                      {color === '#FFFFFF' && (
-                        <div className="h-full w-full rounded-lg border border-gray-200" />
-                      )}
-                    </button>
-                  ))}
-
-                  <div
-                    className={`relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-2 transition-all ${
-                      !brandColors.includes(selectedColor)
-                        ? 'border-gray-400 ring-2 ring-gray-300 ring-offset-2'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    style={{ backgroundColor: selectedColor }}
-                  >
-                    <SlidersHorizontalIcon size={14} className="text-white" />
-                    <input
-                      type="text"
-                      data-coloris
-                      value={selectedColor}
-                      ref={colorPickerRef}
-                      className={`absolute bottom-0 left-0 h-[33px] w-[33px] cursor-pointer rounded-full opacity-0`}
-                      readOnly
-                    />
-                  </div>
-                </div>
-              </div>
+              <ColorPicker
+                selectedColor={selectedColor}
+                onColorChange={(color) => {
+                  setSelectedColor(color);
+                  form.setValue('brandColor', color);
+                }}
+                disabled={isSubmitting}
+              />
             </div>
           </div>{' '}
           {/* Signature Section */}

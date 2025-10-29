@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { ArrowLeftIcon } from 'lucide-react';
 import { sidebarItems } from '../../constants/sidebar';
+import strideLogo from '@/assets/icons/stride.svg';
 
 export default function Sidebar() {
   const [currentView, setCurrentView] = useState('main');
@@ -125,8 +126,14 @@ export default function Sidebar() {
   );
 
   return (
-    <aside className="flex h-full w-72 flex-col overflow-y-auto bg-white">
-      {currentView === 'main' ? renderMainView() : renderChildrenView()}
-    </aside>
+    <div className="-mt-22 bg-white">
+      {/* Logo */}
+      <div className="p-8 pt-4">
+        <img src={strideLogo} alt="Oneda Logo" className="h-10" />
+      </div>
+      <aside className="flex h-full w-72 flex-col overflow-y-auto bg-white">
+        {currentView === 'main' ? renderMainView() : renderChildrenView()}
+      </aside>
+    </div>
   );
 }
