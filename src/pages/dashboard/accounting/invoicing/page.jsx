@@ -26,9 +26,9 @@ const invoiceColumns = [
 ];
 
 const invoiceStatusStyles = {
-  PAID: 'bg-green-100 text-green-800 hover:bg-green-100',
-  PENDING: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-  OVERDUE: 'bg-red-100 text-red-800 hover:bg-red-100',
+  PAID: 'lowercase bg-green-100 text-green-800 hover:bg-green-100',
+  PENDING: 'lowercase bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+  OVERDUE: 'lowercase bg-red-100 text-red-800 hover:bg-red-100',
 };
 
 const invoiceDropdownActions = [
@@ -75,6 +75,7 @@ export default function Invoicing() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [hasBankAccount, setHasBankAccount] = useState(false);
   const [invoiceList, setInvoiceList] = useState();
+  // const [invoiceStatsData, setInvoiceStatsData] = useState([]);
   const [businessId, setBusinessId] = useState();
   const [isLoadingData, setIsLoadingData] = useState(false);
   const { businessData } = useUserStore();
@@ -83,15 +84,15 @@ export default function Invoicing() {
   // Transform invoice data to match table format
   const transformInvoiceData = (invoices) => {
     if (!invoices || !Array.isArray(invoices)) return [];
-
+    
     return invoices.map((invoice) => ({
       id: invoice._id,
-      customer: invoice.customerId, // You might want to fetch customer name based on ID
+      customer: invoice.customerId.displayName, // You might want to fetch customer name based on ID
       currency: invoice.currency,
       amount: '$0.00', // Calculate from products when available
       issueDate: format(invoice.invoiceDate, 'PP'),
       dueDate: format(invoice.dueDate, 'PP'),
-      status: invoice.product?.status || 'PENDING',
+      status: invoice.product?.status,
     }));
   };
 
@@ -111,6 +112,9 @@ export default function Invoicing() {
         } else {
           setInvoiceList([]);
         }
+
+        const invoiceStats = await InvoiceService.getAnalytics({businessId});
+        console.log('Invoice Stats:', invoiceStats.data);
       } catch (err) {
         console.log(err);
       } finally {

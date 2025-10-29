@@ -33,9 +33,9 @@ export default function Header() {
         <Link to="/" className="transition-all duration-300 ease-in-out">
           <img
             src={strideLogo}
-            alt="Oneda"
+            alt="Oneda Logo"
             className={`transition-all duration-300 ease-in-out ${
-              isScrolled ? 'w-32' : 'w-[131px]'
+              isScrolled ? 'h-9' : 'h-10'
             }`}
           />
         </Link>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { AnimatePresence } from 'framer-motion';
+// eslint-disable-next-line no-unused-vars
+import { AnimatePresence, motion } from 'framer-motion';
 import { useSearchParams } from 'react-router';
 import EmailForm from './_email';
 import EnterOTP from './_enter-otp';

@@ -25,7 +25,6 @@ import {
   EyeIcon,
   NotepadTextIcon,
   PlusIcon,
-  SendIcon,
   SettingsIcon,
   TrashIcon,
 } from 'lucide-react';
@@ -57,11 +56,35 @@ const formSchema = z.object({
   currency: z.string().min(1, { message: 'Currency is required' }),
   category: z.string().min(1, { message: 'Category is required' }),
   c_o: z.string().optional(),
-  invoice_date: z.date(),
+  invoice_date: z
+    .union([z.date(), z.string()])
+    .transform((val) => {
+      if (typeof val === 'string') {
+        const date = new Date(val);
+        return isNaN(date.getTime()) ? new Date() : date;
+      }
+      return val;
+    })
+    .refine((val) => val instanceof Date && !isNaN(val.getTime()), {
+      message: 'Invoice date is required',
+    }),
   term_of_payment: z
     .string()
     .min(1, { message: 'Term of payment is required' }),
-  due_date: z.date().optional(),
+  due_date: z
+    .union([z.date(), z.string()])
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      if (typeof val === 'string') {
+        const date = new Date(val);
+        return isNaN(date.getTime()) ? undefined : date;
+      }
+      return val;
+    })
+    .refine((val) => !val || (val instanceof Date && !isNaN(val.getTime())), {
+      message: 'Due date must be valid',
+    }),
   products: z
     .array(
       z.object({
@@ -146,6 +169,18 @@ export default function CreateInvoice({ businessId }) {
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
+
+        // Convert date strings back to Date objects
+        if (
+          parsedData.invoice_date &&
+          typeof parsedData.invoice_date === 'string'
+        ) {
+          parsedData.invoice_date = new Date(parsedData.invoice_date);
+        }
+        if (parsedData.due_date && typeof parsedData.due_date === 'string') {
+          parsedData.due_date = new Date(parsedData.due_date);
+        }
+
         form.reset(parsedData);
       } catch (error) {
         console.error('Error loading saved invoice data:', error);
@@ -173,6 +208,19 @@ export default function CreateInvoice({ businessId }) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
     });
     return () => subscription.unsubscribe();
+  }, [form]);
+
+  // Generate unuiquee invoice number on component mount
+  useEffect(() => {
+    const generateInvoiceNumber = async () => {
+      try {
+        const response = await InvoiceService.generateInvoiceNumber();
+        form.setValue('invoice_number', 'INV-' + response.data?.data || '');
+      } catch (error) {
+        console.error('Error generating invoice number:', error);
+      }
+    };
+    generateInvoiceNumber();
   }, [form]);
 
   // Calculate product total when unit price or quantity changes
@@ -273,7 +321,7 @@ export default function CreateInvoice({ businessId }) {
           brandColor: selectedColor,
         },
       });
-      toast.success('Settings updated successfully');
+      toast.success('Template settings updated successfully');
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
@@ -281,9 +329,7 @@ export default function CreateInvoice({ businessId }) {
           'Failed to save template settings'
       );
     }
-    console.log('Template saved:', { selectedTemplate, selectedColor });
     setShowTemplateSettings(false);
-    toast.success('Template settings updated');
   };
 
   const handleAddBank = async (newBankData) => {
@@ -333,12 +379,13 @@ export default function CreateInvoice({ businessId }) {
           currency: data.currency,
           category: data.category,
           co: data.c_o || '',
+          invoiceNumber: data.invoice_number,
           invoiceDate: data.invoice_date,
           termsOfPayment: data.term_of_payment,
           dueDate: data.due_date,
         },
         products: {
-          product: data.products,
+          products: data.products,
           banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
           paymentGateways: [], // You can populate this with actual payment gateway data if available
           terms: data.terms || '',

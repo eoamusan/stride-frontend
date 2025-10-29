@@ -12,9 +12,7 @@ export default function InvoiceTemplateSettings({
   initialColor,
 }) {
   const { businessData } = useUserStore();
-  const [selectedTemplate, setSelectedTemplate] = useState(
-    initialTemplate ? parseInt(initialTemplate) - 1 : 0
-  );
+  const [selectedTemplate, setSelectedTemplate] = useState('0');
   const [selectedColor, setSelectedColor] = useState(
     initialColor ||
       businessData?.businessInvoiceSettings?.brandColor ||
@@ -42,10 +40,12 @@ export default function InvoiceTemplateSettings({
 
     // Set template based on initial value or business data
     if (initialTemplate) {
-      setSelectedTemplate(parseInt(initialTemplate) - 1 || 0);
+      setSelectedTemplate((parseInt(initialTemplate) - 1 || 0).toString());
     } else if (businessData?.businessInvoiceSettings?.template) {
       setSelectedTemplate(
-        parseInt(businessData.businessInvoiceSettings.template) - 1 || 0
+        (
+          parseInt(businessData.businessInvoiceSettings.template) - 1 || 0
+        ).toString()
       );
     }
   }, [businessData, initialTemplate, initialColor]);
@@ -91,11 +91,11 @@ export default function InvoiceTemplateSettings({
           <div className="flex gap-4">
             <div
               className={`relative w-64 cursor-pointer overflow-hidden rounded-lg border-2 transition-all ${
-                selectedTemplate === 0
+                selectedTemplate === '0'
                   ? 'border-primary ring-primary/20 ring-2'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
-              onClick={() => setSelectedTemplate(0)}
+              onClick={() => setSelectedTemplate('0')}
             >
               {/* Preview Container */}
               <div className="relative h-52 w-full overflow-hidden bg-white">
@@ -211,7 +211,7 @@ export default function InvoiceTemplateSettings({
                 <SlidersHorizontalIcon size={14} className="text-white" />
                 <input
                   type="text"
-                  data-coloris
+                  data-coloris-1
                   value={selectedColor}
                   ref={colorPickerRef}
                   className="absolute bottom-0 left-0 h-[33px] w-[33px] cursor-pointer rounded-full opacity-0"

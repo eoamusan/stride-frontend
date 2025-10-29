@@ -36,6 +36,16 @@ export default class InvoiceService {
     return response;
   }
 
+  static async generateInvoiceNumber() {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.get(`invoice/generate/number`, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
+    return response;
+  }
+
   static async createPayment({ data }) {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(`invoice/payment`, data, {
@@ -53,6 +63,20 @@ export default class InvoiceService {
         Authorization: `Bearer ${userStore.data?.accessToken}`,
       },
     });
+    return response;
+  }
+
+  static async getAnalytics({ businessId }) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.post(
+      `invoice/analytics`,
+      { businessId },
+      {
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      }
+    );
     return response;
   }
 
