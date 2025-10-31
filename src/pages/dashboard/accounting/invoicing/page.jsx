@@ -342,7 +342,7 @@ export default function Invoicing() {
           invoiceNo={selectedInvoice?.invoiceNo}
           onBack={() => {
             setViewMode('list');
-            setSelectedInvoice(null)
+            setSelectedInvoice(null);
           }}
         />
       </div>
