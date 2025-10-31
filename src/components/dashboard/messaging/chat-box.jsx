@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   ArrowLeft,
   MoreVertical,
@@ -15,8 +15,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import EmojiPicker from 'emoji-picker-react';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 
 // Sample conversation data matching the screenshot
 const conversationData = [
@@ -69,6 +67,19 @@ export default function ChatBox({
   const [messageInput, setMessageInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
+  const textareaRef = useRef(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      const scrollHeight = textarea.scrollHeight;
+      // Max height of 120px (about 5 lines), min height of 40px
+      const newHeight = Math.min(Math.max(scrollHeight, 40), 120);
+      textarea.style.height = `${newHeight}px`;
+    }
+  }, [messageInput]);
 
   const handleSendMessage = () => {
     if (messageInput.trim() || attachedFiles.length > 0) {
@@ -77,13 +88,6 @@ export default function ChatBox({
       console.log('Attached files:', attachedFiles);
       setMessageInput('');
       setAttachedFiles([]);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
     }
   };
 
@@ -237,32 +241,10 @@ export default function ChatBox({
           </div>
         )}
 
-        <div className="bg-primary/5 flex h-[60px] items-center gap-4 rounded-2xl pr-4">
-          <Input
-            placeholder="Type your message"
-            value={messageInput}
-            onChange={(e) => setMessageInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="h-9 max-h-[60px] overflow-y-auto border-0 bg-transparent pl-6 text-sm shadow-none placeholder:text-[#434343] focus:ring-0 focus-visible:ring-0"
-          />
-          <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-              >
-                <span className="text-base">😊</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" side="top" align="center">
-              <EmojiPicker
-                onEmojiClick={handleEmojiSelect}
-                lazyLoadEmojis={true}
-              />
-            </PopoverContent>
-          </Popover>
-          <div className="relative">
+        {/* WhatsApp-style Input Area */}
+        <div className="flex min-h-[52px] items-end gap-2">
+          {/* Attachment Button */}
+          <div className="relative mb-1 max-sm:hidden">
             <input
               type="file"
               id="file-input"
@@ -274,21 +256,73 @@ export default function ChatBox({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-10 w-10 rounded-full text-gray-500 hover:bg-gray-100"
               onClick={() => document.getElementById('file-input')?.click()}
             >
-              <PaperclipIcon size={16} className="-rotate-45" />
+              <PaperclipIcon size={20} className="rotate-45" />
             </Button>
           </div>
 
-          <Button
-            onClick={handleSendMessage}
-            size="lg"
-            className={'h-11'}
-            disabled={!messageInput.trim() && attachedFiles.length === 0}
-          >
-            <SendIcon size={20} className="rounded-2xl text-white" />
-          </Button>
+          {/* Message Input Container */}
+          <div className="focus-within:border-primary flex max-h-[120px] min-h-10 flex-1 items-end rounded-3xl border border-gray-200 bg-gray-50 transition-colors">
+            {/* Text Input */}
+            <textarea
+              ref={textareaRef}
+              placeholder="Type a message"
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              className="scrollbar-thin scrollbar-thumb-gray-300 flex-1 resize-none overflow-y-auto bg-transparent px-3 py-3 text-sm leading-5 placeholder:text-gray-500 focus:outline-none"
+              style={{
+                minHeight: '40px',
+                maxHeight: '120px',
+                lineHeight: '20px',
+              }}
+              rows={1}
+            />
+
+            {/* Emoji Button */}
+            <div className="flex items-end pr-2 pb-3">
+              <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 rounded-full hover:bg-gray-200"
+                  >
+                    <span className="text-lg">😊</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0"
+                  side="top"
+                  align="center"
+                >
+                  <EmojiPicker
+                    onEmojiClick={handleEmojiSelect}
+                    lazyLoadEmojis={true}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* Send Button */}
+          <div className="mb-1">
+            <Button
+              onClick={handleSendMessage}
+              size="icon"
+              className="h-10 w-10 rounded-full shadow-lg"
+              disabled={!messageInput.trim() && attachedFiles.length === 0}
+            >
+              <SendIcon size={18} className="text-white" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -16,7 +16,7 @@ export default function ChatBoxModal({ onClose }) {
 
   return (
     <div
-      className={`relative w-[80vw] max-w-[618px] min-w-[341px] rounded-lg border border-gray-200 bg-white shadow-sm`}
+      className={`fixed inset-0 w-full sm:relative  max-w-[618px] min-w-[341px] rounded-lg border border-gray-200 bg-white shadow-sm`}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4">

@@ -2,7 +2,14 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeftIcon, ArrowRightIcon, Search, XIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  Search,
+  XIcon,
+  Check,
+} from 'lucide-react';
 import {
   Pagination,
   PaginationContent,
@@ -192,9 +199,15 @@ const contactsData = [
   },
 ];
 
-export default function ContactList({ onClose, onContactSelect }) {
+export default function ContactList({
+  onClose,
+  onContactSelect,
+  multiSelect = true,
+  onSelectionChange,
+}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedContacts, setSelectedContacts] = useState([]);
   const itemsPerPage = 10;
 
   // Filter contacts based on search query
@@ -216,10 +229,40 @@ export default function ContactList({ onClose, onContactSelect }) {
 
   // Handle contact selection
   const handleContactSelect = (contact) => {
-    if (onContactSelect) {
-      onContactSelect(contact);
+    if (multiSelect) {
+      const isSelected = selectedContacts.find((c) => c.id === contact.id);
+      let newSelection;
+
+      if (isSelected) {
+        newSelection = selectedContacts.filter((c) => c.id !== contact.id);
+      } else {
+        newSelection = [...selectedContacts, contact];
+      }
+
+      setSelectedContacts(newSelection);
+
+      if (onSelectionChange) {
+        onSelectionChange(newSelection);
+      }
+    } else {
+      if (onContactSelect) {
+        onContactSelect(contact);
+      }
     }
   };
+
+  // Check if contact is selected
+  const isContactSelected = (contactId) => {
+    return selectedContacts.some((c) => c.id === contactId);
+  };
+
+  // Clear selections
+  // const clearSelections = () => {
+  //   setSelectedContacts([]);
+  //   if (onSelectionChange) {
+  //     onSelectionChange([]);
+  //   }
+  // };
 
   // Handle close
   const handleClose = () => {
@@ -232,7 +275,14 @@ export default function ContactList({ onClose, onContactSelect }) {
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold">New Message</h2>
+          <h2 className="text-lg font-semibold">
+            {multiSelect ? 'Select Contacts' : 'New Message'}
+          </h2>
+          {multiSelect && selectedContacts.length > 0 && (
+            <span className="text-sm text-gray-500">
+              ({selectedContacts.length} selected)
+            </span>
+          )}
         </div>
         <Button variant="ghost" size="icon" onClick={handleClose}>
           <XIcon className="h-4 w-4 text-gray-500" />
@@ -252,40 +302,66 @@ export default function ContactList({ onClose, onContactSelect }) {
         </div>
       </div>
 
+      <div className="mb-4 flex justify-end px-4">
+        <Button variant={'outline'} className={'text-sm'}>
+          Message
+        </Button>
+      </div>
+
       {/* Contact Lists */}
 
       <div className="h-full max-h-[50vh] min-h-[40vh] overflow-y-auto">
         {paginatedContacts.length > 0 ? (
-          paginatedContacts.map((contact) => (
-            <div
-              key={contact.id}
-              onClick={() => handleContactSelect(contact)}
-              className="flex cursor-pointer items-start gap-3 border-b border-gray-100 p-4 transition-colors hover:bg-gray-50"
-            >
-              {/* Avatar */}
-              <div className="relative">
-                <Avatar className={`size-6 ${contact.avatarBg} text-white`}>
-                  <AvatarFallback
-                    className={`${contact.avatarBg} text-xs font-medium text-white`}
-                  >
-                    {contact.avatar || contact.company.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                {contact.isOnline && (
-                  <div className="absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full border-2 border-white bg-green-500"></div>
+          paginatedContacts.map((contact) => {
+            const isSelected = isContactSelected(contact.id);
+            return (
+              <div
+                key={contact.id}
+                onClick={() => handleContactSelect(contact)}
+                className={`flex cursor-pointer items-start gap-3 border-b border-gray-100 p-4 transition-colors hover:bg-gray-50 ${
+                  isSelected ? 'border-blue-200 bg-blue-50' : ''
+                }`}
+              >
+                {/* Checkbox for multi-select */}
+                {multiSelect && (
+                  <div className="flex items-center pt-1">
+                    <div
+                      className={`flex size-4 items-center justify-center rounded border-2 transition-colors ${
+                        isSelected
+                          ? 'bg-primary border-primary'
+                          : 'hover:border-primary/70 border-gray-300'
+                      }`}
+                    >
+                      {isSelected && <Check className="h-3 w-3 text-white" />}
+                    </div>
+                  </div>
                 )}
-              </div>
 
-              {/* Message Content */}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="truncate text-sm font-semibold">
-                    {contact.company}
-                  </h3>
+                {/* Avatar */}
+                <div className="relative">
+                  <Avatar className={`size-6 ${contact.avatarBg} text-white`}>
+                    <AvatarFallback
+                      className={`${contact.avatarBg} text-xs font-medium text-white`}
+                    >
+                      {contact.avatar || contact.company.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  {contact.isOnline && (
+                    <div className="absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full border-2 border-white bg-green-500"></div>
+                  )}
+                </div>
+
+                {/* Message Content */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="truncate text-sm font-semibold">
+                      {contact.company}
+                    </h3>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="flex h-48 items-center justify-center">
             <p className="text-sm text-gray-500">No Contacts</p>
