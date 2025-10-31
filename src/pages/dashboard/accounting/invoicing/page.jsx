@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import EmptyInvoice from '@/components/dashboard/accounting/invoicing/empty-state';
 import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-invoice';
+import PreviewInvoice from '@/components/dashboard/accounting/invoicing/preview-invoice';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircle, SettingsIcon } from 'lucide-react';
 import MetricCard from '@/components/dashboard/metric-card';
@@ -53,6 +54,8 @@ export default function Invoicing() {
     pageSize: 10,
     totalCount: 0,
   });
+  const [viewMode, setViewMode] = useState('list'); // 'list', 'preview', 'edit', 'create'
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const { businessData } = useUserStore();
   const navigate = useNavigate();
 
@@ -62,13 +65,61 @@ export default function Invoicing() {
 
     return invoices.map((invoice) => ({
       id: invoice.invoiceNo,
-      customer: invoice.customerId.displayName, // You might want to fetch customer name based on ID
+      customer: invoice.customerId.displayName,
       currency: invoice.currency,
       amount: '$0.00', // Calculate from products when available
       issueDate: format(invoice.invoiceDate, 'PP'),
       dueDate: format(invoice.dueDate, 'PP'),
       status: invoice.product?.status,
     }));
+  };
+
+  // Transform API invoice data to form data for editing
+  const transformToFormData = (invoice) => {
+    if (!invoice) return null;
+
+    return {
+      invoice_number: invoice.invoiceNo,
+      customerId:
+        typeof invoice.customerId === 'string'
+          ? invoice.customerId
+          : invoice.customerId._id,
+      currency: invoice.currency,
+      category: invoice.category || 'Services',
+      c_o: invoice.co || '',
+      invoice_date: new Date(invoice.invoiceDate),
+      term_of_payment: invoice.termsOfPayment || '2 days',
+      due_date: new Date(invoice.dueDate),
+      products:
+        invoice.product?.products?.map((product) => ({
+          name: product.name || '',
+          description: product.description || '',
+          unit_price: product.unit_price || 0,
+          quantity: product.quantity || 1,
+          total_price: product.total_price || 0,
+          vat_applicable:
+            product.vat_applicable !== undefined
+              ? product.vat_applicable
+              : true,
+        })) || [],
+      discount: parseFloat(invoice.product?.discount) || 0,
+      vat: parseFloat(invoice.product?.vat) || 7.5,
+      delivery_fee: parseFloat(invoice.product?.deliveryFee) || 0,
+      terms: invoice.product?.terms || '',
+      internal_notes: invoice.product?.notes || '',
+      display_bank_details: invoice.product?.displayBankDetails || false,
+      apply_signature: invoice.product?.applySignature || false,
+    };
+  };
+
+  // Calculate subtotal for preview
+  const calculateSubtotal = (products) => {
+    if (!products || !Array.isArray(products)) return 0;
+    return products.reduce((sum, product) => {
+      const unitPrice = product.unitPrice || product.unit_price || 0;
+      const quantity = product.quantity || 1;
+      return sum + unitPrice * quantity;
+    }, 0);
   };
 
   useEffect(() => {
@@ -127,23 +178,38 @@ export default function Invoicing() {
   }, [businessData, currentPage, paginationData.pageSize]);
 
   // Handle row actions for the table
-  const handleRowAction = (action, item) => {
-    console.log(`Action: ${action}`, item);
-    switch (action) {
-      case 'edit':
-        // Add edit logic here
-        console.log('Edit invoice:', item.id);
-        break;
-      case 'view':
-        // Add view logic here
-        console.log('View invoice:', item.id);
-        break;
-      case 'generate-receipt':
-        // Add receipt generation logic here
-        console.log('Generate receipt for:', item.id);
-        break;
-      default:
-        console.log('Unknown action:', action);
+  const handleRowAction = async (action, item) => {
+    try {
+      // Find the full invoice data from the list
+      if (item.id === undefined) return;
+      const invoiceData = invoiceList?.find((inv) => inv.invoiceNo === item.id);
+
+      if (!invoiceData) {
+        toast.error('Invoice not found');
+        return;
+      }
+
+      switch (action) {
+        case 'edit':
+          // Load invoice data into create form
+          setSelectedInvoice(invoiceData);
+          setViewMode('edit');
+          break;
+        case 'view':
+          // Show invoice preview
+          setSelectedInvoice(invoiceData);
+          setViewMode('preview');
+          break;
+        case 'generate-receipt':
+          // Add receipt generation logic here
+          console.log('Generate receipt for:', item.id);
+          break;
+        default:
+          console.log('Unknown action:', action);
+      }
+    } catch (error) {
+      console.error('Error handling row action:', error);
+      toast.error('An error occurred');
     }
   };
 
@@ -212,6 +278,73 @@ export default function Invoicing() {
     return (
       <div className="my-4 min-h-screen">
         <CreateInvoice businessId={businessId} />
+      </div>
+    );
+  }
+
+  // Handle Preview mode
+  if (viewMode === 'preview' && selectedInvoice) {
+    const formData = transformToFormData(selectedInvoice);
+
+    // Extract customer from the invoice's populated customerId field
+    const customer = selectedInvoice.customerId;
+    const transformedCustomers = customer
+      ? [
+          {
+            id: customer._id,
+            displayName: customer.displayName,
+            companyName: customer.companyName,
+            address: customer.address,
+          },
+        ]
+      : [];
+
+    return (
+      <div className="my-4 min-h-screen">
+        <PreviewInvoice
+          formData={formData}
+          calculateSubtotal={() =>
+            calculateSubtotal(selectedInvoice.product?.products)
+          }
+          onEdit={() => {
+            // Go back to list view instead of edit mode
+            setViewMode('list');
+            setSelectedInvoice(null);
+          }}
+          customers={transformedCustomers}
+        />
+      </div>
+    );
+  }
+
+  // Handle Edit mode
+  if (viewMode === 'edit' && selectedInvoice) {
+    // Save the invoice data to localStorage so CreateInvoice can load it
+    const formData = transformToFormData(selectedInvoice);
+    localStorage.setItem('create_invoice_draft', JSON.stringify(formData));
+
+    return (
+      <div className="my-4 min-h-screen">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setViewMode('list');
+            setSelectedInvoice(null);
+            localStorage.removeItem('create_invoice_draft');
+          }}
+          className="mb-4"
+        >
+          ← Back to List
+        </Button>
+        <CreateInvoice
+          businessId={businessId}
+          isEdit={true}
+          invoiceNo={selectedInvoice?.invoiceNo}
+          onBack={() => {
+            setViewMode('list');
+            setSelectedInvoice(null)
+          }}
+        />
       </div>
     );
   }

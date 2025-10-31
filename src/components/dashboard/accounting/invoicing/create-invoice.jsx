@@ -114,7 +114,12 @@ const STORAGE_KEY = 'create_invoice_draft';
 // Extensive list of invoice categories
 const INVOICE_CATEGORIES = ['Services', 'Expenses', 'Others'];
 
-export default function CreateInvoice({ businessId }) {
+export default function CreateInvoice({
+  businessId,
+  isEdit = false,
+  invoiceNo,
+  onBack,
+}) {
   const [isPreview, setIsPreview] = useState(false);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
@@ -126,43 +131,8 @@ export default function CreateInvoice({ businessId }) {
   const { businessData, getBusinessData } = useUserStore();
   const navigate = useNavigate();
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      customerId: '',
-      currency: '',
-      category: '',
-      c_o: '',
-      invoice_date: '',
-      term_of_payment: '2 days',
-      due_date: '',
-      products: [
-        {
-          name: '',
-          description: '',
-          unit_price: 0,
-          quantity: 1,
-          total_price: 0,
-          vat_applicable: true,
-        },
-      ],
-      discount: 0,
-      vat: 7.5,
-      delivery_fee: 0,
-      terms: '',
-      internal_notes: '',
-      display_bank_details: false,
-      apply_signature: false,
-    },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'products',
-  });
-
-  // Load saved data from localStorage on component mount
-  useEffect(() => {
+  // Get initial values from localStorage if available
+  const getInitialValues = () => {
     const savedData = localStorage.getItem(STORAGE_KEY);
     if (savedData) {
       try {
@@ -179,12 +149,50 @@ export default function CreateInvoice({ businessId }) {
           parsedData.due_date = new Date(parsedData.due_date);
         }
 
-        form.reset(parsedData);
+        return parsedData;
       } catch (error) {
         console.error('Error loading saved invoice data:', error);
       }
     }
-  }, [form]);
+
+    // Return default values if no saved data
+    return {
+      customerId: '',
+      currency: '',
+      category: '',
+      c_o: '',
+      invoice_date: '',
+      term_of_payment: '',
+      due_date: '',
+      products: [
+        {
+          name: '',
+          description: '',
+          unit_price: 0,
+          quantity: 1,
+          total_price: 0,
+          vat_applicable: true,
+        },
+      ],
+      discount: 0,
+      vat: 0,
+      delivery_fee: 0,
+      terms: '',
+      internal_notes: '',
+      display_bank_details: false,
+      apply_signature: false,
+    };
+  };
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: getInitialValues(),
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'products',
+  });
 
   // Fetch customers data
   useEffect(() => {
@@ -383,7 +391,7 @@ export default function CreateInvoice({ businessId }) {
           total: calculateTotal().toString(),
         },
       };
-      
+
       const res = await InvoiceService.create({ data: formattedData });
       console.log(res);
       localStorage.removeItem(STORAGE_KEY);
@@ -454,7 +462,14 @@ export default function CreateInvoice({ businessId }) {
             <Button
               size={'sm'}
               variant={'outline'}
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                localStorage.removeItem(STORAGE_KEY);
+                if (onBack) {
+                  onBack();
+                } else {
+                  navigate(-1);
+                }
+              }}
             >
               Back
             </Button>
@@ -483,7 +498,10 @@ export default function CreateInvoice({ businessId }) {
           <div className="mt-4 mb-8 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-2xl font-semibold">New Invoice</h1>
+                <h1 className="text-2xl font-semibold">
+                  {isEdit ? 'Edit Invoice' : 'New Invoice'}
+                </h1>
+                {invoiceNo && <p>{invoiceNo}</p>}
               </div>
             </div>
           </div>
@@ -512,7 +530,7 @@ export default function CreateInvoice({ businessId }) {
                           <FormLabel>Customer Name</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger className={'w-full'}>
@@ -522,8 +540,8 @@ export default function CreateInvoice({ businessId }) {
                             <SelectContent>
                               {customers?.map((customer) => (
                                 <SelectItem
-                                  key={customer.id}
-                                  value={customer.id.toString()}
+                                  key={customer._id}
+                                  value={customer._id}
                                 >
                                   {customer.displayName}
                                 </SelectItem>
@@ -551,7 +569,7 @@ export default function CreateInvoice({ businessId }) {
                         <FormLabel>Currency</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger className={'w-full'}>
@@ -584,7 +602,7 @@ export default function CreateInvoice({ businessId }) {
                         <FormLabel>Category</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger className={'w-full'}>
@@ -683,7 +701,7 @@ export default function CreateInvoice({ businessId }) {
                         <FormLabel>Term of payment</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger className={'w-48'}>

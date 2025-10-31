@@ -239,14 +239,14 @@ export default function PreviewInvoice({
             <div className="space-y-1 text-sm text-gray-600">
               <p className="text-xs font-semibold text-black">Billed To:</p>
               <p className="text-sm font-bold">
-                {selectedCustomer?.displayName || 'Customer Name'}
+                {selectedCustomer?.displayName || ''}
               </p>
 
               <p className="max-w-46 text-sm text-[#727273]">
-                {selectedCustomer?.companyName || 'Company Name'}
+                {selectedCustomer?.companyName || ''}
               </p>
               <p className="max-w-46 text-sm text-[#727273]">
-                {selectedCustomer?.address?.address1 || 'Customer Address'}
+                {selectedCustomer?.address?.address1 || ''}
                 {selectedCustomer?.address?.city &&
                   `, ${selectedCustomer.address.city}`}{' '}
                 {selectedCustomer?.address?.state &&
@@ -262,7 +262,7 @@ export default function PreviewInvoice({
                 <p className="text-[#727273]">
                   {formData.invoice_date
                     ? format(new Date(formData.invoice_date), 'MM-dd-yyyy')
-                    : '06-12-2025'}
+                    : ''}
                 </p>
               </div>
               <div>
@@ -270,7 +270,7 @@ export default function PreviewInvoice({
                 <p className="text-[#727273]">
                   {formData.due_date
                     ? format(new Date(formData.due_date), 'MM-dd-yyyy')
-                    : '06-20-2024'}
+                    : ''}
                 </p>
               </div>
             </div>
