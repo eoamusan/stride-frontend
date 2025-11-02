@@ -119,7 +119,7 @@ export default function AllMessagesCard({
 
   return (
     <div
-      className={`relative min-w-[341px] rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}
+      className={`fixed inset-0 z-50 flex flex-col bg-white lg:relative lg:inset-auto lg:z-auto lg:min-w-[341px] lg:rounded-lg lg:border lg:border-gray-200 lg:shadow-sm ${className}`}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4">
@@ -185,7 +185,7 @@ export default function AllMessagesCard({
       </div>
 
       {/* Messages List */}
-      <div className="h-full max-h-[50vh] min-h-[40vh] overflow-y-auto">
+      <div className="min-h-[40vh] flex-1 overflow-y-auto lg:max-h-[50vh] lg:flex-none">
         {filteredMessages.length > 0 ? (
           filteredMessages.map((message) => (
             <div

@@ -16,7 +16,7 @@ export default function ChatBoxModal({ onClose }) {
 
   return (
     <div
-      className={`fixed inset-0 w-full sm:relative  max-w-[618px] min-w-[341px] rounded-lg border border-gray-200 bg-white shadow-sm`}
+      className={`fixed inset-0 z-50 flex w-full flex-col bg-white lg:relative lg:inset-auto lg:z-auto lg:max-w-[618px] lg:min-w-[341px] lg:rounded-lg lg:border lg:border-gray-200 lg:shadow-sm`}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4">
@@ -31,7 +31,7 @@ export default function ChatBoxModal({ onClose }) {
         </Button>
       </div>
 
-      <ChatBox />
+      <ChatBox isModal={true} />
     </div>
   );
 }

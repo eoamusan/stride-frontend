@@ -271,7 +271,7 @@ export default function ContactList({
     }
   };
   return (
-    <div className="relative min-w-[341px] rounded-lg border border-gray-200 bg-white shadow-sm">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white lg:relative lg:inset-auto lg:z-auto lg:min-w-[341px] lg:rounded-lg lg:border lg:border-gray-200 lg:shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
@@ -310,7 +310,7 @@ export default function ContactList({
 
       {/* Contact Lists */}
 
-      <div className="h-full max-h-[50vh] min-h-[40vh] overflow-y-auto">
+      <div className="min-h-[40vh] flex-1 overflow-y-auto lg:max-h-[50vh] lg:flex-none">
         {paginatedContacts.length > 0 ? (
           paginatedContacts.map((contact) => {
             const isSelected = isContactSelected(contact.id);
@@ -371,7 +371,7 @@ export default function ContactList({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="px-4 py-2">
+        <div className="border-t px-4 py-2 lg:border-t-0">
           <Pagination>
             <PaginationContent>
               <PaginationItem>

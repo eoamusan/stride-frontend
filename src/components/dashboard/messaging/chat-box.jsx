@@ -119,7 +119,7 @@ export default function ChatBox({
 
   return (
     <div
-      className={`z-40 flex ${isModal ? '' : 'h-[calc(100vh-9rem)]'} w-full flex-col bg-white`}
+      className={`z-40 flex ${isModal ? 'h-full w-full flex-col bg-white' : 'h-[calc(100vh-9rem)]'} w-full flex-col bg-white`}
     >
       {/* Chat Header */}
       <div className="flex shrink-0 items-center justify-between border-b p-4">
