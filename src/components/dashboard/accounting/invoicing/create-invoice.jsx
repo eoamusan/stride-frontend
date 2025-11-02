@@ -774,20 +774,25 @@ export default function CreateInvoice({
               <div className="mt-4 space-y-4 border-t">
                 <h3 className="pt-6 text-xl font-semibold">Products</h3>
 
-                {/* Products Header */}
-                <div className="mb-2 grid grid-cols-10 gap-4 text-xs font-semibold tracking-wide text-[#434343] uppercase">
-                  <div className="col-span-3">Product / Item Name</div>
-                  <div className="col-span-2">Unit Price</div>
-                  <div className="col-span-2">QTY</div>
-                  <div className="col-span-2">Total Price</div>
-                  <div className="col-span-1"></div>
+                {/* Products Header - Wraps on mobile */}
+                <div className="mb-2 grid grid-cols-2 gap-4 text-xs font-semibold tracking-wide text-[#434343] uppercase md:grid-cols-10">
+                  <div className="col-span-2 md:col-span-3">
+                    Product / Item Name
+                  </div>
+                  <div className="col-span-1 md:col-span-2">Unit Price</div>
+                  <div className="col-span-1 md:col-span-2">QTY</div>
+                  <div className="col-span-2 md:col-span-2">Total Price</div>
+                  <div className="col-span-2 md:col-span-1"></div>
                 </div>
 
                 {/* Product Rows */}
                 {fields.map((field, index) => (
-                  <div key={field.id} className="space-y-2">
-                    <div className="grid grid-cols-10 items-start gap-4">
-                      <div className="col-span-3">
+                  <div
+                    key={field.id}
+                    className="space-y-2 rounded-lg border p-4 md:border-0 md:p-0"
+                  >
+                    <div className="grid grid-cols-2 items-start gap-4 md:grid-cols-10">
+                      <div className="col-span-2 md:col-span-3">
                         <FormField
                           control={form.control}
                           name={`products.${index}.name`}
@@ -806,7 +811,7 @@ export default function CreateInvoice({
                         />
                       </div>
 
-                      <div className="col-span-2">
+                      <div className="col-span-1 md:col-span-2">
                         <FormField
                           control={form.control}
                           name={`products.${index}.unit_price`}
@@ -829,7 +834,7 @@ export default function CreateInvoice({
                         />
                       </div>
 
-                      <div className="col-span-2">
+                      <div className="col-span-1 md:col-span-2">
                         <FormField
                           control={form.control}
                           name={`products.${index}.quantity`}
@@ -852,7 +857,7 @@ export default function CreateInvoice({
                         />
                       </div>
 
-                      <div className="col-span-2">
+                      <div className="col-span-2 md:col-span-2">
                         <FormField
                           control={form.control}
                           name={`products.${index}.total_price`}
@@ -875,16 +880,16 @@ export default function CreateInvoice({
                         />
                       </div>
 
-                      <div className="col-span-1 flex h-full items-center gap-2">
+                      <div className="col-span-2 flex items-center justify-between gap-2 md:col-span-1 md:h-full md:justify-center">
                         <FormField
                           control={form.control}
                           name={`products.${index}.vat_applicable`}
                           render={({ field }) => (
                             <FormItem>
-                              <div className="flex flex-col items-center">
+                              <div className="flex items-center gap-2 md:flex-col">
                                 <label
                                   htmlFor={`vat-${index}`}
-                                  className="text-xs"
+                                  className="text-xs md:text-center"
                                 >
                                   VAT
                                 </label>
