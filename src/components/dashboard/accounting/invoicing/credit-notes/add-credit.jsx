@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Form,
   FormControl,
@@ -43,6 +43,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import CustomerService from '@/api/customer';
+import CreditNoteService from '@/api/creditNote';
+import { useUserStore } from '@/stores/user-store';
+import { uploadToCloudinary } from '@/lib/cloudinary';
+import toast from 'react-hot-toast';
 
 const formSchema = z.object({
   customer: z.string().min(1, { message: 'Customer is required' }),
@@ -76,6 +81,11 @@ const STORAGE_KEY = 'create_credit_note_draft';
 
 export default function AddCreditNote({ open, onOpenChange }) {
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { businessData } = useUserStore();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -116,17 +126,36 @@ export default function AddCreditNote({ open, onOpenChange }) {
 
   const watchLineItems = form.watch('line_items');
 
+  // Fetch customers on component mount
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        setIsLoadingCustomers(true);
+        const response = await CustomerService.fetch();
+        setCustomers(response.data.data || []);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      } finally {
+        setIsLoadingCustomers(false);
+      }
+    };
+
+    if (open && businessData?._id) {
+      fetchCustomers();
+    }
+  }, [open, businessData?._id]);
+
   const calculateSubtotal = () => {
     return watchLineItems.reduce((sum, item) => {
-      const amount = Number(item.amount) || 0;
-      const qty = Number(item.qty) || 1;
+      const amount = Number(item.amount);
+      const qty = Number(item.qty);
       return sum + amount * qty;
     }, 0);
   };
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
-    const vat = form.watch('vat') || 0;
+    const vat = form.watch('vat');
     const vatAmount = (subtotal * vat) / 100;
     return subtotal + vatAmount;
   };
@@ -155,10 +184,49 @@ export default function AddCreditNote({ open, onOpenChange }) {
     ]);
   };
 
-  const onSubmit = (data) => {
-    console.log('Credit note data:', data);
-    // Handle form submission
-    onOpenChange?.(false);
+  const onSubmit = async (data) => {
+    try {
+      setIsSubmitting(true);
+
+      // Transform form data to match backend API structure
+      const payload = {
+        customerId: data.customer,
+        invoiceId: '', // Add this if you have invoice selection
+        memoDate: data.credit_memo_date.toISOString(),
+        sendLater: data.send_later,
+        billingAddress: data.billing_address,
+        email: data.email_address,
+        memoNumber: data.credit_memo_no,
+        lineItems: data.line_items.map((item) => ({
+          serviceDate: item.service_date?.toISOString() || null,
+          service: item.service,
+          description: item.description || '',
+          amount: item.amount,
+          qty: item.qty,
+        })),
+        messageOnMemo: data.message_credit_memo || '',
+        messageOnStatement: data.message_statement || '',
+        attachments: data.attachments || [],
+      };
+
+      const response = await CreditNoteService.create({ data: payload });
+
+      console.log('Credit note created successfully:', response.data);
+      toast.success('Credit note created successfully!');
+
+      // Reset form and close modal
+      form.reset();
+      setUploadedFiles([]);
+      onOpenChange?.(false);
+    } catch (error) {
+      console.error('Error creating credit note:', error);
+      toast.error(
+        error.response?.data?.message ||
+          'Failed to create credit note. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const saveDraft = () => {
@@ -168,48 +236,112 @@ export default function AddCreditNote({ open, onOpenChange }) {
     onOpenChange?.(false);
   };
 
-  const saveAndSend = () => {
-    form.handleSubmit(onSubmit)();
-    console.log('Credit note saved and sent');
+  const saveAndSend = async () => {
+    // Validate and submit the form
+    await form.handleSubmit(onSubmit)();
   };
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files || []);
-    if (files.length > 0) {
-      const newFiles = files.map((file) => ({
-        id: Date.now() + Math.random(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        file: file,
-      }));
+    if (files.length === 0) return;
 
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
-      form.setValue('attachments', [...uploadedFiles, ...newFiles]);
+    setIsUploadingFiles(true);
+    const loadingToast = toast.loading('Uploading files to Cloudinary...');
+
+    try {
+      // Upload all files to Cloudinary
+      const uploadPromises = files.map(async (file) => {
+        const result = await uploadToCloudinary(file, {
+          folder: 'credit-notes/attachments',
+          tags: ['credit-note', 'attachment'],
+        });
+
+        return {
+          id: Date.now() + Math.random(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: result.url,
+        };
+      });
+
+      const uploadedResults = await Promise.all(uploadPromises);
+
+      // Update state with uploaded files (containing URLs)
+      setUploadedFiles((prev) => [...prev, ...uploadedResults]);
+
+      // Store only URLs in form data
+      const allUrls = [
+        ...uploadedFiles.map((f) => f.url),
+        ...uploadedResults.map((f) => f.url),
+      ];
+      form.setValue('attachments', allUrls);
+
+      toast.dismiss(loadingToast);
+      toast.success(`${files.length} file(s) uploaded successfully!`);
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast.dismiss(loadingToast);
+      toast.error('Failed to upload files. Please try again.');
+    } finally {
+      setIsUploadingFiles(false);
     }
   };
 
-  const handleFileDrop = (event) => {
+  const handleFileDrop = async (event) => {
     event.preventDefault();
     const files = Array.from(event.dataTransfer.files || []);
-    if (files.length > 0) {
-      const newFiles = files.map((file) => ({
-        id: Date.now() + Math.random(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        file: file,
-      }));
+    if (files.length === 0) return;
 
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
-      form.setValue('attachments', [...uploadedFiles, ...newFiles]);
+    setIsUploadingFiles(true);
+    const loadingToast = toast.loading('Uploading files to Cloudinary...');
+
+    try {
+      // Upload all files to Cloudinary
+      const uploadPromises = files.map(async (file) => {
+        const result = await uploadToCloudinary(file, {
+          folder: 'credit-notes/attachments',
+          tags: ['credit-note', 'attachment'],
+        });
+
+        return {
+          id: Date.now() + Math.random(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: result.url,
+        };
+      });
+
+      const uploadedResults = await Promise.all(uploadPromises);
+
+      // Update state with uploaded files (containing URLs)
+      setUploadedFiles((prev) => [...prev, ...uploadedResults]);
+
+      // Store only URLs in form data
+      const allUrls = [
+        ...uploadedFiles.map((f) => f.url),
+        ...uploadedResults.map((f) => f.url),
+      ];
+      form.setValue('attachments', allUrls);
+
+      toast.dismiss(loadingToast);
+      toast.success(`${files.length} file(s) uploaded successfully!`);
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast.dismiss(loadingToast);
+      toast.error('Failed to upload files. Please try again.');
+    } finally {
+      setIsUploadingFiles(false);
     }
   };
 
   const removeFile = (fileId) => {
     const updatedFiles = uploadedFiles.filter((file) => file.id !== fileId);
     setUploadedFiles(updatedFiles);
-    form.setValue('attachments', updatedFiles);
+    // Update form with only URLs
+    const urls = updatedFiles.map((f) => f.url);
+    form.setValue('attachments', urls);
   };
 
   const formatFileSize = (bytes) => {
@@ -244,22 +376,35 @@ export default function AddCreditNote({ open, onOpenChange }) {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        disabled={isLoadingCustomers}
                       >
                         <FormControl>
                           <SelectTrigger className={'w-full'}>
-                            <SelectValue placeholder="Select customer" />
+                            <SelectValue
+                              placeholder={
+                                isLoadingCustomers
+                                  ? 'Loading customers...'
+                                  : 'Select customer'
+                              }
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="abc-corp">
-                            ABC Corporation
-                          </SelectItem>
-                          <SelectItem value="tech-solutions">
-                            Tech Solutions Ltd
-                          </SelectItem>
-                          <SelectItem value="global-ent">
-                            Global Enterprises
-                          </SelectItem>
+                          {customers.length === 0 ? (
+                            <SelectItem value="no-customers" disabled>
+                              No customers found
+                            </SelectItem>
+                          ) : (
+                            customers.map((customer) => (
+                              <SelectItem
+                                key={customer._id}
+                                value={customer._id}
+                              >
+                                {customer.displayName ||
+                                  customer.firstName + ' ' + customer.lastName}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -663,7 +808,10 @@ export default function AddCreditNote({ open, onOpenChange }) {
               <div className="space-y-4">
                 <FormLabel>Attachments</FormLabel>
                 <div
-                  className="border-muted-foreground/25 hover:border-muted-foreground/50 rounded-lg border-2 border-dashed p-6 transition-colors"
+                  className={cn(
+                    'border-muted-foreground/25 hover:border-muted-foreground/50 rounded-lg border-2 border-dashed p-6 transition-colors',
+                    isUploadingFiles && 'pointer-events-none opacity-50'
+                  )}
                   onDrop={handleFileDrop}
                   onDragOver={(e) => e.preventDefault()}
                   onDragEnter={(e) => e.preventDefault()}
@@ -675,12 +823,15 @@ export default function AddCreditNote({ open, onOpenChange }) {
                     className="hidden"
                     id="file-upload"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                    disabled={isUploadingFiles}
                   />
                   <label htmlFor="file-upload" className="cursor-pointer">
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <UploadIcon className="text-primary h-8 w-8" />
                       <p className="text-muted-foreground text-sm">
-                        Click or drag file to this area to upload
+                        {isUploadingFiles
+                          ? 'Uploading...'
+                          : 'Click or drag file to this area to upload'}
                       </p>
                       <p className="text-muted-foreground text-xs">
                         Support for a single or bulk upload.
@@ -730,7 +881,8 @@ export default function AddCreditNote({ open, onOpenChange }) {
                   type="button"
                   variant="outline"
                   className={'h-10 w-full max-w-44 text-sm'}
-                  onClick={saveDraft}
+                  onClick={() => onOpenChange?.(false)}
+                  disabled={isSubmitting || isUploadingFiles}
                 >
                   Cancel
                 </Button>
@@ -739,15 +891,17 @@ export default function AddCreditNote({ open, onOpenChange }) {
                   variant="outline"
                   className={'h-10 w-full max-w-44 text-sm'}
                   onClick={saveDraft}
+                  disabled={isSubmitting || isUploadingFiles}
                 >
-                  Save
+                  Save Draft
                 </Button>
                 <Button
                   type="button"
                   onClick={saveAndSend}
                   className={'h-10 w-full max-w-44 text-sm'}
+                  disabled={isSubmitting || isUploadingFiles}
                 >
-                  Save and send
+                  {isSubmitting ? 'Saving...' : 'Save and send'}
                 </Button>
               </div>
             </form>

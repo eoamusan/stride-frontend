@@ -5,6 +5,7 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useState } from 'react';
+import CreditNoteService from '@/api/creditNote';
 
 const creditNotes = [
   {
