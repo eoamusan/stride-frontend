@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -31,12 +32,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, ChevronsUpDown, Check } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import CustomerService from '@/api/customer';
-import BusinessService from '@/api/business';
 import { useUserStore } from '@/stores/user-store';
 
 const customerFormSchema = z.object({
@@ -66,6 +74,9 @@ const customerFormSchema = z.object({
 
 export default function AddCustomerModal({ open, onOpenChange }) {
   const { businessData } = useUserStore();
+  const [countries, setCountries] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
@@ -79,7 +90,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
         phoneNumber: '',
         email: '',
         creditLimit: '',
-        dueDate: undefined,
+        dueDate: '',
         isSubCustomer: false,
       },
       address: {
@@ -96,6 +107,7 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
   const onSubmit = async (data) => {
     try {
+      setIsLoading(true);
       const businessId = businessData?._id;
       const dataWithAccountId = {
         ...data,
@@ -116,6 +128,8 @@ export default function AddCustomerModal({ open, onOpenChange }) {
           err.message ||
           'Failed to add customer. Please try again.'
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -123,6 +137,23 @@ export default function AddCustomerModal({ open, onOpenChange }) {
     onOpenChange(false);
     form.reset();
   };
+
+  // Fetch countries when modal opens
+  useEffect(() => {
+    async function fetchCountries() {
+      if (!open) return;
+      try {
+        const response = await fetch(
+          'https://restcountries.com/v3.1/all?fields=name,flags,cca2'
+        );
+        const data = await response.json();
+        setCountries(data);
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+      }
+    }
+    fetchCountries();
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -430,21 +461,106 @@ export default function AddCustomerModal({ open, onOpenChange }) {
                 />
               </div>
 
-              {/* City and State */}
+              {/* Country, State, City, and ZIP Code - Rearranged */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
                 <FormField
                   control={form.control}
-                  name="address.city"
+                  name="address.country"
                   render={({ field }) => (
-                    <FormItem className={'md:col-span-2'}>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <Input
-                          className={'h-10'}
-                          placeholder="Enter city"
-                          {...field}
-                        />
-                      </FormControl>
+                    <FormItem className="flex flex-col md:col-span-2">
+                      <FormLabel>Country</FormLabel>
+                      <Popover modal={true}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                'h-10 w-full justify-between text-sm font-normal',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value ? (
+                                <span className="flex items-center gap-2">
+                                  <img
+                                    src={
+                                      countries.find(
+                                        (country) =>
+                                          country.cca2 === field.value
+                                      )?.flags.svg
+                                    }
+                                    alt={
+                                      countries.find(
+                                        (country) =>
+                                          country.cca2 === field.value
+                                      )?.flags.alt
+                                    }
+                                    width={20}
+                                    height={15}
+                                  />
+                                  <span>
+                                    {
+                                      countries.find(
+                                        (country) =>
+                                          country.cca2 === field.value
+                                      )?.name.common
+                                    }
+                                  </span>
+                                </span>
+                              ) : (
+                                'Select country'
+                              )}
+                              <ChevronsUpDown className="opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-74 p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search countries..."
+                              className="h-9"
+                            />
+                            <CommandList>
+                              <CommandEmpty>Country(s) not found.</CommandEmpty>
+                              <CommandGroup>
+                                {countries.length > 0 &&
+                                  countries
+                                    .sort((a, b) =>
+                                      a.name.common.localeCompare(b.name.common)
+                                    )
+                                    .map((country, i) => (
+                                      <CommandItem
+                                        value={country.name.common}
+                                        key={i}
+                                        onSelect={() => {
+                                          form.setValue(
+                                            'address.country',
+                                            country.cca2
+                                          );
+                                        }}
+                                      >
+                                        <img
+                                          src={country.flags.svg}
+                                          alt={country.flags.alt}
+                                          width={20}
+                                          height={15}
+                                        />
+                                        {country.name.common}
+                                        <Check
+                                          className={cn(
+                                            'ml-auto',
+                                            country.cca2 === field.value
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -469,18 +585,18 @@ export default function AddCustomerModal({ open, onOpenChange }) {
                 />
               </div>
 
-              {/* ZIP Code and Country */}
+              {/* City and ZIP Code */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
                 <FormField
                   control={form.control}
-                  name="address.zipcode"
+                  name="address.city"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2'}>
-                      <FormLabel>ZIP code</FormLabel>
+                      <FormLabel>City</FormLabel>
                       <FormControl>
                         <Input
                           className={'h-10'}
-                          placeholder="Enter zipcode"
+                          placeholder="Enter city"
                           {...field}
                         />
                       </FormControl>
@@ -491,14 +607,14 @@ export default function AddCustomerModal({ open, onOpenChange }) {
 
                 <FormField
                   control={form.control}
-                  name="address.country"
+                  name="address.zipcode"
                   render={({ field }) => (
                     <FormItem className={'md:col-span-2 md:col-start-4'}>
-                      <FormLabel>Country</FormLabel>
+                      <FormLabel>ZIP code</FormLabel>
                       <FormControl>
                         <Input
                           className={'h-10'}
-                          placeholder="Enter country"
+                          placeholder="Enter zipcode"
                           {...field}
                         />
                       </FormControl>
@@ -538,11 +654,16 @@ export default function AddCustomerModal({ open, onOpenChange }) {
                 variant="outline"
                 onClick={handleCancel}
                 className="h-10 w-full max-w-[35%]"
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" className="h-10 w-full max-w-[35%]">
-                Save
+              <Button
+                type="submit"
+                className="h-10 w-full max-w-[35%]"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Saving...' : 'Save'}
               </Button>
             </div>
           </form>

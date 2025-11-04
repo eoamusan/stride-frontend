@@ -198,7 +198,7 @@ export default function CreateInvoice({
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const response = await CustomerService.fetch({ businessId });
+        const response = await CustomerService.fetch();
         setCustomers(response.data?.data || []);
       } catch (error) {
         console.error('Error fetching customers:', error);

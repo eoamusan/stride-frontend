@@ -1,49 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AddCustomerModal from '@/components/dashboard/accounting/invoicing/customers/add-customer';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
+import CustomerService from '@/api/customer';
+import { useUserStore } from '@/stores/user-store';
+import { format } from 'date-fns';
 
-// const customers = [''];
-const customerData = [
-  {
-    id: 'CUST-1001',
-    name: 'John Smith',
-    companyName: 'ABC Corporation',
-    creditLimit: '$50,000.00',
-    balance: '$15,400.00',
-    dueDate: 'Jul 20, 2024',
-    status: 'Active',
-  },
-  {
-    id: 'CUST-1002',
-    name: 'Sarah Johnson',
-    companyName: 'Tech Solutions Ltd',
-    creditLimit: '$25,000.00',
-    balance: '$8,750.00',
-    dueDate: 'Aug 15, 2024',
-    status: 'Active',
-  },
-  {
-    id: 'CUST-1003',
-    name: 'Michael Brown',
-    companyName: 'Global Enterprises',
-    creditLimit: '$100,000.00',
-    balance: '$0.00',
-    dueDate: '-',
-    status: 'Inactive',
-  },
-  {
-    id: 'CUST-1004',
-    name: 'Emily Davis',
-    companyName: 'Creative Agency Inc',
-    creditLimit: '$30,000.00',
-    balance: '$22,500.00',
-    dueDate: 'Jun 30, 2024',
-    status: 'Overdue',
-  },
-];
 const tableColumns = [
   { key: 'name', label: 'Name' },
   { key: 'companyName', label: 'Company Name' },
@@ -91,6 +55,28 @@ const customerMetrics = [
 export default function Customers() {
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
+  const { businessData } = useUserStore();
+  const [customers, setCustomers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Transform customer data to match table format
+  const transformCustomerData = (customers) => {
+    return customers.map((customer) => ({
+      id: customer.id || customer._id,
+      name: customer.displayName,
+      companyName: customer.companyName || '-',
+      creditLimit: customer.creditLimit
+        ? `$${parseFloat(customer.creditLimit).toLocaleString()}`
+        : '$0.00',
+      balance: '$0.00', // You may need to calculate this from invoices
+      dueDate: customer.dueDate
+        ? format(new Date(customer.dueDate), 'MMM dd, yyyy')
+        : '-',
+      status: 'Active',
+    }));
+  };
+
+  const customerData = transformCustomerData(customers);
 
   const handleCustomerTableAction = (action, customer) => {
     console.log('Customer action:', action, customer);
@@ -112,6 +98,25 @@ export default function Customers() {
       setSelectedItems([]);
     }
   };
+
+  useEffect(() => {
+    if (businessData) {
+      // Fetch customer data based on businessId
+      const fetchCustomerData = async () => {
+        try {
+          setIsLoading(true);
+          const response = await CustomerService.fetch();
+          setCustomers(response.data?.data || []);
+        } catch (error) {
+          console.error('Error fetching customer data:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchCustomerData();
+    }
+  }, [businessData, isCreateCustomerOpen]);
 
   return (
     <div className="my-4 min-h-screen">
@@ -157,6 +162,7 @@ export default function Customers() {
             selectedItems={selectedItems}
             handleSelectItem={handleSelectTableItem}
             handleSelectAll={handleSelectAllItems}
+            isLoading={isLoading}
           />
         </div>
       </div>

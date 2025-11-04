@@ -6,6 +6,7 @@ import {
   UndoIcon,
   PaperclipIcon,
   SendIcon,
+  SmileIcon,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ const conversationData = [
     time: '04:45 PM',
     isOwn: false,
     hasActions: true,
+    reaction: null,
   },
   {
     id: 2,
@@ -32,6 +34,7 @@ const conversationData = [
     time: '04:45 PM',
     isOwn: true,
     hasActions: true,
+    reaction: null,
   },
   {
     id: 3,
@@ -39,6 +42,7 @@ const conversationData = [
     time: '04:45 PM',
     isOwn: false,
     hasActions: true,
+    reaction: null,
   },
   {
     id: 4,
@@ -47,6 +51,7 @@ const conversationData = [
     time: '04:45 PM',
     isOwn: true,
     hasActions: true,
+    reaction: null,
   },
 ];
 
@@ -59,6 +64,9 @@ const defaultChat = {
   status: 'Messaging',
 };
 
+// Quick reaction emojis (like WhatsApp)
+const quickReactions = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
 export default function ChatBox({
   selectedChat = defaultChat,
   onBack,
@@ -67,6 +75,8 @@ export default function ChatBox({
   const [messageInput, setMessageInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
+  const [messages, setMessages] = useState(conversationData);
+  const [reactionPickerOpen, setReactionPickerOpen] = useState(null);
   const textareaRef = useRef(null);
 
   // Auto-resize textarea
@@ -117,6 +127,25 @@ export default function ChatBox({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Toggle a single reaction for a message (only one active emoji per message)
+  const handleToggleReaction = (messageId, emoji) => {
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) => {
+        if (msg.id === messageId) {
+          // If same emoji is already selected, remove it (toggle off)
+          if (msg.reaction === emoji) {
+            return { ...msg, reaction: null };
+          }
+
+          // Otherwise set the selected emoji as the single reaction
+          return { ...msg, reaction: emoji };
+        }
+        return msg;
+      })
+    );
+    setReactionPickerOpen(null);
+  };
+
   return (
     <div
       className={`z-40 flex ${isModal ? 'h-full w-full flex-col bg-white' : 'h-[calc(100vh-9rem)]'} w-full flex-col bg-white`}
@@ -163,13 +192,13 @@ export default function ChatBox({
       {/* Messages Container */}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2">
         <div className="space-y-6">
-          {conversationData.map((msg) => (
-            <div key={msg.id} className="space-y-1">
+          {messages.map((msg) => (
+            <div key={msg.id} className="group space-y-1">
               {/* Message Bubble */}
               <div
-                className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'}`}
+                className={`flex items-center gap-2 ${msg.isOwn ? 'justify-end' : 'justify-start'}`}
               >
-                <div>
+                <div className="relative">
                   <div
                     className={`max-w-sm rounded-full px-6 py-4 ${
                       msg.isOwn
@@ -180,9 +209,11 @@ export default function ChatBox({
                     <p className="text-sm leading-relaxed">{msg.message}</p>
                   </div>
 
+                  {/* (Reactions shown in actions row now) */}
+
                   {/* Message Actions */}
                   <div
-                    className={`flex w-full items-center px-2 pt-1 text-xs text-gray-400`}
+                    className={`flex w-full items-center px-2 ${msg.reaction ? 'pt-3' : 'pt-1'} text-xs text-gray-400`}
                   >
                     <div
                       className={`flex w-full items-center justify-between gap-4 ${msg.isOwn ? 'flex-row-reverse' : 'flex-row'}`}
@@ -190,6 +221,15 @@ export default function ChatBox({
                       <span>{msg.time}</span>
                       {msg.hasActions && (
                         <div className="flex items-center gap-4">
+                          {/* Selected reaction displayed inline next to actions */}
+                          {msg.reaction && msg.isOwn && (
+                            <div className="flex items-center">
+                              <div className="bg-muted rounded-full px-2 py-0.5 text-sm text-white">
+                                {msg.reaction}
+                              </div>
+                            </div>
+                          )}
+
                           <button className="flex items-center justify-center gap-0.5 transition-colors hover:text-gray-600">
                             Forward
                             <RedoIcon size={12} />
@@ -199,11 +239,59 @@ export default function ChatBox({
                             Reply
                             <UndoIcon size={12} />
                           </button>
+
+                          {/* Selected reaction displayed inline next to actions */}
+                          {msg.reaction && !msg.isOwn && (
+                            <div className="flex items-center">
+                              <div className="bg-muted rounded-full px-2 py-0.5 text-sm text-white">
+                                {msg.reaction}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
+
+                {/* Reaction Button - appears on right for received (not own), left for sent (own) */}
+                {msg.hasActions && (
+                  <div
+                    className={`flex items-center ${msg.isOwn ? 'order-first' : ''}`}
+                  >
+                    <Popover
+                      open={reactionPickerOpen === msg.id}
+                      onOpenChange={(open) =>
+                        setReactionPickerOpen(open ? msg.id : null)
+                      }
+                    >
+                      <PopoverTrigger asChild>
+                        <button className="-mt-5 flex h-7 w-7 items-center justify-center rounded-full text-gray-500 opacity-0 transition-all group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-700">
+                          <SmileIcon size={18} />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-auto p-2"
+                        side="top"
+                        align="center"
+                      >
+                        <div className="flex gap-2">
+                          {quickReactions.map((emoji) => (
+                            <button
+                              key={emoji}
+                              onClick={() =>
+                                handleToggleReaction(msg.id, emoji)
+                              }
+                              className={`rounded-lg p-2 text-2xl transition-transform hover:scale-125 hover:bg-gray-100 ${msg.reaction === emoji ? 'bg-muted text-white' : ''}`}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
               </div>
             </div>
           ))}

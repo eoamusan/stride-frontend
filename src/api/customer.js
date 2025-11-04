@@ -22,11 +22,11 @@ export default class CustomerService {
     return response;
   }
 
-  static async fetch({ businessId }) {
+  static async fetch() {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(
       'customer/fetch',
-      { businessId },
+      { businessId: userStore?.businessData?._id  },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,

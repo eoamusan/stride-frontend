@@ -1,10 +1,10 @@
 import axiosInstance from '@/lib/axios';
 import { useUserStore } from '@/stores/user-store';
 
-export default class CreditNoteService {
+export default class PaymentService {
   static async create({ data }) {
     const userStore = useUserStore.getState();
-    const response = await axiosInstance.post('credit-note', data, {
+    const response = await axiosInstance.post('payment', data, {
       headers: {
         Authorization: `Bearer ${userStore.data?.accessToken}`,
       },
@@ -14,7 +14,7 @@ export default class CreditNoteService {
 
   static async get({ id }) {
     const userStore = useUserStore.getState();
-    const response = await axiosInstance.get(`credit-note/${id}`, {
+    const response = await axiosInstance.get(`payment/${id}`, {
       headers: {
         Authorization: `Bearer ${userStore.data?.accessToken}`,
       },
@@ -25,7 +25,7 @@ export default class CreditNoteService {
   static async fetch() {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(
-      'credit-note/fetch',
+      'payment/fetch',
       { businessId: userStore.businessData?._id },
       {
         headers: {

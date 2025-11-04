@@ -5,13 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  NotepadTextIcon,
-  SendIcon,
-  XIcon,
-  ChevronDownIcon,
-  PrinterIcon,
-} from 'lucide-react';
+import { NotepadTextIcon, SendIcon, XIcon, PrinterIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUserStore } from '@/stores/user-store';
 import { useRef, useState } from 'react';
@@ -21,6 +15,8 @@ import toast from 'react-hot-toast';
 import SendInvoiceEmail from './send-email';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import PaymentPreview from './payment-preview';
+import PaymentForm from './payment-form';
+import SuccessModal from '../success-modal';
 
 export default function PreviewInvoice({
   formData,
@@ -35,6 +31,8 @@ export default function PreviewInvoice({
   const invoiceRef = useRef(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [uploadedPdfUrl, setUploadedPdfUrl] = useState(null);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Use business brand color or default
   const primaryColor =
@@ -534,7 +532,7 @@ export default function PreviewInvoice({
               <DropdownMenuItem onClick={handleSendEmail}>
                 Send via Email
               </DropdownMenuItem>
-              <DropdownMenuItem>Send via Stride</DropdownMenuItem>
+              <DropdownMenuItem>Send via OneDa</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -547,43 +545,13 @@ export default function PreviewInvoice({
             Print
           </Button>
 
-          {/* Record Payment Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-10 px-8">
-                Record Payment
-                <ChevronDownIcon className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="space-y-1 p-2">
-                <DropdownMenuItem className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="bg-primary outline-primary mr-2 h-4 w-4 rounded-full outline"></div>
-                    Paid with cash
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="border-primary mr-2 h-4 w-4 rounded-full border"></div>
-                    Paid with Mobile transfer
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="border-primary mr-2 h-4 w-4 rounded-full border"></div>
-                    Paid with Credit Card
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="border-primary mr-2 h-4 w-4 rounded-full border"></div>
-                    Paid with POS
-                  </div>
-                </DropdownMenuItem>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="outline"
+            className="h-10 px-8"
+            onClick={() => setShowPaymentForm(true)}
+          >
+            Record Payment
+          </Button>
         </div>
 
         {/* Send Email Modal */}
@@ -610,6 +578,25 @@ export default function PreviewInvoice({
           currency={formData.currency}
         />
       </div>
+
+      <PaymentForm
+        open={showPaymentForm}
+        onOpenChange={setShowPaymentForm}
+        invoiceId={formData.invoice_number}
+        customerId={formData.customerId}
+        amountDue={balanceDue || total}
+        onSuccess={() => {
+          setShowSuccessModal(true);
+        }}
+      />
+
+      <SuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        title="Payment Recorded"
+        description="The payment has been successfully recorded."
+        backText={'Back'}
+      />
     </div>
   );
 }

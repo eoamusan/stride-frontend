@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, SettingsIcon } from 'lucide-react';
+import PaymentService from '@/api/payment';
 
 const paymentData = [
   {
@@ -92,6 +93,8 @@ const paymentMetrics = [
 
 export default function Payments() {
   const [selectedItems, setSelectedItems] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const handlePaymentAction = (action, payment) => {
     console.log('Payment action:', action, payment);
@@ -113,6 +116,22 @@ export default function Payments() {
       setSelectedItems([]);
     }
   };
+
+  useEffect(() => {
+    async function fetchPayments() {
+      try {
+        setIsLoadingData(true);
+        const response = await PaymentService.fetch();
+        console.log('Fetched payments:', response.data);
+        setPayments(response.data);
+      } catch (error) {
+        console.error('Error fetching payments:', error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    }
+    fetchPayments();  
+  }, []);
 
   return (
     <div className="my-4 min-h-screen">

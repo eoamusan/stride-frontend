@@ -453,6 +453,7 @@ export default function Invoicing() {
             selectedItems={selectedItems}
             handleSelectItem={handleSelectTableItem}
             handleSelectAll={handleSelectAllItems}
+            isLoading={isLoadingData}
           />
         </div>
       )}

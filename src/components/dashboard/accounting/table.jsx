@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -61,6 +62,7 @@ export default function AccountingTable({
   showDataSize = false,
   isProductTable = false,
   itemComponent,
+  isLoading = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeProductView, setActiveProductView] = useState('grid');
@@ -299,7 +301,26 @@ export default function AccountingTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.length > 0 ? (
+              {isLoading ? (
+                // Loading skeleton rows
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={`skeleton-${index}`}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-4" />
+                    </TableCell>
+                    {columns.map((column, colIndex) => (
+                      <TableCell key={colIndex}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    ))}
+                    {dropdownActions.length > 0 && (
+                      <TableCell>
+                        <Skeleton className="h-8 w-8" />
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              ) : filteredData.length > 0 ? (
                 filteredData.map((item, index) => (
                   <TableRow key={index} className="hover:bg-zinc-50">
                     <TableCell>
