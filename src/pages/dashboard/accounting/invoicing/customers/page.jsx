@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import AddCustomerModal from '@/components/dashboard/accounting/invoicing/customers/add-customer';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
@@ -24,10 +25,10 @@ const customerStatusStyles = {
 const customerDropdownActions = [
   { key: 'view', label: 'View' },
   { key: 'create-invoice', label: 'Create Invoice' },
-  { key: 'create-charge', label: 'Create Charge' },
-  { key: 'make-inactive', label: 'Make inactive' },
-  { key: 'create-statement', label: 'Create Statement' },
-  { key: 'create-task', label: 'Create Task' },
+  // { key: 'create-charge', label: 'Create Charge' },
+  // { key: 'make-inactive', label: 'Make inactive' },
+  // { key: 'create-statement', label: 'Create Statement' },
+  // { key: 'create-task', label: 'Create Task' },
 ];
 const customerPaginationData = {
   page: 1,
@@ -36,28 +37,19 @@ const customerPaginationData = {
   totalCount: 100,
 };
 
-const customerMetrics = [
-  { title: 'Total Outstanding', value: '$264' },
-  {
-    title: 'Overdue',
-    value: '$15,600',
-  },
-  {
-    title: 'Due This week',
-    value: '$64',
-  },
-  {
-    title: 'Active Customers',
-    value: '264',
-  },
-];
-
 export default function Customers() {
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const { businessData } = useUserStore();
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [analytics, setAnalytics] = useState({
+    outstanding: 0,
+    overDue: 0,
+    dueThisWeek: 0,
+    activeCustomers: 0,
+  });
+  const navigate = useNavigate();
 
   // Transform customer data to match table format
   const transformCustomerData = (customers) => {
@@ -68,19 +60,40 @@ export default function Customers() {
       creditLimit: customer.creditLimit
         ? `$${parseFloat(customer.creditLimit).toLocaleString()}`
         : '$0.00',
-      balance: '$0.00', // You may need to calculate this from invoices
+      balance: '$0.00',
       dueDate: customer.dueDate
         ? format(new Date(customer.dueDate), 'MMM dd, yyyy')
         : '-',
-      status: 'Active',
+      status: customer.status === 'ACTIVE' ? 'Active' : 'Inactive',
     }));
   };
 
   const customerData = transformCustomerData(customers);
 
+  // Create metrics from analytics data
+  const customerMetrics = [
+    { title: 'Total Outstanding', value: analytics.outstanding.toString() },
+    { title: 'Overdue', value: analytics.overDue.toString() },
+    { title: 'Due This week', value: analytics.dueThisWeek.toString() },
+    { title: 'Active Customers', value: analytics.activeCustomers.toString() },
+  ];
+
   const handleCustomerTableAction = (action, customer) => {
     console.log('Customer action:', action, customer);
-    // Handle different actions here
+
+    switch (action) {
+      case 'view':
+        navigate(`/dashboard/accounting/invoicing/customers/${customer.id}`);
+        break;
+      case 'create-invoice':
+        // Navigate to invoice creation with customer pre-selected
+        navigate(
+          `/dashboard/accounting/invoicing?create=true&customerId=${customer.id}`
+        );
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
   };
 
   const handleSelectTableItem = (itemId, checked) => {
@@ -106,7 +119,22 @@ export default function Customers() {
         try {
           setIsLoading(true);
           const response = await CustomerService.fetch();
-          setCustomers(response.data?.data || []);
+          // Extract customer objects from the new response structure
+          const customerData = response.data?.data || [];
+          const extractedCustomers = customerData.map((item) => item.customer);
+          setCustomers(extractedCustomers);
+
+          // Fetch analytics data
+          const analyticsRes = await CustomerService.analytics();
+          console.log('Customer analytics data:', analyticsRes.data);
+          setAnalytics(
+            analyticsRes.data?.data || {
+              outstanding: 0,
+              overDue: 0,
+              dueThisWeek: 0,
+              activeCustomers: 0,
+            }
+          );
         } catch (error) {
           console.error('Error fetching customer data:', error);
         } finally {

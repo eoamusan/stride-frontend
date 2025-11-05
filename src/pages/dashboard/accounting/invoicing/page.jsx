@@ -137,20 +137,20 @@ export default function Invoicing() {
         const invoiceRes = await InvoiceService.fetch({
           businessId,
           page: currentPage,
-          limit: paginationData.pageSize,
+          perPage: paginationData.pageSize,
         });
 
-        if (invoiceRes.data && invoiceRes.data?.data?.length > 0) {
-          setInvoiceList(invoiceRes.data.data);
+        if (invoiceRes.data && invoiceRes.data?.data?.invoices?.length > 0) {
+          setInvoiceList(invoiceRes.data?.data?.invoices);
 
           // Update pagination data from API response
           setPaginationData({
-            page: invoiceRes.data.pagination?.page || currentPage,
-            totalPages: invoiceRes.data.pagination?.totalPages || 1,
-            pageSize: invoiceRes.data.pagination?.pageSize || 10,
+            page: invoiceRes.data?.data?.page || currentPage,
+            totalPages: invoiceRes.data?.data?.totalPages || 1,
+            pageSize: invoiceRes.data?.data?.limit || 10,
             totalCount:
-              invoiceRes.data.pagination?.totalCount ||
-              invoiceRes.data.data.length,
+              invoiceRes.data?.data?.totalDocs ||
+              invoiceRes.data?.data?.invoices?.length,
           });
         } else {
           setInvoiceList([]);
@@ -340,6 +340,7 @@ export default function Invoicing() {
           businessId={businessId}
           isEdit={true}
           invoiceNo={selectedInvoice?.invoiceNo}
+          invoiceId={selectedInvoice?._id}
           onBack={() => {
             setViewMode('list');
             setSelectedInvoice(null);
@@ -398,7 +399,7 @@ export default function Invoicing() {
               className="w-full max-w-[259px]"
               title="Total Amount"
               unit="$"
-              value={invoiceStatsData?.totalAmount || 0}
+              value={parseFloat(invoiceStatsData?.totalAmount || 0).toFixed(2)}
               isPositive={true}
               percentage="0"
               chartData={[]}
@@ -409,33 +410,32 @@ export default function Invoicing() {
               className="w-full max-w-[259px]"
               title="Outstanding Invoices"
               unit="$"
-              value={0}
-              isPositive={false}
+              value={parseFloat(
+                invoiceStatsData?.outstandingInvoices || 0
+              ).toFixed(2)}
+              isPositive={true}
               percentage="0"
               chartData={[]}
-              emptyState
             />
 
             <MetricCard
               className="w-full max-w-[259px]"
               title="Unpaid Invoices"
               unit=""
-              value={0}
-              isPositive={false}
+              value={invoiceStatsData?.unPaidInvoices || 0}
+              isPositive={true}
               percentage="0"
               chartData={[]}
-              emptyState
             />
 
             <MetricCard
               className="w-full max-w-[259px]"
               title="Collection Rate"
               unit="%"
-              value={0}
+              value={invoiceStatsData?.collectionRate || 0}
               isPositive={true}
               percentage="0"
               chartData={[]}
-              emptyState
             />
           </div>
 

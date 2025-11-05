@@ -118,6 +118,7 @@ export default function CreateInvoice({
   businessId,
   isEdit = false,
   invoiceNo,
+  invoiceId,
   onBack,
 }) {
   const [isPreview, setIsPreview] = useState(false);
@@ -128,6 +129,7 @@ export default function CreateInvoice({
   const [customers, setCustomers] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCustomVat, setIsCustomVat] = useState(false);
+  const [createdInvoiceData, setCreatedInvoiceData] = useState(null);
   const { businessData, getBusinessData } = useUserStore();
   const navigate = useNavigate();
 
@@ -392,11 +394,26 @@ export default function CreateInvoice({
         },
       };
 
-      const res = await InvoiceService.create({ data: formattedData });
-      console.log(res);
+      let res;
+      if (isEdit && invoiceId) {
+        // Update existing invoice
+        res = await InvoiceService.update({
+          id: invoiceId,
+          data: formattedData,
+        });
+        const invRes = await InvoiceService.get({ id: invoiceId });
+        setCreatedInvoiceData(invRes.data?.data);
+        toast.success('Invoice updated successfully');
+      } else {
+        // Create new invoice
+        res = await InvoiceService.create({ data: formattedData });
+        toast.success('Invoice created successfully');
+        // Store the created/updated invoice data for preview
+        setCreatedInvoiceData(res.data?.data);
+      }
+
       localStorage.removeItem(STORAGE_KEY);
       form.reset();
-      toast.success('Invoice created successfully');
       setIsSuccessModalOpen(true);
     } catch (err) {
       console.error('Error submitting form:', err);
@@ -406,8 +423,50 @@ export default function CreateInvoice({
     }
   };
 
-  const handlePreview = () => {
+  const handlePreview = async () => {
     setIsPreview(true);
+  };
+
+  // Transform created invoice data to match formData structure
+  const getPreviewData = () => {
+    if (createdInvoiceData) {
+      console.log('Created invoice data for preview:', createdInvoiceData);
+
+      // Check if data has invoice and product objects (create response format)
+      // or if it's the direct invoice object with product nested (update response format)
+      const invoice = createdInvoiceData.invoice || createdInvoiceData;
+      const product = createdInvoiceData.product;
+
+      // Extract customerId - could be an object (populated) or a string (ID only)
+      const customerId =
+        typeof invoice.customerId === 'object'
+          ? invoice.customerId._id || invoice.customerId.id
+          : invoice.customerId;
+
+      return {
+        customerId: customerId,
+        currency: invoice.currency,
+        category: invoice.category,
+        c_o: invoice.co || '',
+        invoice_date: new Date(invoice.invoiceDate),
+        term_of_payment: invoice.termsOfPayment,
+        due_date: invoice.dueDate ? new Date(invoice.dueDate) : undefined,
+        invoice_number: invoice.invoiceNo,
+        products: product.products,
+        discount: parseFloat(product.discount || 0),
+        vat: parseFloat(product.vat || 0),
+        delivery_fee: parseFloat(product.deliveryFee || 0),
+        terms: product.terms || '',
+        internal_notes: product.notes || '',
+        display_bank_details: product.displayBankDetails,
+        apply_signature: product.applySignature,
+        status: invoice.status,
+        id: invoice._id || invoice.id,
+      };
+    }
+
+    // Fallback to form data if no created invoice data
+    return form.getValues();
   };
 
   const handleSave = async () => {
@@ -437,11 +496,21 @@ export default function CreateInvoice({
   };
 
   if (isPreview) {
+    const previewData = getPreviewData();
+
     return (
       <PreviewInvoice
-        formData={form.getValues()}
-        calculateSubtotal={calculateSubtotal}
-        onEdit={() => setIsPreview(false)}
+        formData={previewData}
+        calculateSubtotal={() => {
+          if (createdInvoiceData) {
+            return parseFloat(createdInvoiceData.product.subTotal);
+          }
+          return calculateSubtotal();
+        }}
+        onEdit={() => {
+          setIsPreview(false);
+          // Don't clear createdInvoiceData yet, in case user wants to preview again
+        }}
         customers={customers}
       />
     );
@@ -1287,6 +1356,8 @@ export default function CreateInvoice({
               url.searchParams.delete('create');
               window.location.replace(url.pathname + url.search);
               setIsSuccessModalOpen(false);
+              // Clear created invoice data when going back
+              setCreatedInvoiceData(null);
             }}
           />
         </>

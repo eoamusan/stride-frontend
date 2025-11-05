@@ -4,7 +4,7 @@ import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreditNoteService from '@/api/creditNote';
 
 const creditNotes = [
@@ -86,6 +86,7 @@ export default function CreditNotes() {
   const [isCreateCreditNoteOpen, setIsCreateCreditNoteOpen] = useState(false);
   const [isViewCreditNoteOpen, setIsViewCreditNoteOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [creditNoteData, setCreditNoteData] = useState(null);
 
   const handleCreditNoteAction = (action, creditNote) => {
     console.log('Credit note action:', action, creditNote);
@@ -119,6 +120,20 @@ export default function CreditNotes() {
       setSelectedItems([]);
     }
   };
+
+  useEffect(() => {
+    const fetchCreditNotes = async () => {
+      try {
+        const response = await CreditNoteService.fetch();
+        const creditNoteData = response.data.data || [];
+        setCreditNoteData(creditNoteData);
+      } catch (error) {
+        console.error('Error fetching credit notes:', error);
+      }
+    };
+
+    fetchCreditNotes();
+  }, []);
 
   return (
     <div className="my-4 min-h-screen">

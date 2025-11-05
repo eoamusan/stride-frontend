@@ -27,6 +27,8 @@ import {
   UploadIcon,
   XIcon,
   FileIcon,
+  Check,
+  ChevronsUpDown,
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -48,9 +50,19 @@ import CreditNoteService from '@/api/creditNote';
 import { useUserStore } from '@/stores/user-store';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import toast from 'react-hot-toast';
+import InvoiceService from '@/api/invoice';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 
 const formSchema = z.object({
   customer: z.string().min(1, { message: 'Customer is required' }),
+  invoiceId: z.string(),
   credit_memo_date: z.date({ required_error: 'Credit memo date is required' }),
   send_later: z.boolean().default(false),
   billing_address: z
@@ -85,12 +97,17 @@ export default function AddCreditNote({ open, onOpenChange }) {
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [invoices, setInvoices] = useState([]);
+  const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
+  const [invoiceSearchQuery, setInvoiceSearchQuery] = useState('');
+  const [openInvoiceCombobox, setOpenInvoiceCombobox] = useState(false);
   const { businessData } = useUserStore();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       customer: '',
+      invoiceId: '',
       credit_memo_date: new Date(),
       send_later: false,
       billing_address: '',
@@ -132,7 +149,10 @@ export default function AddCreditNote({ open, onOpenChange }) {
       try {
         setIsLoadingCustomers(true);
         const response = await CustomerService.fetch();
-        setCustomers(response.data.data || []);
+        // Extract customer objects from the response
+        const customerData = response.data.data || [];
+        const extractedCustomers = customerData.map((item) => item.customer);
+        setCustomers(extractedCustomers);
       } catch (error) {
         console.error('Error fetching customers:', error);
       } finally {
@@ -144,6 +164,37 @@ export default function AddCreditNote({ open, onOpenChange }) {
       fetchCustomers();
     }
   }, [open, businessData?._id]);
+
+  // Fetch invoices with debounced search query
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        setIsLoadingInvoices(true);
+        const response = await InvoiceService.fetch({
+          businessId: businessData?._id,
+          search: invoiceSearchQuery,
+          page: 1,
+          perPage: 50,
+        });
+        setInvoices(response.data?.data?.invoices || []);
+      } catch (error) {
+        console.error('Error fetching invoices:', error);
+        setInvoices([]);
+      } finally {
+        setIsLoadingInvoices(false);
+      }
+    };
+
+    if (open && businessData?._id) {
+      // Debounce the search - wait 500ms after user stops typing
+      const debounceTimer = setTimeout(() => {
+        fetchInvoices();
+      }, 500);
+
+      // Cleanup function to clear timeout if user keeps typing
+      return () => clearTimeout(debounceTimer);
+    }
+  }, [open, businessData?._id, invoiceSearchQuery]);
 
   const calculateSubtotal = () => {
     return watchLineItems.reduce((sum, item) => {
@@ -191,7 +242,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
       // Transform form data to match backend API structure
       const payload = {
         customerId: data.customer,
-        invoiceId: '', // Add this if you have invoice selection
+        invoiceId: data.invoiceId || '',
         memoDate: data.credit_memo_date.toISOString(),
         sendLater: data.send_later,
         billingAddress: data.billing_address,
@@ -229,12 +280,12 @@ export default function AddCreditNote({ open, onOpenChange }) {
     }
   };
 
-  const saveDraft = () => {
-    const formData = form.getValues();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-    console.log('Draft saved');
-    onOpenChange?.(false);
-  };
+  // const saveDraft = () => {
+  //   const formData = form.getValues();
+  //   localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+  //   console.log('Draft saved');
+  //   onOpenChange?.(false);
+  // };
 
   const saveAndSend = async () => {
     // Validate and submit the form
@@ -366,7 +417,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Customer and Credit Memo Details */}
-              <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
+              <div className="grid grid-cols-1 items-start space-y-4 gap-x-6 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="customer"
@@ -400,8 +451,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                                 key={customer._id}
                                 value={customer._id}
                               >
-                                {customer.displayName ||
-                                  customer.firstName + ' ' + customer.lastName}
+                                {customer.firstName + ' ' + customer.lastName}
                               </SelectItem>
                             ))
                           )}
@@ -477,6 +527,86 @@ export default function AddCreditNote({ open, onOpenChange }) {
                     )}
                   />
                 </div>
+                <FormField
+                  control={form.control}
+                  name="invoiceId"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Invoice</FormLabel>
+                      <Popover
+                        open={openInvoiceCombobox}
+                        onOpenChange={setOpenInvoiceCombobox}
+                      >
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                'h-10 w-full justify-between text-sm',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value
+                                ? invoices.find(
+                                    (invoice) => invoice._id === field.value
+                                  )?.invoiceNo || 'Select invoice'
+                                : 'Select invoice'}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search invoices..."
+                              value={invoiceSearchQuery}
+                              onValueChange={setInvoiceSearchQuery}
+                            />
+                            <CommandList>
+                              <CommandEmpty>
+                                {isLoadingInvoices
+                                  ? 'Loading...'
+                                  : 'No invoice found.'}
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {invoices.map((invoice) => (
+                                  <CommandItem
+                                    value={invoice.invoiceNo}
+                                    key={invoice._id}
+                                    onSelect={() => {
+                                      form.setValue('invoiceId', invoice._id);
+                                      setOpenInvoiceCombobox(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        'mr-2 h-4 w-4',
+                                        invoice._id === field.value
+                                          ? 'opacity-100'
+                                          : 'opacity-0'
+                                      )}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">
+                                        {invoice.invoiceNo}
+                                      </span>
+                                      <span className="text-muted-foreground text-xs">
+                                        {invoice.customerId?.displayName} -{' '}
+                                        {invoice.currency}
+                                      </span>
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               {/* Billing Address and Email */}
@@ -886,7 +1016,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                 >
                   Cancel
                 </Button>
-                <Button
+                {/* <Button
                   type="button"
                   variant="outline"
                   className={'h-10 w-full max-w-44 text-sm'}
@@ -894,7 +1024,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                   disabled={isSubmitting || isUploadingFiles}
                 >
                   Save Draft
-                </Button>
+                </Button> */}
                 <Button
                   type="button"
                   onClick={saveAndSend}

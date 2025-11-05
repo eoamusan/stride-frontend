@@ -43,6 +43,7 @@ import VendorsExpenses from './dashboard/accounting/expense-management/vendors/p
 import Bills from './dashboard/accounting/expense-management/bills/page';
 import { authMiddleware } from '@/middleware/auth-middleware';
 import VendorExpenseDetails from './dashboard/accounting/expense-management/vendors/[id]/page';
+import ViewCustomer from './dashboard/accounting/invoicing/customers/[id]/page';
 
 const router = createBrowserRouter([
   {
@@ -89,7 +90,16 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'customers',
-                        Component: Customers,
+                        children: [
+                          {
+                            index: true,
+                            Component: Customers,
+                          },
+                          {
+                            path: ':id',
+                            Component: ViewCustomer,
+                          },
+                        ],
                       },
                       {
                         path: 'payments',

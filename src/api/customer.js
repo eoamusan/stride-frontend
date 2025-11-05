@@ -26,7 +26,31 @@ export default class CustomerService {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(
       'customer/fetch',
-      { businessId: userStore?.businessData?._id  },
+      { businessId: userStore?.businessData?._id },
+      {
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      }
+    );
+    return response;
+  }
+
+  static async update({ id, data }) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.patch(`customer/${id}`, data, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
+    return response;
+  }
+
+  static async analytics() {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.post(
+      'customer/analytics',
+      { businessId: userStore?.businessData?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,

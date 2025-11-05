@@ -12,6 +12,16 @@ export default class InvoiceService {
     return response;
   }
 
+  static async update({ id, data }) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.patch(`invoice/${id}`, data, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
+    return response;
+  }
+
   static async get({ id }) {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.get(`invoice/${id}`, {
@@ -22,10 +32,10 @@ export default class InvoiceService {
     return response;
   }
 
-  static async fetch({ businessId }) {
+  static async fetch({ businessId, page, perPage, search }) {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(
-      `invoice/fetch`,
+      `invoice/fetch?page=${page ?? 1}&perPage=${perPage ?? 10}&search=${search ?? ''}`,
       { businessId },
       {
         headers: {

@@ -108,7 +108,8 @@ export default function Register() {
   });
 
   const onSubmit = async (data) => {
-    const { _acceptTerms, ...payload } = data;
+    const { acceptTerms, ...payload } = data;
+    console.log(acceptTerms);
     try {
       await register(payload);
 
