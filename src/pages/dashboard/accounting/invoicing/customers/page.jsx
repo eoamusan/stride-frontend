@@ -30,12 +30,6 @@ const customerDropdownActions = [
   // { key: 'create-statement', label: 'Create Statement' },
   // { key: 'create-task', label: 'Create Task' },
 ];
-const customerPaginationData = {
-  page: 1,
-  totalPages: 10,
-  pageSize: 10,
-  totalCount: 100,
-};
 
 export default function Customers() {
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
@@ -43,6 +37,13 @@ export default function Customers() {
   const { businessData } = useUserStore();
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationData, setPaginationData] = useState({
+    page: 1,
+    totalPages: 1,
+    pageSize: 20,
+    totalCount: 0,
+  });
   const [analytics, setAnalytics] = useState({
     outstanding: 0,
     overDue: 0,
@@ -112,17 +113,34 @@ export default function Customers() {
     }
   };
 
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    setSelectedItems([]); // Clear selections when changing pages
+  };
+
   useEffect(() => {
     if (businessData) {
       // Fetch customer data based on businessId
       const fetchCustomerData = async () => {
         try {
           setIsLoading(true);
-          const response = await CustomerService.fetch();
+          const response = await CustomerService.fetch({
+            page: currentPage,
+            perPage: paginationData.pageSize,
+          });
           // Extract customer objects from the new response structure
-          const customerData = response.data?.data || [];
+          const responseData = response.data?.data || {};
+          const customerData = responseData.customers || [];
           const extractedCustomers = customerData.map((item) => item.customer);
           setCustomers(extractedCustomers);
+
+          // Update pagination data from API response
+          setPaginationData({
+            page: responseData.page || 1,
+            totalPages: responseData.totalPages || 1,
+            pageSize: responseData.limit || 20,
+            totalCount: responseData.totalDocs || extractedCustomers.length,
+          });
 
           // Fetch analytics data
           const analyticsRes = await CustomerService.analytics();
@@ -144,7 +162,12 @@ export default function Customers() {
 
       fetchCustomerData();
     }
-  }, [businessData, isCreateCustomerOpen]);
+  }, [
+    businessData,
+    isCreateCustomerOpen,
+    currentPage,
+    paginationData.pageSize,
+  ]);
 
   return (
     <div className="my-4 min-h-screen">
@@ -185,7 +208,8 @@ export default function Customers() {
             searchPlaceholder="Search customers..."
             statusStyles={customerStatusStyles}
             dropdownActions={customerDropdownActions}
-            paginationData={customerPaginationData}
+            paginationData={paginationData}
+            onPageChange={handlePageChange}
             onRowAction={handleCustomerTableAction}
             selectedItems={selectedItems}
             handleSelectItem={handleSelectTableItem}

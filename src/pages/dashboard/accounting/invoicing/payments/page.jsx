@@ -4,45 +4,7 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, SettingsIcon } from 'lucide-react';
 import PaymentService from '@/api/payment';
-
-const paymentData = [
-  {
-    id: 'P-35476',
-    customer: 'ABC Corporation',
-    invoice: '#INV-001',
-    method: 'Bank Transfer',
-    amount: '$15,400.00',
-    date: 'Jul 20, 2024',
-    status: 'Overdue',
-  },
-  {
-    id: 'P-35477',
-    customer: 'Tech Solutions Ltd',
-    invoice: '#INV-002',
-    method: 'Credit Card',
-    amount: '$8,750.00',
-    date: 'Aug 15, 2024',
-    status: 'Completed',
-  },
-  {
-    id: 'P-35478',
-    customer: 'Global Enterprises',
-    invoice: '#INV-003',
-    method: 'Bank Transfer',
-    amount: '$25,000.00',
-    date: 'Aug 10, 2024',
-    status: 'Pending',
-  },
-  {
-    id: 'P-35479',
-    customer: 'Creative Agency Inc',
-    invoice: '#INV-004',
-    method: 'PayPal',
-    amount: '$12,300.00',
-    date: 'Jul 30, 2024',
-    status: 'Failed',
-  },
-];
+import { format } from 'date-fns';
 
 const paymentColumns = [
   { key: 'id', label: 'Payment ID' },
@@ -68,33 +30,58 @@ const paymentDropdownActions = [
   { key: 'export', label: 'Export' },
 ];
 
-const paymentPaginationData = {
-  page: 1,
-  totalPages: 10,
-  pageSize: 10,
-  totalCount: 100,
-};
-
-const paymentMetrics = [
-  { title: 'Total Payments Received', value: '$264' },
-  {
-    title: 'Successful Pyaments',
-    value: '$15,600',
-  },
-  {
-    title: 'Pending Payments',
-    value: '$64',
-  },
-  {
-    title: 'Average Payment Time',
-    value: '22 days',
-  },
-];
-
 export default function Payments() {
   const [selectedItems, setSelectedItems] = useState([]);
-  const [payments, setPayments] = useState([]);
+  const [paymentList, setPaymentList] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationData, setPaginationData] = useState({
+    page: 1,
+    totalPages: 1,
+    pageSize: 10,
+    totalCount: 0,
+  });
+
+  // Transform payment data to match table format
+  const transformPaymentData = (payments) => {
+    if (!payments || !Array.isArray(payments)) return [];
+
+    return payments.map((payment) => ({
+      id: payment.trxNo || payment._id,
+      customer: 'N/A', // Will need to populate from invoice/customer data
+      invoice: payment.invoiceId || 'N/A',
+      method: payment.paymentMethod || 'N/A',
+      amount: `$0.00`, // Amount not in response, will need from invoice
+      date: payment.paymentDate
+        ? format(new Date(payment.paymentDate), 'MMM dd, yyyy')
+        : 'N/A',
+      status: 'Completed', // Status not in response, defaulting to Completed
+    }));
+  };
+
+  // Calculate metrics from payment data
+  const calculateMetrics = () => {
+    const totalPayments = paginationData.totalCount || 0;
+
+    return [
+      {
+        title: 'Total Payments Received',
+        value: String(totalPayments),
+      },
+      {
+        title: 'Successful Payments',
+        value: String(totalPayments),
+      },
+      {
+        title: 'Pending Payments',
+        value: '0',
+      },
+      {
+        title: 'Average Payment Time',
+        value: '0 days',
+      },
+    ];
+  };
 
   const handlePaymentAction = (action, payment) => {
     console.log('Payment action:', action, payment);
@@ -111,10 +98,17 @@ export default function Payments() {
 
   const handleSelectAllItems = (checked) => {
     if (checked) {
-      setSelectedItems(paymentData.map((item) => item.id));
+      const transformedData = transformPaymentData(paymentList);
+      setSelectedItems(transformedData.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
+  };
+
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    setSelectedItems([]); // Clear selections when changing pages
   };
 
   useEffect(() => {
@@ -123,15 +117,25 @@ export default function Payments() {
         setIsLoadingData(true);
         const response = await PaymentService.fetch();
         console.log('Fetched payments:', response.data);
-        setPayments(response.data);
+
+        const payments = response.data?.data || [];
+        setPaymentList(payments);
+
+        // Update pagination data - API doesn't return pagination info yet
+        setPaginationData({
+          page: 1,
+          totalPages: 1,
+          pageSize: payments.length,
+          totalCount: payments.length,
+        });
       } catch (error) {
         console.error('Error fetching payments:', error);
       } finally {
         setIsLoadingData(false);
       }
     }
-    fetchPayments();  
-  }, []);
+    fetchPayments();
+  }, [currentPage]);
 
   return (
     <div className="my-4 min-h-screen">
@@ -154,22 +158,24 @@ export default function Payments() {
       </div>
 
       <div className="mt-10">
-        <Metrics metrics={paymentMetrics} />
+        <Metrics metrics={calculateMetrics()} />
       </div>
       <div className="mt-10">
         <AccountingTable
           title={'Recent Payments'}
-          data={paymentData}
+          data={transformPaymentData(paymentList)}
           columns={paymentColumns}
           searchFields={['customer', 'invoice', 'id']}
           searchPlaceholder="Search payment......"
           statusStyles={paymentStatusStyles}
           dropdownActions={paymentDropdownActions}
-          paginationData={paymentPaginationData}
+          paginationData={paginationData}
+          onPageChange={handlePageChange}
           onRowAction={handlePaymentAction}
           selectedItems={selectedItems}
           handleSelectItem={handleSelectTableItem}
           handleSelectAll={handleSelectAllItems}
+          isLoading={isLoadingData}
         />
       </div>
     </div>

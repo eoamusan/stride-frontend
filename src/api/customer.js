@@ -22,10 +22,22 @@ export default class CustomerService {
     return response;
   }
 
-  static async fetch() {
+  static async fetch({ search, page, perPage }) {
     const userStore = useUserStore.getState();
+
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (page) params.append('page', page);
+    if (perPage) params.append('perPage', perPage);
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `customer/fetch?${queryString}`
+      : 'customer/fetch';
+
     const response = await axiosInstance.post(
-      'customer/fetch',
+      url,
       { businessId: userStore?.businessData?._id },
       {
         headers: {

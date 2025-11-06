@@ -22,12 +22,22 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   CalendarIcon,
+  Check,
+  ChevronsUpDown,
   EyeIcon,
   NotepadTextIcon,
   PlusIcon,
   SettingsIcon,
   TrashIcon,
 } from 'lucide-react';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Popover,
@@ -130,6 +140,8 @@ export default function CreateInvoice({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCustomVat, setIsCustomVat] = useState(false);
   const [createdInvoiceData, setCreatedInvoiceData] = useState(null);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
   const { businessData, getBusinessData } = useUserStore();
   const navigate = useNavigate();
 
@@ -200,15 +212,23 @@ export default function CreateInvoice({
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const response = await CustomerService.fetch();
-        setCustomers(response.data?.data || []);
+        const response = await CustomerService.fetch({
+          search: customerSearchQuery,
+        });
+        const customerData = response.data?.data?.customers || [];
+        const extractedCustomers = customerData.map((item) => item.customer);
+        setCustomers(extractedCustomers);
       } catch (error) {
         console.error('Error fetching customers:', error);
       }
     };
 
-    fetchCustomers();
-  }, [isAddCustomerModalOpen, businessId]);
+    const debounceTimer = setTimeout(() => {
+      fetchCustomers();
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [isAddCustomerModalOpen, businessId, customerSearchQuery]);
 
   // Save to localStorage whenever form data changes
   useEffect(() => {
@@ -595,28 +615,82 @@ export default function CreateInvoice({
                       control={form.control}
                       name="customerId"
                       render={({ field }) => (
-                        <FormItem className={'w-full'}>
+                        <FormItem className="flex w-full flex-col">
                           <FormLabel>Customer Name</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
+                          <Popover
+                            open={openCustomerCombobox}
+                            onOpenChange={setOpenCustomerCombobox}
                           >
-                            <FormControl>
-                              <SelectTrigger className={'w-full'}>
-                                <SelectValue placeholder="Select customer" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {customers?.map((customer) => (
-                                <SelectItem
-                                  key={customer._id}
-                                  value={customer._id}
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  className={cn(
+                                    'h-10 w-full justify-between text-sm',
+                                    !field.value && 'text-muted-foreground'
+                                  )}
                                 >
-                                  {customer.displayName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                                  {field.value
+                                    ? customers.find(
+                                        (customer) =>
+                                          customer._id === field.value
+                                      )?.displayName || 'Select customer'
+                                    : 'Select customer'}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-full p-0"
+                              align="start"
+                            >
+                              <Command>
+                                <CommandInput
+                                  placeholder="Search customers..."
+                                  value={customerSearchQuery}
+                                  onValueChange={setCustomerSearchQuery}
+                                />
+                                <CommandList>
+                                  <CommandEmpty>
+                                    No customer found.
+                                  </CommandEmpty>
+                                  <CommandGroup>
+                                    {customers?.map((customer) => (
+                                      <CommandItem
+                                        value={customer.displayName}
+                                        key={customer._id}
+                                        onSelect={() => {
+                                          form.setValue(
+                                            'customerId',
+                                            customer._id
+                                          );
+                                          setOpenCustomerCombobox(false);
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            'mr-2 h-4 w-4',
+                                            customer._id === field.value
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
+                                          )}
+                                        />
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">
+                                            {customer.displayName}
+                                          </span>
+                                          <span className="text-muted-foreground text-xs">
+                                            {customer.email}
+                                          </span>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                           <FormMessage />
                         </FormItem>
                       )}

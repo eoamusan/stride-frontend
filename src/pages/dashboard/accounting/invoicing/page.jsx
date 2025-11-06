@@ -2,13 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import EmptyInvoice from '@/components/dashboard/accounting/invoicing/empty-state';
 import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-invoice';
-import PreviewInvoice from '@/components/dashboard/accounting/invoicing/preview-invoice';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircle, SettingsIcon } from 'lucide-react';
 import MetricCard from '@/components/dashboard/metric-card';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import InvoiceService from '@/api/invoice';
-import BusinessService from '@/api/business';
 import toast from 'react-hot-toast';
 import { useUserStore } from '@/stores/user-store';
 import { format } from 'date-fns';
@@ -113,16 +111,6 @@ export default function Invoicing() {
     };
   };
 
-  // Calculate subtotal for preview
-  const calculateSubtotal = (products) => {
-    if (!products || !Array.isArray(products)) return 0;
-    return products.reduce((sum, product) => {
-      const unitPrice = product.unitPrice || product.unit_price || 0;
-      const quantity = product.quantity || 1;
-      return sum + unitPrice * quantity;
-    }, 0);
-  };
-
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
@@ -197,9 +185,8 @@ export default function Invoicing() {
           setViewMode('edit');
           break;
         case 'view':
-          // Show invoice preview
-          setSelectedInvoice(invoiceData);
-          setViewMode('preview');
+          // Navigate to invoice preview page
+          navigate(`/dashboard/accounting/invoicing/${invoiceData._id}`);
           break;
         case 'generate-receipt':
           // Add receipt generation logic here
@@ -240,6 +227,7 @@ export default function Invoicing() {
   // Check for create parameter on component mount
   useEffect(() => {
     const createParam = searchParams.get('create');
+
     if (createParam === 'true') {
       setToggleCreateInvoice(true);
     } else {
@@ -279,41 +267,6 @@ export default function Invoicing() {
     return (
       <div className="my-4 min-h-screen">
         <CreateInvoice businessId={businessId} />
-      </div>
-    );
-  }
-
-  // Handle Preview mode
-  if (viewMode === 'preview' && selectedInvoice) {
-    const formData = transformToFormData(selectedInvoice);
-
-    // Extract customer from the invoice's populated customerId field
-    const customer = selectedInvoice.customerId;
-    const transformedCustomers = customer
-      ? [
-          {
-            id: customer._id,
-            displayName: customer.displayName,
-            companyName: customer.companyName,
-            address: customer.address,
-          },
-        ]
-      : [];
-
-    return (
-      <div className="my-4 min-h-screen">
-        <PreviewInvoice
-          formData={formData}
-          calculateSubtotal={() =>
-            calculateSubtotal(selectedInvoice.product?.products)
-          }
-          onEdit={() => {
-            // Go back to list view instead of edit mode
-            setViewMode('list');
-            setSelectedInvoice(null);
-          }}
-          customers={transformedCustomers}
-        />
       </div>
     );
   }

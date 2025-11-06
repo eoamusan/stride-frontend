@@ -9,6 +9,7 @@ import Home from './dashboard/home/page';
 import AccountingLayout from './dashboard/accounting/layout';
 import AccountingOverview from './dashboard/accounting/overview/page';
 import Invoicing from './dashboard/accounting/invoicing/page';
+import ViewInvoice from './dashboard/accounting/invoicing/[id]/page';
 import Customers from './dashboard/accounting/invoicing/customers/page';
 import Payments from './dashboard/accounting/invoicing/payments/page';
 import CreditNotes from './dashboard/accounting/invoicing/credit-notes/page';
@@ -87,6 +88,10 @@ const router = createBrowserRouter([
                       {
                         index: true,
                         Component: Invoicing,
+                      },
+                      {
+                        path: ':id',
+                        Component: ViewInvoice,
                       },
                       {
                         path: 'customers',

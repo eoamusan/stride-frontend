@@ -101,6 +101,8 @@ export default function AddCreditNote({ open, onOpenChange }) {
   const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
   const [invoiceSearchQuery, setInvoiceSearchQuery] = useState('');
   const [openInvoiceCombobox, setOpenInvoiceCombobox] = useState(false);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
   const { businessData } = useUserStore();
 
   const form = useForm({
@@ -143,27 +145,38 @@ export default function AddCreditNote({ open, onOpenChange }) {
 
   const watchLineItems = form.watch('line_items');
 
-  // Fetch customers on component mount
+  // Fetch customers with debounced search query
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
         setIsLoadingCustomers(true);
-        const response = await CustomerService.fetch();
+        const response = await CustomerService.fetch({
+          search: customerSearchQuery,
+          page: 1,
+          perPage: 50,
+        });
         // Extract customer objects from the response
-        const customerData = response.data.data || [];
+        const customerData = response.data?.data?.customers || [];
         const extractedCustomers = customerData.map((item) => item.customer);
         setCustomers(extractedCustomers);
       } catch (error) {
         console.error('Error fetching customers:', error);
+        setCustomers([]);
       } finally {
         setIsLoadingCustomers(false);
       }
     };
 
     if (open && businessData?._id) {
-      fetchCustomers();
+      // Debounce the search - wait 500ms after user stops typing
+      const debounceTimer = setTimeout(() => {
+        fetchCustomers();
+      }, 500);
+
+      // Cleanup function to clear timeout if user keeps typing
+      return () => clearTimeout(debounceTimer);
     }
-  }, [open, businessData?._id]);
+  }, [open, businessData?._id, customerSearchQuery]);
 
   // Fetch invoices with debounced search query
   useEffect(() => {
@@ -241,6 +254,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
 
       // Transform form data to match backend API structure
       const payload = {
+        businessId: businessData?._id,
         customerId: data.customer,
         invoiceId: data.invoiceId || '',
         memoDate: data.credit_memo_date.toISOString(),
@@ -422,41 +436,93 @@ export default function AddCreditNote({ open, onOpenChange }) {
                   control={form.control}
                   name="customer"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col">
                       <FormLabel>Customer</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={isLoadingCustomers}
+                      <Popover
+                        open={openCustomerCombobox}
+                        onOpenChange={setOpenCustomerCombobox}
                       >
-                        <FormControl>
-                          <SelectTrigger className={'w-full'}>
-                            <SelectValue
-                              placeholder={
-                                isLoadingCustomers
-                                  ? 'Loading customers...'
-                                  : 'Select customer'
-                              }
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                'h-10 w-full justify-between text-sm',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value
+                                ? customers.find(
+                                    (customer) => customer._id === field.value
+                                  )?.displayName ||
+                                  customers.find(
+                                    (customer) => customer._id === field.value
+                                  )?.firstName +
+                                    ' ' +
+                                    customers.find(
+                                      (customer) => customer._id === field.value
+                                    )?.lastName ||
+                                  'Select customer'
+                                : 'Select customer'}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search customers..."
+                              value={customerSearchQuery}
+                              onValueChange={setCustomerSearchQuery}
                             />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {customers.length === 0 ? (
-                            <SelectItem value="no-customers" disabled>
-                              No customers found
-                            </SelectItem>
-                          ) : (
-                            customers.map((customer) => (
-                              <SelectItem
-                                key={customer._id}
-                                value={customer._id}
-                              >
-                                {customer.firstName + ' ' + customer.lastName}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
+                            <CommandList>
+                              <CommandEmpty>
+                                {isLoadingCustomers
+                                  ? 'Loading...'
+                                  : 'No customer found.'}
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {customers.map((customer) => (
+                                  <CommandItem
+                                    value={
+                                      customer.displayName ||
+                                      customer.firstName +
+                                        ' ' +
+                                        customer.lastName
+                                    }
+                                    key={customer._id}
+                                    onSelect={() => {
+                                      form.setValue('customer', customer._id);
+                                      setOpenCustomerCombobox(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        'mr-2 h-4 w-4',
+                                        customer._id === field.value
+                                          ? 'opacity-100'
+                                          : 'opacity-0'
+                                      )}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">
+                                        {customer.displayName ||
+                                          customer.firstName +
+                                            ' ' +
+                                            customer.lastName}
+                                      </span>
+                                      <span className="text-muted-foreground text-xs">
+                                        {customer.email}
+                                      </span>
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
