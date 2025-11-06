@@ -47,18 +47,18 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import PreviewInvoice from './preview-invoice';
-import AddCustomerModal from './customers/add-customer';
-import AddBankModal from './add-bank';
-import InvoiceTemplateSettings from './invoice-template';
-import SuccessModal from '../success-modal';
+import PreviewInvoice from '@/components/dashboard/accounting/invoicing/preview-invoice';
+import AddCustomerModal from '@/components/dashboard/accounting/invoicing/customers/add-customer';
+import AddBankModal from '@/components/dashboard/accounting/invoicing/add-bank';
+import InvoiceTemplateSettings from '@/components/dashboard/accounting/invoicing/invoice-template';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import CustomerService from '@/api/customer';
 import BusinessService from '@/api/business';
 import toast from 'react-hot-toast';
 import InvoiceService from '@/api/invoice';
 import { useUserStore } from '@/stores/user-store';
 import { Switch } from '@/components/ui/switch';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 const formSchema = z.object({
   customerId: z.string().min(1, { message: 'Customer name is required' }),
@@ -119,12 +119,12 @@ const formSchema = z.object({
   apply_signature: z.boolean().default(false),
 });
 
-const STORAGE_KEY = 'create_invoice_draft';
-
 // Extensive list of invoice categories
 const INVOICE_CATEGORIES = ['Services', 'Expenses', 'Others'];
 
-export default function CreateInvoice({ businessId, onBack }) {
+export default function EditInvoice() {
+  const { id: invoiceId } = useParams();
+  const navigate = useNavigate();
   const [isPreview, setIsPreview] = useState(false);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
@@ -133,38 +133,16 @@ export default function CreateInvoice({ businessId, onBack }) {
   const [customers, setCustomers] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCustomVat, setIsCustomVat] = useState(false);
-  const [createdInvoiceData, setCreatedInvoiceData] = useState(null);
+  const [updatedInvoiceData, setUpdatedInvoiceData] = useState(null);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
+  const [isLoadingInvoice, setIsLoadingInvoice] = useState(true);
+  const [invoiceNo, setInvoiceNo] = useState('');
   const { businessData, getBusinessData } = useUserStore();
-  const navigate = useNavigate();
 
-  // Get initial values from localStorage if available
-  const getInitialValues = () => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-
-        // Convert date strings back to Date objects
-        if (
-          parsedData.invoice_date &&
-          typeof parsedData.invoice_date === 'string'
-        ) {
-          parsedData.invoice_date = new Date(parsedData.invoice_date);
-        }
-        if (parsedData.due_date && typeof parsedData.due_date === 'string') {
-          parsedData.due_date = new Date(parsedData.due_date);
-        }
-
-        return parsedData;
-      } catch (error) {
-        console.error('Error loading saved invoice data:', error);
-      }
-    }
-
-    // Return default values if no saved data
-    return {
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
       customerId: '',
       currency: '',
       category: '',
@@ -189,18 +167,87 @@ export default function CreateInvoice({ businessId, onBack }) {
       internal_notes: '',
       display_bank_details: false,
       apply_signature: false,
-    };
-  };
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: getInitialValues(),
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'products',
   });
+
+  // Fetch invoice data and populate form
+  useEffect(() => {
+    const fetchInvoiceData = async () => {
+      if (!invoiceId) return;
+
+      try {
+        setIsLoadingInvoice(true);
+        const response = await InvoiceService.get({ id: invoiceId });
+        const invoiceData = response.data?.data;
+
+        if (invoiceData) {
+          setInvoiceNo(invoiceData.invoiceNo);
+
+          // Extract customerId
+          const customerId =
+            typeof invoiceData.customerId === 'object'
+              ? invoiceData.customerId._id || invoiceData.customerId.id
+              : invoiceData.customerId;
+
+          // Transform and set form data
+          form.reset({
+            customerId: customerId || '',
+            currency: invoiceData.currency || '',
+            category: invoiceData.category || '',
+            c_o: invoiceData.co || '',
+            invoice_date: invoiceData.invoiceDate
+              ? new Date(invoiceData.invoiceDate)
+              : new Date(),
+            term_of_payment: invoiceData.termsOfPayment || '',
+            due_date: invoiceData.dueDate
+              ? new Date(invoiceData.dueDate)
+              : undefined,
+            products: invoiceData.product?.products?.map((product) => ({
+              name: product.name || '',
+              description: product.description || '',
+              unit_price: product.unit_price || 0,
+              quantity: product.quantity || 1,
+              total_price: product.total_price || 0,
+              vat_applicable:
+                product.vat_applicable !== undefined
+                  ? product.vat_applicable
+                  : true,
+            })) || [
+              {
+                name: '',
+                description: '',
+                unit_price: 0,
+                quantity: 1,
+                total_price: 0,
+                vat_applicable: true,
+              },
+            ],
+            discount: parseFloat(invoiceData.product?.discount) || 0,
+            vat: parseFloat(invoiceData.product?.vat) || 0,
+            delivery_fee: parseFloat(invoiceData.product?.deliveryFee) || 0,
+            terms: invoiceData.product?.terms || '',
+            internal_notes: invoiceData.product?.notes || '',
+            display_bank_details:
+              invoiceData.product?.displayBankDetails || false,
+            apply_signature: invoiceData.product?.applySignature || false,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching invoice:', error);
+        toast.error('Failed to load invoice data');
+        navigate('/dashboard/accounting/invoicing');
+      } finally {
+        setIsLoadingInvoice(false);
+      }
+    };
+
+    fetchInvoiceData();
+  }, [invoiceId, form, navigate]);
 
   // Fetch customers data
   useEffect(() => {
@@ -222,15 +269,7 @@ export default function CreateInvoice({ businessId, onBack }) {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [isAddCustomerModalOpen, businessId, customerSearchQuery]);
-
-  // Save to localStorage whenever form data changes
-  useEffect(() => {
-    const subscription = form.watch((formData) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
+  }, [isAddCustomerModalOpen, customerSearchQuery]);
 
   // Calculate product total when unit price or quantity changes
   const watchProducts = form.watch('products');
@@ -324,7 +363,7 @@ export default function CreateInvoice({ businessId, onBack }) {
   const handleTemplateSave = async ({ selectedTemplate, selectedColor }) => {
     try {
       await BusinessService.patchSettings({
-        id: businessId,
+        id: businessData?._id,
         data: {
           template: selectedTemplate,
           brandColor: selectedColor,
@@ -352,7 +391,7 @@ export default function CreateInvoice({ businessId, onBack }) {
 
       // Update business settings
       await BusinessService.patchSettings({
-        id: businessId,
+        id: businessData?._id,
         data: {
           bankAccounts: updatedBankAccounts,
         },
@@ -370,19 +409,14 @@ export default function CreateInvoice({ businessId, onBack }) {
     }
   };
 
-  // const addPaymentGateway = () => {
-  //   // Functionality to add payment gateway
-  //   console.log('Add payment gateway');
-  // };
-
   const onSubmit = async (data) => {
     console.log('Form submitted with data:', data);
     try {
       setIsSubmitting(true);
 
-      // Format data according to the new structure
+      // Format data according to the structure
       const formattedData = {
-        businessId: businessId,
+        businessId: businessData?._id,
         invoice: {
           customerId: data.customerId,
           currency: data.currency,
@@ -395,7 +429,7 @@ export default function CreateInvoice({ businessId, onBack }) {
         products: {
           products: data.products,
           banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
-          paymentGateways: [], // You can populate this with actual payment gateway data if available
+          paymentGateways: [],
           terms: data.terms || '',
           notes: data.internal_notes || '',
           displayBankDetails: data.display_bank_details,
@@ -408,15 +442,15 @@ export default function CreateInvoice({ businessId, onBack }) {
         },
       };
 
-      let res;
-      // Create new invoice
-      res = await InvoiceService.create({ data: formattedData });
-      toast.success('Invoice created successfully');
-      // Store the created invoice data for preview
-      setCreatedInvoiceData(res.data?.data);
+      // Update existing invoice
+      await InvoiceService.update({
+        id: invoiceId,
+        data: formattedData,
+      });
+      const invRes = await InvoiceService.get({ id: invoiceId });
+      setUpdatedInvoiceData(invRes.data?.data);
+      toast.success('Invoice updated successfully');
 
-      localStorage.removeItem(STORAGE_KEY);
-      form.reset();
       setIsSuccessModalOpen(true);
     } catch (err) {
       console.error('Error submitting form:', err);
@@ -430,15 +464,13 @@ export default function CreateInvoice({ businessId, onBack }) {
     setIsPreview(true);
   };
 
-  // Transform created invoice data to match formData structure
+  // Transform updated invoice data to match formData structure
   const getPreviewData = () => {
-    if (createdInvoiceData) {
-      console.log('Created invoice data for preview:', createdInvoiceData);
+    if (updatedInvoiceData) {
+      console.log('Updated invoice data for preview:', updatedInvoiceData);
 
-      // Check if data has invoice and product objects (create response format)
-      // or if it's the direct invoice object with product nested (update response format)
-      const invoice = createdInvoiceData.invoice || createdInvoiceData;
-      const product = createdInvoiceData.product;
+      const invoice = updatedInvoiceData.invoice || updatedInvoiceData;
+      const product = updatedInvoiceData.product;
 
       // Extract customerId - could be an object (populated) or a string (ID only)
       const customerId =
@@ -468,7 +500,7 @@ export default function CreateInvoice({ businessId, onBack }) {
       };
     }
 
-    // Fallback to form data if no created invoice data
+    // Fallback to form data if no updated invoice data
     return form.getValues();
   };
 
@@ -498,29 +530,40 @@ export default function CreateInvoice({ businessId, onBack }) {
     }
   };
 
+  if (isLoadingInvoice) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-semibold">Loading invoice...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (isPreview) {
     const previewData = getPreviewData();
 
     return (
-      <PreviewInvoice
-        formData={previewData}
-        calculateSubtotal={() => {
-          if (createdInvoiceData) {
-            return parseFloat(createdInvoiceData.product.subTotal);
-          }
-          return calculateSubtotal();
-        }}
-        onEdit={() => {
-          setIsPreview(false);
-          // Don't clear createdInvoiceData yet, in case user wants to preview again
-        }}
-        customers={customers}
-      />
+      <div className='my-4'>
+        <PreviewInvoice
+          formData={previewData}
+          calculateSubtotal={() => {
+            if (updatedInvoiceData) {
+              return parseFloat(updatedInvoiceData.product.subTotal);
+            }
+            return calculateSubtotal();
+          }}
+          onEdit={() => {
+            setIsPreview(false);
+          }}
+          customers={customers}
+        />
+      </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl rounded-2xl bg-white p-6">
+    <div className="mx-auto my-4 max-w-7xl rounded-2xl bg-white p-6">
       {showTemplateSettings ? (
         <InvoiceTemplateSettings
           onBack={handleTemplateBack}
@@ -534,14 +577,7 @@ export default function CreateInvoice({ businessId, onBack }) {
             <Button
               size={'sm'}
               variant={'outline'}
-              onClick={() => {
-                localStorage.removeItem(STORAGE_KEY);
-                if (onBack) {
-                  onBack();
-                } else {
-                  navigate(-1);
-                }
-              }}
+              onClick={() => navigate('/dashboard/accounting/invoicing')}
             >
               Back
             </Button>
@@ -570,7 +606,8 @@ export default function CreateInvoice({ businessId, onBack }) {
           <div className="mt-4 mb-8 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-2xl font-semibold">New Invoice</h1>
+                <h1 className="text-2xl font-semibold">Edit Invoice</h1>
+                {invoiceNo && <p>{invoiceNo}</p>}
               </div>
             </div>
           </div>
@@ -803,9 +840,6 @@ export default function CreateInvoice({ businessId, onBack }) {
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              // disabled={(date) =>
-                              //   date > new Date() || date < new Date("1900-01-01")
-                              // }
                               captionLayout="dropdown"
                             />
                           </PopoverContent>
@@ -878,9 +912,6 @@ export default function CreateInvoice({ businessId, onBack }) {
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              // disabled={(date) =>
-                              //   date > new Date() || date < new Date("1900-01-01")
-                              // }
                               captionLayout="dropdown"
                             />
                           </PopoverContent>
@@ -1128,18 +1159,6 @@ export default function CreateInvoice({ businessId, onBack }) {
                       <PlusIcon className="h-4 w-4" />
                       Add New bank
                     </Button>
-                    {/* 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className={'w-fit text-sm'}
-                      size={'sm'}
-                      disabled={true}
-                      onClick={addPaymentGateway}
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                      Add payment Gateway
-                    </Button> */}
                   </div>
                   <div className="w-full max-w-sm space-y-4">
                     <div className="space-y-2 text-sm font-medium">
@@ -1371,7 +1390,7 @@ export default function CreateInvoice({ businessId, onBack }) {
                   onClick={handleSave}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Saving...' : 'Save'}
+                  {isSubmitting ? 'Updating...' : 'Update'}
                 </Button>
                 <Button
                   type="button"
@@ -1398,20 +1417,17 @@ export default function CreateInvoice({ businessId, onBack }) {
           />
 
           <SuccessModal
-            title={'Invoice Created'}
-            description={"You've successfully created the invoice."}
+            title={'Invoice Updated'}
+            description={"You've successfully updated the invoice."}
             open={isSuccessModalOpen}
             onOpenChange={setIsSuccessModalOpen}
             nextText={'View'}
             handleNext={handlePreview}
-            backText={'Back'}
+            backText={'Back to List'}
             handleBack={() => {
-              const url = new URL(window.location.href);
-              url.searchParams.delete('create');
-              window.location.replace(url.pathname + url.search);
+              navigate('/dashboard/accounting/invoicing');
               setIsSuccessModalOpen(false);
-              // Clear created invoice data when going back
-              setCreatedInvoiceData(null);
+              setUpdatedInvoiceData(null);
             }}
           />
         </>

@@ -119,7 +119,7 @@ export default function ViewInvoice() {
         formData={formData}
         calculateSubtotal={() => calculateSubtotal(invoice.product?.products)}
         onEdit={() => {
-          navigate('/dashboard/accounting/invoicing');
+          navigate('/dashboard/accounting/invoicing/' + formData.id + '/edit');
         }}
         customers={transformedCustomers}
       />

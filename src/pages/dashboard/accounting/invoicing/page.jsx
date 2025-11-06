@@ -52,8 +52,6 @@ export default function Invoicing() {
     pageSize: 10,
     totalCount: 0,
   });
-  const [viewMode, setViewMode] = useState('list'); // 'list', 'preview', 'edit', 'create'
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const { businessData } = useUserStore();
   const navigate = useNavigate();
 
@@ -70,45 +68,6 @@ export default function Invoicing() {
       dueDate: format(invoice.dueDate, 'PP'),
       status: invoice.product?.status,
     }));
-  };
-
-  // Transform API invoice data to form data for editing
-  const transformToFormData = (invoice) => {
-    if (!invoice) return null;
-
-    return {
-      id: invoice._id,
-      invoice_number: invoice.invoiceNo,
-      customerId:
-        typeof invoice.customerId === 'string'
-          ? invoice.customerId
-          : invoice.customerId._id,
-      currency: invoice.currency,
-      category: invoice.category || 'Services',
-      c_o: invoice.co || '',
-      invoice_date: new Date(invoice.invoiceDate),
-      term_of_payment: invoice.termsOfPayment || '2 days',
-      due_date: new Date(invoice.dueDate),
-      products:
-        invoice.product?.products?.map((product) => ({
-          name: product.name || '',
-          description: product.description || '',
-          unit_price: product.unit_price || 0,
-          quantity: product.quantity || 1,
-          total_price: product.total_price || 0,
-          vat_applicable:
-            product.vat_applicable !== undefined
-              ? product.vat_applicable
-              : true,
-        })) || [],
-      discount: parseFloat(invoice.product?.discount) || 0,
-      vat: parseFloat(invoice.product?.vat) || 7.5,
-      delivery_fee: parseFloat(invoice.product?.deliveryFee) || 0,
-      terms: invoice.product?.terms || '',
-      internal_notes: invoice.product?.notes || '',
-      display_bank_details: invoice.product?.displayBankDetails || false,
-      apply_signature: invoice.product?.applySignature || false,
-    };
   };
 
   useEffect(() => {
@@ -180,9 +139,8 @@ export default function Invoicing() {
 
       switch (action) {
         case 'edit':
-          // Load invoice data into create form
-          setSelectedInvoice(invoiceData);
-          setViewMode('edit');
+          // Navigate to edit invoice page
+          navigate(`/dashboard/accounting/invoicing/${invoiceData._id}/edit`);
           break;
         case 'view':
           // Navigate to invoice preview page
@@ -267,39 +225,6 @@ export default function Invoicing() {
     return (
       <div className="my-4 min-h-screen">
         <CreateInvoice businessId={businessId} />
-      </div>
-    );
-  }
-
-  // Handle Edit mode
-  if (viewMode === 'edit' && selectedInvoice) {
-    // Save the invoice data to localStorage so CreateInvoice can load it
-    const formData = transformToFormData(selectedInvoice);
-    localStorage.setItem('create_invoice_draft', JSON.stringify(formData));
-
-    return (
-      <div className="my-4 min-h-screen">
-        <Button
-          variant="ghost"
-          onClick={() => {
-            setViewMode('list');
-            setSelectedInvoice(null);
-            localStorage.removeItem('create_invoice_draft');
-          }}
-          className="mb-4"
-        >
-          ← Back to List
-        </Button>
-        <CreateInvoice
-          businessId={businessId}
-          isEdit={true}
-          invoiceNo={selectedInvoice?.invoiceNo}
-          invoiceId={selectedInvoice?._id}
-          onBack={() => {
-            setViewMode('list');
-            setSelectedInvoice(null);
-          }}
-        />
       </div>
     );
   }
