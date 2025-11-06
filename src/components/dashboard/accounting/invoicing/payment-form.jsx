@@ -35,9 +35,9 @@ import {
 import { CalendarIcon, CreditCardIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import InvoiceService from '@/api/invoice';
 import { useUserStore } from '@/stores/user-store';
 import toast from 'react-hot-toast';
+import PaymentService from '@/api/payment';
 
 const paymentFormSchema = z.object({
   paymentDate: z.date({
@@ -56,13 +56,12 @@ export default function PaymentForm({
   open,
   onOpenChange,
   invoiceId,
-  customerId,
+  invoiceNo,
   amountDue,
   onSuccess,
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: userData } = useUserStore();
-  const businessId = userData?.user?.business?.id;
+   const { businessData } = useUserStore();
 
   const form = useForm({
     resolver: zodResolver(paymentFormSchema),
@@ -75,25 +74,25 @@ export default function PaymentForm({
       notes: '',
     },
   });
-
+console.log(invoiceId)
   const handleSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-
       // Prepare payload according to API requirements
       const paymentPayload = {
-        businessId: businessId,
+        businessId: businessData?._id,
         invoiceId: invoiceId,
-        date: data.paymentDate.toISOString(),
-        method: data.paymentMethod,
-        // trxNo: data.referenceNumber,
-        // category: data.category,
-        // notes: data.notes || '',
-        customerId: customerId,
-        amount: amountDue.toString(),
+        paymentDate: data.paymentDate.toISOString(),
+        paymentMethod: data.paymentMethod,
+        trxNo: data.referenceNumber,
+        accountCode: data.accountCode,
+        category: data.category,
+        notes: data.notes || '',
+        // customerId: customerId,
+        // amount: amountDue.toString(),
       };
 
-      const response = await InvoiceService.createPayment({
+      const response = await PaymentService.create({
         data: paymentPayload,
       });
 
@@ -195,11 +194,11 @@ export default function PaymentForm({
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {/* Invoice ID */}
+                {/* Invoice No */}
                 <div className="space-y-2">
-                  <FormLabel>Invoice ID</FormLabel>
+                  <FormLabel>Invoice No</FormLabel>
                   <div className="border-input flex h-10 items-center rounded-md border bg-gray-50 px-3 text-sm text-gray-600">
-                    {invoiceId}
+                    {invoiceNo}
                   </div>
                 </div>
 

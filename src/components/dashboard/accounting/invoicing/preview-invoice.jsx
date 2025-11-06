@@ -548,6 +548,7 @@ export default function PreviewInvoice({
           <Button
             variant="outline"
             className="h-10 px-8"
+            disabled={!formData.id}
             onClick={() => setShowPaymentForm(true)}
           >
             Record Payment
@@ -582,8 +583,8 @@ export default function PreviewInvoice({
       <PaymentForm
         open={showPaymentForm}
         onOpenChange={setShowPaymentForm}
-        invoiceId={formData.invoice_number}
-        customerId={formData.customerId}
+        invoiceNo={formData.invoice_number}
+        invoiceId={formData.id}
         amountDue={balanceDue || total}
         onSuccess={() => {
           setShowSuccessModal(true);

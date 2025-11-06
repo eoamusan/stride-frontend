@@ -79,6 +79,7 @@ export default function Invoicing() {
     if (!invoice) return null;
 
     return {
+      id: invoice._id,
       invoice_number: invoice.invoiceNo,
       customerId:
         typeof invoice.customerId === 'string'
