@@ -23,6 +23,7 @@ export default function PreviewInvoice({
   formData,
   calculateSubtotal,
   onEdit,
+  onBack,
   customers = [],
   balanceDue,
 }) {
@@ -238,7 +239,7 @@ export default function PreviewInvoice({
       >
         {/* Header with Edit Button */}
         <div className="edit-button mb-8 flex items-center justify-between gap-4">
-          <Button size={'icon'} variant={'ghost'} onClick={onEdit}>
+          <Button size={'icon'} variant={'ghost'} onClick={onBack}>
             <XIcon className="h-4 w-4" />
           </Button>
           <Button variant="outline" className="h-10" onClick={onEdit}>

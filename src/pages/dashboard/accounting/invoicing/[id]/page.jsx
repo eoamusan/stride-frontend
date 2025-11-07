@@ -118,6 +118,7 @@ export default function ViewInvoice() {
       <PreviewInvoice
         formData={formData}
         calculateSubtotal={() => calculateSubtotal(invoice.product?.products)}
+        onBack={() => navigate('/dashboard/accounting/invoicing')}
         onEdit={() => {
           navigate('/dashboard/accounting/invoicing/' + formData.id + '/edit');
         }}

@@ -514,6 +514,7 @@ export default function CreateInvoice({ businessId, onBack }) {
           setIsPreview(false);
           // Don't clear createdInvoiceData yet, in case user wants to preview again
         }}
+        onBack={() => setIsPreview(false)}
         customers={customers}
       />
     );

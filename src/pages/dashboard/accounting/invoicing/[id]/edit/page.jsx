@@ -544,8 +544,9 @@ export default function EditInvoice() {
     const previewData = getPreviewData();
 
     return (
-      <div className='my-4'>
+      <div className="my-4">
         <PreviewInvoice
+          onBack={() => setIsPreview(false)}
           formData={previewData}
           calculateSubtotal={() => {
             if (updatedInvoiceData) {
