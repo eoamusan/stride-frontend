@@ -68,8 +68,14 @@ export default function PreviewInvoice({
         const paymentsData = response.data?.data || [];
         console.log('Payments Data:', paymentsData);
 
+        // Filter payments by invoice ID (client-side filtering)
+        const filteredPayments = paymentsData.filter(
+          (payment) => payment.invoiceId === formData.id
+        );
+        console.log('Filtered Payments for Invoice:', filteredPayments);
+
         // Transform payment data to match the expected structure
-        const transformedPayments = paymentsData.map((payment) => {
+        const transformedPayments = filteredPayments.map((payment) => {
           console.log('Individual Payment:', payment);
           return {
             amount: payment.amount || null, // Use null instead of 0 to indicate missing amount
@@ -652,7 +658,13 @@ export default function PreviewInvoice({
             PaymentService.fetch({ invoiceId: formData.id })
               .then((response) => {
                 const paymentsData = response.data?.data || [];
-                const transformedPayments = paymentsData.map((payment) => ({
+
+                // Filter payments by invoice ID (client-side filtering)
+                const filteredPayments = paymentsData.filter(
+                  (payment) => payment.invoiceId === formData.id
+                );
+
+                const transformedPayments = filteredPayments.map((payment) => ({
                   amount: payment.amount || null,
                   datePaid: payment.paymentDate || payment.createdAt,
                   method: payment.paymentMethod || 'Bank Transfer',
