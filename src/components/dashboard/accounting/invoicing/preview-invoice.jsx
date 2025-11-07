@@ -8,7 +8,7 @@ import {
 import { NotepadTextIcon, SendIcon, XIcon, PrinterIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUserStore } from '@/stores/user-store';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
 import toast from 'react-hot-toast';
@@ -17,13 +17,13 @@ import { uploadToCloudinary } from '@/lib/cloudinary';
 import PaymentPreview from './payment-preview';
 import PaymentForm from './payment-form';
 import SuccessModal from '../success-modal';
+import PaymentService from '@/api/payment';
 
 export default function PreviewInvoice({
   formData,
   calculateSubtotal,
   onEdit,
   customers = [],
-  payments = [],
   balanceDue,
 }) {
   const subtotal = calculateSubtotal();
@@ -33,6 +33,9 @@ export default function PreviewInvoice({
   const [uploadedPdfUrl, setUploadedPdfUrl] = useState(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [fetchedPayments, setFetchedPayments] = useState([]);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
+  const [calculatedBalanceDue, setCalculatedBalanceDue] = useState(0);
 
   // Use business brand color or default
   const primaryColor =
@@ -43,10 +46,64 @@ export default function PreviewInvoice({
     (customer) => customer.id.toString() === formData.customerId
   );
 
+  // Calculate totals first before useEffect
   const discount = (subtotal * (formData.discount || 0)) / 100;
   const afterDiscount = subtotal - discount;
   const vatAmount = (afterDiscount * (formData.vat || 0)) / 100;
   const total = afterDiscount + vatAmount + (formData.delivery_fee || 0);
+
+  // Fetch payments when invoice ID is available
+  useEffect(() => {
+    const fetchPayments = async () => {
+      if (!formData.id) return;
+
+      try {
+        setIsLoadingPayments(true);
+        const response = await PaymentService.fetch({
+          invoiceId: formData.id,
+        });
+
+        console.log('Payment API Response:', response.data);
+        const paymentsData = response.data?.data || [];
+        console.log('Payments Data:', paymentsData);
+
+        // Transform payment data to match the expected structure
+        const transformedPayments = paymentsData.map((payment) => {
+          console.log('Individual Payment:', payment);
+          return {
+            amount: payment.amount || null, // Use null instead of 0 to indicate missing amount
+            datePaid: payment.paymentDate || payment.createdAt,
+            method: payment.paymentMethod || 'Bank Transfer',
+            dateCreated: payment.createdAt,
+          };
+        });
+
+        console.log('Transformed Payments:', transformedPayments);
+        setFetchedPayments(transformedPayments);
+
+        // Calculate total invoice amount
+        const totalAmount = total;
+
+        // Calculate total payments made (only count payments with valid amounts)
+        const totalPaid = transformedPayments.reduce(
+          (sum, payment) => sum + (Number(payment.amount) || 0),
+          0
+        );
+
+        // Calculate balance due
+        const balance = totalAmount - totalPaid;
+        setCalculatedBalanceDue(balance);
+      } catch (error) {
+        console.error('Error fetching payments:', error);
+        setFetchedPayments([]);
+        setCalculatedBalanceDue(total);
+      } finally {
+        setIsLoadingPayments(false);
+      }
+    };
+
+    fetchPayments();
+  }, [formData.id, total]);
 
   // Function to upload PDF to Cloudinary
   const uploadPdfToCloudinary = async (pdfBlob, fileName) => {
@@ -574,9 +631,10 @@ export default function PreviewInvoice({
       {/* Payment Preview Section - Always show for testing */}
       <div className="mx-auto my-8 max-w-2xl rounded-2xl bg-white p-8">
         <PaymentPreview
-          payments={payments}
-          balanceDue={balanceDue}
+          payments={fetchedPayments}
+          balanceDue={calculatedBalanceDue || balanceDue || total || ''}
           currency={formData.currency}
+          isLoading={isLoadingPayments}
         />
       </div>
 
@@ -585,9 +643,33 @@ export default function PreviewInvoice({
         onOpenChange={setShowPaymentForm}
         invoiceNo={formData.invoice_number}
         invoiceId={formData.id}
-        amountDue={balanceDue || total}
+        amountDue={calculatedBalanceDue || balanceDue || total}
         onSuccess={() => {
           setShowSuccessModal(true);
+          // Refresh payments after successful payment
+          if (formData.id) {
+            PaymentService.fetch({ invoiceId: formData.id })
+              .then((response) => {
+                const paymentsData = response.data?.data || [];
+                const transformedPayments = paymentsData.map((payment) => ({
+                  amount: payment.amount || null,
+                  datePaid: payment.paymentDate || payment.createdAt,
+                  method: payment.paymentMethod || 'Bank Transfer',
+                  dateCreated: payment.createdAt,
+                }));
+                setFetchedPayments(transformedPayments);
+
+                const totalPaid = transformedPayments.reduce(
+                  (sum, payment) => sum + (Number(payment.amount) || 0),
+                  0
+                );
+                const balance = total - totalPaid;
+                setCalculatedBalanceDue(balance);
+              })
+              .catch((error) => {
+                console.error('Error refreshing payments:', error);
+              });
+          }
         }}
       />
 

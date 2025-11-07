@@ -22,10 +22,20 @@ export default class PaymentService {
     return response;
   }
 
-  static async fetch() {
+  static async fetch({ invoiceId, page, perPage } = {}) {
     const userStore = useUserStore.getState();
+
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (invoiceId) params.append('invoiceId', invoiceId);
+    if (page) params.append('page', page);
+    if (perPage) params.append('perPage', perPage);
+
+    const queryString = params.toString();
+    const url = queryString ? `payment/fetch?${queryString}` : 'payment/fetch';
+
     const response = await axiosInstance.post(
-      'payment/fetch',
+      url,
       { businessId: userStore.businessData?._id },
       {
         headers: {

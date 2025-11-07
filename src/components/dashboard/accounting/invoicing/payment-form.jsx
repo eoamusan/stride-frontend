@@ -61,7 +61,7 @@ export default function PaymentForm({
   onSuccess,
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-   const { businessData } = useUserStore();
+  const { businessData } = useUserStore();
 
   const form = useForm({
     resolver: zodResolver(paymentFormSchema),
@@ -74,7 +74,7 @@ export default function PaymentForm({
       notes: '',
     },
   });
-console.log(invoiceId)
+  console.log(invoiceId);
   const handleSubmit = async (data) => {
     try {
       setIsSubmitting(true);
@@ -88,8 +88,7 @@ console.log(invoiceId)
         accountCode: data.accountCode,
         category: data.category,
         notes: data.notes || '',
-        // customerId: customerId,
-        // amount: amountDue.toString(),
+        amount: Number(amountDue),
       };
 
       const response = await PaymentService.create({

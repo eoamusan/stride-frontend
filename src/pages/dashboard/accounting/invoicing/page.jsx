@@ -66,7 +66,7 @@ export default function Invoicing() {
       amount: '$0.00', // Calculate from products when available
       issueDate: format(invoice.invoiceDate, 'PP'),
       dueDate: format(invoice.dueDate, 'PP'),
-      status: invoice.product?.status,
+      status: invoice?.status || 'PENDING',
     }));
   };
 

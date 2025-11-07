@@ -4,6 +4,7 @@ export default function PaymentPreview({
   payments = [],
   balanceDue = 0,
   currency = 'NGN',
+  isLoading = false,
 }) {
   return (
     <div className="space-y-6">
@@ -21,14 +22,20 @@ export default function PaymentPreview({
 
       {/* Payment Rows */}
       <div className="space-y-4">
-        {payments.length > 0 ? (
+        {isLoading ? (
+          <div className="py-8 text-center text-gray-500">
+            Loading payments...
+          </div>
+        ) : payments.length > 0 ? (
           payments.map((payment, index) => (
             <div
               key={index}
               className="grid grid-cols-4 gap-4 border-b pb-4 text-sm last:border-b-0"
             >
               <div className="font-normal text-gray-900">
-                {Number(payment.amount).toLocaleString()}
+                {payment.amount !== null && payment.amount !== undefined
+                  ? Number(payment.amount).toLocaleString()
+                  : 'N/A'}
               </div>
               <div className="text-gray-900">
                 {payment.datePaid
