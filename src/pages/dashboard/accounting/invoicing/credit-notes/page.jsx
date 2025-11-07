@@ -1,4 +1,5 @@
 import AddCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/add-credit';
+import EditCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/edit-credit';
 import ViewCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/view-credit';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
@@ -19,19 +20,20 @@ const creditNoteColumns = [
 ];
 
 const creditNoteStatusStyles = {
-  Approved: 'bg-green-100 text-green-800 hover:bg-green-100',
-  Pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-  Refunded: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+  approved: 'bg-green-100 text-green-800 hover:bg-green-100',
+  pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+  refunded: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
 };
 
 const creditNoteDropdownActions = [
-  { key: 'edit', label: 'Edit' },
   { key: 'view', label: 'View' },
+  { key: 'edit', label: 'Edit' },
   { key: 'export', label: 'Export' },
 ];
 
 export default function CreditNotes() {
   const [isCreateCreditNoteOpen, setIsCreateCreditNoteOpen] = useState(false);
+  const [isEditCreditNoteOpen, setIsEditCreditNoteOpen] = useState(false);
   const [isViewCreditNoteOpen, setIsViewCreditNoteOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [creditNoteList, setCreditNoteList] = useState([]);
@@ -102,7 +104,7 @@ export default function CreditNotes() {
       issueDate: item.creditNote?.memoDate
         ? format(new Date(item.creditNote.memoDate), 'MMM dd, yyyy')
         : 'N/A',
-      status: item.creditNote?.sendLater ? 'Pending' : 'Approved',
+      status: item.creditNote?.status?.toLowerCase(),
     }));
   };
 
@@ -167,6 +169,10 @@ export default function CreditNotes() {
     // Handle different actions here
     switch (action) {
       case 'edit':
+        if (creditNoteData) {
+          setSelectedCreditNote(creditNoteData);
+          setIsEditCreditNoteOpen(true);
+        }
         break;
       case 'view':
         if (creditNoteData) {
@@ -286,6 +292,42 @@ export default function CreditNotes() {
       <AddCreditNote
         open={isCreateCreditNoteOpen}
         onOpenChange={setIsCreateCreditNoteOpen}
+      />
+
+      <EditCreditNote
+        open={isEditCreditNoteOpen}
+        onOpenChange={(open) => {
+          setIsEditCreditNoteOpen(open);
+          if (!open) {
+            // Refresh data when modal closes
+            const fetchCreditNotes = async () => {
+              try {
+                setIsLoadingData(true);
+                const response = await CreditNoteService.fetch({
+                  page: currentPage,
+                  perPage: paginationData.pageSize,
+                });
+
+                const creditNotes = response.data?.data?.creditNotes || [];
+                setCreditNoteList(creditNotes);
+
+                setPaginationData({
+                  page: response.data?.data?.page || currentPage,
+                  totalPages: response.data?.data?.totalPages || 1,
+                  pageSize: response.data?.data?.limit || 20,
+                  totalCount: response.data?.data?.totalDocs || 0,
+                });
+              } catch (error) {
+                console.error('Error fetching credit notes:', error);
+              } finally {
+                setIsLoadingData(false);
+              }
+            };
+
+            fetchCreditNotes();
+          }
+        }}
+        creditNoteData={selectedCreditNote}
       />
 
       <ViewCreditNote

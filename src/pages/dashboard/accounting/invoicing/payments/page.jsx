@@ -24,9 +24,6 @@ const paymentStatusStyles = {
 };
 
 const paymentDropdownActions = [
-  { key: 'view', label: 'View' },
-  { key: 'resend', label: 'Resend' },
-  { key: 'refund', label: 'Refund' },
   { key: 'export', label: 'Export' },
 ];
 
