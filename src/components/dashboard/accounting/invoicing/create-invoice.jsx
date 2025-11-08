@@ -382,6 +382,7 @@ export default function CreateInvoice({ businessId, onBack }) {
 
       // Format data according to the new structure
       const formattedData = {
+        accountId: businessData?.accountId,
         businessId: businessId,
         invoice: {
           customerId: data.customerId,
