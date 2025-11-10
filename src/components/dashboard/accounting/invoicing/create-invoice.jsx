@@ -58,7 +58,7 @@ import toast from 'react-hot-toast';
 import InvoiceService from '@/api/invoice';
 import { useUserStore } from '@/stores/user-store';
 import { Switch } from '@/components/ui/switch';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 
 const formSchema = z.object({
   customerId: z.string().min(1, { message: 'Customer name is required' }),
@@ -138,6 +138,7 @@ export default function CreateInvoice({ businessId, onBack }) {
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
   const { businessData, getBusinessData } = useUserStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Get initial values from localStorage if available
   const getInitialValues = () => {
@@ -223,6 +224,29 @@ export default function CreateInvoice({ businessId, onBack }) {
 
     return () => clearTimeout(debounceTimer);
   }, [isAddCustomerModalOpen, businessId, customerSearchQuery]);
+
+  // Set customer from URL parameter if provided
+  useEffect(() => {
+    const customerIdFromUrl = searchParams.get('customerId');
+
+    if (customerIdFromUrl && customers.length > 0) {
+      // Check if this customer exists in the customers list
+      const customerExists = customers.some(
+        (customer) =>
+          customer._id === customerIdFromUrl ||
+          customer.id === customerIdFromUrl
+      );
+
+      if (customerExists) {
+        // Only set if the current customerId is empty (to avoid overriding user selection)
+        const currentCustomerId = form.getValues('customerId');
+        if (!currentCustomerId || currentCustomerId === '') {
+          form.setValue('customerId', customerIdFromUrl);
+          console.log('Set customer from URL:', customerIdFromUrl);
+        }
+      }
+    }
+  }, [customers, searchParams, form]);
 
   // Save to localStorage whenever form data changes
   useEffect(() => {

@@ -66,7 +66,10 @@ export default function ViewInvoice() {
         setIsLoading(true);
         const response = await InvoiceService.get({ id });
 
-        if (response.data?.data) {
+        if (response.data?.data?.invoice) {
+          setInvoice(response.data.data.invoice);
+        } else if (response.data?.data) {
+          // Fallback for old API structure
           setInvoice(response.data.data);
         } else {
           toast.error('Invoice not found');

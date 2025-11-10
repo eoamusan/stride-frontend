@@ -183,7 +183,8 @@ export default function EditInvoice() {
       try {
         setIsLoadingInvoice(true);
         const response = await InvoiceService.get({ id: invoiceId });
-        const invoiceData = response.data?.data;
+        // Handle new API structure where invoice is nested under data.invoice
+        const invoiceData = response.data?.data?.invoice || response.data?.data;
 
         if (invoiceData) {
           setInvoiceNo(invoiceData.invoiceNo);
