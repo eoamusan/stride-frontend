@@ -54,6 +54,14 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import AccountService from '@/api/accounts';
+import CustomerService from '@/api/customer';
+import ExpenseService from '@/api/expense';
+import AddAccountForm from '../../bookkeeping/add-account';
+import AddCustomerModal from '../../invoicing/customers/add-customer';
+import { uploadMultipleToCloudinary } from '@/lib/cloudinary';
+import { useUserStore } from '@/stores/user-store';
+import toast from 'react-hot-toast';
 
 // Zod schema for form validation
 const expenseSchema = z.object({
@@ -72,6 +80,8 @@ const expenseSchema = z.object({
         category: z.string().min(1, 'Category is required'),
         amount: z.string().min(1, 'Amount is required'),
         description: z.string().optional(),
+        billable: z.string().optional(),
+        tax: z.string().optional(),
         clientProject: z.string().optional(),
         class: z.string().optional(),
       })
@@ -83,14 +93,54 @@ export default function ExpenseForm({
   open,
   onOpenChange,
   onSubmit,
-  onSave,
-  onSaveAndClose,
   onSuccess,
 }) {
   // File upload state and refs
   const [attachmentFiles, setAttachmentFiles] = useState([]);
   const attachmentFileInputRef = useRef(null);
   const [countries, setCountries] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
+  const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch customers
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      if (!open) return;
+
+      try {
+        const response = await CustomerService.fetch({});
+        const customerData = response.data?.data?.customers || [];
+        const extractedCustomers = customerData.map((item) => item.customer);
+        setCustomers(extractedCustomers);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+        setCustomers([]);
+      }
+    };
+
+    fetchCustomers();
+  }, [open]);
+
+  // Fetch accounts
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      if (!open) return;
+
+      try {
+        const response = await AccountService.fetch();
+        const accountsData = response.data?.data || [];
+        setAccounts(accountsData);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+        setAccounts([]);
+      }
+    };
+
+    fetchAccounts();
+  }, [open]);
 
   useEffect(() => {
     async function fetchCountries() {
@@ -119,6 +169,8 @@ export default function ExpenseForm({
           category: '',
           amount: '',
           description: '',
+          billable: '',
+          tax: '',
           clientProject: '',
           class: '',
         },
@@ -182,6 +234,8 @@ export default function ExpenseForm({
         category: '',
         amount: '',
         description: '',
+        billable: '',
+        tax: '',
         clientProject: '',
         class: '',
       },
@@ -212,49 +266,79 @@ export default function ExpenseForm({
     onOpenChange?.(false);
   };
 
-  const onFormSubmit = (data) => {
-    const formData = {
-      ...data,
-      attachments: attachmentFiles,
-      total: calculateTotal(),
-    };
+  const onFormSubmit = async (data) => {
+    setIsSubmitting(true);
+    const businessId = useUserStore.getState().businessData?._id;
 
-    console.log('Expense data:', formData);
+    try {
+      // Upload attachments to Cloudinary if any
+      let attachmentUrls = [];
+      if (attachmentFiles.length > 0) {
+        toast.loading('Uploading attachments...');
+        const uploadResults = await uploadMultipleToCloudinary(
+          attachmentFiles,
+          {
+            folder: 'expenses',
+            tags: ['expense', businessId],
+          }
+        );
+        attachmentUrls = uploadResults.map((result) => result.url);
+        toast.dismiss();
+      }
 
-    if (onSubmit) {
-      onSubmit(formData);
-    }
-
-    if (onSuccess) {
-      onSuccess();
-    }
-  };
-
-  const handleSave = () => {
-    handleSubmit((data) => {
-      const formData = {
-        ...data,
-        attachments: attachmentFiles,
-        total: calculateTotal(),
+      // Transform form data to match API schema
+      const payload = {
+        businessId,
+        payee: data.payee,
+        refNo: data.refNo || '',
+        paymentAccount: data.paymentAccount,
+        paymentDate: data.paymentDate,
+        paymentMethod: data.paymentMethod,
+        country: data.country,
+        categoryDetails: data.categories.map((cat) => ({
+          category: cat.category,
+          amount: parseFloat(cat.amount),
+          description: cat.description || '',
+          billable: cat.billable || '',
+          tax: cat.tax || '',
+          clientProject: cat.clientProject || '',
+          class: cat.class || '',
+        })),
+        memo: data.memo || '',
+        attachments: attachmentUrls,
       };
-      onSave?.(formData);
-    })();
-  };
 
-  const handleSaveAndClose = () => {
-    handleSubmit((data) => {
-      const formData = {
-        ...data,
-        attachments: attachmentFiles,
-        total: calculateTotal(),
-      };
-      onSaveAndClose?.(formData);
-      reset();
-      setAttachmentFiles([]);
-      onOpenChange?.(false);
-    })();
-    if (onSuccess) {
-      onSuccess();
+      // Call the create expense API
+      toast.loading('Creating expense...');
+      const response = await ExpenseService.create({ data: payload });
+      toast.dismiss();
+
+      if (response.data) {
+        toast.success('Expense created successfully!');
+
+        // Reset form and close modal
+        reset();
+        setAttachmentFiles([]);
+        onOpenChange?.(false);
+
+        // Call success callbacks
+        if (onSubmit) {
+          onSubmit(response.data);
+        }
+        if (onSuccess) {
+          onSuccess();
+        }
+      }
+    } catch (error) {
+      toast.dismiss();
+      console.error('Error creating expense:', error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to create expense'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -285,30 +369,76 @@ export default function ExpenseForm({
                 control={control}
                 name="payee"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Payee</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-10 w-full">
-                          <SelectValue placeholder="Who did you pay?" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="supplier1">Office Depot</SelectItem>
-                        <SelectItem value="supplier2">
-                          Tech Solutions Ltd
-                        </SelectItem>
-                        <SelectItem value="supplier3">
-                          Marketing Agency
-                        </SelectItem>
-                        <SelectItem value="supplier4">
-                          Utilities Company
-                        </SelectItem>
-                        <SelectItem value="supplier5">
-                          Transportation Co
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Popover modal={true}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              'h-10 w-full justify-between',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value
+                              ? customers.find(
+                                  (customer) =>
+                                    (customer._id || customer.id) ===
+                                    field.value
+                                )?.displayName || 'Select customer'
+                              : 'Who did you pay?'}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search customers..." />
+                          <CommandList>
+                            <CommandEmpty>No customer found.</CommandEmpty>
+                            <CommandGroup>
+                              {customers.map((customer) => (
+                                <CommandItem
+                                  key={customer._id || customer.id}
+                                  value={customer.displayName}
+                                  onSelect={() => {
+                                    field.onChange(customer._id || customer.id);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      'mr-2 h-4 w-4',
+                                      field.value ===
+                                        (customer._id || customer.id)
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">
+                                      {customer.displayName}
+                                    </span>
+                                    {customer.companyName && (
+                                      <span className="text-xs text-gray-500">
+                                        {customer.companyName}
+                                      </span>
+                                    )}
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                            <div
+                              className="flex cursor-pointer items-center gap-1 px-2 py-1 text-sm font-medium hover:font-semibold"
+                              onClick={() => setIsAddCustomerModalOpen(true)}
+                            >
+                              <Plus size={16} color="#254C00" /> Add New
+                            </div>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -338,29 +468,75 @@ export default function ExpenseForm({
                 control={control}
                 name="paymentAccount"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment account</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-10 w-full">
-                          <SelectValue placeholder="Select account" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="account1">
-                          10035 GT Business
-                        </SelectItem>
-                        <SelectItem value="account2">
-                          10036 Petty Cash
-                        </SelectItem>
-                        <SelectItem value="account3">
-                          10037 Credit Card
-                        </SelectItem>
-                        <SelectItem value="account4">
-                          10038 Bank Account
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Payment Account</FormLabel>
+                    <Popover modal={true}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              'h-10 w-full justify-between',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value
+                              ? accounts.find(
+                                  (account) =>
+                                    (account._id || account.id) === field.value
+                                )?.accountName || 'Select account'
+                              : 'Select payment account'}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search accounts..." />
+                          <CommandList>
+                            <CommandEmpty>No account found.</CommandEmpty>
+                            <CommandGroup>
+                              {accounts.map((account) => (
+                                <CommandItem
+                                  key={account._id || account.id}
+                                  value={account.accountName}
+                                  onSelect={() => {
+                                    field.onChange(account._id || account.id);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      'mr-2 h-4 w-4',
+                                      field.value ===
+                                        (account._id || account.id)
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">
+                                      {account.accountName}
+                                    </span>
+                                    {account.accountNumber && (
+                                      <span className="text-xs text-gray-500">
+                                        {account.accountNumber}
+                                      </span>
+                                    )}
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                            <div
+                              className="flex cursor-pointer items-center gap-1 px-2 py-1 text-sm font-medium hover:font-semibold"
+                              onClick={() => setIsAddAccountModalOpen(true)}
+                            >
+                              <Plus size={16} color="#254C00" /> Add New
+                            </div>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -544,136 +720,199 @@ export default function ExpenseForm({
             <div className="space-y-4">
               <h3 className="text-base font-semibold">Category details</h3>
 
-              {/* Category Table Header */}
-              <div className="grid grid-cols-12 gap-4 rounded-lg p-4 text-sm font-semibold text-[#434343]">
-                <div className="col-span-2">Category</div>
-                <div className="col-span-2">Amount</div>
-                <div className="col-span-3">Description</div>
-                <div className="col-span-2">Client/Project</div>
-                <div className="col-span-2">Class</div>
-                <div className="col-span-1"></div>
-              </div>
-
               {/* Category Rows */}
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {categories.map((_, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-12 items-start gap-4"
+                    className="space-y-3 rounded-lg border border-gray-200 p-4"
                   >
-                    {/* Category */}
-                    <div className="col-span-2">
-                      <FormField
-                        control={control}
-                        name={`categories.${index}.category`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter category"
-                                {...field}
-                                className="h-10"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                    {/* First Row: Category, Amount, Client/Project, Class/Branch */}
+                    <div className="grid grid-cols-12 items-start gap-4">
+                      {/* Category */}
+                      <div className="col-span-3">
+                        <FormField
+                          control={control}
+                          name={`categories.${index}.category`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Category</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="h-10">
+                                    <SelectValue placeholder="Select category" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Bad Debts">
+                                    Bad Debts
+                                  </SelectItem>
+                                  <SelectItem value="Amortisation expense">
+                                    Amortisation expense
+                                  </SelectItem>
+                                  <SelectItem value="Dues and subscriptions">
+                                    Dues and subscriptions
+                                  </SelectItem>
+                                  <SelectItem value="Income Expenses">
+                                    Income Expenses
+                                  </SelectItem>
+                                  <SelectItem value="Utilities">
+                                    Utilities
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Amount */}
+                      <div className="col-span-3">
+                        <FormField
+                          control={control}
+                          name={`categories.${index}.amount`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Amount</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Enter amount"
+                                  {...field}
+                                  className="h-10"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Client/Project */}
+                      <div className="col-span-3">
+                        <FormField
+                          control={control}
+                          name={`categories.${index}.clientProject`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Client/Project</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter client name or project"
+                                  {...field}
+                                  className="h-10"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Class/Branch */}
+                      <div className="col-span-2">
+                        <FormField
+                          control={control}
+                          name={`categories.${index}.class`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Class/Branch</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter class or branch"
+                                  {...field}
+                                  className="h-10"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Delete Button */}
+                      <div className="col-span-1 flex items-end justify-center pb-2">
+                        {categories.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeCategory(index)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
                         )}
-                      />
+                      </div>
                     </div>
 
-                    {/* Amount */}
-                    <div className="col-span-2">
-                      <FormField
-                        control={control}
-                        name={`categories.${index}.amount`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Enter amount"
-                                {...field}
-                                className="h-10"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    {/* Second Row: Description, Billable, Tax */}
+                    <div className="grid grid-cols-12 items-start gap-4">
+                      {/* Description */}
+                      <div className="col-span-6">
+                        <FormField
+                          control={control}
+                          name={`categories.${index}.description`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Description</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Enter description"
+                                  {...field}
+                                  className="min-h-20 resize-none"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                    {/* Description */}
-                    <div className="col-span-3">
-                      <FormField
-                        control={control}
-                        name={`categories.${index}.description`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter description"
-                                {...field}
-                                className="h-10"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                      {/* Billable */}
+                      <div className="col-span-3">
+                        <FormField
+                          control={control}
+                          name={`categories.${index}.billable`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Billable</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter Billable"
+                                  {...field}
+                                  className="h-10"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                    {/* Client/Project */}
-                    <div className="col-span-2">
-                      <FormField
-                        control={control}
-                        name={`categories.${index}.clientProject`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter name"
-                                {...field}
-                                className="h-10"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Class */}
-                    <div className="col-span-2">
-                      <FormField
-                        control={control}
-                        name={`categories.${index}.class`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter class"
-                                {...field}
-                                className="h-10"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Delete Button */}
-                    <div className="col-span-1 flex justify-center">
-                      {categories.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeCategory(index)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      )}
+                      {/* Tax */}
+                      <div className="col-span-3">
+                        <FormField
+                          control={control}
+                          name={`categories.${index}.tax`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tax</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter tax"
+                                  {...field}
+                                  className="h-10"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -809,27 +1048,56 @@ export default function ExpenseForm({
                 variant="outline"
                 onClick={handleCancel}
                 className="h-10 min-w-[130px] text-sm"
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
+
               <Button
-                type="button"
-                variant="outline"
-                onClick={handleSave}
-                className="h-10 min-w-[130px] text-sm"
-              >
-                Save
-              </Button>
-              <Button
-                type="button"
-                onClick={handleSaveAndClose}
+                type="submit"
                 className="h-10 min-w-[195px] text-sm"
+                disabled={isSubmitting}
               >
-                Save and Close
+                {isSubmitting ? 'Adding' : 'Add Expenses'}
               </Button>
             </div>
           </form>
         </Form>
+
+        {/* Add Customer Modal */}
+        <AddCustomerModal
+          open={isAddCustomerModalOpen}
+          onOpenChange={setIsAddCustomerModalOpen}
+          onSuccess={async () => {
+            // Refresh customers list
+            try {
+              const response = await CustomerService.fetch({});
+              const customerData = response.data?.data?.customers || [];
+              const extractedCustomers = customerData.map(
+                (item) => item.customer
+              );
+              setCustomers(extractedCustomers);
+            } catch (error) {
+              console.error('Error refreshing customers:', error);
+            }
+          }}
+        />
+
+        {/* Add Account Modal */}
+        <AddAccountForm
+          isOpen={isAddAccountModalOpen}
+          onClose={setIsAddAccountModalOpen}
+          showSuccessModal={async () => {
+            // Refresh accounts list
+            try {
+              const response = await AccountService.fetch();
+              const accountsData = response.data?.data || [];
+              setAccounts(accountsData);
+            } catch (error) {
+              console.error('Error refreshing accounts:', error);
+            }
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

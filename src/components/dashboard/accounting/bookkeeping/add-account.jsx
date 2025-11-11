@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,9 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import AccountService from '@/api/accounts';
+import { useUserStore } from '@/stores/user-store';
+import toast from 'react-hot-toast';
 
 const formSchema = z.object({
   accountType: z.string().min(1, { message: 'Account type is required' }),
@@ -47,6 +50,9 @@ export default function AddAccountForm({
   formData = null,
   showSuccessModal,
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { businessData } = useUserStore();
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,13 +79,45 @@ export default function AddAccountForm({
     }
   }, [formData, form]);
 
-  const handleSubmit = (data) => {
-    console.log('Form submitted:', data);
+  const handleSubmit = async (data) => {
+    try {
+      setIsSubmitting(true);
 
-    handleCancel();
-    showSuccessModal();
-    // Reset form after submission
-    // form.reset();
+      // Prepare payload according to API requirements
+      const payload = {
+        businessId: businessData?._id,
+        accountType: data.accountType,
+        accountName: data.accountName,
+        accountNumber: data.accountNumber,
+        subAccount: data.accountRelation === 'subaccount',
+        parentAccount: data.accountRelation === 'parent',
+        detailType: data.detailType,
+        description: data.description || '',
+      };
+
+      const response = await AccountService.create({ data: payload });
+
+      console.log('Account created successfully:', response.data);
+      toast.success('Account created successfully!');
+
+      // Reset form after successful submission
+      form.reset();
+      handleCancel();
+
+      // Show success modal if provided
+      if (showSuccessModal) {
+        showSuccessModal();
+      }
+    } catch (error) {
+      console.error('Error creating account:', error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to create account. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -263,11 +301,16 @@ export default function AddAccountForm({
                 variant="outline"
                 onClick={handleCancel}
                 className="h-10 px-8 text-sm"
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button className="h-10 px-8 text-sm" type="submit">
-                Add account
+              <Button
+                className="h-10 px-8 text-sm"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Adding...' : 'Add account'}
               </Button>
             </div>
           </form>

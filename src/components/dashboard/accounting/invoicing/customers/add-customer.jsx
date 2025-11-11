@@ -72,7 +72,7 @@ const customerFormSchema = z.object({
   }),
 });
 
-export default function AddCustomerModal({ open, onOpenChange }) {
+export default function AddCustomerModal({ open, onOpenChange, onSuccess }) {
   const { businessData } = useUserStore();
   const [countries, setCountries] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -120,6 +120,9 @@ export default function AddCustomerModal({ open, onOpenChange }) {
       });
 
       toast.success('Customer successfully added!');
+      if (onSuccess) {
+        onSuccess();
+      }
       onOpenChange(false);
       form.reset();
     } catch (err) {
