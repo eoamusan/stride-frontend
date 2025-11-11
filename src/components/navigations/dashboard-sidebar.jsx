@@ -131,7 +131,7 @@ export default function Sidebar() {
       <div className="p-8 pt-4">
         <img src={strideLogo} alt="Oneda Logo" className="h-10" />
       </div>
-      <aside className="flex h-full w-72 flex-col overflow-y-auto bg-white">
+      <aside className="flex h-[85vh] w-72 flex-col overflow-y-auto scroll-auto bg-white">
         {currentView === 'main' ? renderMainView() : renderChildrenView()}
       </aside>
     </div>

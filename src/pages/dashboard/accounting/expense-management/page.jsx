@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EmptyExpense from '@/components/dashboard/accounting/expense-mgmt/overview/empty-state';
 import ExpenseForm from '@/components/dashboard/accounting/expense-mgmt/overview/expense-form';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
@@ -9,6 +9,7 @@ import SimpleAreaMetricCard from '@/components/dashboard/simple-area-metric-card
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import RangeOverviewCard from '@/components/dashboard/range-card';
+import ExpenseService from '@/api/expense';
 
 const expenses = [''];
 const expensesMetrics = [
@@ -116,6 +117,20 @@ const inventoryDistributionConfig = {
 export default function ExpenseManagement() {
   const [openExpenseForm, setOpenExpenseForm] = useState(false);
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
+
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      try {
+        const response = await ExpenseService.fetch();
+        console.log('Expenses response:', response);
+        console.log('Expenses data:', response.data);
+      } catch (error) {
+        console.error('Error fetching expenses:', error);
+      }
+    };
+
+    fetchExpenses();
+  }, []);
 
   return (
     <div className="my-4 min-h-screen">
