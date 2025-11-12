@@ -3,15 +3,6 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -19,65 +10,74 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  UploadIcon,
-  X,
-  CalendarIcon,
-  StoreIcon,
-  ChevronsUpDown,
-  Check,
-} from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { format } from 'date-fns';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { cn } from '@/lib/utils';
+import { Form } from '@/components/ui/form';
+import { StoreIcon } from 'lucide-react';
+import PersonalDetailsStep from './steps/personal-details';
+import BusinessInformationStep from './steps/business-information';
+import ContactStep from './steps/contact';
+import AttachmentsStep from './steps/attachments';
+import BankDetailsStep from './steps/bank-details';
+import StepIndicator from './step-indicator';
+import VendorService from '@/api/vendor';
+import { useUserStore } from '@/stores/user-store';
+import { uploadMultipleToCloudinary } from '@/lib/cloudinary';
 
-// Zod schema for form validation
-const vendorSchema = z.object({
-  vendorName: z.string().min(1, 'Vendor name is required'),
-  category: z.string().min(1, 'Category is required'),
+// Multi-step configuration
+const STEPS = [
+  { id: 1, name: 'Personal Details', key: 'personalDetails' },
+  { id: 2, name: 'Business Information', key: 'businessInformation' },
+  { id: 3, name: 'Contact', key: 'contact' },
+  { id: 4, name: 'Attachments', key: 'attachments' },
+  { id: 5, name: 'Bank Details', key: 'bankDetails' },
+];
+
+// Separate schemas for each step
+const personalDetailsSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
   nationality: z.string().min(1, 'Nationality is required'),
   gender: z.enum(['Male', 'Female'], {
     required_error: 'Gender is required',
   }),
-  phoneNumber: z.string().min(1, 'Phone number is required'),
-  phoneNumber2: z.string().optional(),
+});
+
+const businessInformationSchema = z.object({
   businessName: z.string().min(1, 'Business name is required'),
+  serviceCategory: z.string().min(1, 'Service category is required'),
+  registrationNumber: z.string().min(1, 'Registration number is required'),
   dateOfRegistration: z.date({
     required_error: 'Date of registration is required',
   }),
-  websitePortfolioLink: z.string().optional(),
-  countryOfRegistration: z
-    .string()
-    .min(1, 'Country of registration is required'),
-  registrationNumber: z.string().min(1, 'Registration number is required'),
-  taxId: z.string().min(1, 'Tax ID is required'),
   typeOfIncorporation: z.string().min(1, 'Type of incorporation is required'),
-  taxClearanceCertificate: z.any().optional(),
+  taxId: z.string().min(1, 'Tax ID is required'),
+});
+
+const contactSchema = z.object({
+  streetAddress: z.string().min(1, 'Street address is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  country: z.string().min(1, 'Country is required'),
+  zipCode: z.string().min(1, 'Zip code is required'),
+  phoneNumber1: z.string().min(1, 'Phone number is required'),
+  phoneNumber2: z.string().optional(),
+  emailAddress: z.email('Invalid email address'),
+  websitePortfolioLink: z.string().optional(),
+});
+
+const attachmentsSchema = z.object({
   incorporationCertificate: z.any().optional(),
   companyLogo: z.any().optional(),
-  picture: z.any().optional(),
+  taxClearanceCertificate: z.any().optional(),
+  vendorPassport: z.any().optional(),
+});
+
+const bankDetailsSchema = z.object({
+  accountName: z.string().min(1, 'Account name is required'),
+  accountNumber: z.string().min(1, 'Account number is required'),
+  bankName: z.string().min(1, 'Bank name is required'),
+  branchSortCode: z.string().optional(),
+  fnbUniversalCode: z.string().optional(),
+  swiftCode: z.string().optional(),
 });
 
 export default function AddVendorForm({
@@ -85,196 +85,351 @@ export default function AddVendorForm({
   onOpenChange,
   showSuccessModal,
 }) {
-  const [dragActive, setDragActive] = useState({
-    taxClearance: false,
-    incorporation: false,
-    companyLogo: false,
-    picture: false,
-  });
-  const [uploadedFiles, setUploadedFiles] = useState({
+  const [currentStep, setCurrentStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [vendorId, setVendorId] = useState(null);
+  const [attachmentFiles, setAttachmentFiles] = useState({
     taxClearance: [],
     incorporation: [],
     companyLogo: [],
-    picture: [],
-  });
-  const [countries, setCountries] = useState([]);
-
-  // React Hook Form setup
-  const form = useForm({
-    resolver: zodResolver(vendorSchema),
-    defaultValues: {
-      vendorName: '',
-      category: '',
-      nationality: '',
-      gender: '',
-      phoneNumber: '',
-      phoneNumber2: '',
-      businessName: '',
-      dateOfRegistration: undefined,
-      websitePortfolioLink: '',
-      registrationNumber: '',
-      taxId: '',
-      typeOfIncorporation: '',
-      countryOfRegistration: '',
-      taxClearanceCertificate: null,
-      incorporationCertificate: null,
-      companyLogo: null,
-      picture: null,
-    },
+    vendorPassport: [],
   });
 
-  const { handleSubmit, control, reset } = form;
+  const businessId = useUserStore((state) => state.businessData?._id);
 
-  const handleDrag = (uploadType, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive((prev) => ({ ...prev, [uploadType]: true }));
-    } else if (e.type === 'dragleave') {
-      setDragActive((prev) => ({ ...prev, [uploadType]: false }));
-    }
-  };
-
-  const handleDrop = (uploadType, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive((prev) => ({ ...prev, [uploadType]: false }));
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(uploadType, e.dataTransfer.files);
-    }
-  };
-
-  const handleFiles = (uploadType, files) => {
-    const fileArray = Array.from(files);
-    setUploadedFiles((prev) => ({
-      ...prev,
-      [uploadType]: [...prev[uploadType], ...fileArray],
-    }));
-  };
-
-  const removeFile = (uploadType, index) => {
-    setUploadedFiles((prev) => ({
-      ...prev,
-      [uploadType]: prev[uploadType].filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleCancel = () => {
-    reset();
-    setUploadedFiles({
-      taxClearance: [],
-      incorporation: [],
-      companyLogo: [],
-      picture: [],
-    });
-    onOpenChange?.(false);
-  };
-
-  const onSubmit = (data) => {
-    console.log('Vendor data:', data);
-    console.log('Uploaded files:', uploadedFiles);
-    // Logic to save vendor
-    reset();
-    setUploadedFiles({
-      taxClearance: [],
-      incorporation: [],
-      companyLogo: [],
-      picture: [],
-    });
-    onOpenChange?.(false);
-    if (showSuccessModal) {
-      showSuccessModal();
-    }
-  };
-
+  // Fetch countries when modal opens
   useEffect(() => {
     async function fetchCountries() {
       if (!open) return;
-      const response = await fetch(
-        'https://restcountries.com/v3.1/all?fields=name,flags,cca2'
-      );
-      const data = await response.json();
-      setCountries(data);
+      try {
+        const response = await fetch(
+          'https://restcountries.com/v3.1/all?fields=name,flags,cca2'
+        );
+        const data = await response.json();
+        setCountries(data);
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+      }
     }
     fetchCountries();
   }, [open]);
 
-  const renderUploadArea = (uploadType, label) => (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium">{label}</Label>
-      <div
-        className={`bg-muted rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-          dragActive[uploadType]
-            ? 'border-primary bg-blue-50'
-            : 'border-gray-300'
-        }`}
-        onDragEnter={(e) => handleDrag(uploadType, e)}
-        onDragLeave={(e) => handleDrag(uploadType, e)}
-        onDragOver={(e) => handleDrag(uploadType, e)}
-        onDrop={(e) => handleDrop(uploadType, e)}
-      >
-        <div className="flex flex-col items-center space-y-3">
-          <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-lg">
-            <UploadIcon className="text-primary h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-sm font-medium">
-              Click or drag file to this area to upload
-            </p>
-            <p className="mt-1 text-xs text-gray-500">
-              Support for a single or bulk upload.
-            </p>
-          </div>
-          <input
-            type="file"
-            multiple
-            onChange={(e) => handleFiles(uploadType, e.target.files)}
-            className="hidden"
-            id={`file-upload-${uploadType}`}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              document.getElementById(`file-upload-${uploadType}`).click()
-            }
-          >
-            Browse Files
-          </Button>
-        </div>
-      </div>
+  // Get schema for current step
+  const getStepSchema = () => {
+    switch (currentStep) {
+      case 1:
+        return personalDetailsSchema;
+      case 2:
+        return businessInformationSchema;
+      case 3:
+        return contactSchema;
+      case 4:
+        return attachmentsSchema;
+      case 5:
+        return bankDetailsSchema;
+      default:
+        return z.object({});
+    }
+  };
 
-      {/* Display uploaded files */}
-      {uploadedFiles[uploadType].length > 0 && (
-        <div className="mt-3">
-          <p className="mb-2 text-sm font-medium">Uploaded Files:</p>
-          <div className="space-y-2">
-            {uploadedFiles[uploadType].map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between rounded bg-gray-50 p-2"
-              >
-                <span className="text-sm">{file.name}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeFile(uploadType, index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  // React Hook Form setup with dynamic schema
+  const form = useForm({
+    resolver: zodResolver(getStepSchema()),
+    defaultValues: {
+      // Personal Details
+      firstName: '',
+      lastName: '',
+      nationality: '',
+      gender: '',
+      // Business Information
+      businessName: '',
+      serviceCategory: '',
+      registrationNumber: '',
+      dateOfRegistration: undefined,
+      typeOfIncorporation: '',
+      taxId: '',
+      // Contact
+      streetAddress: '',
+      city: '',
+      state: '',
+      country: '',
+      zipCode: '',
+      phoneNumber1: '',
+      phoneNumber2: '',
+      emailAddress: '',
+      websitePortfolioLink: '',
+      // Attachments (handled separately in AttachmentsStep component)
+      incorporationCertificate: null,
+      companyLogo: null,
+      taxClearanceCertificate: null,
+      vendorPassport: null,
+      // Bank Details
+      accountName: '',
+      accountNumber: '',
+      bankName: '',
+      branchSortCode: '',
+      fnbUniversalCode: '',
+      swiftCode: '',
+    },
+    mode: 'onChange',
+  });
+
+  const { control, reset, trigger } = form;
+
+  // Load saved progress from localStorage
+  useEffect(() => {
+    if (open) {
+      const savedProgress = localStorage.getItem('vendorFormProgress');
+      if (savedProgress) {
+        try {
+          const progress = JSON.parse(savedProgress);
+          setVendorId(progress.vendorId);
+          setCurrentStep(progress.currentStep);
+          setCompletedSteps(progress.completedSteps);
+          form.reset(progress.formData);
+        } catch (error) {
+          console.error('Error loading saved progress:', error);
+        }
+      }
+    }
+  }, [open, form]);
+
+  // Save progress to localStorage whenever form data changes
+  useEffect(() => {
+    if (vendorId) {
+      const progress = {
+        vendorId,
+        currentStep,
+        completedSteps,
+        formData: form.getValues(),
+      };
+      localStorage.setItem('vendorFormProgress', JSON.stringify(progress));
+    }
+  }, [vendorId, currentStep, completedSteps, form]);
+
+  // Step navigation handlers
+  const handleNext = async () => {
+    // Validate current step fields
+    const isValid = await trigger();
+
+    if (isValid) {
+      setIsSubmitting(true);
+
+      try {
+        const stepData = form.getValues();
+        let currentVendorId = vendorId;
+
+        // Step 1: Personal Details - Create vendor
+        if (currentStep === 1) {
+          const payload = {
+            businessId,
+            firstName: stepData.firstName,
+            lastName: stepData.lastName,
+            nationality: stepData.nationality,
+            gender: stepData.gender,
+            above18: true,
+          };
+
+          const response = await VendorService.create({ data: payload });
+
+          // Store vendor ID for subsequent steps
+          if (response.data?.data) {
+            currentVendorId = response.data?.data?.vendor?.id;
+            setVendorId(currentVendorId);
+          }
+        }
+
+        // Step 2: Business Information
+        if (currentStep === 2 && currentVendorId) {
+          const payload = {
+            businessName: stepData.businessName,
+            category: stepData.serviceCategory,
+            regNo: stepData.registrationNumber,
+            regDate: stepData.dateOfRegistration,
+            typeOfInc: stepData.typeOfIncorporation,
+            taxId: stepData.taxId,
+          };
+
+          const response = await VendorService.addBusinessInfo({
+            data: payload,
+            id: currentVendorId,
+          });
+          console.log('Business info added:', response);
+        }
+
+        // Step 3: Contact
+        if (currentStep === 3 && currentVendorId) {
+          const payload = {
+            address: stepData.streetAddress,
+            city: stepData.city,
+            state: stepData.state,
+            country: stepData.country,
+            zipCode: stepData.zipCode,
+            phoneNumber1: stepData.phoneNumber1,
+            phoneNumber2: stepData.phoneNumber2 || '',
+            email: stepData.emailAddress,
+            websiteLink: stepData.websitePortfolioLink || '',
+          };
+
+          const response = await VendorService.addContact({
+            data: payload,
+            id: currentVendorId,
+          });
+          console.log('Contact info added:', response);
+        }
+
+        // Step 4: Attachments
+        if (currentStep === 4 && currentVendorId) {
+          // Upload files to Cloudinary
+          const fileUrls = {
+            ci: '', // Incorporation certificate
+            cl: '', // Company logo
+            tcc: '', // Tax clearance certificate
+            vp: '', // Vendor passport
+          };
+
+          // Upload incorporation certificate
+          if (attachmentFiles.incorporation.length > 0) {
+            const uploadResults = await uploadMultipleToCloudinary(
+              attachmentFiles.incorporation,
+              {
+                folder: 'vendors/incorporation',
+                tags: ['vendor', currentVendorId],
+              }
+            );
+            fileUrls.ci = uploadResults[0]?.url || '';
+          }
+
+          // Upload company logo
+          if (attachmentFiles.companyLogo.length > 0) {
+            const uploadResults = await uploadMultipleToCloudinary(
+              attachmentFiles.companyLogo,
+              {
+                folder: 'vendors/logo',
+                tags: ['vendor', currentVendorId],
+              }
+            );
+            fileUrls.cl = uploadResults[0]?.url || '';
+          }
+
+          // Upload tax clearance certificate
+          if (attachmentFiles.taxClearance.length > 0) {
+            const uploadResults = await uploadMultipleToCloudinary(
+              attachmentFiles.taxClearance,
+              {
+                folder: 'vendors/tax-clearance',
+                tags: ['vendor', currentVendorId],
+              }
+            );
+            fileUrls.tcc = uploadResults[0]?.url || '';
+          }
+
+          // Upload vendor passport
+          if (attachmentFiles.vendorPassport.length > 0) {
+            const uploadResults = await uploadMultipleToCloudinary(
+              attachmentFiles.vendorPassport,
+              {
+                folder: 'vendors/passport',
+                tags: ['vendor', currentVendorId],
+              }
+            );
+            fileUrls.vp = uploadResults[0]?.url || '';
+          }
+
+          // Send file URLs to API
+          const response = await VendorService.addAttachments({
+            data: fileUrls,
+            id: currentVendorId,
+          });
+          console.log('Attachments added:', response);
+        }
+
+        // Step 5: Bank Details
+        if (currentStep === 5 && currentVendorId) {
+          const payload = {
+            accountName: stepData.accountName,
+            accountNumber: stepData.accountNumber,
+            bankName: stepData.bankName,
+            sortCode: stepData.branchSortCode || '',
+            fnbCode: stepData.fnbUniversalCode || '',
+            swiftCode: stepData.swiftCode || '',
+          };
+
+          const response = await VendorService.addBankDetails({
+            data: payload,
+            id: currentVendorId,
+          });
+          console.log('Bank details added:', response);
+
+          // Last step completed successfully - clear saved progress and show success modal
+          localStorage.removeItem('vendorFormProgress');
+          clearProgress();
+          handleClose();
+
+          if (showSuccessModal) {
+            showSuccessModal();
+          }
+
+          return; // Exit early since we're done
+        }
+
+        // Mark step as completed
+        setCompletedSteps((prev) => [...new Set([...prev, currentStep])]);
+
+        if (currentStep < STEPS.length) {
+          setCurrentStep((prev) => prev + 1);
+        }
+      } catch (error) {
+        console.error('Error saving vendor data:', error);
+        // TODO: Show error toast notification
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep((prev) => prev - 1);
+    }
+  };
+
+  const handleClose = () => {
+    // Don't clear progress - allow user to continue later
+    onOpenChange?.(false);
+  };
+
+  const clearProgress = () => {
+    localStorage.removeItem('vendorFormProgress');
+    reset();
+    setCurrentStep(1);
+    setCompletedSteps([]);
+    setVendorId(null);
+  };
+
+  // Render current step content
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return <PersonalDetailsStep control={control} countries={countries} />;
+      case 2:
+        return <BusinessInformationStep control={control} />;
+      case 3:
+        return <ContactStep control={control} countries={countries} />;
+      case 4:
+        return <AttachmentsStep onFilesChange={setAttachmentFiles} />;
+      case 5:
+        return <BankDetailsStep control={control} />;
+      default:
+        return null;
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[90%] max-w-4xl overflow-y-auto p-8 sm:max-w-4xl">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-h-[90vh] w-[95%] max-w-3xl overflow-y-auto p-8 sm:max-w-3xl">
         <div className="flex gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#254C00] text-white">
             <StoreIcon className="size-4" />
@@ -289,471 +444,46 @@ export default function AddVendorForm({
           </DialogHeader>
         </div>
 
+        {/* Progress Indicator */}
+        <StepIndicator
+          currentStep={currentStep}
+          completedSteps={completedSteps}
+        />
+
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 py-4">
-            {/* Personal Details Section */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold">Personal Details</h3>
-
-              <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-                {/* Vendor Name */}
-                <div className="space-y-2">
-                  <FormField
-                    control={control}
-                    name="vendorName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Vendor Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter vendor name"
-                            {...field}
-                            className="h-10 w-full"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="text-primary h-auto p-0"
-                  >
-                    + Select vendor
-                  </Button>
-                </div>
-
-                {/* Category */}
-                <FormField
-                  control={control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="supplier">Supplier</SelectItem>
-                          <SelectItem value="contractor">Contractor</SelectItem>
-                          <SelectItem value="service-provider">
-                            Service Provider
-                          </SelectItem>
-                          <SelectItem value="consultant">Consultant</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-                {/* Gender */}
-                <FormField
-                  control={control}
-                  name="gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gender</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="flex gap-6"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Male" id="male" />
-                            <Label htmlFor="male">Male</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Female" id="female" />
-                            <Label htmlFor="female">Female</Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Nationality */}
-                <FormField
-                  control={control}
-                  name="nationality"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nationality</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter nationality"
-                          {...field}
-                          className="h-10 w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-                {/* Phone Number - Full Width */}
-                <FormField
-                  control={control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter phone number"
-                          {...field}
-                          className="h-10 w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={control}
-                  name="phoneNumber2"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number 2 (optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter phone number"
-                          {...field}
-                          className="h-10 w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Business Information Section */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold">Business Information</h3>
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {/* Business Name */}
-                <FormField
-                  control={control}
-                  name="businessName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter Business name"
-                          {...field}
-                          className="h-10 w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Date of Registration */}
-                <FormField
-                  control={control}
-                  name="dateOfRegistration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date of Registration</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={`h-10 w-full pl-3 text-left font-normal ${
-                                !field.value && 'text-muted-foreground'
-                              }`}
-                            >
-                              {field.value ? (
-                                format(field.value, 'PPP')
-                              ) : (
-                                <span>Choose date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          className="w-full min-w-80 p-0"
-                          align="start"
-                        >
-                          <Calendar
-                            className={'w-full'}
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date('1900-01-01')
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {/* Website/Portfolio Link */}
-                <FormField
-                  control={control}
-                  name="websitePortfolioLink"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Website/Portfolio Link</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter Website link"
-                          {...field}
-                          className="h-10 w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Registration Number */}
-                <FormField
-                  control={control}
-                  name="registrationNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Registration Number</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter RC Number"
-                          {...field}
-                          className="h-10 w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {/* Tax ID */}
-                <FormField
-                  control={control}
-                  name="taxId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tax ID</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter tax id"
-                          {...field}
-                          className="h-10 w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Type Of Incorporation */}
-                <FormField
-                  control={control}
-                  name="typeOfIncorporation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type Of Incorporation</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="llc">
-                            Limited Liability Company (LLC)
-                          </SelectItem>
-                          <SelectItem value="corporation">
-                            Corporation
-                          </SelectItem>
-                          <SelectItem value="partnership">
-                            Partnership
-                          </SelectItem>
-                          <SelectItem value="sole-proprietorship">
-                            Sole Proprietorship
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Country of Registration */}
-
-                <FormField
-                  control={form.control}
-                  name="countryOfRegistration"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Country of Registration</FormLabel>
-                      <Popover modal={true}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                'h-10 w-full justify-between',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value ? (
-                                <span className="flex items-center gap-2">
-                                  <img
-                                    src={
-                                      countries.find(
-                                        (country) =>
-                                          country.cca2 === field.value
-                                      )?.flags.svg
-                                    }
-                                    alt={
-                                      countries.find(
-                                        (country) =>
-                                          country.cca2 === field.value
-                                      )?.flags.alt
-                                    }
-                                    width={20}
-                                    height={15}
-                                  />
-                                  <span>
-                                    {
-                                      countries.find(
-                                        (country) =>
-                                          country.cca2 === field.value
-                                      )?.name.common
-                                    }
-                                  </span>
-                                </span>
-                              ) : (
-                                'Select country'
-                              )}
-
-                              <ChevronsUpDown className="opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent align="start" className="w-74 p-0">
-                          <Command>
-                            <CommandInput
-                              placeholder="Search countries..."
-                              className="h-9"
-                            />
-                            <CommandList>
-                              <CommandEmpty>Country(s) not found.</CommandEmpty>
-                              <CommandGroup>
-                                {countries.length > 0 &&
-                                  countries
-                                    .sort((a, b) =>
-                                      a.name.common.localeCompare(b.name.common)
-                                    )
-                                    .map((country, i) => (
-                                      <CommandItem
-                                        value={country.name.common}
-                                        key={i}
-                                        onSelect={() => {
-                                          form.setValue(
-                                            'countryOfRegistration',
-                                            country.cca2
-                                          );
-                                        }}
-                                      >
-                                        <img
-                                          src={country.flags.svg}
-                                          alt={country.flags.alt}
-                                          width={20}
-                                          height={15}
-                                        />
-                                        {country.name.common}
-                                        <Check
-                                          className={cn(
-                                            'ml-auto',
-                                            country.cca2 === field.value
-                                              ? 'opacity-100'
-                                              : 'opacity-0'
-                                          )}
-                                        />
-                                      </CommandItem>
-                                    ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* File Upload Sections */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {renderUploadArea(
-                'taxClearance',
-                'Upload Tax Clearance Certificate'
-              )}
-              {renderUploadArea(
-                'incorporation',
-                'Upload Incorporation Certificate'
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {renderUploadArea(
-                'companyLogo',
-                'Upload Company Logo (optional)'
-              )}
-              {renderUploadArea(
-                'picture',
-                "Vendor's Means of Identification (optional)"
-              )}
-            </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleNext();
+            }}
+            className="space-y-8 py-4"
+          >
+            {/* Render Current Step Content */}
+            {renderStepContent()}
 
             {/* Footer Buttons */}
             <div className="flex justify-end space-x-4 pt-6">
+              {currentStep > 1 && (
+                <Button
+                  type="button"
+                  className="h-10 min-w-[113px]"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={isSubmitting}
+                >
+                  Back
+                </Button>
+              )}
               <Button
-                type="button"
-                className="h-10 min-w-[113px]"
-                variant="outline"
-                onClick={handleCancel}
+                type="submit"
+                className="h-10 min-w-[156px]"
+                disabled={isSubmitting}
               >
-                Cancel
-              </Button>
-              <Button type="submit" className="h-10 min-w-[156px]">
-                Add Vendor
+                {isSubmitting
+                  ? 'Saving...'
+                  : currentStep === STEPS.length
+                    ? 'Add'
+                    : 'Next'}
               </Button>
             </div>
           </form>

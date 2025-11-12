@@ -55,10 +55,10 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import AccountService from '@/api/accounts';
-import CustomerService from '@/api/customer';
+import VendorService from '@/api/vendor';
 import ExpenseService from '@/api/expense';
 import AddAccountForm from '../../bookkeeping/add-account';
-import AddCustomerModal from '../../invoicing/customers/add-customer';
+import VendorForm from '../../accounts-payable/vendors/vendor-form';
 import { uploadMultipleToCloudinary } from '@/lib/cloudinary';
 import { useUserStore } from '@/stores/user-store';
 import toast from 'react-hot-toast';
@@ -100,28 +100,27 @@ export default function ExpenseForm({
   const attachmentFileInputRef = useRef(null);
   const [countries, setCountries] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
+  const [vendors, setVendors] = useState([]);
+  const [isAddVendorModalOpen, setIsAddVendorModalOpen] = useState(false);
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch customers
+  // Fetch vendors
   useEffect(() => {
-    const fetchCustomers = async () => {
+    const fetchVendors = async () => {
       if (!open) return;
 
       try {
-        const response = await CustomerService.fetch({});
-        const customerData = response.data?.data?.customers || [];
-        const extractedCustomers = customerData.map((item) => item.customer);
-        setCustomers(extractedCustomers);
+        const response = await VendorService.fetch({});
+        const vendorData = response.data?.data || [];
+        setVendors(vendorData);
       } catch (error) {
-        console.error('Error fetching customers:', error);
-        setCustomers([]);
+        console.error('Error fetching vendors:', error);
+        setVendors([]);
       }
     };
 
-    fetchCustomers();
+    fetchVendors();
   }, [open]);
 
   // Fetch accounts
@@ -289,7 +288,7 @@ export default function ExpenseForm({
       // Transform form data to match API schema
       const payload = {
         businessId,
-        payee: data.payee,
+        vendorId: data.payee,
         refNo: data.refNo || '',
         paymentAccount: data.paymentAccount,
         paymentDate: data.paymentDate,
@@ -383,11 +382,15 @@ export default function ExpenseForm({
                             )}
                           >
                             {field.value
-                              ? customers.find(
-                                  (customer) =>
-                                    (customer._id || customer.id) ===
-                                    field.value
-                                )?.displayName || 'Select customer'
+                              ? vendors.find(
+                                  (vendor) =>
+                                    (vendor._id || vendor.id) === field.value
+                                )?.firstName +
+                                  ' ' +
+                                  vendors.find(
+                                    (vendor) =>
+                                      (vendor._id || vendor.id) === field.value
+                                  )?.lastName || 'Select vendor'
                               : 'Who did you pay?'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -395,34 +398,34 @@ export default function ExpenseForm({
                       </PopoverTrigger>
                       <PopoverContent className="w-[300px] p-0" align="start">
                         <Command>
-                          <CommandInput placeholder="Search customers..." />
+                          <CommandInput placeholder="Search vendors..." />
                           <CommandList>
-                            <CommandEmpty>No customer found.</CommandEmpty>
+                            <CommandEmpty>No vendor found.</CommandEmpty>
                             <CommandGroup>
-                              {customers.map((customer) => (
+                              {vendors.map((vendor) => (
                                 <CommandItem
-                                  key={customer._id || customer.id}
-                                  value={customer.displayName}
+                                  key={vendor._id || vendor.id}
+                                  value={`${vendor.firstName} ${vendor.lastName}`}
                                   onSelect={() => {
-                                    field.onChange(customer._id || customer.id);
+                                    field.onChange(vendor._id || vendor.id);
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       'mr-2 h-4 w-4',
-                                      field.value ===
-                                        (customer._id || customer.id)
+                                      field.value === (vendor._id || vendor.id)
                                         ? 'opacity-100'
                                         : 'opacity-0'
                                     )}
                                   />
                                   <div className="flex flex-col">
                                     <span className="font-medium">
-                                      {customer.displayName}
+                                      {vendor.firstName} {vendor.lastName}
                                     </span>
-                                    {customer.companyName && (
+                                    {vendor.businessInformation && (
                                       <span className="text-xs text-gray-500">
-                                        {customer.companyName}
+                                        {vendor.businessInformation
+                                          ?.businessName || ''}
                                       </span>
                                     )}
                                   </div>
@@ -431,7 +434,7 @@ export default function ExpenseForm({
                             </CommandGroup>
                             <div
                               className="flex cursor-pointer items-center gap-1 px-2 py-1 text-sm font-medium hover:font-semibold"
-                              onClick={() => setIsAddCustomerModalOpen(true)}
+                              onClick={() => setIsAddVendorModalOpen(true)}
                             >
                               <Plus size={16} color="#254C00" /> Add New
                             </div>
@@ -1064,21 +1067,18 @@ export default function ExpenseForm({
           </form>
         </Form>
 
-        {/* Add Customer Modal */}
-        <AddCustomerModal
-          open={isAddCustomerModalOpen}
-          onOpenChange={setIsAddCustomerModalOpen}
-          onSuccess={async () => {
-            // Refresh customers list
+        {/* Add Vendor Modal */}
+        <VendorForm
+          open={isAddVendorModalOpen}
+          onOpenChange={setIsAddVendorModalOpen}
+          showSuccessModal={async () => {
+            // Refresh vendors list
             try {
-              const response = await CustomerService.fetch({});
-              const customerData = response.data?.data?.customers || [];
-              const extractedCustomers = customerData.map(
-                (item) => item.customer
-              );
-              setCustomers(extractedCustomers);
+              const response = await VendorService.fetch({});
+              const vendorData = response.data?.data || [];
+              setVendors(vendorData);
             } catch (error) {
-              console.error('Error refreshing customers:', error);
+              console.error('Error refreshing vendors:', error);
             }
           }}
         />

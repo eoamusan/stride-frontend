@@ -70,7 +70,7 @@ export default function VendorsExpenses() {
       <AddVendorForm
         open={openAddVendor}
         onOpenChange={setOpenAddVendor}
-        onSuccess={() => setOpenSuccessModal(false)}
+        showSuccessModal={() => setOpenSuccessModal(true)}
       />
 
       <SuccessModal
