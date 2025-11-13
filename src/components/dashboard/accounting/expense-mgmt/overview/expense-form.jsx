@@ -112,7 +112,7 @@ export default function ExpenseForm({
 
       try {
         const response = await VendorService.fetch({});
-        const vendorData = response.data?.data || [];
+        const vendorData = response.data?.data?.vendors || [];
         setVendors(vendorData);
       } catch (error) {
         console.error('Error fetching vendors:', error);
@@ -1075,7 +1075,7 @@ export default function ExpenseForm({
             // Refresh vendors list
             try {
               const response = await VendorService.fetch({});
-              const vendorData = response.data?.data || [];
+              const vendorData = response.data?.data?.vendors || [];
               setVendors(vendorData);
             } catch (error) {
               console.error('Error refreshing vendors:', error);

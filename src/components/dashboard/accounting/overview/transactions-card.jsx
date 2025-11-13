@@ -11,60 +11,10 @@ import {
 import emptyStateImg from '@/assets/images/empty-chart-state.png';
 import { ArrowDownLeftIcon, ArrowUpRightIcon, DotIcon } from 'lucide-react';
 
-const tnx = {
-  transactions: [
-    {
-      title: 'Client payment - invoice #INV-001',
-      description: 'Business Checking',
-      date_created: '2025-01-13',
-      type: 'credit',
-      amount: '$2500',
-      tag: 'Revenue',
-    },
-    {
-      title: 'Office Supplies Purchase',
-      description: 'Business Checking',
-      date_created: '2025-01-14',
-      type: 'debit',
-      amount: '$150',
-      tag: 'Expenses',
-    },
-    {
-      title: 'Software Subscription',
-      description: 'Business Checking',
-      date_created: '2025-01-15',
-      type: 'credit',
-      amount: '$50',
-      tag: 'Expenses',
-    },
-    {
-      title: 'Client payment - invoice #INV-002',
-      description: 'Business Checking',
-      date_created: '2025-01-16',
-      type: 'debit',
-      amount: '$3000',
-      tag: 'Revenue',
-    },
-    {
-      title: 'Office Rent',
-      description: 'Business Checking',
-      date_created: '2025-01-17',
-      type: 'credit',
-      amount: '$1200',
-      tag: 'Expenses',
-    },
-  ],
-  pagination: {
-    count: 50,
-    page: 1,
-    pageSize: 5,
-    totalPages: 10,
-  },
-};
 
 export default function RecentTransactionCard({
   className,
-  recentTnx = tnx,
+  recentTnx,
   title,
   description,
 }) {

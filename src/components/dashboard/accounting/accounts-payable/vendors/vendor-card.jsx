@@ -17,24 +17,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
+import { format } from 'date-fns';
 
 export default function VendorCard({
-  vendor = {
-    id: 1,
-    name: 'JJ Solutions',
-    category: 'IT Services',
-    contactPerson: 'Adeniyi James',
-    email: 'jjsolutions@gmail.com',
-    phone: '+2347065724230',
-    address: '2118 Thornridge Cir. Syracuse, Connecticut 35624',
-    services: 'IT Support, Cloud Services',
-    rating: 4.8,
-    joinDate: '2025-01-12',
-    verified: true,
-    avatar: null,
-    totalSpent: '$23000',
-    paymentStatus: 'paid',
-  },
+  vendor,
   isBillingPage = false,
   onViewDetails,
   onSelected,
@@ -164,12 +150,7 @@ export default function VendorCard({
               </div>
 
               <span className="text-sm font-medium text-[#434343]">
-                Joined{' '}
-                {new Date(vendor.joinDate).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                })}
+                Joined {format(new Date(vendor.joinDate), 'PP')}
               </span>
             </>
           )}

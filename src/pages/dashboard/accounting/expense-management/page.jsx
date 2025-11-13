@@ -50,7 +50,7 @@ export default function ExpenseManagement() {
       setIsLoading(true);
       try {
         const response = await ExpenseService.fetch();
-        setExpenses(response.data?.data?.expenses || []);
+        setExpenses(response.data?.data?.expense || []);
       } catch (error) {
         console.error('Error fetching expenses:', error);
       } finally {
@@ -73,9 +73,9 @@ export default function ExpenseManagement() {
     }
 
     // Calculate total expenses
-    const totalExpenses = expenses.reduce((sum, expense) => {
+    const totalExpenses = expenses.reduce((sum, item) => {
       const expenseTotal =
-        expense.categoryDetails?.reduce(
+        item.expense?.categoryDetails?.reduce(
           (catSum, cat) => catSum + (cat.amount || 0),
           0
         ) || 0;
@@ -88,13 +88,13 @@ export default function ExpenseManagement() {
     const monthEnd = endOfMonth(now);
 
     const thisMonthExpenses = expenses
-      .filter((expense) => {
-        const expenseDate = new Date(expense.paymentDate);
+      .filter((item) => {
+        const expenseDate = new Date(item.expense?.paymentDate);
         return expenseDate >= monthStart && expenseDate <= monthEnd;
       })
-      .reduce((sum, expense) => {
+      .reduce((sum, item) => {
         const expenseTotal =
-          expense.categoryDetails?.reduce(
+          item.expense?.categoryDetails?.reduce(
             (catSum, cat) => catSum + (cat.amount || 0),
             0
           ) || 0;
@@ -103,16 +103,16 @@ export default function ExpenseManagement() {
 
     // Calculate average daily expenses (based on total expenses / days with expenses)
     const uniqueDays = new Set(
-      expenses.map((expense) =>
-        startOfDay(new Date(expense.paymentDate)).toISOString()
+      expenses.map((item) =>
+        startOfDay(new Date(item.expense?.paymentDate)).toISOString()
       )
     ).size;
     const averageDaily = uniqueDays > 0 ? totalExpenses / uniqueDays : 0;
 
     // Count unique categories
     const categoriesSet = new Set();
-    expenses.forEach((expense) => {
-      expense.categoryDetails?.forEach((cat) => {
+    expenses.forEach((item) => {
+      item.expense?.categoryDetails?.forEach((cat) => {
         if (cat.category) categoriesSet.add(cat.category);
       });
     });
@@ -152,10 +152,13 @@ export default function ExpenseManagement() {
 
     // Group expenses by month
     const monthlyData = {};
-    expenses.forEach((expense) => {
-      const month = formatDate(new Date(expense.paymentDate), 'yyyy-MM-01');
+    expenses.forEach((item) => {
+      const month = formatDate(
+        new Date(item.expense?.paymentDate),
+        'yyyy-MM-01'
+      );
       const expenseTotal =
-        expense.categoryDetails?.reduce(
+        item.expense?.categoryDetails?.reduce(
           (sum, cat) => sum + (cat.amount || 0),
           0
         ) || 0;
@@ -186,8 +189,8 @@ export default function ExpenseManagement() {
       const categoryTotals = {};
       let grandTotal = 0;
 
-      expenses.forEach((expense) => {
-        expense.categoryDetails?.forEach((cat) => {
+      expenses.forEach((item) => {
+        item.expense?.categoryDetails?.forEach((cat) => {
           const category = cat.category || 'Uncategorized';
           const amount = cat.amount || 0;
 
@@ -235,7 +238,7 @@ export default function ExpenseManagement() {
     setIsLoading(true);
     try {
       const response = await ExpenseService.fetch();
-      setExpenses(response.data?.data?.expenses || []);
+      setExpenses(response.data?.data?.expense || []);
     } catch (error) {
       console.error('Error refreshing expenses:', error);
     } finally {
@@ -289,6 +292,34 @@ export default function ExpenseManagement() {
                 <RecentTransactionCard
                   title={'Recent Expenses'}
                   description={'Your latest transactions'}
+                  recentTnx={{
+                    transactions: expenses.slice(0, 5).map((item) => {
+                      const categoryTotal =
+                        item.expense?.categoryDetails?.reduce(
+                          (sum, cat) => sum + (cat.amount || 0),
+                          0
+                        ) || 0;
+
+                      return {
+                        title: item.vendor
+                          ? `${item.vendor.firstName} ${item.vendor.lastName}`
+                          : 'Unknown Vendor',
+                        description: item.expense?.memo || 'No memo',
+                        date_created: item.expense?.paymentDate
+                          ? formatDate(new Date(item.expense.paymentDate), 'PP')
+                          : '',
+                        type: 'debit',
+                        amount: `$${categoryTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        tag: 'Expenses',
+                      };
+                    }),
+                    pagination: {
+                      count: expenses.length,
+                      page: 1,
+                      pageSize: 10,
+                      totalPages: Math.ceil(expenses.length / 10),
+                    },
+                  }}
                 />
               </div>
               <div className="w-full max-w-md space-y-10">

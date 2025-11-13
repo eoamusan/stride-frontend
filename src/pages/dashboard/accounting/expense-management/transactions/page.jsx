@@ -33,7 +33,7 @@ export default function ExpenseTransactions() {
     setIsLoading(true);
     try {
       const response = await ExpenseService.fetch();
-      const expenseData = response.data?.data?.expenses || [];
+      const expenseData = response.data?.data?.expense || [];
       setExpenses(expenseData);
       setPaginationData({
         totalDocs: response.data?.data?.totalDocs || 0,
@@ -63,9 +63,9 @@ export default function ExpenseTransactions() {
     }
 
     // Calculate total expenses
-    const totalExpenses = expenses.reduce((sum, expense) => {
+    const totalExpenses = expenses.reduce((sum, item) => {
       const expenseTotal =
-        expense.categoryDetails?.reduce(
+        item.expense?.categoryDetails?.reduce(
           (catSum, cat) => catSum + (cat.amount || 0),
           0
         ) || 0;
@@ -78,13 +78,13 @@ export default function ExpenseTransactions() {
     const monthEnd = endOfMonth(now);
 
     const thisMonthExpenses = expenses
-      .filter((expense) => {
-        const expenseDate = new Date(expense.paymentDate);
+      .filter((item) => {
+        const expenseDate = new Date(item.expense?.paymentDate);
         return expenseDate >= monthStart && expenseDate <= monthEnd;
       })
-      .reduce((sum, expense) => {
+      .reduce((sum, item) => {
         const expenseTotal =
-          expense.categoryDetails?.reduce(
+          item.expense?.categoryDetails?.reduce(
             (catSum, cat) => catSum + (cat.amount || 0),
             0
           ) || 0;
@@ -93,16 +93,16 @@ export default function ExpenseTransactions() {
 
     // Calculate average daily expenses
     const uniqueDays = new Set(
-      expenses.map((expense) =>
-        startOfDay(new Date(expense.paymentDate)).toISOString()
+      expenses.map((item) =>
+        startOfDay(new Date(item.expense?.paymentDate)).toISOString()
       )
     ).size;
     const averageDaily = uniqueDays > 0 ? totalExpenses / uniqueDays : 0;
 
     // Count unique categories
     const categoriesSet = new Set();
-    expenses.forEach((expense) => {
-      expense.categoryDetails?.forEach((cat) => {
+    expenses.forEach((item) => {
+      item.expense?.categoryDetails?.forEach((cat) => {
         if (cat.category) categoriesSet.add(cat.category);
       });
     });
@@ -138,31 +138,35 @@ export default function ExpenseTransactions() {
 
   // Transform expenses data for the table
   const transactionData = useMemo(() => {
-    return expenses.map((expense, index) => {
+    return expenses.map((item, index) => {
       const totalAmount =
-        expense.categoryDetails?.reduce(
+        item.expense?.categoryDetails?.reduce(
           (sum, cat) => sum + (cat.amount || 0),
           0
         ) || 0;
 
-      const mainCategory = expense.categoryDetails?.[0]?.category || 'N/A';
+      const mainCategory =
+        item.expense?.categoryDetails?.[0]?.category || 'N/A';
+      const vendorName = item.vendor
+        ? `${item.vendor.firstName} ${item.vendor.lastName}`
+        : 'Unknown Vendor';
 
       return {
-        id: expense._id || expense.id,
+        id: item.expense?._id || item.expense?.id,
         no: String(index + 1).padStart(4, '0'),
-        date: expense.paymentDate
-          ? format(new Date(expense.paymentDate), 'dd/MM/yyyy')
+        date: item.expense?.paymentDate
+          ? format(new Date(item.expense.paymentDate), 'PP')
           : 'N/A',
         type: 'Expense',
-        payer: '-', // Will be provided by backend later
+        payer: vendorName,
         category: mainCategory,
         total: `$${totalAmount.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         })}`,
         status: 'Completed',
-        paymentMethod: expense.paymentMethod,
-        refNo: expense.refNo || 'N/A',
+        paymentMethod: item.expense?.paymentMethod,
+        refNo: item.expense?.refNo || 'N/A',
       };
     });
   }, [expenses]);
@@ -250,7 +254,6 @@ export default function ExpenseTransactions() {
             dropdownActions={[
               { key: 'view', label: 'View Details' },
               { key: 'edit', label: 'Edit' },
-              { key: 'delete', label: 'Delete' },
             ]}
             paginationData={{
               page: paginationData.page,
