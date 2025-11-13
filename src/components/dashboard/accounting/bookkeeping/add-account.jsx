@@ -255,19 +255,8 @@ export default function AddAccountForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="checking">Checking Account</SelectItem>
-                      <SelectItem value="savings">Savings Account</SelectItem>
                       <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="credit-card">Credit Card</SelectItem>
-                      <SelectItem value="office-equipment">
-                        Office Equipment
-                      </SelectItem>
-                      <SelectItem value="accounts-payable">
-                        Accounts Payable
-                      </SelectItem>
-                      <SelectItem value="accounts-receivable">
-                        Accounts Receivable
-                      </SelectItem>
+                      <SelectItem value="prepayment">Prepayment</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

@@ -26,7 +26,7 @@ export default function VendorCard({
   onSelected,
   onContact,
   onEdit,
-  // onDelete,
+  onBlacklist,
 }) {
   // Generate avatar initials
   const getInitials = (name) => {
@@ -189,7 +189,10 @@ export default function VendorCard({
                   View Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem>Send Request</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">
+                <DropdownMenuItem
+                  onClick={() => onBlacklist?.(vendor)}
+                  className="text-red-600"
+                >
                   Blacklist
                 </DropdownMenuItem>
               </DropdownMenuContent>

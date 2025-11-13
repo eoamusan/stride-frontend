@@ -10,6 +10,7 @@ import {
   PencilLineIcon,
   FileInput,
   DownloadIcon,
+  ShapesIcon,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,18 +26,62 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import pdfIcon from '@/assets/icons/pdf-icon.svg';
 import placeholderImage from '@/assets/images/vendor-details-placeholder.png';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import ExpenseForm from '@/components/dashboard/accounting/expense-mgmt/overview/expense-form';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import VendorService from '@/api/vendor';
+import { format } from 'date-fns';
 
 export default function VendorExpenseDetails() {
   const [openExpenseForm, setOpenExpenseForm] = useState(false);
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [vendor, setVendor] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { id } = useParams();
+
+  useEffect(() => {
+    const fetchVendor = async () => {
+      setIsLoading(true);
+      try {
+        const response = await VendorService.get({ id });
+        setVendor(response.data?.data || null);
+      } catch (error) {
+        console.error('Error fetching vendor:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchVendor();
+    }
+  }, [id]);
+
   const handleGoBack = () => {
     navigate(-1, { replace: true });
   };
+
+  if (isLoading) {
+    return (
+      <div className="mx-4 my-4 min-h-screen rounded-xl bg-white p-6">
+        <div className="flex h-64 items-center justify-center">
+          <p className="text-gray-500">Loading vendor details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!vendor) {
+    return (
+      <div className="mx-4 my-4 min-h-screen rounded-xl bg-white p-6">
+        <div className="flex h-64 items-center justify-center">
+          <p className="text-gray-500">Vendor not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-4 my-4 min-h-screen rounded-xl bg-white p-6">
@@ -46,14 +91,19 @@ export default function VendorExpenseDetails() {
           <ArrowLeftIcon />
         </button>
         <header className="flex gap-2">
-          <img
-            src="https://placehold.co/32"
-            alt="Vendor Logo"
-            className="h-8 w-8 rounded-full"
-          />
+          <div className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold">
+            {vendor.firstName?.charAt(0).toUpperCase()}
+            {vendor.lastName?.charAt(0).toUpperCase()}
+          </div>
           <div>
-            <h1 className="text-2xl font-semibold">JJ Solutions</h1>
-            <p className="text-sm font-medium text-[#434343]">Marketing</p>
+            <h1 className="text-2xl font-semibold">
+              {vendor.firstName} {vendor.lastName}
+            </h1>
+            <p className="text-sm font-medium text-[#434343]">
+              {vendor.businessInformation?.category ||
+                vendor.businessInformation?.businessName ||
+                'Not specified'}
+            </p>
           </div>
         </header>
       </div>
@@ -73,7 +123,7 @@ export default function VendorExpenseDetails() {
                   <div className="flex items-center gap-3">
                     <MailIcon size={16} color="#434343" />
                     <span className="text-sm font-medium">
-                      jjsolutions@gmail.com
+                      {vendor.contact?.email || 'Not provided'}
                     </span>
                   </div>
                 </div>
@@ -83,7 +133,9 @@ export default function VendorExpenseDetails() {
                   <h3 className="mb-2 text-sm font-semibold">Name</h3>
                   <div className="flex items-center gap-3">
                     <UserIcon size={16} color="#434343" />
-                    <span className="text-sm font-medium">Adeniyi James</span>
+                    <span className="text-sm font-medium">
+                      {vendor.firstName} {vendor.lastName}
+                    </span>
                   </div>
                 </div>
 
@@ -93,9 +145,36 @@ export default function VendorExpenseDetails() {
                   <div className="flex items-start gap-3">
                     <MapPinIcon size={16} color="#434343" className="mt-1" />
                     <div className="text-sm font-medium">
-                      <p>2118 Thornridge Cir. Syracuse,</p>
-                      <p>Connecticut 35624</p>
+                      {vendor.contact?.address ? (
+                        <>
+                          <p>{vendor.contact.address}</p>
+                          {(vendor.contact?.city || vendor.contact?.state) && (
+                            <p>
+                              {vendor.contact?.city}
+                              {vendor.contact?.city &&
+                                vendor.contact?.state &&
+                                ', '}
+                              {vendor.contact?.state}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <p>Not provided</p>
+                      )}
                     </div>
+                  </div>
+                </div>
+
+                {/* Service Category */}
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">
+                    Service Category
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    <ShapesIcon size={16} color="#434343" />
+                    <span className="text-sm font-medium">
+                      {vendor.businessInformation?.category || 'N/A'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -107,7 +186,9 @@ export default function VendorExpenseDetails() {
                   <h3 className="mb-2 font-semibold">Phone Number</h3>
                   <div className="flex items-center gap-3">
                     <PhoneIcon size={16} color="#434343" />
-                    <span className="font-medium">+234706574230</span>
+                    <span className="font-medium">
+                      {vendor.contact?.phoneNumber1 || 'Not provided'}
+                    </span>
                   </div>
                 </div>
 
@@ -116,12 +197,18 @@ export default function VendorExpenseDetails() {
                   <h3 className="mb-2 font-semibold">Website</h3>
                   <div className="flex items-center gap-3">
                     <GlobeIcon size={16} color="#8979FF" />
-                    <a
-                      href="#"
-                      className="text-[#8979FF]hover:underline font-medium"
-                    >
-                      www.jjsolutions.com
-                    </a>
+                    {vendor.contact?.websiteLink ? (
+                      <a
+                        href={vendor.contact.websiteLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-[#8979FF] hover:underline"
+                      >
+                        {vendor.contact.websiteLink}
+                      </a>
+                    ) : (
+                      <span className="font-medium">Not provided</span>
+                    )}
                   </div>
                 </div>
 
@@ -130,7 +217,9 @@ export default function VendorExpenseDetails() {
                   <h3 className="mb-2 font-semibold">Date Added</h3>
                   <div className="flex items-center gap-3">
                     <CalendarIcon size={16} color="#434343" />
-                    <span className="font-medium">22-2-2025</span>
+                    <span className="font-medium">
+                      {format(new Date(vendor.createdAt), 'PP')}
+                    </span>
                   </div>
                 </div>
 
@@ -139,7 +228,7 @@ export default function VendorExpenseDetails() {
                   <h3 className="mb-2 font-semibold">Added by</h3>
                   <div className="flex items-center gap-3">
                     <UserIcon size={16} color="#434343" />
-                    <span className="font-medium">John Adeniyi</span>
+                    <span className="font-medium">Admin</span>
                   </div>
                 </div>
               </div>
@@ -156,13 +245,13 @@ export default function VendorExpenseDetails() {
                 {/* Total Invoices */}
                 <div>
                   <h3 className="mb-2 text-sm font-semibold">Total Invoices</h3>
-                  <p className="font-semibold">12</p>
+                  <p className="font-semibold">0</p>
                 </div>
 
                 {/* Last Payment */}
                 <div>
                   <h3 className="mb-2 text-sm font-semibold">Last Payment</h3>
-                  <p className="text-sm font-medium">Jan-2-2025</p>
+                  <p className="text-sm font-medium">N/A</p>
                 </div>
               </div>
 
@@ -171,13 +260,81 @@ export default function VendorExpenseDetails() {
                 {/* Phone Number */}
                 <div>
                   <h3 className="mb-2 font-semibold">Phone Number</h3>
-                  <p className="font-medium">+234706574230</p>
+                  <p className="font-medium">
+                    {' '}
+                    {vendor.contact?.phoneNumber1 || 'Not provided'}
+                  </p>
                 </div>
 
                 {/* Average Invoice */}
                 <div>
                   <h3 className="mb-2 font-semibold">Average Invoice</h3>
-                  <p className="font-medium">$4,566</p>
+                  <p className="font-medium">$0</p>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Bank Details */}
+          <Card className={'mt-6 p-4'}>
+            <h2 className="text-base font-semibold">Bank Details</h2>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {/* Left Column */}
+              <div className="space-y-4 text-[#434343]">
+                {/* Account Name */}
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">Account Name</h3>
+                  <p className="text-sm font-medium">
+                    {vendor.bankDetails?.accountName || 'Not provided'}
+                  </p>
+                </div>
+
+                {/* Account Number */}
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">Account Number</h3>
+                  <p className="text-sm font-medium">
+                    {vendor.bankDetails?.accountNumber || 'Not provided'}
+                  </p>
+                </div>
+
+                {/* FNB Universal Code */}
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">
+                    FNB Universal Code
+                  </h3>
+                  <p className="text-sm font-medium">
+                    {vendor.bankDetails?.fnbCode || 'Not provided'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-4 text-[#434343]">
+                {/* Bank Name */}
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">Bank Name</h3>
+                  <p className="text-sm font-medium">
+                    {vendor.bankDetails?.bankName || 'Not provided'}
+                  </p>
+                </div>
+
+                {/* Branch/Sort Code */}
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">
+                    Branch/Sort Code
+                  </h3>
+                  <p className="text-sm font-medium">
+                    {vendor.bankDetails?.sortCode || 'Not provided'}
+                  </p>
+                </div>
+
+                {/* Swift Code */}
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">Swift Code</h3>
+                  <p className="text-sm font-medium">
+                    {vendor.bankDetails?.swiftCode || 'Not provided'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -354,15 +511,37 @@ export default function VendorExpenseDetails() {
           <Card className="mt-6 p-6">
             <h3 className="text-base font-semibold">Business Information</h3>
 
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {/* Left Column */}
               <div className="space-y-6">
+                {/* Business Name */}
+                <div className="text-[#434343]">
+                  <label className="mb-2 block text-sm font-semibold">
+                    Business Name
+                  </label>
+                  <p className="text-sm font-medium">
+                    {vendor.businessInformation?.businessName || 'Not provided'}
+                  </p>
+                </div>
+
+                {/* Registration No */}
+                <div className="text-[#434343]">
+                  <label className="mb-2 block text-sm font-semibold">
+                    Registration No
+                  </label>
+                  <p className="text-sm font-medium">
+                    {vendor.businessInformation?.regNo || 'Not provided'}
+                  </p>
+                </div>
+
                 {/* Tax ID */}
                 <div className="text-[#434343]">
                   <label className="mb-2 block text-sm font-semibold">
                     Tax ID
                   </label>
-                  <p className="text-sm font-medium">XX-XXXX</p>
+                  <p className="text-sm font-medium">
+                    {vendor.businessInformation?.taxId || 'Not provided'}
+                  </p>
                 </div>
 
                 {/* Status */}
@@ -370,20 +549,51 @@ export default function VendorExpenseDetails() {
                   <label className="mb-2 block text-sm font-semibold text-[#434343]">
                     Status
                   </label>
-                  <Badge className="bg-green-100 font-medium text-green-800 hover:bg-green-100">
-                    Paid
+                  <Badge
+                    className={
+                      vendor.status === 'APPROVED'
+                        ? 'bg-green-100 font-medium text-green-800 hover:bg-green-100'
+                        : 'bg-yellow-100 font-medium text-yellow-800 hover:bg-yellow-100'
+                    }
+                  >
+                    {vendor.status === 'APPROVED' ? 'Paid' : 'Pending'}
                   </Badge>
                 </div>
               </div>
 
               {/* Right Column */}
               <div className="space-y-6 text-[#434343]">
+                {/* Date Of Registration */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold">
+                    Date Of Registration
+                  </label>
+                  <p className="text-sm font-medium">
+                    {vendor.businessInformation?.regDate
+                      ? format(
+                          new Date(vendor.businessInformation.regDate),
+                          'PP'
+                        )
+                      : 'Not provided'}
+                  </p>
+                </div>
+
+                {/* Type of Incorporation */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold">
+                    Type of Incorporation
+                  </label>
+                  <p className="text-sm font-medium">
+                    {vendor.businessInformation?.typeOfInc || 'Not provided'}
+                  </p>
+                </div>
+
                 {/* Payment Terms */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold">
                     Payment Terms
                   </label>
-                  <p className="text-sm font-medium">2 days</p>
+                  <p className="text-sm font-medium">N/A</p>
                 </div>
 
                 {/* On-Time Rate */}
@@ -391,11 +601,109 @@ export default function VendorExpenseDetails() {
                   <label className="mb-2 block text-sm font-semibold">
                     On-Time Rate
                   </label>
-                  <p className="text-sm font-medium">2 days</p>
+                  <p className="text-sm font-medium">N/A</p>
                 </div>
               </div>
             </div>
           </Card>
+
+          {/* Certificates */}
+          <div className="mt-6">
+            <h3 className="text-base font-semibold">Attachment</h3>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {/* Certificate of Incorporation */}
+              {vendor.attachment?.ci && (
+                <a
+                  href={vendor.attachment.ci}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex items-center justify-between rounded-xl border border-gray-200 p-2.5 transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
+                    <span className="text-xs font-medium text-[#434343]">
+                      Certificate of Incorporation
+                    </span>
+                  </div>
+                  <button className="text-green-600 hover:text-green-700">
+                    <DownloadIcon size={16} />
+                  </button>
+                </a>
+              )}
+
+              {/* Company Logo */}
+              {vendor.attachment?.cl && (
+                <a
+                  href={vendor.attachment.cl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex items-center justify-between rounded-xl border border-gray-200 p-2.5 transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
+                    <span className="text-xs font-medium text-[#434343]">
+                      Company Logo
+                    </span>
+                  </div>
+                  <button className="text-green-600 hover:text-green-700">
+                    <DownloadIcon size={16} />
+                  </button>
+                </a>
+              )}
+
+              {/* Tax Clearance Certificate */}
+              {vendor.attachment?.tcc && (
+                <a
+                  href={vendor.attachment.tcc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex items-center justify-between rounded-xl border border-gray-200 p-2.5 transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
+                    <span className="text-xs font-medium text-[#434343]">
+                      Tax Clearance Certificate
+                    </span>
+                  </div>
+                  <button className="text-green-600 hover:text-green-700">
+                    <DownloadIcon size={16} />
+                  </button>
+                </a>
+              )}
+
+              {/* Vendor Passport */}
+              {vendor.attachment?.vp && (
+                <a
+                  href={vendor.attachment.vp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex items-center justify-between rounded-xl border border-gray-200 p-2.5 transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
+                    <span className="text-xs font-medium text-[#434343]">
+                      Vendor Passport
+                    </span>
+                  </div>
+                  <button className="text-green-600 hover:text-green-700">
+                    <DownloadIcon size={16} />
+                  </button>
+                </a>
+              )}
+
+              {/* Show message if no attachments */}
+              {!vendor.attachment?.ci &&
+                !vendor.attachment?.cl &&
+                !vendor.attachment?.tcc &&
+                !vendor.attachment?.vp && (
+                  <div className="col-span-2 mt-2 rounded-xl border border-gray-200 p-4 text-center">
+                    <p className="text-sm text-gray-500">
+                      No attachments available
+                    </p>
+                  </div>
+                )}
+            </div>
+          </div>
 
           {/* Notes/Reviews */}
           <div>
@@ -404,43 +712,6 @@ export default function VendorExpenseDetails() {
               className={'mt-2 h-20 resize-none rounded-xl'}
               placeholder="Add a note..."
             ></Textarea>
-          </div>
-
-          {/* Certificates */}
-          <div className="mt-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Tax Certificate */}
-              <div>
-                <h3 className="text-base font-semibold">Tax Certificate</h3>
-                <div className="mt-2 flex items-center justify-between rounded-xl border border-gray-200 p-2.5">
-                  <div className="flex items-center space-x-3">
-                    <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
-                    <span className="text-xs font-medium text-[#434343]">
-                      Tax Certificate.pdf
-                    </span>
-                  </div>
-                  <button className="text-green-600 hover:text-green-700">
-                    <DownloadIcon size={16} />
-                  </button>
-                </div>
-              </div>
-
-              {/* CAC Certificate */}
-              <div>
-                <h3 className="text-base font-semibold">CAC Certificate</h3>
-                <div className="mt-2 flex items-center justify-between rounded-xl border border-gray-200 p-2.5">
-                  <div className="flex items-center space-x-3">
-                    <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
-                    <span className="text-xs font-medium text-[#434343]">
-                      CAC Certificate.pdf
-                    </span>
-                  </div>
-                  <button className="text-green-600 hover:text-green-700">
-                    <DownloadIcon size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Placeholder */}

@@ -96,4 +96,44 @@ export default class VendorService {
     );
     return response;
   }
+
+  static async analytics() {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.post(
+      'vendor/analytics',
+      { businessId: userStore.businessData?._id },
+      {
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      }
+    );
+    return response;
+  }
+
+  static async update({ data, id }) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.patch(`vendor/${id}`, data, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
+    return response;
+  }
+
+  static async blacklist({ id }) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.patch(
+      `vendor/${id}`,
+      {
+        status: 'blacklisted',
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      }
+    );
+    return response;
+  }
 }

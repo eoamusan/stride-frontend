@@ -84,6 +84,8 @@ export default function AddVendorForm({
   open,
   onOpenChange,
   showSuccessModal,
+  isEditMode = false,
+  vendorToEdit = null,
 }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([]);
@@ -178,9 +180,65 @@ export default function AddVendorForm({
 
   const { control, reset, trigger } = form;
 
-  // Load saved progress from localStorage
+  // Pre-populate form when editing
   useEffect(() => {
-    if (open) {
+    if (isEditMode && vendorToEdit && open) {
+      const vendorData = {
+        // Personal Details
+        firstName: vendorToEdit.firstName || '',
+        lastName: vendorToEdit.lastName || '',
+        nationality: vendorToEdit.nationality || '',
+        gender: vendorToEdit.gender || '',
+        // Business Information
+        businessName: vendorToEdit.businessInformation?.businessName || '',
+        serviceCategory: vendorToEdit.businessInformation?.category || '',
+        registrationNumber: vendorToEdit.businessInformation?.regNo || '',
+        dateOfRegistration: vendorToEdit.businessInformation?.regDate
+          ? new Date(vendorToEdit.businessInformation.regDate)
+          : undefined,
+        typeOfIncorporation: vendorToEdit.businessInformation?.typeOfInc || '',
+        taxId: vendorToEdit.businessInformation?.taxId || '',
+        // Contact
+        streetAddress: vendorToEdit.contact?.address || '',
+        city: vendorToEdit.contact?.city || '',
+        state: vendorToEdit.contact?.state || '',
+        country: vendorToEdit.contact?.country || '',
+        zipCode: vendorToEdit.contact?.zipCode || '',
+        phoneNumber1: vendorToEdit.contact?.phoneNumber1 || '',
+        phoneNumber2: vendorToEdit.contact?.phoneNumber2 || '',
+        emailAddress: vendorToEdit.contact?.email || '',
+        websitePortfolioLink: vendorToEdit.contact?.websiteLink || '',
+        // Bank Details
+        accountName: vendorToEdit.bankDetails?.accountName || '',
+        accountNumber: vendorToEdit.bankDetails?.accountNumber || '',
+        bankName: vendorToEdit.bankDetails?.bankName || '',
+        branchSortCode: vendorToEdit.bankDetails?.sortCode || '',
+        fnbUniversalCode: vendorToEdit.bankDetails?.fnbCode || '',
+        swiftCode: vendorToEdit.bankDetails?.swiftCode || '',
+      };
+
+      form.reset(vendorData);
+      setVendorId(vendorToEdit._id || vendorToEdit.id);
+      setCurrentStep(1);
+      setCompletedSteps([]);
+    } else if (!open) {
+      // Reset form when modal closes
+      form.reset();
+      setCurrentStep(1);
+      setCompletedSteps([]);
+      setVendorId(null);
+      setAttachmentFiles({
+        taxClearance: [],
+        incorporation: [],
+        companyLogo: [],
+        vendorPassport: [],
+      });
+    }
+  }, [isEditMode, vendorToEdit, open, form]);
+
+  // Load saved progress from localStorage (only for create mode)
+  useEffect(() => {
+    if (open && !isEditMode) {
       const savedProgress = localStorage.getItem('vendorFormProgress');
       if (savedProgress) {
         try {
@@ -194,11 +252,11 @@ export default function AddVendorForm({
         }
       }
     }
-  }, [open, form]);
+  }, [open, isEditMode, form]);
 
-  // Save progress to localStorage whenever form data changes
+  // Save progress to localStorage whenever form data changes (only for create mode)
   useEffect(() => {
-    if (vendorId) {
+    if (vendorId && !isEditMode) {
       const progress = {
         vendorId,
         currentStep,
@@ -207,7 +265,7 @@ export default function AddVendorForm({
       };
       localStorage.setItem('vendorFormProgress', JSON.stringify(progress));
     }
-  }, [vendorId, currentStep, completedSteps, form]);
+  }, [vendorId, currentStep, completedSteps, isEditMode, form]);
 
   // Step navigation handlers
   const handleNext = async () => {
@@ -221,23 +279,39 @@ export default function AddVendorForm({
         const stepData = form.getValues();
         let currentVendorId = vendorId;
 
-        // Step 1: Personal Details - Create vendor
+        // Step 1: Personal Details - Create or update vendor
         if (currentStep === 1) {
-          const payload = {
-            businessId,
-            firstName: stepData.firstName,
-            lastName: stepData.lastName,
-            nationality: stepData.nationality,
-            gender: stepData.gender,
-            above18: true,
-          };
+          if (isEditMode && currentVendorId) {
+            // Update existing vendor personal details
+            const payload = {
+              firstName: stepData.firstName,
+              lastName: stepData.lastName,
+              nationality: stepData.nationality,
+              gender: stepData.gender,
+            };
 
-          const response = await VendorService.create({ data: payload });
+            await VendorService.update({
+              data: payload,
+              id: currentVendorId,
+            });
+          } else {
+            // Create new vendor
+            const payload = {
+              businessId,
+              firstName: stepData.firstName,
+              lastName: stepData.lastName,
+              nationality: stepData.nationality,
+              gender: stepData.gender,
+              above18: true,
+            };
 
-          // Store vendor ID for subsequent steps
-          if (response.data?.data) {
-            currentVendorId = response.data?.data?.vendor?.id;
-            setVendorId(currentVendorId);
+            const response = await VendorService.create({ data: payload });
+
+            // Store vendor ID for subsequent steps
+            if (response.data?.data) {
+              currentVendorId = response.data?.data?.vendor?.id;
+              setVendorId(currentVendorId);
+            }
           }
         }
 
@@ -436,7 +510,7 @@ export default function AddVendorForm({
           </div>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-              Add New Vendor
+              {isEditMode ? 'Edit Vendor' : 'Add New Vendor'}
             </DialogTitle>
             <DialogDescription>
               Manage your vendor relationships and contact information
@@ -482,7 +556,9 @@ export default function AddVendorForm({
                 {isSubmitting
                   ? 'Saving...'
                   : currentStep === STEPS.length
-                    ? 'Add'
+                    ? isEditMode
+                      ? 'Update'
+                      : 'Add'
                     : 'Next'}
               </Button>
             </div>

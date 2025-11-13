@@ -94,6 +94,8 @@ export default function ExpenseForm({
   onOpenChange,
   onSubmit,
   onSuccess,
+  isEditMode = false,
+  expenseToEdit = null,
 }) {
   // File upload state and refs
   const [attachmentFiles, setAttachmentFiles] = useState([]);
@@ -179,6 +181,74 @@ export default function ExpenseForm({
 
   const { handleSubmit, reset, control, watch } = form;
   const categories = watch('categories');
+
+  // Pre-populate form when in edit mode
+  useEffect(() => {
+    if (isEditMode && expenseToEdit && open) {
+      const expense = expenseToEdit.expense;
+      const vendor = expenseToEdit.vendor;
+
+      form.reset({
+        payee: vendor?._id || vendor?.id || '',
+        refNo: expense?.refNo || '',
+        paymentAccount: expense?.paymentAccount || '',
+        paymentDate: expense?.paymentDate
+          ? new Date(expense.paymentDate)
+          : null,
+        paymentMethod: expense?.paymentMethod || '',
+        country: expense?.country || '',
+        memo: expense?.memo || '',
+        categories:
+          expense?.categoryDetails?.length > 0
+            ? expense.categoryDetails.map((cat) => ({
+                category: cat.category || '',
+                amount: String(cat.amount || ''),
+                description: cat.description || '',
+                billable: cat.billable || '',
+                tax: String(cat.tax || ''),
+                clientProject: cat.clientProject || '',
+                class: cat.class || '',
+              }))
+            : [
+                {
+                  category: '',
+                  amount: '',
+                  description: '',
+                  billable: '',
+                  tax: '',
+                  clientProject: '',
+                  class: '',
+                },
+              ],
+      });
+
+      // Note: Attachments from existing expense would need to be handled separately
+      // if you want to show existing attachments
+    } else if (!open) {
+      // Reset form when modal closes
+      form.reset({
+        payee: '',
+        refNo: '',
+        paymentAccount: '',
+        paymentDate: null,
+        paymentMethod: '',
+        country: '',
+        memo: '',
+        categories: [
+          {
+            category: '',
+            amount: '',
+            description: '',
+            billable: '',
+            tax: '',
+            clientProject: '',
+            class: '',
+          },
+        ],
+      });
+      setAttachmentFiles([]);
+    }
+  }, [isEditMode, expenseToEdit, open, form]);
 
   // File upload handlers
   const handleAttachmentFileSelect = (event) => {
@@ -303,18 +373,32 @@ export default function ExpenseForm({
           clientProject: cat.clientProject || '',
           class: cat.class || '',
         })),
+        total: calculateTotal(),
         memo: data.memo || '',
-        attachments: attachmentUrls,
+        attachments:
+          isEditMode && attachmentFiles.length === 0
+            ? expenseToEdit?.expense?.attachments || []
+            : attachmentUrls,
       };
 
-      // Call the create expense API
-      toast.loading('Creating expense...');
-      const response = await ExpenseService.create({ data: payload });
-      toast.dismiss();
+      // Call the create or update expense API
+      let response;
+      if (isEditMode && expenseToEdit?.expense?._id) {
+        toast.loading('Updating expense...');
+        response = await ExpenseService.update({
+          id: expenseToEdit.expense._id,
+          data: payload,
+        });
+        toast.dismiss();
+        toast.success('Expense updated successfully!');
+      } else {
+        toast.loading('Creating expense...');
+        response = await ExpenseService.create({ data: payload });
+        toast.dismiss();
+        toast.success('Expense created successfully!');
+      }
 
       if (response.data) {
-        toast.success('Expense created successfully!');
-
         // Reset form and close modal
         reset();
         setAttachmentFiles([]);
@@ -330,11 +414,14 @@ export default function ExpenseForm({
       }
     } catch (error) {
       toast.dismiss();
-      console.error('Error creating expense:', error);
+      console.error(
+        isEditMode ? 'Error updating expense:' : 'Error creating expense:',
+        error
+      );
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          'Failed to create expense'
+          `Failed to ${isEditMode ? 'update' : 'create'} expense`
       );
     } finally {
       setIsSubmitting(false);
@@ -351,7 +438,9 @@ export default function ExpenseForm({
           </div>
           <div>
             <DialogHeader>
-              <DialogTitle className="text-xl">Record Expense</DialogTitle>
+              <DialogTitle className="text-xl">
+                {isEditMode ? 'Edit Expense' : 'Record Expense'}
+              </DialogTitle>
               <DialogDescription className="text-sm">
                 Enter the details
               </DialogDescription>
@@ -784,6 +873,7 @@ export default function ExpenseForm({
                               <FormControl>
                                 <Input
                                   type="number"
+                                  formatNumber
                                   placeholder="Enter amount"
                                   {...field}
                                   className="h-10"
@@ -906,6 +996,8 @@ export default function ExpenseForm({
                               <FormLabel>Tax</FormLabel>
                               <FormControl>
                                 <Input
+                                  type={'number'}
+                                  formatNumber
                                   placeholder="Enter tax"
                                   {...field}
                                   className="h-10"
@@ -936,7 +1028,10 @@ export default function ExpenseForm({
                 <div className="text-right">
                   <div className="text-sm text-gray-600">Total</div>
                   <div className="text-lg font-semibold">
-                    ${calculateTotal().toFixed(2)}
+                    $
+                    {new Intl.NumberFormat('en-US').format(
+                      calculateTotal().toFixed(2)
+                    )}
                   </div>
                 </div>
               </div>
@@ -1061,7 +1156,13 @@ export default function ExpenseForm({
                 className="h-10 min-w-[195px] text-sm"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Adding' : 'Add Expenses'}
+                {isSubmitting
+                  ? isEditMode
+                    ? 'Updating...'
+                    : 'Adding...'
+                  : isEditMode
+                    ? 'Update Expense'
+                    : 'Add Expenses'}
               </Button>
             </div>
           </form>

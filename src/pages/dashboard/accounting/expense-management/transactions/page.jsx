@@ -8,10 +8,16 @@ import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import ExpenseService from '@/api/expense';
 import { format, startOfMonth, endOfMonth, startOfDay } from 'date-fns';
+import ViewExpenseModal from '@/components/dashboard/accounting/expense-mgmt/overview/view-expense';
 
 export default function ExpenseTransactions() {
   const [openExpenseForm, setOpenExpenseForm] = useState(false);
+  const [openViewExpenseModal, setOpenViewExpenseModal] = useState(false);
+  const [activeExpense, setActiveExpense] = useState();
+  const [activeExpenseLoading, setActiveExpenseLoading] = useState(true);
+  const [activeExpenseId, setActiveExpenseId] = useState();
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -190,8 +196,20 @@ export default function ExpenseTransactions() {
 
   // Row action handler
   const handleRowAction = (action, item) => {
-    console.log('Action:', action, 'Item:', item);
     // Handle different actions here
+    switch (action) {
+      case 'view':
+        setOpenViewExpenseModal(true);
+        setActiveExpenseId(item.id);
+        break;
+      case 'edit':
+        setActiveExpenseId(item.id);
+        setIsEditMode(true);
+        setOpenExpenseForm(true);
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
   };
 
   const handleExpenseSuccess = async () => {
@@ -199,6 +217,20 @@ export default function ExpenseTransactions() {
     // Refresh expenses after creation
     await fetchExpenses();
   };
+
+  useEffect(() => {
+    if (!activeExpenseId) {
+      setActiveExpenseLoading(false);
+      return;
+    }
+
+    setActiveExpenseLoading(true);
+    const foundExpense = expenses.find(
+      (item) => item.expense?._id === activeExpenseId
+    );
+    setActiveExpense(foundExpense || null);
+    setActiveExpenseLoading(false);
+  }, [activeExpenseId, expenses]);
 
   return (
     <div className="my-4 min-h-screen">
@@ -212,7 +244,11 @@ export default function ExpenseTransactions() {
 
         <div className="flex space-x-4">
           <Button
-            onClick={() => setOpenExpenseForm(true)}
+            onClick={() => {
+              setIsEditMode(false);
+              setActiveExpenseId(null);
+              setOpenExpenseForm(true);
+            }}
             className={'h-10 rounded-2xl text-sm'}
           >
             <PlusCircleIcon className="size-4" />
@@ -271,15 +307,34 @@ export default function ExpenseTransactions() {
 
       <ExpenseForm
         open={openExpenseForm}
-        onOpenChange={setOpenExpenseForm}
+        onOpenChange={(open) => {
+          setOpenExpenseForm(open);
+          if (!open) {
+            setIsEditMode(false);
+            setActiveExpenseId(null);
+          }
+        }}
         onSuccess={handleExpenseSuccess}
+        isEditMode={isEditMode}
+        expenseToEdit={activeExpense}
+      />
+
+      <ViewExpenseModal
+        open={openViewExpenseModal}
+        onOpenChange={setOpenViewExpenseModal}
+        expense={activeExpense}
+        isLoading={activeExpenseLoading}
       />
       <SuccessModal
         open={openSuccessModal}
         onOpenChange={setOpenSuccessModal}
         backText={'Back'}
-        title={'Expense Recorded'}
-        description={"You've successfully added an expense"}
+        title={isEditMode ? 'Expense Updated' : 'Expense Recorded'}
+        description={
+          isEditMode
+            ? "You've successfully updated the expense"
+            : "You've successfully added an expense"
+        }
       />
     </div>
   );

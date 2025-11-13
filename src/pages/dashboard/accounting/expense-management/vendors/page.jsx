@@ -8,11 +8,14 @@ import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import toast from 'react-hot-toast';
 
 export default function VendorsExpenses() {
   const navigate = useNavigate();
   const [openAddVendor, setOpenAddVendor] = useState(false);
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [vendorToEdit, setVendorToEdit] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [paginationData, setPaginationData] = useState({
@@ -102,6 +105,26 @@ export default function VendorsExpenses() {
     fetchVendors(page);
   };
 
+  const handleBlacklist = async (vendor) => {
+    try {
+      await VendorService.blacklist({ id: vendor.id });
+      // Refresh vendors list after blacklisting
+      fetchVendors(paginationData.page);
+      toast.success('Vendor Blacklisted');
+    } catch (error) {
+      console.error('Error blacklisting vendor:', error);
+      toast.error('Failed to blacklist vendor. Please try again.');
+    }
+  };
+
+  const handleEdit = (vendor) => {
+    // Find the full vendor data from the vendors array
+    const fullVendorData = vendors.find((v) => (v._id || v.id) === vendor.id);
+    setVendorToEdit(fullVendorData);
+    setIsEditMode(true);
+    setOpenAddVendor(true);
+  };
+
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -114,7 +137,11 @@ export default function VendorsExpenses() {
 
         <div className="flex space-x-4">
           <Button
-            onClick={() => setOpenAddVendor(true)}
+            onClick={() => {
+              setIsEditMode(false);
+              setVendorToEdit(null);
+              setOpenAddVendor(true);
+            }}
             className={'h-10 rounded-2xl text-sm'}
           >
             <PlusCircleIcon className="size-4" />
@@ -140,6 +167,8 @@ export default function VendorsExpenses() {
               isBillingPage={false}
               vendorsData={transformedVendors}
               onVendorView={(vendor) => navigate(`${vendor.id}`)}
+              onVendorEdit={handleEdit}
+              onVendorBlacklist={handleBlacklist}
               paginationData={paginationData}
               onPageChange={handlePageChange}
             />
@@ -149,16 +178,32 @@ export default function VendorsExpenses() {
 
       <AddVendorForm
         open={openAddVendor}
-        onOpenChange={setOpenAddVendor}
+        onOpenChange={(open) => {
+          setOpenAddVendor(open);
+          if (!open) {
+            setIsEditMode(false);
+            setVendorToEdit(null);
+          }
+        }}
         showSuccessModal={handleVendorSuccess}
+        isEditMode={isEditMode}
+        vendorToEdit={vendorToEdit}
       />
 
       <SuccessModal
         open={openSuccessModal}
         onOpenChange={setOpenSuccessModal}
         backText={'Back'}
-        title={'Vendor added successfully!'}
-        description={'You have successfully added a vendor.'}
+        title={
+          isEditMode
+            ? 'Vendor updated successfully!'
+            : 'Vendor added successfully!'
+        }
+        description={
+          isEditMode
+            ? 'You have successfully updated the vendor.'
+            : 'You have successfully added a vendor.'
+        }
       />
     </div>
   );

@@ -127,7 +127,7 @@ export default function VendorsList({
   vendorsData = vendorData,
   searchPlaceholder = 'Search vendors...',
   onVendorEdit,
-  onVendorDelete,
+  onVendorBlacklist,
   onVendorView,
   paginationData = { page: 3, totalPages: 10 },
   onPageChange,
@@ -151,9 +151,9 @@ export default function VendorsList({
     onVendorEdit?.(vendor);
   };
 
-  const handleDeleteVendor = (vendor) => {
+  const handleBlacklistVendor = (vendor) => {
     console.log('Delete vendor:', vendor);
-    onVendorDelete?.(vendor);
+    onVendorBlacklist?.(vendor);
   };
 
   const handleViewVendor = (vendor) => {
@@ -371,7 +371,7 @@ export default function VendorsList({
               onViewDetails={handleViewVendor}
               onContact={handleContactVendor}
               onEdit={handleEditVendor}
-              onDelete={handleDeleteVendor}
+              onBlacklist={handleBlacklistVendor}
             />
           ))
         ) : (
