@@ -60,25 +60,20 @@ export default function PreviewInvoice({
 
       try {
         setIsLoadingPayments(true);
-        const response = await PaymentService.fetch({
+        const response = await PaymentService.fetchInvoiceDetails({
           invoiceId: formData.id,
         });
 
         console.log('Payment API Response:', response.data);
-        const paymentsData = response.data?.data || [];
+        const paymentsData = response.data?.data?.payments || [];
         console.log('Payments Data:', paymentsData);
 
-        // Filter payments by invoice ID (client-side filtering)
-        const filteredPayments = paymentsData.filter(
-          (payment) => payment.invoiceId === formData.id
-        );
-        console.log('Filtered Payments for Invoice:', filteredPayments);
-
         // Transform payment data to match the expected structure
-        const transformedPayments = filteredPayments.map((payment) => {
-          console.log('Individual Payment:', payment);
+        const transformedPayments = paymentsData.map((item) => {
+          console.log('Individual Payment:', item.payment);
+          const payment = item.payment;
           return {
-            amount: payment.amount || null, // Use null instead of 0 to indicate missing amount
+            amount:  total.toLocaleString('en-US', { minimumFractionDigits: 2 }),
             datePaid: payment.paymentDate || payment.createdAt,
             method: payment.paymentMethod || 'Bank Transfer',
             dateCreated: payment.createdAt,
@@ -567,7 +562,7 @@ export default function PreviewInvoice({
           <Button
             variant="outline"
             className="h-10 px-8"
-            disabled={!formData.id}
+            disabled={!formData.id || fetchedPayments.length > 0}
             onClick={() => setShowPaymentForm(true)}
           >
             Record Payment
@@ -612,19 +607,17 @@ export default function PreviewInvoice({
           if (formData.id) {
             PaymentService.fetch({ invoiceId: formData.id })
               .then((response) => {
-                const paymentsData = response.data?.data || [];
+                const paymentsData = response.data?.payments || [];
 
-                // Filter payments by invoice ID (client-side filtering)
-                const filteredPayments = paymentsData.filter(
-                  (payment) => payment.invoiceId === formData.id
-                );
-
-                const transformedPayments = filteredPayments.map((payment) => ({
-                  amount: payment.amount || null,
-                  datePaid: payment.paymentDate || payment.createdAt,
-                  method: payment.paymentMethod || 'Bank Transfer',
-                  dateCreated: payment.createdAt,
-                }));
+                const transformedPayments = paymentsData.map((item) => {
+                  const payment = item.payment;
+                  return {
+                    amount: total.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+                    datePaid: payment.paymentDate || payment.createdAt,
+                    method: payment.paymentMethod || 'Bank Transfer',
+                    dateCreated: payment.createdAt,
+                  };
+                });
                 setFetchedPayments(transformedPayments);
 
                 const totalPaid = transformedPayments.reduce(

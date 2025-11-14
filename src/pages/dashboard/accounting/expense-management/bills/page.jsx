@@ -71,7 +71,10 @@ export default function Bills() {
           'N/A',
         dueDate: bill.dueDate ? format(new Date(bill.dueDate), 'PP') : 'N/A',
         billAmount: `$${Number(bill.billAmount).toLocaleString('en-US')}`,
-        status: 'Pending', // Default status since not in response
+        status: bill.status
+          ? bill.status.charAt(0).toUpperCase() +
+            bill.status.slice(1).toLowerCase()
+          : 'Pending',
       };
     });
   }, [bills]);

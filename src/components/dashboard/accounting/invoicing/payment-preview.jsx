@@ -32,7 +32,7 @@ export default function PaymentPreview({
               key={index}
               className="grid grid-cols-4 gap-4 border-b pb-4 text-sm last:border-b-0"
             >
-              <div className="font-normal text-gray-900">
+              <div className="font-normal text-gray-900 pl-6">
                 {payment.amount !== null && payment.amount !== undefined
                   ? Number(payment.amount).toLocaleString()
                   : 'N/A'}
