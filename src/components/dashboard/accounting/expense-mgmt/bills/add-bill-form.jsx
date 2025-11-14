@@ -32,13 +32,33 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, Plus, ReceiptIcon, X } from 'lucide-react';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  CalendarIcon,
+  Plus,
+  ReceiptIcon,
+  X,
+  Check,
+  ChevronsUpDown,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import VendorService from '@/api/vendor';
+import BillService from '@/api/bills';
+import { useUserStore } from '@/stores/user-store';
+import toast from 'react-hot-toast';
+import AddVendorForm from '@/components/dashboard/accounting/accounts-payable/vendors/vendor-form';
 
 // Zod schema for form validation
 const billSchema = z.object({
-  vendorName: z.string().min(1, 'Vendor name is required'),
+  vendorId: z.string().min(1, 'Vendor ID is required'),
   source: z.string().min(1, 'Source is required'),
   billDate: z.date({
     required_error: 'Bill date is required',
@@ -57,13 +77,33 @@ export default function AddBillForm({
   initialData,
   onSuccess,
 }) {
-  const [showVendorSelect, setShowVendorSelect] = useState(false);
+  const [openVendorForm, setOpenVendorForm] = useState(false);
+  const [vendors, setVendors] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditing = Boolean(initialData && initialData.billNo);
+  const businessId = useUserStore((state) => state.businessData?._id);
+
+  // Fetch vendors
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const res = await VendorService.fetch({ page: 1, perPage: 100 });
+        const vendorsData = res.data?.data?.vendors || [];
+        setVendors(vendorsData);
+      } catch (error) {
+        console.error('Error fetching vendors:', error);
+      }
+    };
+
+    if (open) {
+      fetchVendors();
+    }
+  }, [open]);
 
   const form = useForm({
     resolver: zodResolver(billSchema),
     defaultValues: {
-      vendorName: '',
+      vendorId: '',
       source: '',
       billDate: null,
       billNo: '',
@@ -79,7 +119,7 @@ export default function AddBillForm({
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       const formData = {
-        vendorName: initialData.vendor || initialData.vendorName || '',
+        vendorId: initialData.vendor || initialData.vendorId || '',
         source: initialData.source || '',
         billDate: initialData.billDate ? new Date(initialData.billDate) : null,
         billNo: initialData.billNo || '',
@@ -91,7 +131,7 @@ export default function AddBillForm({
     } else {
       // Reset to empty values when no initialData
       reset({
-        vendorName: '',
+        vendorId: '',
         source: '',
         billDate: null,
         billNo: '',
@@ -107,19 +147,49 @@ export default function AddBillForm({
     onOpenChange?.(false);
   };
 
-  const onFormSubmit = (data) => {
-    console.log('Bill data:', data);
-    console.log(showVendorSelect);
-    reset();
-    onOpenChange?.(false);
-    if (onSuccess) {
-      onSuccess();
+  const onFormSubmit = async (data) => {
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        vendorId: data.vendorId,
+        source: data.source,
+        billDate: data.billDate,
+        dueDate: data.dueDate,
+        billNo: data.billNo,
+        category: data.category,
+        billAmount: data.billAmount,
+        businessId: businessId,
+      };
+
+      await BillService.create({ data: payload });
+
+      toast.success('Bill added successfully!');
+      reset();
+      onOpenChange?.(false);
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Error creating bill:', error);
+      toast.error('Failed to add bill. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleSelectVendor = () => {
-    setShowVendorSelect(true);
-    console.log('Opening vendor selection...');
+    setOpenVendorForm(true);
+  };
+
+  const handleVendorSuccess = async () => {
+    // Refresh vendors list after adding new vendor
+    try {
+      const res = await VendorService.fetch({ page: 1, perPage: 100 });
+      const vendorsData = res.data?.data?.vendors || [];
+      setVendors(vendorsData);
+    } catch (error) {
+      console.error('Error fetching vendors:', error);
+    }
   };
 
   return (
@@ -155,17 +225,80 @@ export default function AddBillForm({
                 <div className="space-y-3">
                   <FormField
                     control={form.control}
-                    name="vendorName"
+                    name="vendorId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Vendor Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter vendor name"
-                            {...field}
-                            className="h-10"
-                          />
-                        </FormControl>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  'h-10 w-full justify-between',
+                                  !field.value && 'text-muted-foreground'
+                                )}
+                              >
+                                {field.value
+                                  ? vendors.find(
+                                      (vendor) =>
+                                        (vendor._id || vendor.id) ===
+                                        field.value
+                                    )?.firstName +
+                                    ' ' +
+                                    vendors.find(
+                                      (vendor) =>
+                                        (vendor._id || vendor.id) ===
+                                        field.value
+                                    )?.lastName
+                                  : 'Select vendor'}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0">
+                            <Command>
+                              <CommandInput placeholder="Search vendor..." />
+                              <CommandList>
+                                <CommandEmpty>No vendor found.</CommandEmpty>
+                                <CommandGroup>
+                                  {vendors.map((vendor) => (
+                                    <CommandItem
+                                      key={vendor._id || vendor.id}
+                                      value={`${vendor.firstName} ${vendor.lastName}`}
+                                      onSelect={() => {
+                                        field.onChange(vendor._id || vendor.id);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          'mr-2 h-4 w-4',
+                                          (vendor._id || vendor.id) ===
+                                            field.value
+                                            ? 'opacity-100'
+                                            : 'opacity-0'
+                                        )}
+                                      />
+                                      {vendor.firstName} {vendor.lastName}
+                                      {vendor.businessInformation
+                                        ?.businessName && (
+                                        <span className="text-muted-foreground ml-2 text-xs">
+                                          (
+                                          {
+                                            vendor.businessInformation
+                                              .businessName
+                                          }
+                                          )
+                                        </span>
+                                      )}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -355,6 +488,7 @@ export default function AddBillForm({
                         <div className="relative">
                           <Input
                             type="number"
+                            formatNumber
                             placeholder="Enter no"
                             {...field}
                             className="h-10 pr-8"
@@ -379,16 +513,32 @@ export default function AddBillForm({
                 variant="outline"
                 onClick={handleCancel}
                 className="h-10 min-w-[120px] text-sm"
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button type="submit" className="h-10 min-w-[140px] text-sm">
-                {isEditing ? 'Update Bill' : 'Add Bill'}
+              <Button
+                type="submit"
+                className="h-10 min-w-[140px] text-sm"
+                disabled={isSubmitting}
+              >
+                {isSubmitting
+                  ? 'Saving...'
+                  : isEditing
+                    ? 'Update Bill'
+                    : 'Add Bill'}
               </Button>
             </div>
           </form>
         </Form>
       </DialogContent>
+
+      {/* Add Vendor Form Modal */}
+      <AddVendorForm
+        open={openVendorForm}
+        onOpenChange={setOpenVendorForm}
+        showSuccessModal={handleVendorSuccess}
+      />
     </Dialog>
   );
 }

@@ -88,7 +88,7 @@ export default function PaymentForm({
         accountCode: data.accountCode,
         category: data.category,
         notes: data.notes || '',
-        amount: Number(amountDue),
+        amount: amountDue.toString(),
       };
 
       const response = await PaymentService.create({

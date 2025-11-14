@@ -5,69 +5,9 @@ import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
-import { useState } from 'react';
-
-const billMetrics = [
-  {
-    title: 'Total Bills',
-    value: '75',
-  },
-  {
-    title: 'Pending',
-    value: 64,
-  },
-  {
-    title: 'Overdue',
-    value: 64,
-  },
-  {
-    title: 'Total Spent',
-    value: '$12,000',
-  },
-];
-
-// Bill data from the image
-const billsData = [
-  {
-    id: 1,
-    vendor: 'JJ Solutions',
-    vendorInitials: 'JJ',
-    billNumber: '0003',
-    source: 'Software License',
-    billNo: '0003',
-    billDate: '1/10/2024',
-    category: 'Utilities',
-    dueDate: '1/10/2024',
-    billAmount: '$2,500',
-    status: 'Pending',
-  },
-  {
-    id: 2,
-    vendor: 'JJ Solutions',
-    vendorInitials: 'JJ',
-    billNumber: '0003',
-    source: 'Software License',
-    billNo: '0003',
-    billDate: '1/10/2024',
-    category: 'Utilities',
-    dueDate: '1/10/2024',
-    billAmount: '$2,500',
-    status: 'Paid',
-  },
-  {
-    id: 3,
-    vendor: 'JJ Solutions',
-    vendorInitials: 'JJ',
-    billNumber: '0003',
-    source: 'Software License',
-    billNo: '0003',
-    billDate: '1/10/2024',
-    category: 'Utilities',
-    dueDate: '1/10/2024',
-    billAmount: '$2,500',
-    status: 'Overdue',
-  },
-];
+import { useState, useEffect, useMemo } from 'react';
+import BillService from '@/api/bills';
+import { format } from 'date-fns';
 
 export default function Bills() {
   const [openAddBill, setOpenAddBill] = useState(false);
@@ -76,11 +16,96 @@ export default function Bills() {
   const [currentPage, setCurrentPage] = useState(1);
   const [openViewBill, setOpenViewBill] = useState(false);
   const [editData, setEditData] = useState({});
+  const [viewData, setViewData] = useState(null);
+  const [bills, setBills] = useState([]);
+  const [paginationData, setPaginationData] = useState({
+    page: 1,
+    totalPages: 1,
+    totalDocs: 0,
+    limit: 10,
+  });
+
+  // Fetch bills
+  useEffect(() => {
+    const fetchBills = async () => {
+      try {
+        const res = await BillService.fetch({ page: currentPage, perPage: 10 });
+        console.log('Bills data:', res.data);
+        const billsData = res.data?.data?.bill || [];
+        setBills(billsData);
+        setPaginationData({
+          page: res.data?.data?.page || 1,
+          totalPages: res.data?.data?.totalPages || 1,
+          totalDocs: res.data?.data?.totalDocs || 0,
+          limit: res.data?.data?.limit || 10,
+        });
+      } catch (error) {
+        console.error('Error fetching bills:', error);
+      }
+    };
+
+    fetchBills();
+  }, [currentPage]);
+
+  // Transform bills data for table
+  const transformedBills = useMemo(() => {
+    return bills.map((item) => {
+      const bill = item.bill;
+      const vendor = item.vendor;
+      const vendorName =
+        `${vendor?.firstName || ''} ${vendor?.lastName || ''}`.trim();
+      const vendorInitials =
+        `${vendor?.firstName?.[0] || ''}${vendor?.lastName?.[0] || ''}`.toUpperCase();
+
+      return {
+        id: bill._id || bill.id,
+        vendor: vendorName || 'N/A',
+        vendorInitials: vendorInitials || 'NA',
+        billNumber: bill.billNo,
+        source: bill.source,
+        billNo: bill.billNo,
+        billDate: bill.billDate ? format(new Date(bill.billDate), 'PP') : 'N/A',
+        category:
+          bill.category?.charAt(0).toUpperCase() + bill.category?.slice(1) ||
+          'N/A',
+        dueDate: bill.dueDate ? format(new Date(bill.dueDate), 'PP') : 'N/A',
+        billAmount: `$${Number(bill.billAmount).toLocaleString('en-US')}`,
+        status: 'Pending', // Default status since not in response
+      };
+    });
+  }, [bills]);
+
+  // Calculate metrics from bills
+  const billMetrics = useMemo(() => {
+    const totalBills = paginationData.totalDocs;
+    const totalSpent = bills.reduce((sum, item) => {
+      return sum + Number(item.bill?.billAmount || 0);
+    }, 0);
+
+    return [
+      {
+        title: 'Total Bills',
+        value: totalBills,
+      },
+      {
+        title: 'Pending',
+        value: totalBills, // All bills are pending by default
+      },
+      {
+        title: 'Overdue',
+        value: 0, // No overdue status in response
+      },
+      {
+        title: 'Total Spent',
+        value: `$${totalSpent.toLocaleString('en-US')}`,
+      },
+    ];
+  }, [bills, paginationData.totalDocs]);
 
   // Selection handlers
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedItems(billsData.map((item) => item.id));
+      setSelectedItems(transformedBills.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
@@ -99,15 +124,54 @@ export default function Bills() {
     console.log('Action:', action, 'Item:', item);
 
     switch (action) {
-      case 'view':
+      case 'view': {
+        // Find the full bill data from bills array
+        const fullBillData = bills.find(
+          (b) => (b.bill._id || b.bill.id) === item.id
+        );
+        setViewData(fullBillData);
         setOpenViewBill(true);
         break;
-      case 'edit':
-        setEditData(() => ({ ...item }));
+      }
+      case 'edit': {
+        // Find the full bill data from bills array for editing
+        const fullBillData = bills.find(
+          (b) => (b.bill._id || b.bill.id) === item.id
+        );
+        if (fullBillData) {
+          setEditData({
+            vendorId: fullBillData.vendor?._id || fullBillData.vendor?.id,
+            source: fullBillData.bill.source,
+            billDate: fullBillData.bill.billDate,
+            billNo: fullBillData.bill.billNo,
+            dueDate: fullBillData.bill.dueDate,
+            category: fullBillData.bill.category,
+            billAmount: fullBillData.bill.billAmount,
+          });
+        }
         setOpenAddBill(true);
         break;
+      }
     }
   };
+
+  // Handle edit from ViewBills modal
+  const handleEditFromView = () => {
+    if (viewData) {
+      setEditData({
+        vendorId: viewData.vendor?._id || viewData.vendor?.id,
+        source: viewData.bill.source,
+        billDate: viewData.bill.billDate,
+        billNo: viewData.bill.billNo,
+        dueDate: viewData.bill.dueDate,
+        category: viewData.bill.category,
+        billAmount: viewData.bill.billAmount,
+      });
+      setOpenViewBill(false);
+      setOpenAddBill(true);
+    }
+  };
+
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -143,7 +207,7 @@ export default function Bills() {
 
         <AccountingTable
           title="Recent Bills"
-          data={billsData}
+          data={transformedBills}
           columns={[
             {
               key: 'vendor',
@@ -184,10 +248,10 @@ export default function Bills() {
             { key: 'delete', label: 'Delete' },
           ]}
           paginationData={{
-            page: currentPage,
-            totalPages: 10,
-            pageSize: 10,
-            totalCount: billsData.length,
+            page: paginationData.page,
+            totalPages: paginationData.totalPages,
+            pageSize: paginationData.limit,
+            totalCount: paginationData.totalDocs,
           }}
           onPageChange={setCurrentPage}
         />
@@ -195,7 +259,10 @@ export default function Bills() {
 
       <AddBillForm
         open={openAddBill}
-        onOpenChange={setOpenAddBill}
+        onOpenChange={(open) => {
+          setOpenAddBill(open);
+          if (!open) setEditData({});
+        }}
         onSuccess={() => setOpenSuccessModal(true)}
         initialData={editData}
       />
@@ -203,11 +270,43 @@ export default function Bills() {
         open={openSuccessModal}
         onOpenChange={setOpenSuccessModal}
         backText={'Back'}
-        title={'Bill Added'}
-        description={"You've successfully added a bill."}
+        title={editData?.billNo ? 'Bill Updated' : 'Bill Added'}
+        description={
+          editData?.billNo
+            ? "You've successfully updated the bill."
+            : "You've successfully added a bill."
+        }
       />
 
-      <ViewBills open={openViewBill} onOpenChange={setOpenViewBill} />
+      <ViewBills
+        open={openViewBill}
+        onOpenChange={setOpenViewBill}
+        onEdit={handleEditFromView}
+        billData={
+          viewData
+            ? {
+                id: viewData.bill._id || viewData.bill.id,
+                billNumber: viewData.bill.billNo,
+                vendor:
+                  `${viewData.vendor?.firstName || ''} ${viewData.vendor?.lastName || ''}`.trim(),
+                amount: `$${Number(viewData.bill.billAmount).toLocaleString('en-US')}`,
+                dueDate: viewData.bill.dueDate
+                  ? format(new Date(viewData.bill.dueDate), 'PP')
+                  : 'N/A',
+                status: 'Pending',
+                invoiceReference: 'N/A',
+                paymentMethod: 'N/A',
+                billDate: viewData.bill.billDate
+                  ? format(new Date(viewData.bill.billDate), 'PP')
+                  : 'N/A',
+                source: viewData.bill.source,
+                category:
+                  viewData.bill.category?.charAt(0).toUpperCase() +
+                    viewData.bill.category?.slice(1) || 'N/A',
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }

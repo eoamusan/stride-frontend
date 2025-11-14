@@ -384,14 +384,6 @@ export default function PreviewInvoice({
             {formData.products.map((product, index) => {
               const amount =
                 (product.unit_price || 0) * (product.quantity || 1);
-              const currencySymbol =
-                formData.currency === 'USD'
-                  ? '$'
-                  : formData.currency === 'EUR'
-                    ? '€'
-                    : formData.currency === 'GBP'
-                      ? '£'
-                      : '₦';
 
               return (
                 <div
@@ -410,13 +402,11 @@ export default function PreviewInvoice({
                     {product.quantity || 1}
                   </div>
                   <div className="col-span-3 text-center">
-                    {currencySymbol}{' '}
                     {(product.unit_price || 0).toLocaleString('en-US', {
                       minimumFractionDigits: 2,
                     })}
                   </div>
                   <div className="col-span-3 text-right">
-                    {currencySymbol}{' '}
                     {amount.toLocaleString('en-US', {
                       minimumFractionDigits: 2,
                     })}
@@ -436,13 +426,6 @@ export default function PreviewInvoice({
                 Sub Total:
               </div>
               <div className="col-span-3 text-right font-bold">
-                {formData.currency === 'USD'
-                  ? '$'
-                  : formData.currency === 'EUR'
-                    ? '€'
-                    : formData.currency === 'GBP'
-                      ? '£'
-                      : '₦'}{' '}
                 {subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </div>
             </div>
@@ -454,13 +437,6 @@ export default function PreviewInvoice({
                 </div>
                 <div className="col-span-3 text-right font-bold">
                   -
-                  {formData.currency === 'USD'
-                    ? '$'
-                    : formData.currency === 'EUR'
-                      ? '€'
-                      : formData.currency === 'GBP'
-                        ? '£'
-                        : '₦'}{' '}
                   {discount.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                   })}
@@ -473,13 +449,6 @@ export default function PreviewInvoice({
                 VAT ({formData.vat || 7.5}%):
               </div>
               <div className="col-span-3 text-right font-bold">
-                {formData.currency === 'USD'
-                  ? '$'
-                  : formData.currency === 'EUR'
-                    ? '€'
-                    : formData.currency === 'GBP'
-                      ? '£'
-                      : '₦'}{' '}
                 {vatAmount.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                 })}
@@ -490,13 +459,6 @@ export default function PreviewInvoice({
                 <div className="col-span-9"></div>
                 <div className="col-span-3 text-right">Delivery Fee:</div>
                 <div className="col-span-3 text-right">
-                  {formData.currency === 'USD'
-                    ? '$'
-                    : formData.currency === 'EUR'
-                      ? '€'
-                      : formData.currency === 'GBP'
-                        ? '£'
-                        : '₦'}{' '}
                   {(formData.delivery_fee || 0).toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                   })}
@@ -507,13 +469,6 @@ export default function PreviewInvoice({
               <div className="col-span-9"></div>
               <div className="col-span-3 text-right">Total:</div>
               <div className="col-span-3 text-right">
-                {formData.currency === 'USD'
-                  ? '$'
-                  : formData.currency === 'EUR'
-                    ? '€'
-                    : formData.currency === 'GBP'
-                      ? '£'
-                      : '₦'}{' '}
                 {total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </div>
             </div>

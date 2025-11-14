@@ -23,9 +23,7 @@ const paymentStatusStyles = {
   Failed: 'bg-red-100 text-red-800 hover:bg-red-100',
 };
 
-const paymentDropdownActions = [
-  { key: 'export', label: 'Export' },
-];
+const paymentDropdownActions = [{ key: 'export', label: 'Export' }];
 
 export default function Payments() {
   const [selectedItems, setSelectedItems] = useState([]);
@@ -43,39 +41,68 @@ export default function Payments() {
   const transformPaymentData = (payments) => {
     if (!payments || !Array.isArray(payments)) return [];
 
-    return payments.map((payment) => ({
-      id: payment.trxNo || payment._id,
-      customer: 'N/A', // Will need to populate from invoice/customer data
-      invoice: payment.invoiceId || 'N/A',
-      method: payment.paymentMethod || 'N/A',
-      amount: `$0.00`, // Amount not in response, will need from invoice
-      date: payment.paymentDate
-        ? format(new Date(payment.paymentDate), 'MMM dd, yyyy')
-        : 'N/A',
-      status: 'Completed', // Status not in response, defaulting to Completed
-    }));
+    return payments.map((item) => {
+      const payment = item.payment;
+      const invoice = item.invoice;
+      const customer = invoice?.customerId;
+      const customerName = customer
+        ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
+        : 'N/A';
+
+      return {
+        id: payment.trxNo || payment._id,
+        customer: customerName,
+        invoice: invoice?.invoiceNo || 'N/A',
+        method:
+          payment.paymentMethod?.charAt(0).toUpperCase() +
+            payment.paymentMethod?.slice(1).replace(/-/g, ' ') || 'N/A',
+        amount: invoice?.product?.total
+          ? `$${Number(invoice.product.total).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}`
+          : '$0.00',
+        date: payment.paymentDate
+          ? format(new Date(payment.paymentDate), 'MMM dd, yyyy')
+          : 'N/A',
+        status: invoice?.status === 'PAID' ? 'Completed' : 'Pending',
+      };
+    });
   };
 
   // Calculate metrics from payment data
   const calculateMetrics = () => {
     const totalPayments = paginationData.totalCount || 0;
+    const completedPayments = paymentList.filter(
+      (item) => item.invoice?.status === 'PAID'
+    ).length;
+    const pendingPayments = totalPayments - completedPayments;
+
+    // Calculate total amount received
+    const totalAmount = paymentList.reduce((sum, item) => {
+      const amount = Number(item.invoice?.product?.total || 0);
+      return sum + amount;
+    }, 0);
 
     return [
       {
         title: 'Total Payments Received',
-        value: String(totalPayments),
+        value: `$${totalAmount.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
       },
       {
         title: 'Successful Payments',
-        value: String(totalPayments),
+        value: String(completedPayments),
       },
       {
         title: 'Pending Payments',
-        value: '0',
+        value: String(pendingPayments),
       },
       {
-        title: 'Average Payment Time',
-        value: '0 days',
+        title: 'Total Transactions',
+        value: String(totalPayments),
       },
     ];
   };
@@ -115,15 +142,15 @@ export default function Payments() {
         const response = await PaymentService.fetch();
         console.log('Fetched payments:', response.data);
 
-        const payments = response.data?.data || [];
+        const payments = response.data?.data?.payments || [];
         setPaymentList(payments);
 
-        // Update pagination data - API doesn't return pagination info yet
+        // Update pagination data from API response
         setPaginationData({
-          page: 1,
-          totalPages: 1,
-          pageSize: payments.length,
-          totalCount: payments.length,
+          page: response.data?.data?.page || 1,
+          totalPages: response.data?.data?.totalPages || 1,
+          pageSize: response.data?.data?.limit || 20,
+          totalCount: response.data?.data?.totalDocs || 0,
         });
       } catch (error) {
         console.error('Error fetching payments:', error);
