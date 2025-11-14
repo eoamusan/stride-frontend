@@ -8,6 +8,7 @@ import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import BillService from '@/api/bills';
 import { format } from 'date-fns';
+import toast from 'react-hot-toast';
 
 export default function Bills() {
   const [openAddBill, setOpenAddBill] = useState(false);
@@ -140,6 +141,7 @@ export default function Bills() {
         );
         if (fullBillData) {
           setEditData({
+            billId: fullBillData.bill._id || fullBillData.bill.id,
             vendorId: fullBillData.vendor?._id || fullBillData.vendor?.id,
             source: fullBillData.bill.source,
             billDate: fullBillData.bill.billDate,
@@ -152,6 +154,9 @@ export default function Bills() {
         setOpenAddBill(true);
         break;
       }
+      case 'pay':
+        handleMarkAsPaid(item);
+        break;
     }
   };
 
@@ -159,6 +164,7 @@ export default function Bills() {
   const handleEditFromView = () => {
     if (viewData) {
       setEditData({
+        billId: viewData.bill._id || viewData.bill.id,
         vendorId: viewData.vendor?._id || viewData.vendor?.id,
         source: viewData.bill.source,
         billDate: viewData.bill.billDate,
@@ -169,6 +175,24 @@ export default function Bills() {
       });
       setOpenViewBill(false);
       setOpenAddBill(true);
+    }
+  };
+
+  // Handle mark as paid
+  const handleMarkAsPaid = async (item) => {
+    try {
+      await BillService.update({
+        id: item.id,
+        data: { status: 'paid' },
+      });
+      // Refresh bills list
+      const res = await BillService.fetch({ page: currentPage, perPage: 10 });
+      const billsData = res.data?.data?.bill || [];
+      setBills(billsData);
+      toast.success('Bill marked as paid successfully!');
+    } catch (error) {
+      console.error('Error marking bill as paid:', error);
+      toast.error('Failed to mark bill as paid. Please try again.');
     }
   };
 

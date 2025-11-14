@@ -80,7 +80,9 @@ export default function AddBillForm({
   const [openVendorForm, setOpenVendorForm] = useState(false);
   const [vendors, setVendors] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isEditing = Boolean(initialData && initialData.billNo);
+  const isEditing = Boolean(
+    initialData && (initialData.billNo || initialData.billId)
+  );
   const businessId = useUserStore((state) => state.businessData?._id);
 
   // Fetch vendors
@@ -161,17 +163,28 @@ export default function AddBillForm({
         businessId: businessId,
       };
 
-      await BillService.create({ data: payload });
+      if (isEditing && initialData?.billId) {
+        // Update existing bill
+        await BillService.update({ id: initialData.billId, data: payload });
+        toast.success('Bill updated successfully!');
+      } else {
+        // Create new bill
+        await BillService.create({ data: payload });
+        toast.success('Bill added successfully!');
+      }
 
-      toast.success('Bill added successfully!');
       reset();
       onOpenChange?.(false);
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      console.error('Error creating bill:', error);
-      toast.error('Failed to add bill. Please try again.');
+      console.error('Error saving bill:', error);
+      toast.error(
+        isEditing
+          ? 'Failed to update bill. Please try again.'
+          : 'Failed to add bill. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }

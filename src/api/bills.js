@@ -22,6 +22,16 @@ export default class BillService {
     return response;
   }
 
+  static async update({ id, data }) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.patch(`bill/${id}`, data, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
+    return response;
+  }
+  
   static async fetch({ search, page, perPage } = {}) {
     const userStore = useUserStore.getState();
 
