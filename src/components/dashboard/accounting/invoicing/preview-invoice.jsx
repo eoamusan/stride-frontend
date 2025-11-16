@@ -34,6 +34,7 @@ export default function PreviewInvoice({
   const [uploadedPdfUrl, setUploadedPdfUrl] = useState(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [refreshPayments, setRefreshPayments] = useState(false);
   const [fetchedPayments, setFetchedPayments] = useState([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [calculatedBalanceDue, setCalculatedBalanceDue] = useState(0);
@@ -66,14 +67,13 @@ export default function PreviewInvoice({
 
         console.log('Payment API Response:', response.data);
         const paymentsData = response.data?.data?.payments || [];
-        console.log('Payments Data:', paymentsData);
 
         // Transform payment data to match the expected structure
         const transformedPayments = paymentsData.map((item) => {
           console.log('Individual Payment:', item.payment);
           const payment = item.payment;
           return {
-            amount:  total.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+            amount: total.toLocaleString('en-US', { minimumFractionDigits: 2 }),
             datePaid: payment.paymentDate || payment.createdAt,
             method: payment.paymentMethod || 'Bank Transfer',
             dateCreated: payment.createdAt,
@@ -105,7 +105,7 @@ export default function PreviewInvoice({
     };
 
     fetchPayments();
-  }, [formData.id, total]);
+  }, [formData.id, total, refreshPayments]);
 
   // Function to upload PDF to Cloudinary
   const uploadPdfToCloudinary = async (pdfBlob, fileName) => {
@@ -603,34 +603,7 @@ export default function PreviewInvoice({
         amountDue={calculatedBalanceDue || balanceDue || total}
         onSuccess={() => {
           setShowSuccessModal(true);
-          // Refresh payments after successful payment
-          if (formData.id) {
-            PaymentService.fetch({ invoiceId: formData.id })
-              .then((response) => {
-                const paymentsData = response.data?.payments || [];
-
-                const transformedPayments = paymentsData.map((item) => {
-                  const payment = item.payment;
-                  return {
-                    amount: total.toLocaleString('en-US', { minimumFractionDigits: 2 }),
-                    datePaid: payment.paymentDate || payment.createdAt,
-                    method: payment.paymentMethod || 'Bank Transfer',
-                    dateCreated: payment.createdAt,
-                  };
-                });
-                setFetchedPayments(transformedPayments);
-
-                const totalPaid = transformedPayments.reduce(
-                  (sum, payment) => sum + (Number(payment.amount) || 0),
-                  0
-                );
-                const balance = total - totalPaid;
-                setCalculatedBalanceDue(balance);
-              })
-              .catch((error) => {
-                console.error('Error refreshing payments:', error);
-              });
-          }
+          setRefreshPayments(!refreshPayments);
         }}
       />
 
