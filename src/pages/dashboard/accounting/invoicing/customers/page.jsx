@@ -7,14 +7,13 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import CustomerService from '@/api/customer';
 import { useUserStore } from '@/stores/user-store';
-import { format } from 'date-fns';
 
 const tableColumns = [
   { key: 'name', label: 'Name' },
   { key: 'companyName', label: 'Company Name' },
+  {key: 'email', label: 'Email' },
   { key: 'creditLimit', label: 'Credit Limit' },
   { key: 'balance', label: 'Balance' },
-  { key: 'dueDate', label: 'Due Date' },
   { key: 'status', label: 'Status' },
 ];
 const customerStatusStyles = {
@@ -62,9 +61,7 @@ export default function Customers() {
         ? `$${parseFloat(customer.creditLimit).toLocaleString()}`
         : '$0.00',
       balance: '$0.00',
-      dueDate: customer.dueDate
-        ? format(new Date(customer.dueDate), 'MMM dd, yyyy')
-        : '-',
+      email: customer.email || '-',
       status: customer.status === 'ACTIVE' ? 'Active' : 'Inactive',
     }));
   };

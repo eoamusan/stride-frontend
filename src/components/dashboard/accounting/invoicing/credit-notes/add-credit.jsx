@@ -91,7 +91,7 @@ const formSchema = z.object({
 
 const STORAGE_KEY = 'create_credit_note_draft';
 
-export default function AddCreditNote({ open, onOpenChange }) {
+export default function AddCreditNote({ open, onOpenChange, onSuccess }) {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
@@ -282,6 +282,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
       // Reset form and close modal
       form.reset();
       setUploadedFiles([]);
+      if (onSuccess) onSuccess();
       onOpenChange?.(false);
     } catch (error) {
       console.error('Error creating credit note:', error);
@@ -469,7 +470,10 @@ export default function AddCreditNote({ open, onOpenChange }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                        <PopoverContent
+                          className="w-(--radix-popover-trigger-width) p-0"
+                          align="start"
+                        >
                           <Command>
                             <CommandInput
                               placeholder="Search customers..."
@@ -622,7 +626,10 @@ export default function AddCreditNote({ open, onOpenChange }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                        <PopoverContent
+                          className="w-(--radix-popover-trigger-width) p-0"
+                          align="start"
+                        >
                           <Command>
                             <CommandInput
                               placeholder="Search invoices..."
@@ -771,7 +778,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                                   </FormControl>
                                 </PopoverTrigger>
                                 <PopoverContent
-                                  className="w-(--radix-popover-trigger-width) p-0"
+                                  className="w-auto p-0"
                                   align="start"
                                 >
                                   <Calendar

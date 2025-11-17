@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import EmptyInvoice from '@/components/dashboard/accounting/invoicing/empty-state';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, PlusCircle, SettingsIcon } from 'lucide-react';
+import { DownloadIcon, ChevronDown, SettingsIcon } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import MetricCard from '@/components/dashboard/metric-card';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import InvoiceService from '@/api/invoice';
@@ -177,7 +183,7 @@ export default function Invoicing() {
     setSelectedItems([]); // Clear selections when changing pages
   };
 
-  const handleToggleCreateInvoice = () => {
+  const handleToggleCreateInvoice = (type = 'regular') => {
     if (!isLoadingData && !hasBankAccount) {
       toast.error(
         <p className="text-xs font-semibold">
@@ -191,7 +197,7 @@ export default function Invoicing() {
       navigate('/dashboard/accounting/invoicing/settings');
       return;
     }
-    navigate('/dashboard/accounting/invoicing/create');
+    navigate(`/dashboard/accounting/invoicing/create?type=${type}`);
   };
 
   return (
@@ -206,13 +212,26 @@ export default function Invoicing() {
 
         {invoice.length > 0 && (
           <div className="flex space-x-4">
-            <Button
-              onClick={handleToggleCreateInvoice}
-              className={'h-10 rounded-2xl text-sm'}
-            >
-              <PlusCircle className="size-4" />
-              Create Invoice
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className={'h-10 rounded-2xl px-6 text-sm'}>
+                  Create Invoice
+                  <ChevronDown className="ml-2 size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => handleToggleCreateInvoice('regular')}
+                >
+                  Regular Invoice
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleToggleCreateInvoice('performa')}
+                >
+                  Proforma Invoice
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button size={'icon'} className={'size-10'} variant={'outline'}>
               <DownloadIcon size={16} />
             </Button>

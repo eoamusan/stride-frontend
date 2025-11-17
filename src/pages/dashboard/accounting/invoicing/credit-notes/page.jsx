@@ -46,6 +46,7 @@ export default function CreditNotes() {
     pageSize: 20,
     totalCount: 0,
   });
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Calculate metrics from credit note data
   const calculateMetrics = () => {
@@ -238,7 +239,7 @@ export default function CreditNotes() {
     };
 
     fetchCreditNotes();
-  }, [currentPage, paginationData.pageSize]);
+  }, [currentPage, paginationData.pageSize, refreshTrigger]);
 
   return (
     <div className="my-4 min-h-screen">
@@ -292,6 +293,7 @@ export default function CreditNotes() {
       <AddCreditNote
         open={isCreateCreditNoteOpen}
         onOpenChange={setIsCreateCreditNoteOpen}
+        onSuccess={() => setRefreshTrigger((prev) => prev + 1)}
       />
 
       <EditCreditNote
@@ -299,32 +301,7 @@ export default function CreditNotes() {
         onOpenChange={(open) => {
           setIsEditCreditNoteOpen(open);
           if (!open) {
-            // Refresh data when modal closes
-            const fetchCreditNotes = async () => {
-              try {
-                setIsLoadingData(true);
-                const response = await CreditNoteService.fetch({
-                  page: currentPage,
-                  perPage: paginationData.pageSize,
-                });
-
-                const creditNotes = response.data?.data?.creditNotes || [];
-                setCreditNoteList(creditNotes);
-
-                setPaginationData({
-                  page: response.data?.data?.page || currentPage,
-                  totalPages: response.data?.data?.totalPages || 1,
-                  pageSize: response.data?.data?.limit || 20,
-                  totalCount: response.data?.data?.totalDocs || 0,
-                });
-              } catch (error) {
-                console.error('Error fetching credit notes:', error);
-              } finally {
-                setIsLoadingData(false);
-              }
-            };
-
-            fetchCreditNotes();
+            setRefreshTrigger((prev) => prev + 1);
           }
         }}
         creditNoteData={selectedCreditNote}

@@ -56,6 +56,7 @@ import CustomerService from '@/api/customer';
 import BusinessService from '@/api/business';
 import toast from 'react-hot-toast';
 import InvoiceService from '@/api/invoice';
+import AccountService from '@/api/accounts';
 import { useUserStore } from '@/stores/user-store';
 import { Switch } from '@/components/ui/switch';
 import { useNavigate, useParams } from 'react-router';
@@ -97,7 +98,8 @@ const formSchema = z.object({
   products: z
     .array(
       z.object({
-        name: z.string().min(1, { message: 'Product name is required' }),
+        name: z.string().optional(),
+        account: z.string().optional(),
         description: z.string().optional(),
         unit_price: z
           .number()
@@ -109,7 +111,14 @@ const formSchema = z.object({
         vat_applicable: z.boolean().default(false),
       })
     )
-    .min(1, { message: 'At least one product is required' }),
+    .min(1, { message: 'At least one product is required' })
+    .refine(
+      (products) =>
+        products.every((product) => product.name || product.account),
+      {
+        message: 'Product name or account is required',
+      }
+    ),
   discount: z.number().min(0).max(100).optional(),
   vat: z.number().min(0).max(100).optional(),
   delivery_fee: z.number().min(0).optional(),
@@ -131,13 +140,16 @@ export default function EditInvoice() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [showTemplateSettings, setShowTemplateSettings] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCustomVat, setIsCustomVat] = useState(false);
   const [updatedInvoiceData, setUpdatedInvoiceData] = useState(null);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
+  const [openAccountCombobox, setOpenAccountCombobox] = useState({});
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(true);
   const [invoiceNo, setInvoiceNo] = useState('');
+  const [invoiceType, setInvoiceType] = useState('proforma'); // default to proforma
   const { businessData, getBusinessData } = useUserStore();
 
   const form = useForm({
@@ -189,6 +201,13 @@ export default function EditInvoice() {
         if (invoiceData) {
           setInvoiceNo(invoiceData.invoiceNo);
 
+          // Detect invoice type based on products data
+          const hasAccount = invoiceData.product?.products?.some(
+            (product) => product.account
+          );
+          const detectedType = hasAccount ? 'regular' : 'proforma';
+          setInvoiceType(detectedType);
+
           // Extract customerId
           const customerId =
             typeof invoiceData.customerId === 'object'
@@ -210,6 +229,7 @@ export default function EditInvoice() {
               : undefined,
             products: invoiceData.product?.products?.map((product) => ({
               name: product.name || '',
+              account: product.account || '',
               description: product.description || '',
               unit_price: product.unit_price || 0,
               quantity: product.quantity || 1,
@@ -221,6 +241,7 @@ export default function EditInvoice() {
             })) || [
               {
                 name: '',
+                account: '',
                 description: '',
                 unit_price: 0,
                 quantity: 1,
@@ -271,6 +292,23 @@ export default function EditInvoice() {
 
     return () => clearTimeout(debounceTimer);
   }, [isAddCustomerModalOpen, customerSearchQuery]);
+
+  // Fetch accounts for regular invoices
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      if (invoiceType !== 'regular') return;
+
+      try {
+        const response = await AccountService.fetch();
+        const accountsData = response.data?.data || [];
+        setAccounts(accountsData);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+      }
+    };
+
+    fetchAccounts();
+  }, [invoiceType]);
 
   // Calculate product total when unit price or quantity changes
   const watchProducts = form.watch('products');
@@ -345,6 +383,7 @@ export default function EditInvoice() {
   const addProduct = () => {
     append({
       name: '',
+      account: '',
       description: '',
       unit_price: 0,
       quantity: 1,
@@ -949,22 +988,117 @@ export default function EditInvoice() {
                   >
                     <div className="grid grid-cols-2 items-start gap-4 md:grid-cols-10">
                       <div className="col-span-2 md:col-span-3">
-                        <FormField
-                          control={form.control}
-                          name={`products.${index}.name`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  className={'h-10'}
-                                  placeholder="Enter product / item name"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        {invoiceType === 'regular' ? (
+                          <FormField
+                            control={form.control}
+                            name={`products.${index}.account`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Popover
+                                    open={openAccountCombobox[index] || false}
+                                    onOpenChange={(open) =>
+                                      setOpenAccountCombobox((prev) => ({
+                                        ...prev,
+                                        [index]: open,
+                                      }))
+                                    }
+                                  >
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className={cn(
+                                          'h-10 w-full justify-between text-sm',
+                                          !field.value &&
+                                            'text-muted-foreground'
+                                        )}
+                                      >
+                                        {field.value
+                                          ? accounts.find(
+                                              (account) =>
+                                                account._id === field.value
+                                            )?.accountName || 'Select account'
+                                          : 'Select account'}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                      className="w-(--radix-popover-trigger-width) p-0"
+                                      align="start"
+                                    >
+                                      <Command>
+                                        <CommandInput placeholder="Search accounts..." />
+                                        <CommandList>
+                                          <CommandEmpty>
+                                            No account found.
+                                          </CommandEmpty>
+                                          <CommandGroup>
+                                            {accounts?.map((account) => (
+                                              <CommandItem
+                                                value={account._id}
+                                                key={account._id}
+                                                onSelect={() => {
+                                                  form.setValue(
+                                                    `products.${index}.account`,
+                                                    account._id
+                                                  );
+                                                  setOpenAccountCombobox(
+                                                    (prev) => ({
+                                                      ...prev,
+                                                      [index]: false,
+                                                    })
+                                                  );
+                                                }}
+                                              >
+                                                <Check
+                                                  className={cn(
+                                                    'mr-2 h-4 w-4',
+                                                    account._id === field.value
+                                                      ? 'opacity-100'
+                                                      : 'opacity-0'
+                                                  )}
+                                                />
+                                                <div className="flex flex-col">
+                                                  <span className="font-medium">
+                                                    {account.accountName}
+                                                  </span>
+                                                  {account.accountNumber && (
+                                                    <span className="text-muted-foreground text-xs">
+                                                      {account.accountNumber}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              </CommandItem>
+                                            ))}
+                                          </CommandGroup>
+                                        </CommandList>
+                                      </Command>
+                                    </PopoverContent>
+                                  </Popover>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ) : (
+                          <FormField
+                            control={form.control}
+                            name={`products.${index}.name`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    className={'h-10'}
+                                    placeholder="Enter product / item name"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
                       </div>
 
                       <div className="col-span-1 md:col-span-2">

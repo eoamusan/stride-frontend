@@ -56,6 +56,7 @@ import CustomerService from '@/api/customer';
 import BusinessService from '@/api/business';
 import toast from 'react-hot-toast';
 import InvoiceService from '@/api/invoice';
+import AccountService from '@/api/accounts';
 import { useUserStore } from '@/stores/user-store';
 import { Switch } from '@/components/ui/switch';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -97,7 +98,8 @@ const formSchema = z.object({
   products: z
     .array(
       z.object({
-        name: z.string().min(1, { message: 'Product name is required' }),
+        name: z.string().optional(),
+        account: z.string().optional(),
         description: z.string().optional(),
         unit_price: z
           .number()
@@ -109,7 +111,14 @@ const formSchema = z.object({
         vat_applicable: z.boolean().default(false),
       })
     )
-    .min(1, { message: 'At least one product is required' }),
+    .min(1, { message: 'At least one product is required' })
+    .refine(
+      (products) =>
+        products.every((product) => product.name || product.account),
+      {
+        message: 'Product name or account is required',
+      }
+    ),
   discount: z.number().min(0).max(100).optional(),
   vat: z.number().min(0).max(100).optional(),
   delivery_fee: z.number().min(0).optional(),
@@ -124,18 +133,20 @@ const STORAGE_KEY = 'create_invoice_draft';
 // Extensive list of invoice categories
 const INVOICE_CATEGORIES = ['Services', 'Expenses', 'Others'];
 
-export default function CreateInvoice({ businessId, onBack }) {
+export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const [isPreview, setIsPreview] = useState(false);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [showTemplateSettings, setShowTemplateSettings] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCustomVat, setIsCustomVat] = useState(false);
   const [createdInvoiceData, setCreatedInvoiceData] = useState(null);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
+  const [openAccountCombobox, setOpenAccountCombobox] = useState({});
   const { businessData, getBusinessData } = useUserStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -176,6 +187,7 @@ export default function CreateInvoice({ businessId, onBack }) {
       products: [
         {
           name: '',
+          account: '',
           description: '',
           unit_price: 0,
           quantity: 1,
@@ -224,6 +236,24 @@ export default function CreateInvoice({ businessId, onBack }) {
 
     return () => clearTimeout(debounceTimer);
   }, [isAddCustomerModalOpen, businessId, customerSearchQuery]);
+
+  // Fetch accounts for regular invoices
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      if (invoiceType !== 'regular') return;
+
+      try {
+        const response = await AccountService.fetch();
+        const accountsData = response.data?.data || [];
+        console.log(accountsData);
+        setAccounts(accountsData);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+      }
+    };
+
+    fetchAccounts();
+  }, [invoiceType]);
 
   // Set customer from URL parameter if provided
   useEffect(() => {
@@ -329,10 +359,11 @@ export default function CreateInvoice({ businessId, onBack }) {
   const addProduct = () => {
     append({
       name: '',
+      account: '',
       description: '',
-      unit_price: 0,
-      quantity: 1,
-      total_price: 0,
+      unit_price: '',
+      quantity: '',
+      total_price: '',
       vat_applicable: true,
     });
   };
@@ -942,22 +973,117 @@ export default function CreateInvoice({ businessId, onBack }) {
                   >
                     <div className="grid grid-cols-2 items-start gap-4 md:grid-cols-10">
                       <div className="col-span-2 md:col-span-3">
-                        <FormField
-                          control={form.control}
-                          name={`products.${index}.name`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  className={'h-10'}
-                                  placeholder="Enter product / item name"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        {invoiceType === 'regular' ? (
+                          <FormField
+                            control={form.control}
+                            name={`products.${index}.account`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Popover
+                                    open={openAccountCombobox[index] || false}
+                                    onOpenChange={(open) =>
+                                      setOpenAccountCombobox((prev) => ({
+                                        ...prev,
+                                        [index]: open,
+                                      }))
+                                    }
+                                  >
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className={cn(
+                                          'h-10 w-full justify-between text-sm',
+                                          !field.value &&
+                                            'text-muted-foreground'
+                                        )}
+                                      >
+                                        {field.value
+                                          ? accounts.find(
+                                              (account) =>
+                                                account._id === field.value
+                                            )?.accountName || 'Select account'
+                                          : 'Select account'}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                      className="w-(--radix-popover-trigger-width) p-0"
+                                      align="start"
+                                    >
+                                      <Command>
+                                        <CommandInput placeholder="Search accounts..." />
+                                        <CommandList>
+                                          <CommandEmpty>
+                                            No account found.
+                                          </CommandEmpty>
+                                          <CommandGroup>
+                                            {accounts?.map((account) => (
+                                              <CommandItem
+                                                value={account._id}
+                                                key={account._id}
+                                                onSelect={() => {
+                                                  form.setValue(
+                                                    `products.${index}.account`,
+                                                    account._id
+                                                  );
+                                                  setOpenAccountCombobox(
+                                                    (prev) => ({
+                                                      ...prev,
+                                                      [index]: false,
+                                                    })
+                                                  );
+                                                }}
+                                              >
+                                                <Check
+                                                  className={cn(
+                                                    'mr-2 h-4 w-4',
+                                                    account._id === field.value
+                                                      ? 'opacity-100'
+                                                      : 'opacity-0'
+                                                  )}
+                                                />
+                                                <div className="flex flex-col">
+                                                  <span className="font-medium">
+                                                    {account.accountName}
+                                                  </span>
+                                                  {account.accountNumber && (
+                                                    <span className="text-muted-foreground text-xs">
+                                                      {account.accountNumber}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              </CommandItem>
+                                            ))}
+                                          </CommandGroup>
+                                        </CommandList>
+                                      </Command>
+                                    </PopoverContent>
+                                  </Popover>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ) : (
+                          <FormField
+                            control={form.control}
+                            name={`products.${index}.name`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    className={'h-10'}
+                                    placeholder="Enter product / item name"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
                       </div>
 
                       <div className="col-span-1 md:col-span-2">

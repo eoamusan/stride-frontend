@@ -26,7 +26,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { format } from 'date-fns';
 import {
   Popover,
   PopoverContent,
@@ -58,7 +57,6 @@ const customerFormSchema = z.object({
     phoneNumber: z.string().min(1, { message: 'Phone number is required' }),
     email: z.email({ message: 'Please enter a valid email address' }),
     creditLimit: z.string().optional(),
-    dueDate: z.date().optional(),
     isSubCustomer: z.boolean().default(false),
   }),
   address: z.object({
@@ -90,7 +88,6 @@ export default function AddCustomerModal({ open, onOpenChange, onSuccess }) {
         phoneNumber: '',
         email: '',
         creditLimit: '',
-        dueDate: '',
         isSubCustomer: false,
       },
       address: {
@@ -348,51 +345,8 @@ export default function AddCustomerModal({ open, onOpenChange, onSuccess }) {
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>Credit Limit</FormLabel>
                       <FormControl>
-                        <Input type={'number'} className={'h-10'} {...field} />
+                        <Input type={'number'} formatNumber className={'h-10'} {...field} />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="customer.dueDate"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col md:col-span-2 md:col-start-4">
-                      <FormLabel>Due Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'h-10 w-full pl-3 text-left text-sm font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          className="w-(--radix-popover-trigger-width) p-0"
-                          align="start"
-                        >
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            captionLayout="dropdown"
-                          />
-                        </PopoverContent>
-                      </Popover>
-
                       <FormMessage />
                     </FormItem>
                   )}
