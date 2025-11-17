@@ -469,7 +469,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-full p-0" align="start">
+                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                           <Command>
                             <CommandInput
                               placeholder="Search customers..."
@@ -555,7 +555,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent
-                            className="w-full min-w-80 p-0"
+                            className="w-(--radix-popover-trigger-width) p-0"
                             align="start"
                           >
                             <Calendar
@@ -622,7 +622,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-full p-0" align="start">
+                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                           <Command>
                             <CommandInput
                               placeholder="Search invoices..."
@@ -771,7 +771,7 @@ export default function AddCreditNote({ open, onOpenChange }) {
                                   </FormControl>
                                 </PopoverTrigger>
                                 <PopoverContent
-                                  className="w-auto p-0"
+                                  className="w-(--radix-popover-trigger-width) p-0"
                                   align="start"
                                 >
                                   <Calendar

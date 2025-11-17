@@ -381,7 +381,7 @@ export default function AddCustomerModal({ open, onOpenChange, onSuccess }) {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent
-                          className="w-full min-w-80 p-0"
+                          className="w-(--radix-popover-trigger-width) p-0"
                           align="start"
                         >
                           <Calendar
@@ -518,7 +518,7 @@ export default function AddCustomerModal({ open, onOpenChange, onSuccess }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent align="start" className="w-74 p-0">
+                        <PopoverContent align="start" className="w-(--radix-popover-trigger-width) p-0">
                           <Command>
                             <CommandInput
                               placeholder="Search countries..."

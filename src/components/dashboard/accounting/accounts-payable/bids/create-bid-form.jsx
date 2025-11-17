@@ -306,7 +306,7 @@ export default function CreateBidForm({ open, onOpenChange, onSuccess }) {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-full min-w-80 p-0" align="start">
+                <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={field.value}
@@ -346,7 +346,7 @@ export default function CreateBidForm({ open, onOpenChange, onSuccess }) {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-full min-w-80 p-0" align="start">
+                <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={field.value}

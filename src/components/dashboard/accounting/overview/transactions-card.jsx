@@ -14,12 +14,19 @@ import { ArrowDownLeftIcon, ArrowUpRightIcon, DotIcon } from 'lucide-react';
 
 export default function RecentTransactionCard({
   className,
-  recentTnx,
+  recentTnx = {
+    pagination: {
+      page: 1,
+      totalPages: 1,
+      count: 0,
+    },
+    transactions: [],
+  },
   title,
   description,
 }) {
   // Helper to render pagination items
-  const { page, totalPages } = recentTnx.pagination;
+  const { page, totalPages } = recentTnx.pagination
   const renderPaginationItems = () => {
     const items = [];
     if (totalPages <= 6) {
@@ -76,8 +83,8 @@ export default function RecentTransactionCard({
           </p>
         </div>
       </div>
-      <div className="">
-        <div className="space-y-4">
+      <div className="h-full">
+        <div className="space-y-4 min-h-3/4">
           {recentTnx.pagination.count > 0 ? (
             recentTnx.transactions.map((tnx, i) => (
               <div
@@ -117,7 +124,7 @@ export default function RecentTransactionCard({
               </div>
             ))
           ) : (
-            <div className="flex h-40 w-full items-center justify-center bg-white">
+            <div className="flex min-h-40 w-full items-center justify-center bg-white">
               <img src={emptyStateImg} alt="Empty State" />
             </div>
           )}

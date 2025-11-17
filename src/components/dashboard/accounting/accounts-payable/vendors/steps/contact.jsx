@@ -125,7 +125,7 @@ export default function ContactStep({ control, countries }) {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent align="start" className="w-74 p-0">
+                <PopoverContent align="start" className="w-(--radix-popover-trigger-width) p-0">
                   <Command>
                     <CommandInput
                       placeholder="Search countries..."

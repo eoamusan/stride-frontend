@@ -270,7 +270,7 @@ export default function AddBillForm({
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0">
+                          <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
                             <Command>
                               <CommandInput placeholder="Search vendor..." />
                               <CommandList>
@@ -371,7 +371,7 @@ export default function AddBillForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}
@@ -433,7 +433,7 @@ export default function AddBillForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import EmptyInvoice from '@/components/dashboard/accounting/invoicing/empty-state';
-import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-invoice';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircle, SettingsIcon } from 'lucide-react';
 import MetricCard from '@/components/dashboard/metric-card';
@@ -37,13 +36,10 @@ const invoiceDropdownActions = [
 ];
 
 export default function Invoicing() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [toggleCreateInvoice, setToggleCreateInvoice] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [hasBankAccount, setHasBankAccount] = useState(false);
   const [invoiceList, setInvoiceList] = useState();
   const [invoiceStatsData, setInvoiceStatsData] = useState({});
-  const [businessId, setBusinessId] = useState();
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [paginationData, setPaginationData] = useState({
@@ -76,7 +72,6 @@ export default function Invoicing() {
         setIsLoadingData(true);
 
         const businessId = businessData?._id;
-        setBusinessId(businessId);
         setHasBankAccount(
           businessData?.businessInvoiceSettings?.bankAccounts?.length > 0
         );
@@ -182,17 +177,6 @@ export default function Invoicing() {
     setSelectedItems([]); // Clear selections when changing pages
   };
 
-  // Check for create parameter on component mount
-  useEffect(() => {
-    const createParam = searchParams.get('create');
-
-    if (createParam === 'true') {
-      setToggleCreateInvoice(true);
-    } else {
-      setToggleCreateInvoice(false);
-    }
-  }, [searchParams]);
-
   const handleToggleCreateInvoice = () => {
     if (!isLoadingData && !hasBankAccount) {
       toast.error(
@@ -201,33 +185,14 @@ export default function Invoicing() {
           creating an invoice.
         </p>,
         {
-          duration: 7000,
+          duration: 6000,
         }
       );
       navigate('/dashboard/accounting/invoicing/settings');
       return;
     }
-    const newToggleState = !toggleCreateInvoice;
-    setToggleCreateInvoice(newToggleState);
-
-    // Update search params when toggleCreateInvoice changes
-    if (newToggleState) {
-      setSearchParams({ create: 'true' });
-    } else {
-      // Remove the create parameter when closing
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.delete('create');
-      setSearchParams(newSearchParams);
-    }
+    navigate('/dashboard/accounting/invoicing/create');
   };
-
-  if (toggleCreateInvoice) {
-    return (
-      <div className="my-4 min-h-screen">
-        <CreateInvoice businessId={businessId} />
-      </div>
-    );
-  }
 
   return (
     <div className="my-4 min-h-screen">

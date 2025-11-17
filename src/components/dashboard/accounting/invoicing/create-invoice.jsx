@@ -648,7 +648,7 @@ export default function CreateInvoice({ businessId, onBack }) {
                               </FormControl>
                             </PopoverTrigger>
                             <PopoverContent
-                              className="w-full p-0"
+                              className="w-(--radix-popover-trigger-width) p-0"
                               align="start"
                             >
                               <Command>
@@ -822,7 +822,7 @@ export default function CreateInvoice({ businessId, onBack }) {
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent
-                            className="w-full min-w-80 p-0"
+                            className="w-(--radix-popover-trigger-width) p-0"
                             align="start"
                           >
                             <Calendar
@@ -897,7 +897,7 @@ export default function CreateInvoice({ businessId, onBack }) {
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent
-                            className="w-full min-w-80 p-0"
+                            className="w-(--radix-popover-trigger-width) p-0"
                             align="start"
                           >
                             <Calendar
@@ -1432,12 +1432,14 @@ export default function CreateInvoice({ businessId, onBack }) {
             handleNext={handlePreview}
             backText={'Back'}
             handleBack={() => {
-              const url = new URL(window.location.href);
-              url.searchParams.delete('create');
-              window.location.replace(url.pathname + url.search);
               setIsSuccessModalOpen(false);
               // Clear created invoice data when going back
               setCreatedInvoiceData(null);
+              if (onBack) {
+                onBack();
+              } else {
+                navigate('/dashboard/accounting/invoicing');
+              }
             }}
           />
         </>

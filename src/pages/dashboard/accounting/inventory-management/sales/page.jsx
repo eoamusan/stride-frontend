@@ -332,7 +332,7 @@ export default function Sales() {
                 <ChevronDownIcon className="ml-auto h-4 w-4 opacity-90" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full min-w-80 p-0" align="start">
+            <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
               <Calendar
                 className={'w-full'}
                 mode="single"

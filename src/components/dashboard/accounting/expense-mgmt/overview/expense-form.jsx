@@ -485,7 +485,7 @@ export default function ExpenseForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[300px] p-0" align="start">
+                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                         <Command>
                           <CommandInput placeholder="Search vendors..." />
                           <CommandList>
@@ -583,7 +583,7 @@ export default function ExpenseForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[300px] p-0" align="start">
+                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                         <Command>
                           <CommandInput placeholder="Search accounts..." />
                           <CommandList>
@@ -660,7 +660,7 @@ export default function ExpenseForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -756,7 +756,7 @@ export default function ExpenseForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent align="start" className="w-74 p-0">
+                      <PopoverContent align="start" className="w-(--radix-popover-trigger-width) p-0">
                         <Command>
                           <CommandInput
                             placeholder="Search countries..."

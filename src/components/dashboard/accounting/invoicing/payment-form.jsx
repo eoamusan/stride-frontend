@@ -177,7 +177,7 @@ export default function PaymentForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}
