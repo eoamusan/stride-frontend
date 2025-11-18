@@ -456,6 +456,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
         accountId: businessData?.accountId,
         businessId: businessId,
         invoice: {
+          type: invoiceType,
           customerId: data.customerId,
           currency: data.currency,
           category: data.category,
