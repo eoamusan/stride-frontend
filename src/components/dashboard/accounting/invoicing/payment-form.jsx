@@ -38,8 +38,10 @@ import { cn } from '@/lib/utils';
 import { useUserStore } from '@/stores/user-store';
 import toast from 'react-hot-toast';
 import PaymentService from '@/api/payment';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 const paymentFormSchema = z.object({
+  amountPaid: z.number().min(0, { message: 'Amount paid is required' }),
   paymentDate: z.date({
     required_error: 'Payment date is required',
   }),
@@ -49,6 +51,8 @@ const paymentFormSchema = z.object({
     .string()
     .min(1, { message: 'Reference number is required' }),
   category: z.string().min(1, { message: 'Category is required' }),
+  vatCertificate: z.any().optional(),
+  attachment: z.any().optional(),
   notes: z.string().optional(),
 });
 
@@ -61,16 +65,29 @@ export default function PaymentForm({
   onSuccess,
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const { businessData } = useUserStore();
 
+  // Create schema with dynamic validation based on amountDue
+  const paymentFormSchemaWithValidation = paymentFormSchema.refine(
+    (data) => data.amountPaid <= amountDue,
+    {
+      message: `Amount paid cannot exceed amount due (₦${amountDue?.toLocaleString()})`,
+      path: ['amountPaid'],
+    }
+  );
+
   const form = useForm({
-    resolver: zodResolver(paymentFormSchema),
+    resolver: zodResolver(paymentFormSchemaWithValidation),
     defaultValues: {
+      amountPaid: 0,
       paymentDate: undefined,
       paymentMethod: '',
       accountCode: '',
       referenceNumber: '',
       category: '',
+      vatCertificate: null,
+      attachment: null,
       notes: '',
     },
   });
@@ -78,17 +95,70 @@ export default function PaymentForm({
   const handleSubmit = async (data) => {
     try {
       setIsSubmitting(true);
+      setIsUploadingFiles(true);
+
+      // Upload files to Cloudinary if they exist
+      let vatCertificateUrl = '';
+      let attachmentUrl = '';
+
+      if (data.vatCertificate) {
+        try {
+          const vatUploadResult = await uploadToCloudinary(
+            data.vatCertificate,
+            {
+              folder: 'payment-documents/vat-certificates',
+              tags: ['vat-certificate', invoiceNo],
+            }
+          );
+          vatCertificateUrl = vatUploadResult.url;
+        } catch (error) {
+          console.error('Error uploading VAT certificate:', error);
+          toast.error('Failed to upload VAT certificate');
+          setIsSubmitting(false);
+          setIsUploadingFiles(false);
+          return;
+        }
+      }
+
+      if (data.attachment) {
+        try {
+          const attachmentUploadResult = await uploadToCloudinary(
+            data.attachment,
+            {
+              folder: 'payment-documents/attachments',
+              tags: ['payment-attachment', invoiceNo],
+            }
+          );
+          attachmentUrl = attachmentUploadResult.url;
+        } catch (error) {
+          console.error('Error uploading attachment:', error);
+          toast.error('Failed to upload attachment');
+          setIsSubmitting(false);
+          setIsUploadingFiles(false);
+          return;
+        }
+      }
+
+      setIsUploadingFiles(false);
+
+      // Calculate VAT (7.5% of amount due)
+      const vatAmount = (amountDue * 0.075).toFixed(2);
+
       // Prepare payload according to API requirements
       const paymentPayload = {
+        amountDue: amountDue.toString(),
+        amountPaid: data.amountPaid.toString(),
         businessId: businessData?._id,
         invoiceId: invoiceId,
         paymentDate: data.paymentDate.toISOString(),
         paymentMethod: data.paymentMethod,
         trxNo: data.referenceNumber,
-        accountCode: data.accountCode,
+        vat: vatAmount,
+        vatCertificate: vatCertificateUrl,
         category: data.category,
         notes: data.notes || '',
-        amount: amountDue.toString(),
+        accountCode: data.accountCode,
+        attachment: attachmentUrl,
       };
 
       const response = await PaymentService.create({
@@ -96,6 +166,7 @@ export default function PaymentForm({
       });
 
       console.log('Payment recorded successfully:', response.data);
+      toast.success('Payment recorded successfully');
 
       // Call success callback if provided
       if (onSuccess) {
@@ -113,6 +184,7 @@ export default function PaymentForm({
       );
     } finally {
       setIsSubmitting(false);
+      setIsUploadingFiles(false);
     }
   };
 
@@ -151,6 +223,50 @@ export default function PaymentForm({
                   </div>
                 </div>
 
+                {/* Amount Paid */}
+                <FormField
+                  control={form.control}
+                  name="amountPaid"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Amount Paid</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          formatNumber
+                          placeholder="Enter price"
+                          className="h-10"
+                          max={amountDue}
+                          {...field}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            // Restrict to not exceed amountDue
+                            if (value > amountDue) {
+                              field.onChange(amountDue);
+                              toast.error(
+                                `Amount paid cannot exceed amount due (₦${amountDue?.toLocaleString()})`
+                              );
+                            } else {
+                              field.onChange(value);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Invoice ID */}
+                <div className="space-y-2">
+                  <FormLabel>Invoice ID</FormLabel>
+                  <div className="border-input flex h-10 items-center rounded-md border bg-gray-50 px-3 text-sm text-gray-600">
+                    {invoiceNo}
+                  </div>
+                </div>
+
                 {/* Payment Date */}
                 <FormField
                   control={form.control}
@@ -177,7 +293,10 @@ export default function PaymentForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                        <PopoverContent
+                          className="w-auto p-0"
+                          align="start"
+                        >
                           <Calendar
                             mode="single"
                             selected={field.value}
@@ -193,11 +312,11 @@ export default function PaymentForm({
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {/* Invoice No */}
+                {/* VAT */}
                 <div className="space-y-2">
-                  <FormLabel>Invoice No</FormLabel>
+                  <FormLabel>VAT</FormLabel>
                   <div className="border-input flex h-10 items-center rounded-md border bg-gray-50 px-3 text-sm text-gray-600">
-                    {invoiceNo}
+                    {amountDue ? (amountDue * 0.075).toFixed(2) : '0.00'}
                   </div>
                 </div>
 
@@ -214,17 +333,17 @@ export default function PaymentForm({
                       >
                         <FormControl>
                           <SelectTrigger className="h-10 w-full">
-                            <SelectValue placeholder="Select Payment Method" />
+                            <SelectValue placeholder="Bank Transfer" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="bank-transfer">
+                          <SelectItem value="Bank Transfer">
                             Bank Transfer
                           </SelectItem>
-                          <SelectItem value="cash">Cash</SelectItem>
-                          <SelectItem value="cheque">Cheque</SelectItem>
-                          <SelectItem value="card">Card</SelectItem>
-                          <SelectItem value="mobile-money">
+                          <SelectItem value="Cash">Cash</SelectItem>
+                          <SelectItem value="Cheque">Cheque</SelectItem>
+                          <SelectItem value="Card">Card</SelectItem>
+                          <SelectItem value="Mobile Money">
                             Mobile Money
                           </SelectItem>
                         </SelectContent>
@@ -236,19 +355,37 @@ export default function PaymentForm({
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {/* Account Code */}
+                {/* Attach VAT Certificate */}
                 <FormField
                   control={form.control}
-                  name="accountCode"
-                  render={({ field }) => (
+                  name="vatCertificate"
+                  render={({ field: { value, onChange, ...field } }) => (
                     <FormItem>
-                      <FormLabel>Account Code</FormLabel>
+                      <FormLabel>Attach VAT Certificate</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Enter account code"
-                          className="h-10"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Input
+                            type="file"
+                            className="hidden"
+                            id="vat-certificate"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              onChange(file);
+                            }}
+                            {...field}
+                          />
+                          <label
+                            htmlFor="vat-certificate"
+                            className="border-input flex h-10 cursor-pointer items-center justify-between rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
+                          >
+                            <span className="text-muted-foreground">
+                              {value?.name || 'No file chosen'}
+                            </span>
+                            <span className="rounded bg-gray-200 px-3 py-1 text-xs text-gray-700">
+                              Choose File
+                            </span>
+                          </label>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -275,18 +412,18 @@ export default function PaymentForm({
                 />
               </div>
 
-              <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-                {/* Notes */}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Account Code */}
                 <FormField
                   control={form.control}
-                  name="notes"
+                  name="accountCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes (optional)</FormLabel>
+                      <FormLabel>Account Code</FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder=""
-                          className="min-h-32 resize-none"
+                        <Input
+                          placeholder="Enter account code"
+                          className="h-10"
                           {...field}
                         />
                       </FormControl>
@@ -308,20 +445,78 @@ export default function PaymentForm({
                       >
                         <FormControl>
                           <SelectTrigger className="h-10 w-full">
-                            <SelectValue placeholder="Select Categories" />
+                            <SelectValue placeholder="Office supplies" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="office-supplies">
+                          <SelectItem value="Office supplies">
                             Office supplies
                           </SelectItem>
-                          <SelectItem value="utilities">Utilities</SelectItem>
-                          <SelectItem value="rent">Rent</SelectItem>
-                          <SelectItem value="salaries">Salaries</SelectItem>
-                          <SelectItem value="equipment">Equipment</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="Utilities">Utilities</SelectItem>
+                          <SelectItem value="Rent">Rent</SelectItem>
+                          <SelectItem value="Salaries">Salaries</SelectItem>
+                          <SelectItem value="Equipment">Equipment</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Notes */}
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes (optional)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder=""
+                          className="min-h-32 resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Attachment */}
+                <FormField
+                  control={form.control}
+                  name="attachment"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Attachment</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="file"
+                            className="hidden"
+                            id="attachment"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              onChange(file);
+                            }}
+                            {...field}
+                          />
+                          <label
+                            htmlFor="attachment"
+                            className="border-input flex h-10 cursor-pointer items-center justify-between rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
+                          >
+                            <span className="text-muted-foreground">
+                              {value?.name || 'No file chosen'}
+                            </span>
+                            <span className="rounded bg-gray-200 px-3 py-1 text-xs text-gray-700">
+                              Choose File
+                            </span>
+                          </label>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -345,7 +540,11 @@ export default function PaymentForm({
                 className="h-10 min-w-40"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Recording...' : 'Record Payment'}
+                {isUploadingFiles
+                  ? 'Uploading files...'
+                  : isSubmitting
+                    ? 'Recording...'
+                    : 'Record Payment'}
               </Button>
             </div>
           </form>

@@ -41,6 +41,7 @@ export default function ViewInvoice() {
               : true,
         })) || [],
       discount: parseFloat(invoice.product?.discount) || 0,
+      status: invoice.status,
       vat: parseFloat(invoice.product?.vat) || 7.5,
       delivery_fee: parseFloat(invoice.product?.deliveryFee) || 0,
       terms: invoice.product?.terms || '',

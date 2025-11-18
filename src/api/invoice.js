@@ -98,6 +98,20 @@ export default class InvoiceService {
     return response;
   }
 
+  static async getInvoiceNumber() {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.post(
+      `invoice/generate/number`,
+      { businessId: userStore.businessData?._id },
+      {
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      }
+    );
+    return response;
+  }
+
   static async createSettings({ data }) {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(`invoice/settings`, data, {

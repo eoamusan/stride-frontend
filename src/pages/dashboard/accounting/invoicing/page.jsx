@@ -32,6 +32,7 @@ const invoiceColumns = [
 const invoiceStatusStyles = {
   PAID: 'lowercase bg-green-100 text-green-800 hover:bg-green-100',
   PENDING: 'lowercase bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+  PART: 'lowercase bg-blue-100 text-blue-800 hover:bg-blue-100',
   OVERDUE: 'lowercase bg-red-100 text-red-800 hover:bg-red-100',
 };
 

@@ -150,7 +150,7 @@ export default function EditInvoice() {
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(true);
   const [invoiceNo, setInvoiceNo] = useState('');
   const [invoiceType, setInvoiceType] = useState('proforma'); // default to proforma
-  const { businessData, getBusinessData } = useUserStore();
+  const { businessData, getBusinessData, data: userData } = useUserStore();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -644,23 +644,29 @@ export default function EditInvoice() {
             </div>
           </div>
           {/* Header */}
-          <div className="mt-4 mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-2xl font-semibold">Edit Invoice</h1>
-                {invoiceNo && <p>{invoiceNo}</p>}
-              </div>
-            </div>
+          <div className="mt-4 mb-5">
+            <h1 className="text-2xl font-semibold">New Invoice</h1>
+            <p className="mt-1 text-base font-medium">{invoiceNo}</p>
           </div>
 
-          {/* Company Info */}
-          <div className="mb-6">
-            <h2 className="text-sm font-semibold">
-              {businessData?.businessName || 'Business Name'}
-            </h2>
-            <p className="text-sm text-gray-600">
-              {businessData?.businessLocation || 'Business Location'}
-            </p>
+          {/* Company Info with Logo */}
+          <div className="mb-6 flex flex-col items-start gap-4">
+            {businessData?.businessInvoiceSettings?.logoUrl && (
+              <div className="flex h-16 min-w-[120px] items-center justify-center">
+                <img
+                  src={businessData.businessInvoiceSettings.logoUrl}
+                  alt={businessData?.businessName || 'Company Logo'}
+                  className="h-16 w-auto object-contain"
+                />
+              </div>
+            )}
+            <div className="text-sm font-medium">
+              <p>{businessData?.businessLocation || 'Business Location'}</p>
+              {userData?.account?.email && <p>{userData.account.email}</p>}
+              {userData?.account?.phoneNumber && (
+                <p>{userData.account.phoneNumber}</p>
+              )}
+            </div>
           </div>
 
           <Form {...form}>

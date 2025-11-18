@@ -147,7 +147,8 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
   const [openAccountCombobox, setOpenAccountCombobox] = useState({});
-  const { businessData, getBusinessData } = useUserStore();
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const { businessData, getBusinessData, data: userData } = useUserStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -214,6 +215,21 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
     control: form.control,
     name: 'products',
   });
+
+  // Fetch invoice number on mount
+  useEffect(() => {
+    const fetchInvoiceNumber = async () => {
+      try {
+        const response = await InvoiceService.getInvoiceNumber();
+        const invoiceNo = response.data?.data || '';
+        setInvoiceNumber(invoiceNo);
+      } catch (error) {
+        console.error('Error fetching invoice number:', error);
+      }
+    };
+
+    fetchInvoiceNumber();
+  }, []);
 
   // Fetch customers data
   useEffect(() => {
@@ -447,6 +463,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
           invoiceDate: data.invoice_date,
           termsOfPayment: data.term_of_payment,
           dueDate: data.due_date,
+          invoiceNo: invoiceNumber,
         },
         products: {
           products: data.products,
@@ -624,22 +641,29 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
             </div>
           </div>
           {/* Header */}
-          <div className="mt-4 mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-2xl font-semibold">New Invoice</h1>
-              </div>
-            </div>
+          <div className="mt-4 mb-5">
+            <h1 className="text-2xl font-semibold">New Invoice</h1>
+            <p className="mt-1 text-base font-medium">{invoiceNumber}</p>
           </div>
 
-          {/* Company Info */}
-          <div className="mb-6">
-            <h2 className="text-sm font-semibold">
-              {businessData?.businessName || 'Business Name'}
-            </h2>
-            <p className="text-sm text-gray-600">
-              {businessData?.businessLocation || 'Business Location'}
-            </p>
+          {/* Company Info with Logo */}
+          <div className="mb-6 flex flex-col items-start gap-4">
+            {businessData?.businessInvoiceSettings?.logoUrl && (
+              <div className="flex h-16 min-w-[120px] items-center justify-center">
+                <img
+                  src={businessData.businessInvoiceSettings.logoUrl}
+                  alt={businessData?.businessName || 'Company Logo'}
+                  className="h-16 w-auto object-contain"
+                />
+              </div>
+            )}
+            <div className="text-sm font-medium">
+              <p>{businessData?.businessLocation || 'Business Location'}</p>
+              {userData?.account?.email && <p>{userData.account.email}</p>}
+              {userData?.account?.phoneNumber && (
+                <p>{userData.account.phoneNumber}</p>
+              )}
+            </div>
           </div>
 
           <Form {...form}>

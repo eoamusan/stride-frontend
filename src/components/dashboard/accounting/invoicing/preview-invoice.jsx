@@ -73,7 +73,7 @@ export default function PreviewInvoice({
           console.log('Individual Payment:', item.payment);
           const payment = item.payment;
           return {
-            amount: total.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+            amount: payment.amountPaid,
             datePaid: payment.paymentDate || payment.createdAt,
             method: payment.paymentMethod || 'Bank Transfer',
             dateCreated: payment.createdAt,
@@ -106,7 +106,7 @@ export default function PreviewInvoice({
 
     fetchPayments();
   }, [formData.id, total, refreshPayments]);
-
+  
   // Function to upload PDF to Cloudinary
   const uploadPdfToCloudinary = async (pdfBlob, fileName) => {
     const loadingToast = toast.loading('Uploading PDF to cloud...');
@@ -562,7 +562,7 @@ export default function PreviewInvoice({
           <Button
             variant="outline"
             className="h-10 px-8"
-            disabled={!formData.id || fetchedPayments.length > 0}
+            disabled={!formData.id || formData.status === 'PAID'}
             onClick={() => setShowPaymentForm(true)}
           >
             Record Payment
