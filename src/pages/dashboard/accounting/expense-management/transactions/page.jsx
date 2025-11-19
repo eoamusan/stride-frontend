@@ -144,7 +144,7 @@ export default function ExpenseTransactions() {
 
   // Transform expenses data for the table
   const transactionData = useMemo(() => {
-    return expenses.map((item, index) => {
+    return expenses.map((item) => {
       const totalAmount =
         item.expense?.categoryDetails?.reduce(
           (sum, cat) => sum + (cat.amount || 0),
@@ -159,7 +159,7 @@ export default function ExpenseTransactions() {
 
       return {
         id: item.expense?._id || item.expense?.id,
-        no: String(index + 1).padStart(4, '0'),
+        no: item.expense?.refNo || '',
         date: item.expense?.paymentDate
           ? format(new Date(item.expense.paymentDate), 'PP')
           : 'N/A',

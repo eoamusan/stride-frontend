@@ -32,11 +32,11 @@ export default class InvoiceService {
     return response;
   }
 
-  static async fetch({ businessId, page, perPage, search }) {
+  static async fetch({ businessId, page, perPage, search, type }) {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(
       `invoice/fetch?page=${page ?? 1}&perPage=${perPage ?? 10}&search=${search ?? ''}`,
-      { businessId },
+      { businessId, type },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,

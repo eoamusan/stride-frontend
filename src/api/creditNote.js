@@ -57,4 +57,20 @@ export default class CreditNoteService {
     );
     return response;
   }
+
+  static async generateMemoId() {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.post(
+      'credit-note/memo',
+      {
+        businessId: userStore.businessData?._id,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      }
+    );
+    return response;
+  }
 }

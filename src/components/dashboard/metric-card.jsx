@@ -18,7 +18,7 @@ export default function MetricCard({
   if (emptyState) {
     return (
       <Card className={`p-6 ${className}`}>
-        <h3 className="mb-4 text-sm font-medium text-[#434343]">{title}</h3>
+        <h3 className="text-sm font-medium text-[#434343]">{title}</h3>
 
         <div className="flex items-end justify-between">
           <div className="flex-1">
@@ -94,7 +94,7 @@ export default function MetricCard({
   return (
     <Card className={`p-6 ${className}`}>
       {/* Title */}
-      <h3 className="mb-4 text-sm font-medium text-[#434343]">{title}</h3>
+      <h3 className="text-sm font-medium text-[#434343]">{title}</h3>
 
       <div className="flex items-end justify-between">
         <div className="flex-1">

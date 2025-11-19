@@ -114,7 +114,7 @@ export default function AddCreditNote({ open, onOpenChange, onSuccess }) {
       send_later: false,
       billing_address: '',
       email_address: '',
-      credit_memo_no: '1012',
+      credit_memo_no: '',
       line_items: [
         {
           service_date: undefined,
@@ -142,6 +142,24 @@ export default function AddCreditNote({ open, onOpenChange, onSuccess }) {
     control: form.control,
     name: 'line_items',
   });
+
+  // Fetch credit memo number on mount
+  useEffect(() => {
+    const fetchCreditMemoNumber = async () => {
+      if (!open) return;
+
+      try {
+        const response = await CreditNoteService.generateMemoId();
+        const memoNumber = response.data?.data?.memoId || '';
+        form.setValue('credit_memo_no', memoNumber);
+      } catch (error) {
+        console.error('Error fetching credit memo number:', error);
+        toast.error('Failed to generate credit memo number');
+      }
+    };
+
+    fetchCreditMemoNumber();
+  }, [open, form]);
 
   const watchLineItems = form.watch('line_items');
 
@@ -730,9 +748,10 @@ export default function AddCreditNote({ open, onOpenChange, onSuccess }) {
                         <FormLabel>Credit Memo no</FormLabel>
                         <FormControl>
                           <Input
-                            className={'h-10'}
-                            placeholder="1012"
+                            className={'h-10 bg-gray-50'}
+                            placeholder="Loading..."
                             {...field}
+                            readOnly
                           />
                         </FormControl>
                         <FormMessage />

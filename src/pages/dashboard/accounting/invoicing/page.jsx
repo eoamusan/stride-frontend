@@ -15,6 +15,13 @@ import InvoiceService from '@/api/invoice';
 import toast from 'react-hot-toast';
 import { useUserStore } from '@/stores/user-store';
 import { format } from 'date-fns';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const invoice = [''];
 
@@ -49,6 +56,7 @@ export default function Invoicing() {
   const [invoiceStatsData, setInvoiceStatsData] = useState({});
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterInvoiceType, setFilterInvoiceType] = useState('all');
   const [paginationData, setPaginationData] = useState({
     page: 1,
     totalPages: 1,
@@ -88,6 +96,7 @@ export default function Invoicing() {
           businessId,
           page: currentPage,
           perPage: paginationData.pageSize,
+          type: filterInvoiceType === 'all' ? null : filterInvoiceType,
         });
 
         if (invoiceRes.data && invoiceRes.data?.data?.invoices?.length > 0) {
@@ -125,7 +134,7 @@ export default function Invoicing() {
     if (businessData?._id) {
       fetchInvoices();
     }
-  }, [businessData, currentPage, paginationData.pageSize]);
+  }, [businessData, currentPage, paginationData.pageSize, filterInvoiceType]);
 
   // Handle row actions for the table
   const handleRowAction = async (action, item) => {
@@ -246,7 +255,22 @@ export default function Invoicing() {
         <EmptyInvoice onClick={handleToggleCreateInvoice} />
       ) : (
         <div>
-          <div className="my-10 flex w-full flex-wrap gap-4">
+          <div className="mt-4 w-full max-w-xs">
+            <Select
+              value={filterInvoiceType}
+              onValueChange={setFilterInvoiceType}
+            >
+              <SelectTrigger className="h-10 w-full bg-white">
+                <SelectValue placeholder="Filter by invoice type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Invoices</SelectItem>
+                <SelectItem value="regular">Regular Invoice</SelectItem>
+                <SelectItem value="proforma">Proforma Invoice</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="mt-4 mb-10 flex w-full flex-wrap gap-4">
             {/* Total Invoices Metric */}
             <MetricCard
               className="w-full max-w-[259px]"

@@ -54,6 +54,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { Switch } from '@/components/ui/switch';
 import AccountService from '@/api/accounts';
 import VendorService from '@/api/vendor';
 import ExpenseService from '@/api/expense';
@@ -80,7 +81,7 @@ const expenseSchema = z.object({
         category: z.string().min(1, 'Category is required'),
         amount: z.string().min(1, 'Amount is required'),
         description: z.string().optional(),
-        billable: z.string().optional(),
+        billable: z.boolean().default(false),
         tax: z.string().optional(),
         clientProject: z.string().optional(),
         class: z.string().optional(),
@@ -170,7 +171,7 @@ export default function ExpenseForm({
           category: '',
           amount: '',
           description: '',
-          billable: '',
+          billable: false,
           tax: '',
           clientProject: '',
           class: '',
@@ -204,7 +205,7 @@ export default function ExpenseForm({
                 category: cat.category || '',
                 amount: String(cat.amount || ''),
                 description: cat.description || '',
-                billable: cat.billable || '',
+                billable: cat.billable === true || cat.billable === 'true',
                 tax: String(cat.tax || ''),
                 clientProject: cat.clientProject || '',
                 class: cat.class || '',
@@ -214,7 +215,7 @@ export default function ExpenseForm({
                   category: '',
                   amount: '',
                   description: '',
-                  billable: '',
+                  billable: false,
                   tax: '',
                   clientProject: '',
                   class: '',
@@ -239,7 +240,7 @@ export default function ExpenseForm({
             category: '',
             amount: '',
             description: '',
-            billable: '',
+            billable: false,
             tax: '',
             clientProject: '',
             class: '',
@@ -303,7 +304,7 @@ export default function ExpenseForm({
         category: '',
         amount: '',
         description: '',
-        billable: '',
+        billable: false,
         tax: '',
         clientProject: '',
         class: '',
@@ -485,7 +486,10 @@ export default function ExpenseForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                      <PopoverContent
+                        className="w-(--radix-popover-trigger-width) p-0"
+                        align="start"
+                      >
                         <Command>
                           <CommandInput placeholder="Search vendors..." />
                           <CommandList>
@@ -583,7 +587,10 @@ export default function ExpenseForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                      <PopoverContent
+                        className="w-(--radix-popover-trigger-width) p-0"
+                        align="start"
+                      >
                         <Command>
                           <CommandInput placeholder="Search accounts..." />
                           <CommandList>
@@ -660,7 +667,10 @@ export default function ExpenseForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                      <PopoverContent
+                        className="w-(--radix-popover-trigger-width) p-0"
+                        align="start"
+                      >
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -756,7 +766,10 @@ export default function ExpenseForm({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent align="start" className="w-(--radix-popover-trigger-width) p-0">
+                      <PopoverContent
+                        align="start"
+                        className="w-(--radix-popover-trigger-width) p-0"
+                      >
                         <Command>
                           <CommandInput
                             placeholder="Search countries..."
@@ -966,7 +979,7 @@ export default function ExpenseForm({
                       </div>
 
                       {/* Billable */}
-                      <div className="col-span-3">
+                      <div className="col-span-5 flex items-center gap-6">
                         <FormField
                           control={control}
                           name={`categories.${index}.billable`}
@@ -974,25 +987,26 @@ export default function ExpenseForm({
                             <FormItem>
                               <FormLabel>Billable</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="Enter Billable"
-                                  {...field}
-                                  className="h-10"
-                                />
+                                <div className="flex items-center space-x-2">
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                  <span className="text-sm text-gray-600">
+                                    {field.value ? 'Yes' : 'No'}
+                                  </span>
+                                </div>
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-                      </div>
 
-                      {/* Tax */}
-                      <div className="col-span-3">
-                        <FormField
+                            <FormField
                           control={control}
                           name={`categories.${index}.tax`}
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className={'pt-3'}>
                               <FormLabel>Tax</FormLabel>
                               <FormControl>
                                 <Input
@@ -1007,6 +1021,11 @@ export default function ExpenseForm({
                             </FormItem>
                           )}
                         />
+                      </div>
+
+                      {/* Tax */}
+                      <div className="col-span-3">
+                    
                       </div>
                     </div>
                   </div>
