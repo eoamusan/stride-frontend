@@ -42,6 +42,10 @@ import { uploadToCloudinary } from '@/lib/cloudinary';
 
 const paymentFormSchema = z.object({
   amountPaid: z.number().min(0, { message: 'Amount paid is required' }),
+  vatAmount: z
+    .number()
+    .min(0, { message: 'VAT amount must be positive' })
+    .optional(),
   paymentDate: z.date({
     required_error: 'Payment date is required',
   }),
@@ -81,6 +85,7 @@ export default function PaymentForm({
     resolver: zodResolver(paymentFormSchemaWithValidation),
     defaultValues: {
       amountPaid: 0,
+      vatAmount: 0,
       paymentDate: undefined,
       paymentMethod: '',
       accountCode: '',
@@ -141,9 +146,6 @@ export default function PaymentForm({
 
       setIsUploadingFiles(false);
 
-      // Calculate VAT (7.5% of amount due)
-      const vatAmount = (amountDue * 0.075).toFixed(2);
-
       // Prepare payload according to API requirements
       const paymentPayload = {
         amountDue: amountDue.toString(),
@@ -153,7 +155,7 @@ export default function PaymentForm({
         paymentDate: data.paymentDate.toISOString(),
         paymentMethod: data.paymentMethod,
         trxNo: data.referenceNumber,
-        vat: vatAmount,
+        vat: (data.vatAmount || 0).toString(),
         vatCertificate: vatCertificateUrl,
         category: data.category,
         notes: data.notes || '',
@@ -293,10 +295,7 @@ export default function PaymentForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent
-                          className="w-auto p-0"
-                          align="start"
-                        >
+                        <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}
@@ -312,13 +311,29 @@ export default function PaymentForm({
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {/* VAT */}
-                <div className="space-y-2">
-                  <FormLabel>VAT</FormLabel>
-                  <div className="border-input flex h-10 items-center rounded-md border bg-gray-50 px-3 text-sm text-gray-600">
-                    {amountDue ? (amountDue * 0.075).toFixed(2) : '0.00'}
-                  </div>
-                </div>
+                {/* VAT Amount */}
+                <FormField
+                  control={form.control}
+                  name="vatAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>VAT Amount</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          formatNumber
+                          placeholder="Enter VAT amount"
+                          className="h-10"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* Payment Method */}
                 <FormField
