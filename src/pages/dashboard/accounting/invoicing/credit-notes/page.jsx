@@ -10,7 +10,7 @@ import CreditNoteService from '@/api/creditNote';
 import { format } from 'date-fns';
 
 const creditNoteColumns = [
-  { key: 'id', label: 'Credit Note No' },
+  { key: 'id', label: 'Credit Memo No' },
   { key: 'customer', label: 'Customer' },
   { key: 'originalInvoice', label: 'Original Invoice' },
   { key: 'reason', label: 'Reason' },
