@@ -11,7 +11,7 @@ import { useUserStore } from '@/stores/user-store';
 const tableColumns = [
   { key: 'name', label: 'Name' },
   { key: 'companyName', label: 'Company Name' },
-  {key: 'email', label: 'Email' },
+  { key: 'email', label: 'Email' },
   { key: 'creditLimit', label: 'Credit Limit' },
   { key: 'balance', label: 'Balance' },
   { key: 'status', label: 'Status' },
@@ -70,10 +70,10 @@ export default function Customers() {
 
   // Create metrics from analytics data
   const customerMetrics = [
-    { title: 'Total Outstanding', value: analytics.outstanding.toString() },
-    { title: 'Overdue', value: analytics.overDue.toString() },
-    { title: 'Due This week', value: analytics.dueThisWeek.toString() },
-    { title: 'Active Customers', value: analytics.activeCustomers.toString() },
+    { title: 'Total Outstanding', value: analytics.outstanding },
+    { title: 'Overdue', value: analytics.overDue },
+    { title: 'Due This week', value: analytics.dueThisWeek },
+    { title: 'Active Customers', value: analytics.activeCustomers },
   ];
 
   const handleCustomerTableAction = (action, customer) => {

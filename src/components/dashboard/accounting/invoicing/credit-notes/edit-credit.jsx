@@ -521,7 +521,10 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                        <PopoverContent
+                          className="w-(--radix-popover-trigger-width) p-0"
+                          align="start"
+                        >
                           <Command>
                             <CommandInput
                               placeholder="Search customers..."
@@ -671,7 +674,10 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                        <PopoverContent
+                          className="w-(--radix-popover-trigger-width) p-0"
+                          align="start"
+                        >
                           <Command>
                             <CommandInput
                               placeholder="Search invoices..."
@@ -772,9 +778,10 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
                         <FormLabel>Credit Memo no</FormLabel>
                         <FormControl>
                           <Input
-                            className={'h-10'}
-                            placeholder="1012"
+                            className={'h-10 bg-gray-50'}
+                            placeholder=""
                             {...field}
+                            readOnly
                           />
                         </FormControl>
                         <FormMessage />
@@ -881,6 +888,7 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
                                   type="number"
                                   step="0.01"
                                   min="0"
+                                  formatNumber
                                   placeholder="0"
                                   {...field}
                                   onChange={(e) =>

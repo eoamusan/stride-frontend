@@ -199,7 +199,7 @@ export default function SchedulePaymentForm({
                         <FormControl>
                           <div className="relative">
                             <Input
-                              placeholder="INV-2025-001"
+                              placeholder=""
                               {...field}
                               className="h-10 w-full pr-10"
                             />
@@ -221,6 +221,7 @@ export default function SchedulePaymentForm({
                         <FormControl>
                           <Input
                             type={'number'}
+                            formatNumber
                             placeholder="Enter no"
                             {...field}
                             className="h-10 w-full"

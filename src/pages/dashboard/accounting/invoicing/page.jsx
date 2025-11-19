@@ -96,7 +96,7 @@ export default function Invoicing() {
           businessId,
           page: currentPage,
           perPage: paginationData.pageSize,
-          type: filterInvoiceType === 'all' ? null : filterInvoiceType,
+          type: filterInvoiceType === 'all' ? undefined : filterInvoiceType,
         });
 
         if (invoiceRes.data && invoiceRes.data?.data?.invoices?.length > 0) {
@@ -236,7 +236,7 @@ export default function Invoicing() {
                   Regular Invoice
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleToggleCreateInvoice('performa')}
+                  onClick={() => handleToggleCreateInvoice('proforma')}
                 >
                   Proforma Invoice
                 </DropdownMenuItem>
@@ -255,7 +255,7 @@ export default function Invoicing() {
         <EmptyInvoice onClick={handleToggleCreateInvoice} />
       ) : (
         <div>
-          <div className="mt-4 w-full max-w-xs">
+          <div className="mt-4 w-full max-w-xs ml-1">
             <Select
               value={filterInvoiceType}
               onValueChange={setFilterInvoiceType}

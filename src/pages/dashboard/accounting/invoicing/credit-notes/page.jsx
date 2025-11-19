@@ -10,7 +10,7 @@ import CreditNoteService from '@/api/creditNote';
 import { format } from 'date-fns';
 
 const creditNoteColumns = [
-  { key: 'id', label: 'Credit Note ID' },
+  { key: 'id', label: 'Credit Note No' },
   { key: 'customer', label: 'Customer' },
   { key: 'originalInvoice', label: 'Original Invoice' },
   { key: 'reason', label: 'Reason' },
@@ -86,9 +86,21 @@ export default function CreditNotes() {
         title: 'Total Credit Notes',
         value: String(paginationData.totalCount || 0),
       },
-      { title: 'Total Amount', value: `$${totalAmount.toFixed(2)}` },
-      { title: 'Pending Credits', value: `$${pendingCredits.toFixed(2)}` },
-      { title: 'Applied Credits', value: `$${appliedCredits.toFixed(2)}` },
+      {
+        title: 'Total Amount',
+        value: `${totalAmount.toFixed(2)}`,
+        symbol: '$',
+      },
+      {
+        title: 'Pending Credits',
+        value: `${pendingCredits.toFixed(2)}`,
+        symbol: '$',
+      },
+      {
+        title: 'Applied Credits',
+        value: `${appliedCredits.toFixed(2)}`,
+        symbol: '$',
+      },
     ];
   };
 

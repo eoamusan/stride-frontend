@@ -87,22 +87,20 @@ export default function Payments() {
     return [
       {
         title: 'Total Payments Received',
-        value: `$${totalAmount.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
+        value: totalAmount,
+        symbol: '$',
       },
       {
         title: 'Successful Payments',
-        value: String(completedPayments),
+        value: completedPayments,
       },
       {
         title: 'Pending Payments',
-        value: String(pendingPayments),
+        value: pendingPayments,
       },
       {
         title: 'Total Transactions',
-        value: String(totalPayments),
+        value: totalPayments,
       },
     ];
   };

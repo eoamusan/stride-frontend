@@ -150,7 +150,7 @@ export default function AddCreditNote({ open, onOpenChange, onSuccess }) {
 
       try {
         const response = await CreditNoteService.generateMemoId();
-        const memoNumber = response.data?.data?.memoId || '';
+        const memoNumber = response.data?.data || '';
         form.setValue('credit_memo_no', memoNumber);
       } catch (error) {
         console.error('Error fetching credit memo number:', error);
@@ -858,6 +858,7 @@ export default function AddCreditNote({ open, onOpenChange, onSuccess }) {
                                   type="number"
                                   step="0.01"
                                   min="0"
+                                  formatNumber
                                   placeholder="0"
                                   {...field}
                                   onChange={(e) =>

@@ -1116,6 +1116,7 @@ export default function EditInvoice() {
                               <FormControl>
                                 <Input
                                   type="number"
+                                  formatNumber
                                   className={'h-10'}
                                   placeholder="Enter price"
                                   {...field}
@@ -1162,6 +1163,8 @@ export default function EditInvoice() {
                               <FormControl>
                                 <Input
                                   placeholder="TOTAL PRICE"
+                                  type={'number'}
+                                  formatNumber
                                   className={'h-10 bg-gray-50'}
                                   value={
                                     (watchProducts[index]?.unit_price || 0) *
@@ -1414,6 +1417,7 @@ export default function EditInvoice() {
                               <FormControl>
                                 <Input
                                   type="number"
+                                  formatNumber
                                   placeholder="Enter price"
                                   className="h-10 w-24 text-right"
                                   {...field}

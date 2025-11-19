@@ -427,6 +427,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                                 placeholder="0.00"
                                 className="h-10 w-full"
                                 type="number"
+                                formatNumber
                                 step="0.01"
                               />
                             </FormControl>
@@ -449,6 +450,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                                 placeholder="0.00"
                                 className="h-10 w-full"
                                 type="number"
+                                formatNumber
                                 step="0.01"
                               />
                             </FormControl>

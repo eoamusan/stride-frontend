@@ -3,7 +3,7 @@ import chevronUpIcon from '@/assets/icons/chevron-up.svg';
 import chevronDownIcon from '@/assets/icons/chevron-down.svg';
 import { Card } from '../ui/card';
 
-const emptyChartData = [10, 10, 10, 10, 10, 10, 10, 10, 10];
+const emptyChartData = [0, 2, 4, 8, 7, 10, 8, 10, 10];
 
 export default function MetricCard({
   title,
@@ -11,7 +11,7 @@ export default function MetricCard({
   unit,
   percentage,
   isPositive = true,
-  chartData,
+  // chartData,
   className = '',
   emptyState = false,
 }) {
@@ -100,7 +100,10 @@ export default function MetricCard({
         <div className="flex-1">
           {/* Value */}
           <div className="mb-2 text-base font-bold text-[#434343]">
-            {value}
+            {new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2,
+            }).format(Number(value) || 0)}
             {unit && <span className="text-[#7D7D7D]">{unit}</span>}
           </div>
 
@@ -120,12 +123,12 @@ export default function MetricCard({
         </div>
 
         {/* Chart Area */}
-        {chartData && (
+        {emptyChartData  && (
           <div className="ml-4 shrink-0">
             <div className="relative h-12 w-20">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={chartData.map((value, index) => ({
+                  data={emptyChartData.map((value, index) => ({
                     index,
                     value,
                   }))}

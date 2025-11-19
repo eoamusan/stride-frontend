@@ -6,7 +6,14 @@ export default function Metrics({ metrics }) {
           <h4 className="mb-5 text-sm font-medium text-[#434343]">
             {metric.title}
           </h4>
-          <p className="text-base font-bold text-[#434343]">{metric.value}</p>
+
+          <p className="text-base font-bold text-[#434343]">
+            {metric?.symbol}
+            {new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2,
+            }).format(Number(metric.value) || 0)}
+          </p>
         </div>
       ))}
     </div>

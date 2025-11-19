@@ -21,7 +21,8 @@ const supplierMetrics = [
   },
   {
     title: 'Monthly Spend',
-    value: '$45,230',
+    value: '45230',
+    symbol: '$',
   },
 ];
 

@@ -1120,6 +1120,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                               <FormControl>
                                 <Input
                                   type="number"
+                                  formatNumber
                                   className={'h-10'}
                                   placeholder="Enter price"
                                   {...field}
@@ -1165,6 +1166,8 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                             <FormItem>
                               <FormControl>
                                 <Input
+                                  type={'number'}
+                                  formatNumber
                                   placeholder="TOTAL PRICE"
                                   className={'h-10 bg-gray-50'}
                                   value={
@@ -1430,6 +1433,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                               <FormControl>
                                 <Input
                                   type="number"
+                                  formatNumber
                                   placeholder="Enter price"
                                   className="h-10 w-24 text-right"
                                   {...field}

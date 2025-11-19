@@ -236,6 +236,7 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
                     <FormControl>
                       <Input
                         type={'number'}
+                        formatNumber
                         placeholder="Enter no"
                         {...field}
                         className="h-10 w-full"
@@ -255,6 +256,7 @@ export default function AddProductForm({ open, onOpenChange, onProductAdded }) {
                     <FormControl>
                       <Input
                         type={'number'}
+                        formatNumber
                         placeholder="Enter no"
                         {...field}
                         className="h-10 w-full"

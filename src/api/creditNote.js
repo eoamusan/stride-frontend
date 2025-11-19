@@ -61,7 +61,7 @@ export default class CreditNoteService {
   static async generateMemoId() {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(
-      'credit-note/memo',
+      'credit-note/generate/memo',
       {
         businessId: userStore.businessData?._id,
       },
