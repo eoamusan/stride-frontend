@@ -4,34 +4,16 @@ import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-rep
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-
-const accountsData = [
-  {
-    id: 1,
-    codeSeries: '10001',
-    name: 'Wage expenses',
-    type: 'Office equipment',
-    description: 'Thank you',
-    currency: 'NGN',
-    balance: '$453',
-  },
-  {
-    id: 2,
-    codeSeries: '10001',
-    name: 'Wage expenses',
-    type: 'Office equipment',
-    description: 'Received',
-    currency: 'EUR',
-    balance: '$453',
-  },
-];
+import { useState, useEffect } from 'react';
+import AccountService from '@/api/accounts';
+import { useUserStore } from '@/stores/user-store';
+import toast from 'react-hot-toast';
 
 // Table columns configuration
 const accountColumns = [
-  { key: 'codeSeries', label: 'Code Series' },
-  { key: 'name', label: 'Name' },
-  { key: 'type', label: 'Type' },
+  { key: 'accountNumber', label: 'Account Number' },
+  { key: 'accountName', label: 'Name' },
+  { key: 'accountType', label: 'Type' },
   { key: 'description', label: 'Description' },
   { key: 'currency', label: 'Currency' },
   { key: 'balance', label: 'Balance' },
@@ -58,6 +40,9 @@ export default function ChartOfAccounts() {
   const [batchAction, setBatchAction] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
+  const [accountsData, setAccountsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { businessData } = useUserStore();
   const [columns, setColumns] = useState({
     number: true,
     type: true,
@@ -72,6 +57,53 @@ export default function ChartOfAccounts() {
   const [openAddForm, setOpenAddForm] = useState(false);
   const [showAccountSuccess, setShowAccountSuccess] = useState(false);
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
+
+  // Helper function to capitalize text
+  const capitalizeText = (text) => {
+    if (!text) return '';
+    return text
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  // Fetch accounts from API
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      if (!businessData?._id) return;
+
+      try {
+        setIsLoading(true);
+        const response = await AccountService.fetch();
+        const accounts = response.data?.data || [];
+
+        // Transform accounts to match table format
+        const transformedAccounts = accounts.map((account) => ({
+          id: account._id,
+          accountNumber: account.accountNumber || '',
+          accountName: account.accountName || '',
+          accountType: capitalizeText(account.accountType || ''),
+          description: account.description || '',
+          currency: account.currency || '',
+          balance: account.balance
+            ? `${new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(Number(account.balance))}`
+            : '0.00',
+        }));
+
+        setAccountsData(transformedAccounts);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+        toast.error('Failed to fetch accounts');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAccounts();
+  }, [businessData]);
 
   // Handlers
   const handleBatchActionChange = (value) => {
@@ -133,19 +165,19 @@ export default function ChartOfAccounts() {
     console.log(`Action: ${action}`, account);
     switch (action) {
       case 'edit':
-        console.log('Edit account:', account.codeSeries);
+        console.log('Edit account:', account.accountNumber);
         // Add edit logic here
         break;
       case 'view':
-        console.log('View account:', account.codeSeries);
+        console.log('View account:', account.accountNumber);
         // Add view logic here
         break;
       case 'delete':
-        console.log('Delete account:', account.codeSeries);
+        console.log('Delete account:', account.accountNumber);
         // Add delete logic here
         break;
       case 'duplicate':
-        console.log('Duplicate account:', account.codeSeries);
+        console.log('Duplicate account:', account.accountNumber);
         // Add duplicate logic here
         break;
       default:
@@ -178,9 +210,15 @@ export default function ChartOfAccounts() {
     if (searchTerm) {
       filtered = filtered.filter(
         (account) =>
-          account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          account.codeSeries.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          account.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          account.accountName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          account.accountNumber
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          account.accountType
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
           account.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -192,9 +230,9 @@ export default function ChartOfAccounts() {
   const getVisibleColumns = () => {
     return accountColumns.filter((column) => {
       switch (column.key) {
-        case 'codeSeries':
+        case 'accountNumber':
           return columns.number;
-        case 'type':
+        case 'accountType':
           return columns.type;
         case 'description':
           return columns.detailType;
@@ -255,7 +293,7 @@ export default function ChartOfAccounts() {
           title="Chart of Accounts"
           data={getFilteredAccounts()}
           columns={getVisibleColumns()}
-          searchFields={['name', 'codeSeries', 'type']}
+          searchFields={['accountName', 'accountNumber', 'accountType']}
           searchPlaceholder="Search accounts..."
           dropdownActions={accountDropdownActions}
           paginationData={{
@@ -266,13 +304,38 @@ export default function ChartOfAccounts() {
           selectedItems={selectedItems}
           handleSelectItem={handleSelectTableItem}
           handleSelectAll={handleSelectAllItems}
+          isLoading={isLoading}
         />
       </div>
 
       <AddAccountForm
         isOpen={openAddForm}
         onClose={setOpenAddForm}
-        showSuccessModal={() => setShowAccountSuccess(true)}
+        showSuccessModal={async () => {
+          setShowAccountSuccess(true);
+          // Refresh accounts list
+          try {
+            const response = await AccountService.fetch();
+            const accounts = response.data?.data || [];
+            const transformedAccounts = accounts.map((account) => ({
+              id: account._id,
+              accountNumber: account.accountNumber || '',
+              accountName: account.accountName || '',
+              accountType: capitalizeText(account.accountType || ''),
+              description: account.description || '',
+              currency: account.currency || '',
+              balance: account.balance
+                ? `${account.currency || '$'}${new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }).format(Number(account.balance))}`
+                : '$0.00',
+            }));
+            setAccountsData(transformedAccounts);
+          } catch (error) {
+            console.error('Error refreshing accounts:', error);
+          }
+        }}
       />
 
       <SuccessModal

@@ -29,6 +29,11 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from '@/components/ui/input-otp';
 import AccountService from '@/api/accounts';
 import { useUserStore } from '@/stores/user-store';
 import toast from 'react-hot-toast';
@@ -36,7 +41,10 @@ import toast from 'react-hot-toast';
 const formSchema = z.object({
   accountType: z.string().min(1, { message: 'Account type is required' }),
   accountName: z.string().min(1, { message: 'Account name is required' }),
-  accountNumber: z.string().min(1, { message: 'Account number is required' }),
+  accountNumber: z
+    .string()
+    .min(5, { message: 'Account number must be 5 digits' })
+    .max(5),
   accountRelation: z.enum(['subaccount', 'parent'], {
     required_error: 'Please select account relation',
   }),
@@ -52,6 +60,24 @@ export default function AddAccountForm({
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { businessData } = useUserStore();
+
+  // Get first digit based on account type
+  const getFirstDigit = (accountType) => {
+    switch (accountType) {
+      case 'assets':
+        return '1';
+      case 'liabilities':
+        return '2';
+      case 'equity':
+        return '3';
+      case 'income':
+        return '4';
+      case 'expenses':
+        return '5';
+      default:
+        return '';
+    }
+  };
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -78,6 +104,20 @@ export default function AddAccountForm({
       });
     }
   }, [formData, form]);
+
+  // Watch accountType and update first digit of accountNumber
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'accountType') {
+        const firstDigit = getFirstDigit(value.accountType);
+        const currentNumber = form.getValues('accountNumber') || '';
+        // Keep the rest of the digits but replace the first one
+        const restOfNumber = currentNumber.slice(1);
+        form.setValue('accountNumber', firstDigit + restOfNumber);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const handleSubmit = async (data) => {
     try {
@@ -192,19 +232,59 @@ export default function AddAccountForm({
             <FormField
               control={form.control}
               name="accountNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Account number</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Enter account number"
-                      className="h-10"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const accountType = form.watch('accountType');
+                const firstDigit = getFirstDigit(accountType);
+
+                return (
+                  <FormItem>
+                    <FormLabel>Account number</FormLabel>
+                    <FormControl>
+                      <InputOTP
+                        className={'items-center justify-center'}
+                        maxLength={5}
+                        value={field.value}
+                        onChange={(value) => {
+                          const correctedValue = firstDigit + value.slice(1);
+                          field.onChange(correctedValue);
+                        }}
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot
+                            index={0}
+                            className="h-14 w-14 cursor-not-allowed bg-gray-50 text-lg"
+                          />
+                        </InputOTPGroup>
+                        <InputOTPGroup>
+                          <InputOTPSlot
+                            index={1}
+                            className="h-14 w-14 text-lg"
+                          />
+                        </InputOTPGroup>
+                        <InputOTPGroup>
+                          <InputOTPSlot
+                            index={2}
+                            className="h-14 w-14 text-lg"
+                          />
+                        </InputOTPGroup>
+                        <InputOTPGroup>
+                          <InputOTPSlot
+                            index={3}
+                            className="h-14 w-14 text-lg"
+                          />
+                        </InputOTPGroup>
+                        <InputOTPGroup>
+                          <InputOTPSlot
+                            index={4}
+                            className="h-14 w-14 text-lg"
+                          />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             {/* Account Relation Radio Buttons */}
