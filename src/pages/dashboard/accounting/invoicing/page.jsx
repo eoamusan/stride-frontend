@@ -74,7 +74,10 @@ export default function Invoicing() {
       id: invoice.invoiceNo,
       customer: invoice.customerId.displayName,
       currency: invoice.currency,
-      amount: '$0.00', // Calculate from products when available
+      amount: new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Number(invoice.product?.total) || 0),
       issueDate: format(invoice.invoiceDate, 'PP'),
       dueDate: format(invoice.dueDate, 'PP'),
       status: invoice?.status || 'PENDING',
@@ -255,7 +258,7 @@ export default function Invoicing() {
         <EmptyInvoice onClick={handleToggleCreateInvoice} />
       ) : (
         <div>
-          <div className="mt-4 w-full max-w-xs ml-1">
+          <div className="mt-4 ml-1 w-full max-w-xs">
             <Select
               value={filterInvoiceType}
               onValueChange={setFilterInvoiceType}

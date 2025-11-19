@@ -239,7 +239,7 @@ export default function PaymentForm({
                           max={amountDue}
                           {...field}
                           onChange={(e) => {
-                            const value = parseFloat(e.target.value);
+                            const value = parseFloat(e.target.value || 0);
                             // Restrict to not exceed amountDue
                             if (value > amountDue) {
                               field.onChange(amountDue);
