@@ -59,7 +59,7 @@ export default function AccountActions({
       <div className="relative w-full max-w-xs">
         <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
         <Input
-          placeholder="Search accountss......"
+          placeholder="Search accounts..."
           className="h-10 w-full max-w-xs bg-white pl-10"
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}

@@ -650,7 +650,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
           {/* Company Info with Logo */}
           <div className="mb-6 flex flex-col items-start gap-4">
             {businessData?.businessInvoiceSettings?.logoUrl && (
-              <div className="flex h-16 min-w-[120px] items-center justify-center">
+              <div className="flex h-16 items-center justify-center">
                 <img
                   src={businessData.businessInvoiceSettings.logoUrl}
                   alt={businessData?.businessName || 'Company Logo'}
