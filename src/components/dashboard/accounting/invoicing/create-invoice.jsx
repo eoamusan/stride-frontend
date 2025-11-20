@@ -751,20 +751,6 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                       </CommandItem>
                                     ))}
                                   </CommandGroup>
-                                  <div className="border-t p-2">
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      className="w-full justify-start text-sm"
-                                      onClick={() => {
-                                        setOpenCustomerCombobox(false);
-                                        setIsAddCustomerModalOpen(true);
-                                      }}
-                                    >
-                                      <PlusIcon className="mr-2 h-4 w-4" />
-                                      Add Customer
-                                    </Button>
-                                  </div>
                                 </CommandList>
                               </Command>
                             </PopoverContent>
@@ -841,6 +827,17 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                 {category}
                               </SelectItem>
                             ))}
+                            <div className="border-t">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full justify-start text-sm"
+                                onClick={() => {}}
+                              >
+                                <PlusIcon className="mr-1 h-4 w-4" />
+                                Add Service
+                              </Button>
+                            </div>
                           </SelectContent>
                         </Select>
                         <FormMessage />
