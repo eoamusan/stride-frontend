@@ -23,6 +23,8 @@ const bankFormSchema = z.object({
   bankName: z.string().min(1, { message: 'Bank name is required' }),
   tin: z.string().optional(),
   sortCode: z.string().optional(),
+  swiftCode: z.string().optional(),
+  fnbUniversalCode: z.string().optional(),
 });
 
 export default function AddBankModal({ open, onOpenChange, handleSubmit }) {
@@ -34,6 +36,8 @@ export default function AddBankModal({ open, onOpenChange, handleSubmit }) {
       bankName: '',
       tin: '',
       sortCode: '',
+      swiftCode: '',
+      fnbUniversalCode: '',
     },
   });
 
@@ -144,6 +148,42 @@ export default function AddBankModal({ open, onOpenChange, handleSubmit }) {
                   <FormControl>
                     <Input
                       placeholder="Enter Sort Code"
+                      className="h-10"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Swift Code */}
+            <FormField
+              control={form.control}
+              name="swiftCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter Swift Code"
+                      className="h-10"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* FNB Universal Code */}
+            <FormField
+              control={form.control}
+              name="fnbUniversalCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter FNB Universal Code"
                       className="h-10"
                       {...field}
                     />

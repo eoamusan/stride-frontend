@@ -50,6 +50,7 @@ import { format } from 'date-fns';
 import PreviewInvoice from './preview-invoice';
 import AddCustomerModal from './customers/add-customer';
 import AddBankModal from './add-bank';
+import AddAccountForm from '@/components/dashboard/accounting/bookkeeping/add-account';
 import InvoiceTemplateSettings from './invoice-template';
 import SuccessModal from '../success-modal';
 import CustomerService from '@/api/customer';
@@ -64,7 +65,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 const formSchema = z.object({
   customerId: z.string().min(1, { message: 'Customer name is required' }),
   currency: z.string().min(1, { message: 'Currency is required' }),
-  category: z.string().min(1, { message: 'Category is required' }),
+  service: z.string().min(1, { message: 'Service is required' }),
   c_o: z.string().optional(),
   invoice_date: z
     .union([z.date(), z.string()])
@@ -137,6 +138,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const [isPreview, setIsPreview] = useState(false);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
+  const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [showTemplateSettings, setShowTemplateSettings] = useState(false);
   const [customers, setCustomers] = useState([]);
@@ -180,7 +182,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
     return {
       customerId: '',
       currency: '',
-      category: '',
+      service: '',
       c_o: '',
       invoice_date: '',
       term_of_payment: '',
@@ -269,7 +271,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
     };
 
     fetchAccounts();
-  }, [invoiceType]);
+  }, [invoiceType, isAddAccountModalOpen]);
 
   // Set customer from URL parameter if provided
   useEffect(() => {
@@ -459,7 +461,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
           type: invoiceType,
           customerId: data.customerId,
           currency: data.currency,
-          category: data.category,
+          category: data.service,
           co: data.c_o || '',
           invoiceDate: data.invoice_date,
           termsOfPayment: data.term_of_payment,
@@ -523,7 +525,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       return {
         customerId: customerId,
         currency: invoice.currency,
-        category: invoice.category,
+        service: invoice.category,
         c_o: invoice.co || '',
         invoice_date: new Date(invoice.invoiceDate),
         term_of_payment: invoice.termsOfPayment,
@@ -749,6 +751,20 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                       </CommandItem>
                                     ))}
                                   </CommandGroup>
+                                  <div className="border-t p-2">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      className="w-full justify-start text-sm"
+                                      onClick={() => {
+                                        setOpenCustomerCombobox(false);
+                                        setIsAddCustomerModalOpen(true);
+                                      }}
+                                    >
+                                      <PlusIcon className="mr-2 h-4 w-4" />
+                                      Add Customer
+                                    </Button>
+                                  </div>
                                 </CommandList>
                               </Command>
                             </PopoverContent>
@@ -801,17 +817,17 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                 <div className="flex flex-col justify-between gap-6 md:flex-row">
                   <FormField
                     control={form.control}
-                    name="category"
+                    name="service"
                     render={({ field }) => (
                       <FormItem className={'w-full max-w-xs'}>
-                        <FormLabel>Category</FormLabel>
+                        <FormLabel>Service</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger className={'w-full'}>
-                              <SelectValue placeholder="Select category" />
+                              <SelectValue placeholder="Select service" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -1082,6 +1098,25 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                               </CommandItem>
                                             ))}
                                           </CommandGroup>
+                                          <div className="border-t p-2">
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              className="w-full justify-start text-sm"
+                                              onClick={() => {
+                                                setOpenAccountCombobox(
+                                                  (prev) => ({
+                                                    ...prev,
+                                                    [index]: false,
+                                                  })
+                                                );
+                                                setIsAddAccountModalOpen(true);
+                                              }}
+                                            >
+                                              <PlusIcon className="mr-2 h-4 w-4" />
+                                              Add Account
+                                            </Button>
+                                          </div>
                                         </CommandList>
                                       </Command>
                                     </PopoverContent>
@@ -1576,6 +1611,15 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
             open={isAddBankModalOpen}
             onOpenChange={setIsAddBankModalOpen}
             handleSubmit={handleAddBank}
+          />
+
+          <AddAccountForm
+            isOpen={isAddAccountModalOpen}
+            onClose={() => setIsAddAccountModalOpen(false)}
+            showSuccessModal={() => {
+              setIsAddAccountModalOpen(false);
+              toast.success('Account added successfully');
+            }}
           />
 
           <SuccessModal
