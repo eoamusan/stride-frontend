@@ -218,7 +218,7 @@ export default function Invoicing() {
     <div className="my-4 min-h-screen">
       <InvoiceTypeModal
         isOpen={isInvoiceTypeModalOpen}
-        onClose={() => setIsInvoiceTypeModalOpen(false)}
+        onClose={setIsInvoiceTypeModalOpen}
         onSelectType={handleSelectInvoiceType}
       />
 

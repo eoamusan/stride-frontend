@@ -6,7 +6,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FileText, FileCheck } from 'lucide-react';
 import { useState } from 'react';
 import regularIcon from '@/assets/icons/regular-invoice-icon.png';
 import proformaIcon from '@/assets/icons/proforma-invoice-icon.png';
@@ -16,7 +15,6 @@ export default function InvoiceTypeModal({ isOpen, onClose, onSelectType }) {
 
   const handleNext = () => {
     onSelectType(selectedType);
-    onClose();
   };
 
   return (
