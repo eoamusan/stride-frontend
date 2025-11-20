@@ -2,13 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import EmptyInvoice from '@/components/dashboard/accounting/invoicing/empty-state';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, ChevronDown, SettingsIcon } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DownloadIcon, SettingsIcon } from 'lucide-react';
 import MetricCard from '@/components/dashboard/metric-card';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import InvoiceService from '@/api/invoice';
@@ -22,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import InvoiceTypeModal from '@/components/dashboard/accounting/invoicing/invoice-type-modal';
 
 const invoice = [''];
 
@@ -57,6 +52,7 @@ export default function Invoicing() {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterInvoiceType, setFilterInvoiceType] = useState('all');
+  const [isInvoiceTypeModalOpen, setIsInvoiceTypeModalOpen] = useState(false);
   const [paginationData, setPaginationData] = useState({
     page: 1,
     totalPages: 1,
@@ -196,7 +192,12 @@ export default function Invoicing() {
     setSelectedItems([]); // Clear selections when changing pages
   };
 
-  const handleToggleCreateInvoice = (type = 'regular') => {
+  const handleSelectInvoiceType = (type) => {
+    if (!type) return;
+    navigate(`/dashboard/accounting/invoicing/create?type=${type}`);
+  };
+
+  const handleToggleCreateInvoice = () => {
     if (!isLoadingData && !hasBankAccount) {
       toast.error(
         <p className="text-xs font-semibold">
@@ -210,11 +211,17 @@ export default function Invoicing() {
       navigate('/dashboard/accounting/invoicing/settings');
       return;
     }
-    navigate(`/dashboard/accounting/invoicing/create?type=${type}`);
+    setIsInvoiceTypeModalOpen(true);
   };
 
   return (
     <div className="my-4 min-h-screen">
+      <InvoiceTypeModal
+        isOpen={isInvoiceTypeModalOpen}
+        onClose={() => setIsInvoiceTypeModalOpen(false)}
+        onSelectType={handleSelectInvoiceType}
+      />
+
       <div className="flex flex-wrap items-center justify-between gap-6">
         <hgroup>
           <h1 className="text-2xl font-bold">Invoice Management</h1>
@@ -225,26 +232,12 @@ export default function Invoicing() {
 
         {invoice.length > 0 && (
           <div className="flex space-x-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className={'h-10 rounded-2xl px-6 text-sm'}>
-                  Create Invoice
-                  <ChevronDown className="ml-2 size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => handleToggleCreateInvoice('regular')}
-                >
-                  Regular Invoice
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleToggleCreateInvoice('proforma')}
-                >
-                  Proforma Invoice
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              className={'h-10 rounded-2xl px-6 text-sm'}
+              onClick={handleToggleCreateInvoice}
+            >
+              Create Invoice
+            </Button>
             <Button size={'icon'} className={'size-10'} variant={'outline'}>
               <DownloadIcon size={16} />
             </Button>
