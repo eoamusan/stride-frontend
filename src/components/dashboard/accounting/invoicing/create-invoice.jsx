@@ -26,9 +26,11 @@ import {
   ChevronsUpDown,
   EyeIcon,
   NotepadTextIcon,
+  PencilIcon,
   PlusIcon,
   SettingsIcon,
   TrashIcon,
+  XIcon,
 } from 'lucide-react';
 import {
   Command,
@@ -58,6 +60,7 @@ import BusinessService from '@/api/business';
 import toast from 'react-hot-toast';
 import InvoiceService from '@/api/invoice';
 import AccountService from '@/api/accounts';
+import ServiceService from '@/api/service';
 import { useUserStore } from '@/stores/user-store';
 import { Switch } from '@/components/ui/switch';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -132,14 +135,16 @@ const formSchema = z.object({
 const STORAGE_KEY = 'create_invoice_draft';
 
 // Extensive list of invoice categories
-const INVOICE_CATEGORIES = ['Services', 'Expenses', 'Others'];
-
 export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const [isPreview, setIsPreview] = useState(false);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [services, setServices] = useState([]);
+  const [isAddingService, setIsAddingService] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [newServiceName, setNewServiceName] = useState('');
   const [showTemplateSettings, setShowTemplateSettings] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -273,6 +278,21 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
     fetchAccounts();
   }, [invoiceType, isAddAccountModalOpen]);
 
+  // Fetch services
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await ServiceService.fetch({});
+        const servicesData = response.data?.data || [];
+        setServices(servicesData);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      }
+    };
+
+    fetchServices();
+  }, [isAddingService, editingService]);
+
   // Set customer from URL parameter if provided
   useEffect(() => {
     const customerIdFromUrl = searchParams.get('customerId');
@@ -384,6 +404,53 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       total_price: '',
       vat_applicable: true,
     });
+  };
+
+  const handleAddService = async () => {
+    if (!newServiceName.trim()) {
+      toast.error('Service name is required');
+      return;
+    }
+
+    try {
+      await ServiceService.create({ name: newServiceName });
+      toast.success('Service added successfully');
+      setNewServiceName('');
+      setIsAddingService(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add service');
+    }
+  };
+
+  const handleEditService = async (id) => {
+    if (!newServiceName.trim()) {
+      toast.error('Service name is required');
+      return;
+    }
+
+    try {
+      await ServiceService.update({ id, name: newServiceName });
+      toast.success('Service updated successfully');
+      setNewServiceName('');
+      setEditingService(null);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update service');
+    }
+  };
+
+  const handleDeleteService = async (id) => {
+    try {
+      await ServiceService.delete({ id });
+      toast.success('Service deleted successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete service');
+    }
+  };
+
+  const cancelServiceAction = () => {
+    setIsAddingService(false);
+    setEditingService(null);
+    setNewServiceName('');
   };
 
   const addNewBank = () => {
@@ -817,27 +884,103 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {INVOICE_CATEGORIES.map((category) => (
-                              <SelectItem
-                                key={category}
-                                value={category
-                                  .toLowerCase()
-                                  .replace(/\s+/g, '-')}
-                              >
-                                {category}
-                              </SelectItem>
-                            ))}
-                            <div className="border-t">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                className="w-full justify-start text-sm"
-                                onClick={() => {}}
-                              >
-                                <PlusIcon className="mr-1 h-4 w-4" />
-                                Add Service
-                              </Button>
-                            </div>
+                            {!isAddingService && !editingService && (
+                              <>
+                                {services.map((service) => (
+                                  <div
+                                    key={service._id}
+                                    className="flex items-center justify-between px-2 py-1.5 hover:bg-gray-100"
+                                  >
+                                    <SelectItem
+                                      value={service._id}
+                                      className="flex-1 border-0 p-0"
+                                    >
+                                      {service.name}
+                                    </SelectItem>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setEditingService(service);
+                                          setNewServiceName(service.name);
+                                        }}
+                                      >
+                                        <PencilIcon className="h-3 w-3 text-gray-600" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteService(service._id);
+                                        }}
+                                      >
+                                        <TrashIcon className="h-3 w-3 text-red-600" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                                <div className="border-t">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="w-full justify-start text-sm"
+                                    onClick={() => {
+                                      setIsAddingService(true);
+                                      setNewServiceName('');
+                                    }}
+                                  >
+                                    <PlusIcon className="mr-1 h-4 w-4" />
+                                    Add Service
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+
+                            {(isAddingService || editingService) && (
+                              <div className="space-y-2 p-2">
+                                <Input
+                                  placeholder="Enter service name"
+                                  value={newServiceName}
+                                  onChange={(e) =>
+                                    setNewServiceName(e.target.value)
+                                  }
+                                  className="h-10"
+                                  autoFocus
+                                />
+                                <div className="flex gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-10 flex-1"
+                                    onClick={cancelServiceAction}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    className="h-10 flex-1"
+                                    onClick={() => {
+                                      if (editingService) {
+                                        handleEditService(editingService._id);
+                                      } else {
+                                        handleAddService();
+                                      }
+                                    }}
+                                  >
+                                    {editingService ? 'Update' : 'Add'}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -1041,8 +1184,9 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                           ? accounts.find(
                                               (account) =>
                                                 account._id === field.value
-                                            )?.accountName || 'Select account'
-                                          : 'Select account'}
+                                            )?.accountNumber ||
+                                            'Select account code'
+                                          : 'Select account code'}
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                       </Button>
                                     </PopoverTrigger>
