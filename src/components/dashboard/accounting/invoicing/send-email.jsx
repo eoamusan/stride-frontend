@@ -15,6 +15,7 @@ import InvoiceService from '@/api/invoice';
 import toast from 'react-hot-toast';
 
 export default function SendInvoiceEmail({ open, onOpenChange, invoiceData }) {
+  console.log(invoiceData);
   const businessName =
     invoiceData?.businessSettings?.businessName || 'Oneda Business';
   const defaultSubject = `Invoice from ${businessName}`;
@@ -59,13 +60,41 @@ export default function SendInvoiceEmail({ open, onOpenChange, invoiceData }) {
             .map((email) => email.trim())
             .filter((email) => email)
         : [];
+
+      // Replace variables in the message with actual values
+      let processedMessage = formData.message;
+      const variables = {
+        fullName:
+          `${invoiceData?.customer?.firstName || ''} ${invoiceData?.customer?.lastName || ''}`.trim(),
+        firstName: invoiceData?.customer?.firstName || '',
+        lastName: invoiceData?.customer?.lastName || '',
+        email: invoiceData?.customer?.displayName || '',
+        invoiceNumber: invoiceData?.invoice_number || '',
+        invoiceDate: '', // Add invoice date property
+        dueDate: '', // Add due date property
+        invoiceAmount: '', // Add invoice amount property
+        currency: '', // Add currency property
+        companyName: businessName,
+        accountNumber: '', // Add account number property
+        bankName: '', // Add bank name property
+        invoiceLink: '', // Add invoice link property
+        paymentLink: '', // Add payment link property
+      };
+
+      // Replace all variables in the message (including those wrapped in HTML tags)
+      Object.keys(variables).forEach((key) => {
+        // Match {{variable}} even when inside HTML tags with attributes
+        const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+        processedMessage = processedMessage.replace(regex, variables[key] || '');
+      });
+
       const emailData = {
         businessId: invoiceData?.businessSettings?.businessId || '',
         customerId: invoiceData?.customer?.id || invoiceData?.customerId,
         cc: ccArray,
         bcc: bccArray,
         subject: formData.subject,
-        message: formData.message,
+        message: processedMessage,
         invoiceUrl: invoiceData?.pdfUrl || '',
       };
 

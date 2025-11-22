@@ -14,7 +14,26 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { UploadIcon, PlusIcon, RotateCcwIcon, XIcon } from 'lucide-react';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  UploadIcon,
+  PlusIcon,
+  RotateCcwIcon,
+  XIcon,
+  ChevronDown,
+} from 'lucide-react';
 import AddBankModal from '../add-bank';
 import RichTextEditor from '@/components/dashboard/rich-text-editor';
 import ColorPicker from '@/components/ui/color-picker';
@@ -22,6 +41,8 @@ import { uploadToCloudinary } from '@/lib/cloudinary';
 import toast from 'react-hot-toast';
 import BusinessService from '@/api/business';
 import { formatDate } from 'date-fns';
+import { EMAIL_TEMPLATE_VARIABLES } from '@/constants/email-template-variables';
+import { useUserStore } from '@/stores/user-store';
 
 const formSchema = z.object({
   prefix: z.string().min(1, { message: 'Invoice prefix is required' }),
@@ -47,6 +68,7 @@ const formSchema = z.object({
 });
 
 export default function SettingsForm({ businessId, initialData }) {
+  const { getBusinessData } = useUserStore();
   const [uploadedLogo, setUploadedLogo] = useState(
     initialData?.logoUrl
       ? { url: initialData.logoUrl, name: 'Existing Logo', size: 0 }
@@ -66,6 +88,8 @@ export default function SettingsForm({ businessId, initialData }) {
   const [signatureUploading, setSignatureUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasFormChanged, setHasFormChanged] = useState(false);
+  const [showVariables, setShowVariables] = useState(false);
+  const emailEditorRef = useRef(null);
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
 
@@ -266,6 +290,9 @@ export default function SettingsForm({ businessId, initialData }) {
         data: formattedData,
       });
       toast.success('Settings saved successfully');
+
+      // Refresh business data in the store
+      await getBusinessData();
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
@@ -340,6 +367,13 @@ export default function SettingsForm({ businessId, initialData }) {
   };
 
   const bankAccounts = form.watch('bankAccounts');
+
+  const handleInsertVariable = (variable) => {
+    if (emailEditorRef.current && emailEditorRef.current.insertVariable) {
+      emailEditorRef.current.insertVariable(variable);
+      setShowVariables(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
@@ -539,14 +573,66 @@ export default function SettingsForm({ businessId, initialData }) {
                   <FormLabel>Email Template</FormLabel>
                   <FormControl>
                     <RichTextEditor
+                      ref={emailEditorRef}
                       currentValue={field.value}
                       setCurrentValue={field.onChange}
-                      placeholder=""
+                      placeholder="Enter your email template..."
                     />
                   </FormControl>
-                  <div className="flex justify-between text-xs">
-                    <span className="cursor-pointer">Generate template</span>
-                    <span>{field.value?.length || 0}/1000</span>
+                  <div className="flex items-center justify-between text-xs">
+                    <Popover
+                      open={showVariables}
+                      onOpenChange={setShowVariables}
+                    >
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto p-0 text-xs font-normal text-blue-600 hover:bg-transparent hover:text-blue-800"
+                        >
+                          Show variables
+                          <ChevronDown className="ml-1 h-3 w-3" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search variables..." />
+                          <CommandList>
+                            <CommandEmpty>No variable found.</CommandEmpty>
+                            <CommandGroup>
+                              {EMAIL_TEMPLATE_VARIABLES.map((item) => (
+                                <CommandItem
+                                  key={item.variable}
+                                  onSelect={() =>
+                                    handleInsertVariable(item.variable)
+                                  }
+                                  className="flex cursor-pointer flex-col items-start gap-1"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-mono text-sm font-medium text-blue-600">
+                                      {`{{${item.variable}}}`}
+                                    </span>
+                                    <span className="text-xs text-gray-700">
+                                      {item.label}
+                                    </span>
+                                  </div>
+                                  <span className="text-xs text-gray-500">
+                                    {item.description}
+                                  </span>
+                                  <span className="text-xs text-gray-400 italic">
+                                    e.g., {item.example}
+                                  </span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <span className="text-gray-500">
+                      {field.value?.length || 0}/1000
+                    </span>
                   </div>
                   <FormMessage />
                 </FormItem>

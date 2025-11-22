@@ -321,7 +321,7 @@ export default function EditInvoice() {
     const fetchServices = async () => {
       try {
         const response = await ServiceService.fetch({});
-        const servicesData = response.data?.data || [];
+        const servicesData = response.data?.data?.services || [];
         setServices(servicesData);
       } catch (error) {
         console.error('Error fetching services:', error);
