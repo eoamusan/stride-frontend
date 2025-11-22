@@ -85,7 +85,10 @@ export default function SendInvoiceEmail({ open, onOpenChange, invoiceData }) {
       Object.keys(variables).forEach((key) => {
         // Match {{variable}} even when inside HTML tags with attributes
         const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-        processedMessage = processedMessage.replace(regex, variables[key] || '');
+        processedMessage = processedMessage.replace(
+          regex,
+          variables[key] || ''
+        );
       });
 
       const emailData = {
