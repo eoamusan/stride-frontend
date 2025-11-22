@@ -145,6 +145,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const [isAddingService, setIsAddingService] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [newServiceName, setNewServiceName] = useState('');
+  const [isSubmittingService, setIsSubmittingService] = useState(false);
   const [showTemplateSettings, setShowTemplateSettings] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -412,6 +413,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       return;
     }
 
+    setIsSubmittingService(true);
     try {
       await ServiceService.create({ name: newServiceName });
       toast.success('Service added successfully');
@@ -419,6 +421,8 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       setIsAddingService(false);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to add service');
+    } finally {
+      setIsSubmittingService(false);
     }
   };
 
@@ -428,6 +432,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       return;
     }
 
+    setIsSubmittingService(true);
     try {
       await ServiceService.update({ id, name: newServiceName });
       toast.success('Service updated successfully');
@@ -435,15 +440,20 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       setEditingService(null);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update service');
+    } finally {
+      setIsSubmittingService(false);
     }
   };
 
   const handleDeleteService = async (id) => {
+    setIsSubmittingService(true);
     try {
       await ServiceService.delete({ id });
       toast.success('Service deleted successfully');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete service');
+    } finally {
+      setIsSubmittingService(false);
     }
   };
 
@@ -903,6 +913,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                         variant="ghost"
                                         size="sm"
                                         className="h-6 w-6 p-0"
+                                        disabled={isSubmittingService}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setEditingService(service);
@@ -916,6 +927,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                         variant="ghost"
                                         size="sm"
                                         className="h-6 w-6 p-0"
+                                        disabled={isSubmittingService}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleDeleteService(service._id);
@@ -961,6 +973,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                     size="sm"
                                     className="h-10 flex-1"
                                     onClick={cancelServiceAction}
+                                    disabled={isSubmittingService}
                                   >
                                     Cancel
                                   </Button>
@@ -968,6 +981,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                     type="button"
                                     size="sm"
                                     className="h-10 flex-1"
+                                    disabled={isSubmittingService}
                                     onClick={() => {
                                       if (editingService) {
                                         handleEditService(editingService._id);
@@ -976,7 +990,13 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                       }
                                     }}
                                   >
-                                    {editingService ? 'Update' : 'Add'}
+                                    {isSubmittingService
+                                      ? editingService
+                                        ? 'Updating...'
+                                        : 'Adding...'
+                                      : editingService
+                                        ? 'Update'
+                                        : 'Add'}
                                   </Button>
                                 </div>
                               </div>
