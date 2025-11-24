@@ -52,6 +52,7 @@ import { format } from 'date-fns';
 import PreviewInvoice from './preview-invoice';
 import AddCustomerModal from './customers/add-customer';
 import AddBankModal from './add-bank';
+import AddPaymentGatewayModal from './add-payment-gateway';
 import AddAccountForm from '@/components/dashboard/accounting/bookkeeping/add-account';
 import InvoiceTemplateSettings from './invoice-template';
 import SuccessModal from '../success-modal';
@@ -139,6 +140,8 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const [isPreview, setIsPreview] = useState(false);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
+  const [isAddPaymentGatewayModalOpen, setIsAddPaymentGatewayModalOpen] =
+    useState(false);
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [services, setServices] = useState([]);
@@ -156,6 +159,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
   const [openAccountCombobox, setOpenAccountCombobox] = useState({});
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [paymentGateways, setPaymentGateways] = useState([]);
   const { businessData, getBusinessData, data: userData } = useUserStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -520,10 +524,15 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
     }
   };
 
-  // const addPaymentGateway = () => {
-  //   // Functionality to add payment gateway
-  //   console.log('Add payment gateway');
-  // };
+  const addPaymentGateway = () => {
+    setIsAddPaymentGatewayModalOpen(true);
+  };
+
+  const handleAddPaymentGateway = (newPaymentGatewayData) => {
+    // Add to local form state
+    setPaymentGateways((prev) => [...prev, newPaymentGatewayData]);
+    toast.success('Payment gateway added successfully');
+  };
 
   const onSubmit = async (data) => {
     console.log('Form submitted with data:', data);
@@ -548,7 +557,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
         products: {
           products: data.products,
           banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
-          paymentGateways: [], // You can populate this with actual payment gateway data if available
+          paymentGateways: paymentGateways,
           terms: data.terms || '',
           notes: data.internal_notes || '',
           displayBankDetails: data.display_bank_details,
@@ -722,19 +731,25 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
           </div>
           {/* Header */}
           <div className="mt-4 mb-5">
-            <h1 className="text-2xl font-semibold">New Invoice</h1>
+            <h1 className="text-2xl font-semibold">
+              {invoiceType === 'proforma' ? 'Proforma Invoice' : 'New Invoice'}
+            </h1>
             <p className="mt-1 text-base font-medium">{invoiceNumber}</p>
           </div>
 
           {/* Company Info with Logo */}
           <div className="mb-6 flex flex-col items-start gap-4">
-            {businessData?.businessInvoiceSettings?.logoUrl && (
-              <div className="flex h-16 items-center justify-center">
+            {businessData?.businessInvoiceSettings?.logoUrl ? (
+              <div className="flex h-24 items-center justify-center">
                 <img
                   src={businessData.businessInvoiceSettings.logoUrl}
                   alt={businessData?.businessName || 'Company Logo'}
-                  className="h-16 w-auto object-contain"
+                  className="h-24 w-auto object-contain"
                 />
+              </div>
+            ) : (
+              <div className="text-sm font-bold">
+                <p>{businessData?.businessName || 'Business Name'}</p>
               </div>
             )}
             <div className="text-sm font-medium">
@@ -1458,37 +1473,50 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                   <div className="flex flex-col gap-2">
                     {businessData?.businessInvoiceSettings?.bankAccounts
                       ?.length > 0 ? (
-                      businessData.businessInvoiceSettings.bankAccounts.map(
-                        (bank, index) => (
-                          <div
-                            key={index}
-                            className="mb-2 space-y-1 border-b pb-2 last:mb-0 last:border-b-0 last:pb-0"
-                          >
+                      (() => {
+                        const activeBank =
+                          businessData.businessInvoiceSettings.bankAccounts.find(
+                            (bank) => bank.isActive
+                          ) ||
+                          businessData.businessInvoiceSettings.bankAccounts[0];
+
+                        return (
+                          <div className="mb-2 space-y-1 border-b pb-2 last:mb-0 last:border-b-0 last:pb-0">
                             <div className="flex flex-nowrap items-center gap-1.5 text-xs">
                               <p className="font-semibold">Account Name:</p>
-                              <p>{bank.accountName}</p>
+                              <p>{activeBank.accountName}</p>
                             </div>
                             <div className="flex flex-nowrap items-center gap-1.5 text-xs">
                               <p className="font-semibold">Account Number:</p>
-                              <p>{bank.accountNumber}</p>
+                              <p>{activeBank.accountNumber}</p>
                             </div>
                             <div className="flex flex-nowrap items-center gap-1.5 text-xs">
                               <p className="font-semibold">Bank Name:</p>
-                              <p>{bank.bankName}</p>
+                              <p>{activeBank.bankName}</p>
                             </div>
                             <div className="flex flex-nowrap items-center gap-1.5 text-xs">
                               <p className="font-semibold">
                                 Tax identification No:
                               </p>
-                              <p>{bank.tin}</p>
+                              <p>{activeBank.tin}</p>
                             </div>
                             <div className="flex flex-nowrap items-center gap-1.5 text-xs">
                               <p className="font-semibold">Sort Code:</p>
-                              <p>{bank.sortCode}</p>
+                              <p>{activeBank.sortCode}</p>
+                            </div>
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">Swift Code:</p>
+                              <p>{activeBank?.swiftCode}</p>
+                            </div>
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">
+                                FNB Universal Code:
+                              </p>
+                              <p>{activeBank?.fnbUniversalCode}</p>
                             </div>
                           </div>
-                        )
-                      )
+                        );
+                      })()
                     ) : (
                       <div className="text-xs text-gray-500">
                         No bank accounts configured
@@ -1504,18 +1532,50 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                       <PlusIcon className="h-4 w-4" />
                       Add New bank
                     </Button>
-                    {/* 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className={'w-fit text-sm'}
-                      size={'sm'}
-                      disabled={true}
-                      onClick={addPaymentGateway}
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                      Add payment Gateway
-                    </Button> */}
+
+                    <div className="mt-6">
+                      <h4 className="mb-2 text-sm font-semibold">
+                        Payment Gateways
+                      </h4>
+                      {paymentGateways?.length > 0 ? (
+                        paymentGateways.map((gateway, index) => (
+                          <div
+                            key={index}
+                            className="mb-2 space-y-1 border-b pb-2 last:mb-0 last:border-b-0 last:pb-0"
+                          >
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">Name:</p>
+                              <p>{gateway.name}</p>
+                            </div>
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">Link:</p>
+                              <a
+                                href={gateway.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {gateway.link}
+                              </a>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-xs text-gray-500">
+                          No payment gateways configured
+                        </div>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className={'w-fit text-sm mt-4'}
+                        size={'sm'}
+                        onClick={addPaymentGateway}
+                      >
+                        <PlusIcon className="h-4 w-4" />
+                        Add payment Gateway
+                      </Button>
+                    </div>
                   </div>
                   <div className="w-full max-w-sm space-y-4">
                     <div className="space-y-2 text-sm font-medium">
@@ -1772,6 +1832,12 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
             open={isAddBankModalOpen}
             onOpenChange={setIsAddBankModalOpen}
             handleSubmit={handleAddBank}
+          />
+
+          <AddPaymentGatewayModal
+            open={isAddPaymentGatewayModalOpen}
+            onOpenChange={setIsAddPaymentGatewayModalOpen}
+            handleSubmit={handleAddPaymentGateway}
           />
 
           <AddAccountForm

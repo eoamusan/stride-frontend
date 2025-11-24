@@ -52,6 +52,7 @@ import { format } from 'date-fns';
 import PreviewInvoice from '@/components/dashboard/accounting/invoicing/preview-invoice';
 import AddCustomerModal from '@/components/dashboard/accounting/invoicing/customers/add-customer';
 import AddBankModal from '@/components/dashboard/accounting/invoicing/add-bank';
+import AddPaymentGatewayModal from '@/components/dashboard/accounting/invoicing/add-payment-gateway';
 import AddAccountForm from '@/components/dashboard/accounting/bookkeeping/add-account';
 import InvoiceTemplateSettings from '@/components/dashboard/accounting/invoicing/invoice-template';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
@@ -138,6 +139,8 @@ export default function EditInvoice() {
   const [isPreview, setIsPreview] = useState(false);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
+  const [isAddPaymentGatewayModalOpen, setIsAddPaymentGatewayModalOpen] =
+    useState(false);
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [services, setServices] = useState([]);
@@ -157,6 +160,7 @@ export default function EditInvoice() {
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(true);
   const [invoiceNo, setInvoiceNo] = useState('');
   const [invoiceType, setInvoiceType] = useState('proforma'); // default to proforma
+  const [paymentGateways, setPaymentGateways] = useState([]);
   const { businessData, getBusinessData, data: userData } = useUserStore();
 
   const form = useForm({
@@ -265,6 +269,11 @@ export default function EditInvoice() {
               invoiceData.product?.displayBankDetails || false,
             apply_signature: invoiceData.product?.applySignature || false,
           });
+
+          // Load existing payment gateways
+          if (invoiceData.product?.paymentGateways) {
+            setPaymentGateways(invoiceData.product.paymentGateways);
+          }
         }
       } catch (error) {
         console.error('Error fetching invoice:', error);
@@ -527,6 +536,16 @@ export default function EditInvoice() {
     }
   };
 
+  const addPaymentGateway = () => {
+    setIsAddPaymentGatewayModalOpen(true);
+  };
+
+  const handleAddPaymentGateway = (newPaymentGatewayData) => {
+    // Add to local form state
+    setPaymentGateways((prev) => [...prev, newPaymentGatewayData]);
+    toast.success('Payment gateway added successfully');
+  };
+
   const onSubmit = async (data) => {
     console.log('Form submitted with data:', data);
     try {
@@ -547,7 +566,7 @@ export default function EditInvoice() {
         products: {
           products: data.products,
           banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
-          paymentGateways: [],
+          paymentGateways: paymentGateways,
           terms: data.terms || '',
           notes: data.internal_notes || '',
           displayBankDetails: data.display_bank_details,
@@ -729,13 +748,17 @@ export default function EditInvoice() {
 
           {/* Company Info with Logo */}
           <div className="mb-6 flex flex-col items-start gap-4">
-            {businessData?.businessInvoiceSettings?.logoUrl && (
-              <div className="flex h-16 items-center justify-center">
+            {businessData?.businessInvoiceSettings?.logoUrl ? (
+              <div className="flex h-24 items-center justify-center">
                 <img
                   src={businessData.businessInvoiceSettings.logoUrl}
                   alt={businessData?.businessName || 'Company Logo'}
-                  className="h-16 w-auto object-contain"
+                  className="h-24 w-auto object-contain"
                 />
+              </div>
+            ) : (
+              <div className="text-sm font-bold">
+                <p>{businessData?.businessName || 'Business Name'}</p>
               </div>
             )}
             <div className="text-sm font-medium">
@@ -1498,6 +1521,50 @@ export default function EditInvoice() {
                       <PlusIcon className="h-4 w-4" />
                       Add New bank
                     </Button>
+
+                    <div className="mt-6">
+                      <h4 className="mb-2 text-sm font-semibold">
+                        Payment Gateways
+                      </h4>
+                      {paymentGateways?.length > 0 ? (
+                        paymentGateways.map((gateway, index) => (
+                          <div
+                            key={index}
+                            className="mb-2 space-y-1 border-b pb-2 last:mb-0 last:border-b-0 last:pb-0"
+                          >
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">Name:</p>
+                              <p>{gateway.name}</p>
+                            </div>
+                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                              <p className="font-semibold">Link:</p>
+                              <a
+                                href={gateway.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {gateway.link}
+                              </a>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-xs text-gray-500">
+                          No payment gateways configured
+                        </div>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className={'w-fit text-sm'}
+                        size={'sm'}
+                        onClick={addPaymentGateway}
+                      >
+                        <PlusIcon className="h-4 w-4" />
+                        Add payment Gateway
+                      </Button>
+                    </div>
                   </div>
                   <div className="w-full max-w-sm space-y-4">
                     <div className="space-y-2 text-sm font-medium">
@@ -1754,6 +1821,12 @@ export default function EditInvoice() {
             open={isAddBankModalOpen}
             onOpenChange={setIsAddBankModalOpen}
             handleSubmit={handleAddBank}
+          />
+
+          <AddPaymentGatewayModal
+            open={isAddPaymentGatewayModalOpen}
+            onOpenChange={setIsAddPaymentGatewayModalOpen}
+            handleSubmit={handleAddPaymentGateway}
           />
 
           <AddAccountForm

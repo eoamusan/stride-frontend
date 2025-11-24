@@ -5,7 +5,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { NotepadTextIcon, SendIcon, XIcon, PrinterIcon } from 'lucide-react';
+import {
+  NotepadTextIcon,
+  SendIcon,
+  XIcon,
+  PrinterIcon,
+  DownloadIcon,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { useUserStore } from '@/stores/user-store';
 import { useRef, useState, useEffect } from 'react';
@@ -106,7 +112,7 @@ export default function PreviewInvoice({
 
     fetchPayments();
   }, [formData.id, total, refreshPayments]);
-  
+
   // Function to upload PDF to Cloudinary
   const uploadPdfToCloudinary = async (pdfBlob, fileName) => {
     const loadingToast = toast.loading('Uploading PDF to cloud...');
@@ -232,10 +238,43 @@ export default function PreviewInvoice({
     }
   };
 
+  const handlePrint = () => {
+    // Hide all elements except the invoice
+    const invoice = invoiceRef.current;
+    if (!invoice) return;
+
+    // Set page title for print
+    document.title = `Invoice-${formData.invoice_number || 'draft'}`;
+
+    // Trigger print dialog
+    window.print();
+  };
+
   return (
     <div>
+      <style>{`
+        @media print {
+          .edit-button,
+          .action-buttons {
+            display: none !important;
+          }
+          body * {
+            visibility: hidden;
+          }
+          .invoice-print-area,
+          .invoice-print-area * {
+            visibility: visible;
+          }
+          .invoice-print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+        }
+      `}</style>
       <div
-        className="mx-auto max-w-2xl rounded-2xl bg-white p-8"
+        className="invoice-print-area mx-auto max-w-2xl rounded-2xl bg-white p-8"
         ref={invoiceRef}
       >
         {/* Header with Edit Button */}
@@ -260,17 +299,14 @@ export default function PreviewInvoice({
                   <img
                     src={businessData.businessInvoiceSettings.logoUrl}
                     alt="Company Logo"
-                    className="h-16 w-auto object-contain"
+                    className="h-24 w-auto object-contain"
                   />
                 ) : (
-                  <div className="flex h-16 w-32 items-center justify-center bg-gray-100 text-sm font-medium text-gray-500">
-                    {businessData?.businessName || 'No Logo'}
+                  <div className="text-sm font-bold text-black">
+                    <p>{businessData?.businessName || 'Business Name'}</p>
                   </div>
                 )}
 
-                <p className="text-sm font-semibold text-black">
-                  {businessData?.businessName || 'Business Name'}
-                </p>
                 <p className="max-w-48 text-sm text-[#727273]">
                   {businessData?.businessLocation || ''}
                 </p>
@@ -376,7 +412,10 @@ export default function PreviewInvoice({
 
           {/* Table Body */}
           <div className="border-r border-l border-gray-200">
-            {formData.products.map((product, index) => {
+            {(Array.isArray(formData.products)
+              ? formData.products
+              : formData.products?.products || []
+            ).map((product, index) => {
               const amount =
                 (product.unit_price || 0) * (product.quantity || 1);
 
@@ -480,41 +519,61 @@ export default function PreviewInvoice({
 
         {/* Bank Details */}
         {formData.display_bank_details &&
-          businessData?.businessInvoiceSettings?.bankAccounts?.length > 0 && (
+          formData.products?.banks?.length > 0 && (
             <div className="mb-8">
               <p className="text-sm font-bold">Bank Details:</p>
-              {businessData.businessInvoiceSettings.bankAccounts.map(
-                (bank, index) => (
-                  <div key={index} className="mt-2 text-sm text-gray-600">
+              {formData.products.banks.map((bank, index) => (
+                <div key={index} className="mt-2 text-sm text-gray-600">
+                  <p>
+                    <span className="font-medium">Account Name:</span>{' '}
+                    {bank.accountName}
+                  </p>
+                  <p>
+                    <span className="font-medium">Account Number:</span>{' '}
+                    {bank.accountNumber}
+                  </p>
+                  <p>
+                    <span className="font-medium">Bank Name:</span>{' '}
+                    {bank.bankName}
+                  </p>
+                  <p>
+                    <span className="font-medium">Sort Code:</span>{' '}
+                    {bank.sortCode}
+                  </p>
+                  {bank.tin && (
                     <p>
-                      <span className="font-medium">Account Name:</span>{' '}
-                      {bank.accountName}
+                      <span className="font-medium">TIN:</span> {bank.tin}
                     </p>
-                    <p>
-                      <span className="font-medium">Account Number:</span>{' '}
-                      {bank.accountNumber}
-                    </p>
-                    <p>
-                      <span className="font-medium">Bank Name:</span>{' '}
-                      {bank.bankName}
-                    </p>
-                    <p>
-                      <span className="font-medium">Sort Code:</span>{' '}
-                      {bank.sortCode}
-                    </p>
-                    {bank.tin && (
-                      <p>
-                        <span className="font-medium">TIN:</span> {bank.tin}
-                      </p>
-                    )}
-                    {index <
-                      businessData.businessInvoiceSettings.bankAccounts.length -
-                        1 && <hr className="my-2" />}
-                  </div>
-                )
-              )}
+                  )}
+                  {index < formData.products.banks.length - 1 && (
+                    <hr className="my-2" />
+                  )}
+                </div>
+              ))}
             </div>
           )}
+
+        {/* Payment Gateways */}
+        {formData.products?.paymentGateways?.length > 0 && (
+          <div className="mb-8">
+            <p className="text-sm font-bold">Other Payment Options:</p>
+            <div className="mt-2 space-y-1 text-sm">
+              {formData.products.paymentGateways.map((gateway, index) => (
+                <p key={index} className="text-gray-600">
+                  Pay with{' '}
+                  <a
+                    href={gateway.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-blue-600 hover:underline"
+                  >
+                    {gateway.name}
+                  </a>
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Signature */}
         {formData.apply_signature &&
@@ -550,13 +609,18 @@ export default function PreviewInvoice({
             </DropdownMenuContent>
           </DropdownMenu>
 
+          <Button variant="outline" className="h-10 px-8" onClick={handlePrint}>
+            <PrinterIcon className="mr-2 h-4 w-4" />
+            Print
+          </Button>
+
           <Button
             variant="outline"
             className="h-10 px-8"
             onClick={() => generatePDF(false)}
           >
-            <PrinterIcon className="mr-2 h-4 w-4" />
-            Print
+            <DownloadIcon className="mr-2 h-4 w-4" />
+            Download
           </Button>
 
           <Button

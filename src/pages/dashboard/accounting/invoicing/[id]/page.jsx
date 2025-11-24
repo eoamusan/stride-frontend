@@ -28,18 +28,22 @@ export default function ViewInvoice() {
       invoice_date: new Date(invoice.invoiceDate),
       term_of_payment: invoice.termsOfPayment || '2 days',
       due_date: new Date(invoice.dueDate),
-      products:
-        invoice.product?.products?.map((product) => ({
-          name: product.name || '',
-          description: product.description || '',
-          unit_price: product.unit_price || 0,
-          quantity: product.quantity || 1,
-          total_price: product.total_price || 0,
-          vat_applicable:
-            product.vat_applicable !== undefined
-              ? product.vat_applicable
-              : true,
-        })) || [],
+      products: {
+        products:
+          invoice.product?.products?.map((product) => ({
+            name: product.name || '',
+            description: product.description || '',
+            unit_price: product.unit_price || 0,
+            quantity: product.quantity || 1,
+            total_price: product.total_price || 0,
+            vat_applicable:
+              product.vat_applicable !== undefined
+                ? product.vat_applicable
+                : true,
+          })) || [],
+        banks: invoice.product?.banks || [],
+        paymentGateways: invoice.product?.paymentGateways || [],
+      },
       discount: parseFloat(invoice.product?.discount) || 0,
       status: invoice.status,
       vat: parseFloat(invoice.product?.vat) || 7.5,

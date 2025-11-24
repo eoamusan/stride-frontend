@@ -62,6 +62,9 @@ const formSchema = z.object({
         bankName: z.string(),
         tin: z.string(),
         sortCode: z.string(),
+        swiftCode: z.string().optional(),
+        fnbUniversalCode: z.string().optional(),
+        isActive: z.boolean().optional(),
       })
     )
     .optional(),
@@ -368,6 +371,15 @@ export default function SettingsForm({ businessId, initialData }) {
 
   const bankAccounts = form.watch('bankAccounts');
 
+  const handleSetActiveBank = (index) => {
+    const currentBanks = form.getValues('bankAccounts') || [];
+    const updatedBanks = currentBanks.map((bank, i) => ({
+      ...bank,
+      isActive: i === index,
+    }));
+    form.setValue('bankAccounts', updatedBanks);
+  };
+
   const handleInsertVariable = (variable) => {
     if (emailEditorRef.current && emailEditorRef.current.insertVariable) {
       emailEditorRef.current.insertVariable(variable);
@@ -399,8 +411,20 @@ export default function SettingsForm({ businessId, initialData }) {
                 <FormItem className={'max-w-sm'}>
                   <FormLabel>Invoice Prefix</FormLabel>
                   <FormControl>
-                    <Input className={'h-10'} placeholder="INV" {...field} />
+                    <div className="relative">
+                      <Input
+                        className={'h-10 pr-44'}
+                        placeholder="INV"
+                        {...field}
+                      />
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-400">
+                        -YYYYY-MM-DD-XXXX
+                      </div>
+                    </div>
                   </FormControl>
+                  <p className="text-xs text-gray-400">
+                    Example: {field.value || 'INV'}-2025-11-01-0001
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -515,34 +539,97 @@ export default function SettingsForm({ businessId, initialData }) {
               <FormLabel className={'font-semibold'}>Bank Accounts</FormLabel>
               {bankAccounts && bankAccounts.length > 0 ? (
                 <div className="space-y-4">
-                  {bankAccounts.map((bank, index) => (
-                    <div key={index} className="space-y-2 rounded border p-3">
-                      <div className="space-y-2 text-sm">
-                        <p>
-                          <span className="font-medium">Account Name:</span>{' '}
-                          {bank.accountName}
-                        </p>
-                        <p>
-                          <span className="font-medium">Account Number:</span>{' '}
-                          {bank.accountNumber}
-                        </p>
-                        <p>
-                          <span className="font-medium">Bank Name:</span>{' '}
-                          {bank.bankName}
-                        </p>
-                        <p>
-                          <span className="font-medium">
-                            Tax identification No:
-                          </span>{' '}
-                          {bank.tin}
-                        </p>
-                        <p>
-                          <span className="font-medium">Sort Code:</span>{' '}
-                          {bank.sortCode}
-                        </p>
+                  {bankAccounts.map((bank, index) => {
+                    const isActive =
+                      bank.isActive ||
+                      bankAccounts.length === 1 ||
+                      (index === 0 && !bankAccounts.some((b) => b.isActive));
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => handleSetActiveBank(index)}
+                        className={`flex cursor-pointer items-start gap-2 rounded border p-3 transition-all ${
+                          isActive
+                            ? 'border-green-500 bg-green-50 ring-2 ring-green-200'
+                            : 'hover:border-gray-400 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="shrink-0 pt-1">
+                          {isActive && (
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-white">
+                              <svg
+                                className="h-3 w-3"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 space-y-2 text-sm">
+                          <p>
+                            <span className="font-medium">Account Name:</span>{' '}
+                            {bank.accountName}
+                          </p>
+                          <p>
+                            <span className="font-medium">Account Number:</span>{' '}
+                            {bank.accountNumber}
+                          </p>
+                          <p>
+                            <span className="font-medium">Bank Name:</span>{' '}
+                            {bank.bankName}
+                          </p>
+                          <p>
+                            <span className="font-medium">
+                              Tax identification No:
+                            </span>{' '}
+                            {bank.tin}
+                          </p>
+                          <p>
+                            <span className="font-medium">Sort Code:</span>{' '}
+                            {bank.sortCode}
+                          </p>
+                          <p>
+                            <span className="font-medium">Swift Code:</span>{' '}
+                            {bank.swiftCode}
+                          </p>
+                          <p>
+                            <span className="font-medium">
+                              FNB Universal Code:
+                            </span>{' '}
+                            {bank.fnbUniversalCode}
+                          </p>
+                          {isActive && (
+                            <p className="mt-2 text-xs font-semibold text-green-600">
+                              ✓ Active Bank
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const currentBanks =
+                              form.getValues('bankAccounts') || [];
+                            const updatedBanks = currentBanks.filter(
+                              (_, i) => i !== index
+                            );
+                            form.setValue('bankAccounts', updatedBanks);
+                          }}
+                          className="p-1 text-red-500 hover:text-red-700"
+                        >
+                          <XIcon className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div>
@@ -829,7 +916,11 @@ export default function SettingsForm({ businessId, initialData }) {
         onOpenChange={setIsAddBankModalOpen}
         handleSubmit={(data) => {
           const currentBanks = form.getValues('bankAccounts') || [];
-          form.setValue('bankAccounts', [...currentBanks, data]);
+          const newBank = {
+            ...data,
+            isActive: currentBanks.length === 0, // Set as active if it's the first bank
+          };
+          form.setValue('bankAccounts', [...currentBanks, newBank]);
         }}
       />
     </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import InvoiceService from '@/api/invoice';
 import toast from 'react-hot-toast';
 
 export default function SendInvoiceEmail({ open, onOpenChange, invoiceData }) {
-  console.log(invoiceData);
+
   const businessName =
     invoiceData?.businessSettings?.businessName || 'Oneda Business';
   const defaultSubject = `Invoice from ${businessName}`;
@@ -25,15 +25,76 @@ export default function SendInvoiceEmail({ open, onOpenChange, invoiceData }) {
     cc: '',
     bcc: '',
     subject: defaultSubject,
-    message:
-      invoiceData?.businessSettings?.emailTemplate ||
-      `
-      <p>Dear Customer,</p>
-      <p>Please find attached your invoice. We appreciate your business and look forward to continuing our partnership.</p>
-      <p>If you have any questions about this invoice, please don't hesitate to contact us.</p>
-      <p>Best regards,<br/>Your ${businessName} Team</p>
-    `,
+    message: invoiceData?.businessSettings?.emailTemplate,
   });
+
+  // Replace variables in the email template when dialog opens or invoiceData changes
+  useEffect(() => {
+    if (open && invoiceData) {
+      const template = invoiceData?.businessSettings?.emailTemplate || '';
+
+      // Format dates
+      const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+      };
+
+      // Format currency amount
+      const formatAmount = (amount, currency) => {
+        if (!amount) return '';
+        const currencySymbols = {
+          USD: '$',
+          EUR: '€',
+          GBP: '£',
+          NGN: '₦',
+        };
+        const symbol = currencySymbols[currency] || currency;
+        return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      };
+
+      const firstBankAccount = invoiceData?.businessSettings?.bankAccounts?.[0];
+
+      const variables = {
+        fullName: invoiceData?.customer?.displayName || '',
+        firstName: invoiceData?.customer?.displayName?.split(' ')[0] || '',
+        lastName:
+          invoiceData?.customer?.displayName?.split(' ').slice(1).join(' ') ||
+          '',
+        email: invoiceData?.customer?.email || 'sample@example.com',
+        invoiceNumber: invoiceData?.invoice_number || '',
+        invoiceDate: formatDate(invoiceData?.invoice_date),
+        dueDate: formatDate(invoiceData?.due_date),
+        invoiceAmount: formatAmount(invoiceData?.total, invoiceData?.currency),
+        currency: invoiceData?.currency || '',
+        companyName: invoiceData?.customer?.companyName || businessName,
+        accountNumber: firstBankAccount?.accountNumber || '',
+        bankName: firstBankAccount?.bankName || '',
+        invoiceLink: '', // This would need to be generated based on your app's URL structure
+        paymentLink: '', // This would need to be generated based on your payment system
+      };
+
+      let processedMessage = template;
+      // Replace all variables in the message (including those wrapped in HTML tags)
+      Object.keys(variables).forEach((key) => {
+        const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+        processedMessage = processedMessage.replace(
+          regex,
+          variables[key] || ''
+        );
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        message: processedMessage,
+        subject: defaultSubject,
+      }));
+    }
+  }, [open, invoiceData, businessName, defaultSubject]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -61,43 +122,13 @@ export default function SendInvoiceEmail({ open, onOpenChange, invoiceData }) {
             .filter((email) => email)
         : [];
 
-      // Replace variables in the message with actual values
-      let processedMessage = formData.message;
-      const variables = {
-        fullName:
-          `${invoiceData?.customer?.firstName || ''} ${invoiceData?.customer?.lastName || ''}`.trim(),
-        firstName: invoiceData?.customer?.firstName || '',
-        lastName: invoiceData?.customer?.lastName || '',
-        email: invoiceData?.customer?.displayName || '',
-        invoiceNumber: invoiceData?.invoice_number || '',
-        invoiceDate: '', // Add invoice date property
-        dueDate: '', // Add due date property
-        invoiceAmount: '', // Add invoice amount property
-        currency: '', // Add currency property
-        companyName: businessName,
-        accountNumber: '', // Add account number property
-        bankName: '', // Add bank name property
-        invoiceLink: '', // Add invoice link property
-        paymentLink: '', // Add payment link property
-      };
-
-      // Replace all variables in the message (including those wrapped in HTML tags)
-      Object.keys(variables).forEach((key) => {
-        // Match {{variable}} even when inside HTML tags with attributes
-        const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-        processedMessage = processedMessage.replace(
-          regex,
-          variables[key] || ''
-        );
-      });
-
       const emailData = {
         businessId: invoiceData?.businessSettings?.businessId || '',
         customerId: invoiceData?.customer?.id || invoiceData?.customerId,
         cc: ccArray,
         bcc: bccArray,
         subject: formData.subject,
-        message: processedMessage,
+        message: formData.message,
         invoiceUrl: invoiceData?.pdfUrl || '',
       };
 
