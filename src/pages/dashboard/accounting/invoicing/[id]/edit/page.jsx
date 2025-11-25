@@ -1481,28 +1481,55 @@ export default function EditInvoice() {
                             key={index}
                             className="mb-2 space-y-1 border-b pb-2 last:mb-0 last:border-b-0 last:pb-0"
                           >
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Account Name:</p>
-                              <p>{bank.accountName}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Account Number:</p>
-                              <p>{bank.accountNumber}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Bank Name:</p>
-                              <p>{bank.bankName}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">
-                                Tax identification No:
-                              </p>
-                              <p>{bank.tin}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Sort Code:</p>
-                              <p>{bank.sortCode}</p>
-                            </div>
+                            {bank.accountName && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Account Name:</p>
+                                <p>{bank.accountName}</p>
+                              </div>
+                            )}
+
+                            {bank.accountNumber && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Account Number:</p>
+                                <p>{bank.accountNumber}</p>
+                              </div>
+                            )}
+                            {bank.bankName && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Bank Name:</p>
+                                <p>{bank.bankName}</p>
+                              </div>
+                            )}
+
+                            {bank.tin && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">
+                                  Tax identification No:
+                                </p>
+                                <p>{bank.tin}</p>
+                              </div>
+                            )}
+
+                            {bank.sortCode && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Sort Code:</p>
+                                <p>{bank.sortCode}</p>
+                              </div>
+                            )}
+                            {bank.swiftCode && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Swift Code:</p>
+                                <p>{bank.swiftCode}</p>
+                              </div>
+                            )}
+                            {bank.fnbUniversalCode && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">
+                                  FNB Universal Code:
+                                </p>
+                                <p>{bank.fnbUniversalCode}</p>
+                              </div>
+                            )}
                           </div>
                         )
                       )

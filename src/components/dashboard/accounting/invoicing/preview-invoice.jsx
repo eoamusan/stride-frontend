@@ -524,25 +524,45 @@ export default function PreviewInvoice({
               <p className="text-sm font-bold">Bank Details:</p>
               {formData.products.banks.map((bank, index) => (
                 <div key={index} className="mt-2 text-sm text-gray-600">
-                  <p>
-                    <span className="font-medium">Account Name:</span>{' '}
-                    {bank.accountName}
-                  </p>
-                  <p>
-                    <span className="font-medium">Account Number:</span>{' '}
-                    {bank.accountNumber}
-                  </p>
-                  <p>
-                    <span className="font-medium">Bank Name:</span>{' '}
-                    {bank.bankName}
-                  </p>
-                  <p>
-                    <span className="font-medium">Sort Code:</span>{' '}
-                    {bank.sortCode}
-                  </p>
+                  {bank.accountName && (
+                    <p>
+                      <span className="font-medium">Account Name:</span>{' '}
+                      {bank.accountName}
+                    </p>
+                  )}
+                  {bank.accountNumber && (
+                    <p>
+                      <span className="font-medium">Account Number:</span>{' '}
+                      {bank.accountNumber}
+                    </p>
+                  )}
+                  {bank.bankName && (
+                    <p>
+                      <span className="font-medium">Bank Name:</span>{' '}
+                      {bank.bankName}
+                    </p>
+                  )}
+                  {bank.sortCode && (
+                    <p>
+                      <span className="font-medium">Sort Code:</span>{' '}
+                      {bank.sortCode}
+                    </p>
+                  )}
                   {bank.tin && (
                     <p>
                       <span className="font-medium">TIN:</span> {bank.tin}
+                    </p>
+                  )}
+                  {bank.swiftCode && (
+                    <p>
+                      <span className="font-medium">Swift Code:</span>{' '}
+                      {bank.swiftCode}
+                    </p>
+                  )}
+                  {bank.fnbUniversalCode && (
+                    <p>
+                      <span className="font-medium">FNB Universal Code:</span>{' '}
+                      {bank.fnbUniversalCode}
                     </p>
                   )}
                   {index < formData.products.banks.length - 1 && (

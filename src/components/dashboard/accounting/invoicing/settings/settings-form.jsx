@@ -550,13 +550,13 @@ export default function SettingsForm({ businessId, initialData }) {
                         onClick={() => handleSetActiveBank(index)}
                         className={`flex cursor-pointer items-start gap-2 rounded border p-3 transition-all ${
                           isActive
-                            ? 'border-green-500 bg-green-50 ring-2 ring-green-200'
+                            ? 'border-[#254C00] bg-[#E6F4E6] ring-2 ring-[#A3D9A3]'
                             : 'hover:border-gray-400 hover:bg-gray-50'
                         }`}
                       >
                         <div className="shrink-0 pt-1">
                           {isActive && (
-                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-white">
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#254C00] text-white">
                               <svg
                                 className="h-3 w-3"
                                 fill="currentColor"
@@ -572,40 +572,55 @@ export default function SettingsForm({ businessId, initialData }) {
                           )}
                         </div>
                         <div className="flex-1 space-y-2 text-sm">
-                          <p>
-                            <span className="font-medium">Account Name:</span>{' '}
-                            {bank.accountName}
-                          </p>
-                          <p>
-                            <span className="font-medium">Account Number:</span>{' '}
-                            {bank.accountNumber}
-                          </p>
-                          <p>
-                            <span className="font-medium">Bank Name:</span>{' '}
-                            {bank.bankName}
-                          </p>
-                          <p>
-                            <span className="font-medium">
-                              Tax identification No:
-                            </span>{' '}
-                            {bank.tin}
-                          </p>
-                          <p>
-                            <span className="font-medium">Sort Code:</span>{' '}
-                            {bank.sortCode}
-                          </p>
-                          <p>
-                            <span className="font-medium">Swift Code:</span>{' '}
-                            {bank.swiftCode}
-                          </p>
-                          <p>
-                            <span className="font-medium">
-                              FNB Universal Code:
-                            </span>{' '}
-                            {bank.fnbUniversalCode}
-                          </p>
+                          {bank.accountName && (
+                            <p>
+                              <span className="font-medium">Account Name:</span>{' '}
+                              {bank.accountName}
+                            </p>
+                          )}
+                          {bank.accountNumber && (
+                            <p>
+                              <span className="font-medium">
+                                Account Number:
+                              </span>{' '}
+                              {bank.accountNumber}
+                            </p>
+                          )}
+
+                          {bank.bankName && (
+                            <p>
+                              <span className="font-medium">Bank Name:</span>{' '}
+                              {bank.bankName}
+                            </p>
+                          )}
+                          {bank.sortCode && (
+                            <p>
+                              <span className="font-medium">Sort Code:</span>{' '}
+                              {bank.sortCode}
+                            </p>
+                          )}
+                          {bank.tin && (
+                            <p>
+                              <span className="font-medium">TIN:</span>{' '}
+                              {bank.tin}
+                            </p>
+                          )}
+                          {bank.swiftCode && (
+                            <p>
+                              <span className="font-medium">Swift Code:</span>{' '}
+                              {bank.swiftCode}
+                            </p>
+                          )}
+                          {bank.fnbUniversalCode && (
+                            <p>
+                              <span className="font-medium">
+                                FNB Universal Code:
+                              </span>{' '}
+                              {bank.fnbUniversalCode}
+                            </p>
+                          )}
                           {isActive && (
-                            <p className="mt-2 text-xs font-semibold text-green-600">
+                            <p className="mt-2 text-xs font-semibold text-[#254C00]">
                               ✓ Active Bank
                             </p>
                           )}

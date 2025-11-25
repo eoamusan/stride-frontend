@@ -129,7 +129,7 @@ const formSchema = z.object({
   delivery_fee: z.number().min(0).optional(),
   terms: z.string().optional(),
   internal_notes: z.string().optional(),
-  display_bank_details: z.boolean().default(false),
+  display_bank_details: z.boolean().default(true),
   apply_signature: z.boolean().default(false),
 });
 
@@ -213,7 +213,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       delivery_fee: 0,
       terms: '',
       internal_notes: '',
-      display_bank_details: false,
+      display_bank_details: true,
       apply_signature: false,
     };
   };
@@ -1482,38 +1482,52 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
 
                         return (
                           <div className="mb-2 space-y-1 border-b pb-2 last:mb-0 last:border-b-0 last:pb-0">
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Account Name:</p>
-                              <p>{activeBank.accountName}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Account Number:</p>
-                              <p>{activeBank.accountNumber}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Bank Name:</p>
-                              <p>{activeBank.bankName}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">
-                                Tax identification No:
-                              </p>
-                              <p>{activeBank.tin}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Sort Code:</p>
-                              <p>{activeBank.sortCode}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Swift Code:</p>
-                              <p>{activeBank?.swiftCode}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">
-                                FNB Universal Code:
-                              </p>
-                              <p>{activeBank?.fnbUniversalCode}</p>
-                            </div>
+                            {activeBank.accountName && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Account Name:</p>
+                                <p>{activeBank.accountName}</p>
+                              </div>
+                            )}
+                            {activeBank.accountNumber && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Account Number:</p>
+                                <p>{activeBank.accountNumber}</p>
+                              </div>
+                            )}
+                            {activeBank.bankName && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Bank Name:</p>
+                                <p>{activeBank.bankName}</p>
+                              </div>
+                            )}
+                            {activeBank.tin && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">
+                                  Tax identification No:
+                                </p>
+                                <p>{activeBank.tin}</p>
+                              </div>
+                            )}
+                            {activeBank.sortCode && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Sort Code:</p>
+                                <p>{activeBank.sortCode}</p>
+                              </div>
+                            )}
+                            {activeBank.swiftCode && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">Swift Code:</p>
+                                <p>{activeBank.swiftCode}</p>
+                              </div>
+                            )}
+                            {activeBank.fnbUniversalCode && (
+                              <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                <p className="font-semibold">
+                                  FNB Universal Code:
+                                </p>
+                                <p>{activeBank.fnbUniversalCode}</p>
+                              </div>
+                            )}
                           </div>
                         );
                       })()
@@ -1568,7 +1582,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                       <Button
                         type="button"
                         variant="ghost"
-                        className={'w-fit text-sm mt-4'}
+                        className={'mt-4 w-fit text-sm'}
                         size={'sm'}
                         onClick={addPaymentGateway}
                       >
