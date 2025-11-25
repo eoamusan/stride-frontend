@@ -168,7 +168,7 @@ export default function EditInvoice() {
     defaultValues: {
       customerId: '',
       currency: '',
-      category: '',
+      service: '',
       c_o: '',
       invoice_date: '',
       term_of_payment: '',
@@ -229,7 +229,7 @@ export default function EditInvoice() {
           form.reset({
             customerId: customerId || '',
             currency: invoiceData.currency || '',
-            category: invoiceData.category || '',
+            service: invoiceData.service || '',
             c_o: invoiceData.co || '',
             invoice_date: invoiceData.invoiceDate
               ? new Date(invoiceData.invoiceDate)
@@ -557,7 +557,7 @@ export default function EditInvoice() {
         invoice: {
           customerId: data.customerId,
           currency: data.currency,
-          category: data.category,
+          service: data.service,
           co: data.c_o || '',
           invoiceDate: data.invoice_date,
           termsOfPayment: data.term_of_payment,
@@ -618,7 +618,7 @@ export default function EditInvoice() {
       return {
         customerId: customerId,
         currency: invoice.currency,
-        category: invoice.category,
+        service: invoice.service,
         c_o: invoice.co || '',
         invoice_date: new Date(invoice.invoiceDate),
         term_of_payment: invoice.termsOfPayment,
@@ -939,7 +939,7 @@ export default function EditInvoice() {
                                   >
                                     <SelectItem
                                       value={service._id}
-                                      className="flex-1 border-0 p-0"
+                                      className="flex-1 border-0 p-0 focus:bg-inherit"
                                     >
                                       {service.name}
                                     </SelectItem>
@@ -1350,7 +1350,7 @@ export default function EditInvoice() {
                                   placeholder="Enter price"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(parseFloat(e.target.value))
+                                    field.onChange(parseFloat(e.target.value || 0))
                                   }
                                 />
                               </FormControl>
@@ -1373,7 +1373,7 @@ export default function EditInvoice() {
                                   placeholder="QTY"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(parseInt(e.target.value))
+                                    field.onChange(parseInt(e.target.value || 0))
                                   }
                                 />
                               </FormControl>
@@ -1883,7 +1883,9 @@ export default function EditInvoice() {
             open={isSuccessModalOpen}
             onOpenChange={setIsSuccessModalOpen}
             nextText={'View'}
-            handleNext={handlePreview}
+            handleNext={() => {
+              navigate(`/dashboard/accounting/invoicing/${invoiceId}`);
+            }}
             backText={'Back to List'}
             handleBack={() => {
               navigate('/dashboard/accounting/invoicing');

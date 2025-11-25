@@ -547,7 +547,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
           type: invoiceType,
           customerId: data.customerId,
           currency: data.currency,
-          category: data.service,
+          service: data.service,
           co: data.c_o || '',
           invoiceDate: data.invoice_date,
           termsOfPayment: data.term_of_payment,
@@ -611,7 +611,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       return {
         customerId: customerId,
         currency: invoice.currency,
-        service: invoice.category,
+        service: invoice.service,
         c_o: invoice.co || '',
         invoice_date: new Date(invoice.invoiceDate),
         term_of_payment: invoice.termsOfPayment,
@@ -930,7 +930,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                   >
                                     <SelectItem
                                       value={service._id}
-                                      className="flex-1 border-0 p-0"
+                                      className="flex-1 border-0 p-0 focus:bg-inherit"
                                     >
                                       {service.name}
                                     </SelectItem>
@@ -1348,7 +1348,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                   placeholder="Enter price"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(parseFloat(e.target.value))
+                                    field.onChange(parseFloat(e.target.value || 0))
                                   }
                                 />
                               </FormControl>
@@ -1371,7 +1371,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                   placeholder="QTY"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(parseInt(e.target.value))
+                                    field.onChange(parseInt(e.target.value || 0))
                                   }
                                 />
                               </FormControl>
@@ -1881,7 +1881,11 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
             open={isSuccessModalOpen}
             onOpenChange={setIsSuccessModalOpen}
             nextText={'View'}
-            handleNext={handlePreview}
+            handleNext={() => {
+              navigate(
+                `/dashboard/accounting/invoicing/${createdInvoiceData?.invoice?._id || createdInvoiceData?._id}`
+              );
+            }}
             backText={'Back'}
             handleBack={() => {
               setIsSuccessModalOpen(false);
