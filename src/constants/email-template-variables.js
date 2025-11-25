@@ -4,7 +4,7 @@ export const EMAIL_TEMPLATE_VARIABLES = [
     variable: 'fullName',
     label: 'Customer Full Name',
     description: 'The full name of the customer',
-    example: 'John Doe',
+    example: 'Dr. John Doe',
   },
   {
     variable: 'firstName',
@@ -28,7 +28,7 @@ export const EMAIL_TEMPLATE_VARIABLES = [
     variable: 'invoiceNumber',
     label: 'Invoice Number',
     description: 'The unique invoice number',
-    example: 'INV-2024-001',
+    example: 'INV-2025-11-25-0021',
   },
   {
     variable: 'invoiceDate',
@@ -57,7 +57,7 @@ export const EMAIL_TEMPLATE_VARIABLES = [
   {
     variable: 'companyName',
     label: 'Company Name',
-    description: 'Your business/company name',
+    description: "The customer's company name",
     example: 'Acme Corporation',
   },
   {
@@ -75,14 +75,8 @@ export const EMAIL_TEMPLATE_VARIABLES = [
   {
     variable: 'invoiceLink',
     label: 'Invoice Link',
-    description: 'Direct link to view the invoice',
-    example: 'https://app.stride.com/invoices/123',
-  },
-  {
-    variable: 'paymentLink',
-    label: 'Payment Link',
-    description: 'Link for customer to make payment',
-    example: 'https://app.stride.com/pay/123',
+    description: 'Direct link to view the invoice PDF',
+    example: 'https://res.cloudinary.com/invoice.pdf',
   },
 ];
 

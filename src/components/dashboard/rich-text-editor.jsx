@@ -148,17 +148,10 @@ const RichTextEditor = forwardRef(
 
           const variableText = `{{${variable}}}`;
 
-          // Insert plain text first
-          quill.insertText(cursorPosition - 1, variableText, {
-            color: '#1e40af',
-          });
-
           // Move cursor after the inserted variable and reset formatting
           const newPosition = cursorPosition + variableText.length - 1;
           quill.setSelection(newPosition);
 
-          // Reset text formatting for next input
-          quill.format('color', false);
         },
         getQuillInstance: () => quillRef.current,
       }),

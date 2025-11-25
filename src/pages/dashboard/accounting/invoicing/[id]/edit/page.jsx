@@ -557,7 +557,7 @@ export default function EditInvoice() {
         invoice: {
           customerId: data.customerId,
           currency: data.currency,
-          service: data.service,
+          serviceId: data.service,
           co: data.c_o || '',
           invoiceDate: data.invoice_date,
           termsOfPayment: data.term_of_payment,
