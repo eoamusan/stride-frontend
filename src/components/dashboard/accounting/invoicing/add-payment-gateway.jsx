@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -29,6 +30,8 @@ export default function AddPaymentGatewayModal({
   open,
   onOpenChange,
   handleSubmit,
+  initialData = null,
+  isEditing = false,
 }) {
   const form = useForm({
     resolver: zodResolver(paymentGatewayFormSchema),
@@ -37,6 +40,17 @@ export default function AddPaymentGatewayModal({
       link: '',
     },
   });
+
+  // Reset form with initial data when modal opens or initial data changes
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        form.reset(initialData);
+      } else {
+        form.reset({ name: '', link: '' });
+      }
+    }
+  }, [open, initialData, form]);
 
   const onSubmit = async (data) => {
     if (handleSubmit) {
@@ -56,7 +70,7 @@ export default function AddPaymentGatewayModal({
       <DialogContent className="max-h-[90vh] w-full max-w-lg overflow-y-auto p-8 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-left text-2xl font-semibold">
-            Add Payment Gateway
+            {isEditing ? 'Edit Payment Gateway' : 'Add Payment Gateway'}
           </DialogTitle>
         </DialogHeader>
 
@@ -112,7 +126,7 @@ export default function AddPaymentGatewayModal({
                 Cancel
               </Button>
               <Button type="submit" className="h-10">
-                Save
+                {isEditing ? 'Update' : 'Save'}
               </Button>
             </div>
           </form>

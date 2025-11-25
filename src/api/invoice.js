@@ -14,7 +14,7 @@ export default class InvoiceService {
 
   static async update({ id, data }) {
     const userStore = useUserStore.getState();
-    const response = await axiosInstance.patch(`invoice/${id}`, data, {
+    const response = await axiosInstance.put(`invoice/${id}`, data, {
       headers: {
         Authorization: `Bearer ${userStore.data?.accessToken}`,
       },

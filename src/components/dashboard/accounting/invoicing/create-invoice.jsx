@@ -141,7 +141,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
   const [isAddPaymentGatewayModalOpen, setIsAddPaymentGatewayModalOpen] =
-    useState(false);
+    useState({ open: false, editIndex: null, initialData: null });
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [services, setServices] = useState([]);
@@ -525,13 +525,34 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   };
 
   const addPaymentGateway = () => {
-    setIsAddPaymentGatewayModalOpen(true);
+    setIsAddPaymentGatewayModalOpen({
+      open: true,
+      editIndex: null,
+      initialData: null,
+    });
   };
 
   const handleAddPaymentGateway = (newPaymentGatewayData) => {
-    // Add to local form state
-    setPaymentGateways((prev) => [...prev, newPaymentGatewayData]);
-    toast.success('Payment gateway added successfully');
+    if (isAddPaymentGatewayModalOpen.editIndex !== null) {
+      // Edit existing gateway
+      setPaymentGateways((prev) =>
+        prev.map((gateway, i) =>
+          i === isAddPaymentGatewayModalOpen.editIndex
+            ? newPaymentGatewayData
+            : gateway
+        )
+      );
+      toast.success('Payment gateway updated successfully');
+    } else {
+      // Add new gateway
+      setPaymentGateways((prev) => [...prev, newPaymentGatewayData]);
+      toast.success('Payment gateway added successfully');
+    }
+  };
+
+  const handleRemovePaymentGateway = (index) => {
+    setPaymentGateways((prev) => prev.filter((_, i) => i !== index));
+    toast.success('Payment gateway removed');
   };
 
   const onSubmit = async (data) => {
@@ -1348,7 +1369,9 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                   placeholder="Enter price"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(parseFloat(e.target.value || 0))
+                                    field.onChange(
+                                      parseFloat(e.target.value || 0)
+                                    )
                                   }
                                 />
                               </FormControl>
@@ -1371,7 +1394,9 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                   placeholder="QTY"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(parseInt(e.target.value || 0))
+                                    field.onChange(
+                                      parseInt(e.target.value || 0)
+                                    )
                                   }
                                 />
                               </FormControl>
@@ -1569,20 +1594,56 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                             key={index}
                             className="mb-2 space-y-1 border-b pb-2 last:mb-0 last:border-b-0 last:pb-0"
                           >
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Name:</p>
-                              <p>{gateway.name}</p>
-                            </div>
-                            <div className="flex flex-nowrap items-center gap-1.5 text-xs">
-                              <p className="font-semibold">Link:</p>
-                              <a
-                                href={gateway.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline"
-                              >
-                                {gateway.link}
-                              </a>
+                            <div className="flex justify-between gap-2">
+                              <div className="flex-1 space-y-1">
+                                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                  <p className="font-semibold">Name:</p>
+                                  <p>{gateway.name}</p>
+                                </div>
+                                <div className="flex flex-nowrap items-center gap-1.5 text-xs">
+                                  <p className="font-semibold">Link:</p>
+                                  <a
+                                    href={gateway.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline"
+                                  >
+                                    {gateway.link}
+                                  </a>
+                                </div>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => {
+                                    setPaymentGateways((prev) => {
+                                      const selected = prev[index];
+                                      setIsAddPaymentGatewayModalOpen({
+                                        open: true,
+                                        editIndex: index,
+                                        initialData: selected,
+                                      });
+                                      return prev;
+                                    });
+                                  }}
+                                >
+                                  <PencilIcon className="h-3 w-3 text-gray-600" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() =>
+                                    handleRemovePaymentGateway(index)
+                                  }
+                                >
+                                  <TrashIcon className="h-3 w-3 text-red-600" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))
@@ -1861,9 +1922,17 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
           />
 
           <AddPaymentGatewayModal
-            open={isAddPaymentGatewayModalOpen}
-            onOpenChange={setIsAddPaymentGatewayModalOpen}
+            open={isAddPaymentGatewayModalOpen.open}
+            onOpenChange={(open) =>
+              setIsAddPaymentGatewayModalOpen({
+                open,
+                editIndex: null,
+                initialData: null,
+              })
+            }
             handleSubmit={handleAddPaymentGateway}
+            initialData={isAddPaymentGatewayModalOpen.initialData}
+            isEditing={isAddPaymentGatewayModalOpen.editIndex !== null}
           />
 
           <AddAccountForm
