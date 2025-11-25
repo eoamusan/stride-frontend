@@ -617,7 +617,11 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
         term_of_payment: invoice.termsOfPayment,
         due_date: invoice.dueDate ? new Date(invoice.dueDate) : undefined,
         invoice_number: invoice.invoiceNo,
-        products: product.products,
+        products: {
+          products: product.products || [],
+          banks: product.banks || [],
+          paymentGateways: product.paymentGateways || [],
+        },
         discount: parseFloat(product.discount || 0),
         vat: parseFloat(product.vat || 0),
         delivery_fee: parseFloat(product.deliveryFee || 0),
@@ -631,7 +635,15 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
     }
 
     // Fallback to form data if no created invoice data
-    return form.getValues();
+    const formValues = form.getValues();
+    return {
+      ...formValues,
+      products: {
+        products: formValues.products || [],
+        banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
+        paymentGateways: paymentGateways || [],
+      },
+    };
   };
 
   const handleSave = async () => {
