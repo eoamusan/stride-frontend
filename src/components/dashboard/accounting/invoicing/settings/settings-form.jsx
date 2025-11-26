@@ -70,6 +70,32 @@ const formSchema = z.object({
     .optional(),
 });
 
+// Default email template
+const DEFAULT_EMAIL_TEMPLATE = `<p>Dear {{fullName}},</p>
+<p><br></p>
+<p>We hope this message finds you well. Please find attached invoice {{invoiceNumber}} for the amount of {{invoiceAmount}} {{currency}}.</p>
+<p><br></p>
+<p><strong>Invoice Details:</strong></p>
+<ul>
+<li>Invoice Date: {{invoiceDate}}</li>
+<li>Due Date: {{dueDate}}</li>
+<li>Amount Due: {{invoiceAmount}} {{currency}}</li>
+</ul>
+<p><br></p>
+<p>You can view and download your invoice using the following link:</p>
+<p>{{invoiceLink}}</p>
+<p><br></p>
+<p>Thank you</p>`;
+
+// Helper function to check if email template has actual text content
+const hasEmailTemplateContent = (template) => {
+  if (!template || template.trim().length === 0) return false;
+
+  // Remove HTML tags and check if there's actual text content
+  const textContent = template.replace(/<[^>]*>/g, '').trim();
+  return textContent.length > 0;
+};
+
 export default function SettingsForm({ businessId, initialData }) {
   const { getBusinessData } = useUserStore();
   const [uploadedLogo, setUploadedLogo] = useState(
@@ -113,7 +139,9 @@ export default function SettingsForm({ businessId, initialData }) {
       prefix: initialData?.prefix || '',
       logoUrl: initialData?.logoUrl || '',
       useLogo: initialData?.useLogo || false,
-      emailTemplate: initialData?.emailTemplate || '',
+      emailTemplate: hasEmailTemplateContent(initialData?.emailTemplate)
+        ? initialData.emailTemplate
+        : DEFAULT_EMAIL_TEMPLATE,
       terms: initialData?.terms || '',
       signatureUrl: initialData?.signatureUrl || '',
       tin: initialData?.tin || '',
@@ -150,11 +178,17 @@ export default function SettingsForm({ businessId, initialData }) {
   // Reset form when initialData changes (for async loading)
   useEffect(() => {
     if (initialData) {
+      const emailTemplateValue = hasEmailTemplateContent(
+        initialData.emailTemplate
+      )
+        ? initialData.emailTemplate
+        : DEFAULT_EMAIL_TEMPLATE;
+
       form.reset({
         prefix: initialData.prefix || '',
         logoUrl: initialData.logoUrl || '',
         useLogo: initialData.useLogo || false,
-        emailTemplate: initialData.emailTemplate || '',
+        emailTemplate: emailTemplateValue,
         terms: initialData.terms || '',
         signatureUrl: initialData.signatureUrl || '',
         tin: initialData.tin || '',

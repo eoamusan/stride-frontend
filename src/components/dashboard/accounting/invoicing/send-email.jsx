@@ -25,6 +25,32 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
+// Helper function to check if email template has actual text content
+const hasEmailTemplateContent = (template) => {
+  if (!template || template.trim().length === 0) return false;
+
+  // Remove HTML tags and check if there's actual text content
+  const textContent = template.replace(/<[^>]*>/g, '').trim();
+  return textContent.length > 0;
+};
+
+// Default email template
+const DEFAULT_EMAIL_TEMPLATE = `<p>Dear {{fullName}},</p>
+<p><br></p>
+<p>We hope this message finds you well. Please find attached invoice {{invoiceNumber}} for the amount of {{invoiceAmount}} {{currency}}.</p>
+<p><br></p>
+<p><strong>Invoice Details:</strong></p>
+<ul>
+<li>Invoice Date: {{invoiceDate}}</li>
+<li>Due Date: {{dueDate}}</li>
+<li>Amount Due: {{invoiceAmount}} {{currency}}</li>
+</ul>
+<p><br></p>
+<p>You can view and download your invoice using the following link:</p>
+<p>{{invoiceLink}}</p>
+<p><br></p>
+<p>Thank you</p>`;
+
 const emailFormSchema = z.object({
   cc: z.string().optional(),
   bcc: z.string().optional(),
@@ -47,7 +73,11 @@ export default function SendInvoiceEmail({ open, onOpenChange, invoiceData }) {
       cc: '',
       bcc: '',
       subject: defaultSubject,
-      message: invoiceData?.businessSettings?.emailTemplate || '',
+      message: hasEmailTemplateContent(
+        invoiceData?.businessSettings?.emailTemplate
+      )
+        ? invoiceData.businessSettings.emailTemplate
+        : DEFAULT_EMAIL_TEMPLATE,
     },
   });
 
@@ -78,9 +108,11 @@ export default function SendInvoiceEmail({ open, onOpenChange, invoiceData }) {
   // Replace variables in the email template when dialog opens or invoiceData changes
   useEffect(() => {
     if (open && invoiceData && customer) {
-      const template = invoiceData?.businessSettings?.emailTemplate || '';
-
-      console.log(customer);
+      const template = hasEmailTemplateContent(
+        invoiceData?.businessSettings?.emailTemplate
+      )
+        ? invoiceData.businessSettings.emailTemplate
+        : DEFAULT_EMAIL_TEMPLATE;
 
       // Format dates
       const formatDate = (dateString) => {
