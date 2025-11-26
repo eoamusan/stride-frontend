@@ -49,6 +49,11 @@ export default function PreviewInvoice({
   const primaryColor =
     businessData?.businessInvoiceSettings?.brandColor || '#00aa00';
 
+  // Determine if this is a proforma invoice (no account field in products)
+  const isProforma = Array.isArray(formData.products)
+    ? !formData.products.some((p) => p.account)
+    : !formData.products?.products?.some((p) => p.account);
+
   // Find the selected customer
   const selectedCustomer = customers.find(
     (customer) => customer.id.toString() === formData.customerId
@@ -198,7 +203,7 @@ export default function PreviewInvoice({
       );
 
       // Generate filename
-      const fileName = `invoice-${formData.invoice_number || 'draft'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+      const fileName = `${formData.invoice_number || 'invoice'}.pdf`;
 
       let pdfUrl = null;
 
@@ -270,6 +275,7 @@ export default function PreviewInvoice({
             left: 0;
             top: 0;
             width: 100%;
+            transform-origin: top center;
           }
         }
       `}</style>
@@ -290,6 +296,15 @@ export default function PreviewInvoice({
 
         {/* Invoice Header */}
         <div className="mb-8">
+          {/* Proforma Invoice Label */}
+          {isProforma && (
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold">
+                PROFORMA INVOICE
+              </h2>
+            </div>
+          )}
+
           {/* Company Logo and Details */}
 
           <div className="">

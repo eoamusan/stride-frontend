@@ -15,6 +15,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Command,
   CommandEmpty,
   CommandGroup,
@@ -118,6 +124,11 @@ export default function SettingsForm({ businessId, initialData }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasFormChanged, setHasFormChanged] = useState(false);
   const [showVariables, setShowVariables] = useState(false);
+  const [imagePreview, setImagePreview] = useState({
+    open: false,
+    url: '',
+    title: '',
+  });
   const emailEditorRef = useRef(null);
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
@@ -528,14 +539,19 @@ export default function SettingsForm({ businessId, initialData }) {
                         : 'Existing file'}
                     </p>
                     {uploadedLogo.url && (
-                      <a
-                        href={uploadedLogo.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setImagePreview({
+                            open: true,
+                            url: uploadedLogo.url,
+                            title: 'Logo Preview',
+                          })
+                        }
                         className="text-xs text-blue-600 hover:underline"
                       >
                         View Logo
-                      </a>
+                      </button>
                     )}
                   </div>
                   <Button
@@ -916,14 +932,19 @@ export default function SettingsForm({ businessId, initialData }) {
                         : 'Existing file'}
                     </p>
                     {uploadedSignature.url && (
-                      <a
-                        href={uploadedSignature.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setImagePreview({
+                            open: true,
+                            url: uploadedSignature.url,
+                            title: 'Signature Preview',
+                          })
+                        }
                         className="text-xs text-blue-600 hover:underline"
                       >
                         View Signature
-                      </a>
+                      </button>
                     )}
                   </div>
                   <Button
@@ -959,6 +980,25 @@ export default function SettingsForm({ businessId, initialData }) {
           </div>
         </form>
       </Form>
+
+      {/* Image Preview Modal */}
+      <Dialog
+        open={imagePreview.open}
+        onOpenChange={(open) => setImagePreview({ ...imagePreview, open })}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{imagePreview.title}</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center p-4">
+            <img
+              src={imagePreview.url}
+              alt={imagePreview.title}
+              className="max-h-[70vh] w-auto object-contain"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AddBankModal
         open={isAddBankModalOpen}
