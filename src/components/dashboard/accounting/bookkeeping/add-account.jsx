@@ -27,8 +27,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import {
   InputOTP,
   InputOTPGroup,
@@ -45,21 +43,21 @@ const formSchema = z.object({
     .string()
     .min(5, { message: 'Account number must be 5 digits' })
     .max(5),
-  accountRelation: z.enum(['subaccount', 'parent'], {
-    required_error: 'Please select account relation',
-  }),
-  detailType: z.string().min(1, { message: 'Detail type is required' }),
   description: z.string().optional(),
 });
 
 export default function AddAccountForm({
   isOpen = false,
+  type,
   onClose,
   formData = null,
   showSuccessModal,
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { businessData } = useUserStore();
+
+  //COME HERE
+  const accountSuggestions = [40001, 40002, 40003, 40004];
 
   // Get first digit based on account type
   const getFirstDigit = (accountType) => {
@@ -82,11 +80,9 @@ export default function AddAccountForm({
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      accountType: '',
+      accountType: type || '',
       accountName: '',
       accountNumber: '',
-      accountRelation: 'subaccount',
-      detailType: '',
       description: '',
     },
   });
@@ -95,25 +91,40 @@ export default function AddAccountForm({
   useEffect(() => {
     if (formData) {
       form.reset({
-        accountType: formData.accountType || '',
+        accountType: formData.accountType || type || '',
         accountName: formData.accountName || '',
         accountNumber: formData.accountNumber || '',
-        accountRelation: formData.accountRelation || 'subaccount',
-        detailType: formData.detailType || '',
         description: formData.description || '',
       });
     }
-  }, [formData, form]);
+  }, [formData, form, type]);
+
+  // Set accountType when type prop is provided
+  useEffect(() => {
+    if (type) {
+      form.setValue('accountType', type);
+      // Set the first digit of account number when type is provided
+      const firstDigit = getFirstDigit(type);
+      const currentNumber = form.getValues('accountNumber') || '';
+      const restOfNumber = currentNumber.slice(1);
+      form.setValue('accountNumber', firstDigit + restOfNumber);
+    }
+  }, [type, form]);
 
   // Watch accountType and update first digit of accountNumber
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === 'accountType') {
+      if (
+        name === 'accountType' ||
+        (value.accountType && !form.getValues('accountNumber'))
+      ) {
         const firstDigit = getFirstDigit(value.accountType);
-        const currentNumber = form.getValues('accountNumber') || '';
-        // Keep the rest of the digits but replace the first one
-        const restOfNumber = currentNumber.slice(1);
-        form.setValue('accountNumber', firstDigit + restOfNumber);
+        if (firstDigit) {
+          const currentNumber = form.getValues('accountNumber') || '';
+          // Keep the rest of the digits but replace the first one
+          const restOfNumber = currentNumber.slice(1);
+          form.setValue('accountNumber', firstDigit + restOfNumber);
+        }
       }
     });
     return () => subscription.unsubscribe();
@@ -129,9 +140,6 @@ export default function AddAccountForm({
         accountType: data.accountType,
         accountName: data.accountName,
         accountNumber: data.accountNumber,
-        subAccount: data.accountRelation === 'subaccount',
-        parentAccount: data.accountRelation === 'parent',
-        detailType: data.detailType,
         description: data.description || '',
       };
 
@@ -190,7 +198,11 @@ export default function AddAccountForm({
                   <FormLabel className="text-sm font-medium">
                     Account type
                   </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={!!type}
+                  >
                     <FormControl>
                       <SelectTrigger className="h-10 w-full">
                         <SelectValue placeholder="Select account type" />
@@ -238,7 +250,26 @@ export default function AddAccountForm({
 
                 return (
                   <FormItem>
-                    <FormLabel>Account number</FormLabel>
+                    <div className="flex items-center gap-4">
+                      <FormLabel>Account number</FormLabel>
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-medium text-[#434343]">
+                          Account Codes:{' '}
+                        </p>
+                        <ul className="flex items-center text-xs font-medium text-[#EF4444]">
+                          {accountSuggestions.map((code, i) => (
+                            <li
+                              key={code}
+                              className="cursor-pointer rounded px-1"
+                              onClick={() => field.onChange(code.toString())}
+                            >
+                              {code}
+                              {i < accountSuggestions.length - 1 ? ',' : ''}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                     <FormControl>
                       <InputOTP
                         className={'items-center justify-center'}
@@ -287,70 +318,13 @@ export default function AddAccountForm({
               }}
             />
 
-            {/* Account Relation Radio Buttons */}
-            <FormField
-              control={form.control}
-              name="accountRelation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="grid gap-8 sm:grid-cols-2"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="subaccount" id="subaccount" />
-                        <Label
-                          htmlFor="subaccount"
-                          className="text-sm font-medium"
-                        >
-                          Make this a subaccount
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="parent" id="parent" />
-                        <Label htmlFor="parent" className="text-sm font-medium">
-                          Make this a parent account
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Detail Type */}
-            <FormField
-              control={form.control}
-              name="detailType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Detail type</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-10 w-full">
-                        <SelectValue placeholder="Select detail type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="prepayment">Prepayment</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             {/* Description */}
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Description (optional)</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}

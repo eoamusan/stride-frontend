@@ -2,7 +2,8 @@ import LedgerViewCta from '@/components/dashboard/accounting/bookkeeping/ledger-
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import LedgerService from '@/api/ledger';
 
 const ledgercolumns = [
   { key: 'id', label: 'Ledger ID' },
@@ -46,6 +47,19 @@ export default function LedgerView() {
 
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
+
+  useEffect(() => {
+    const fetchLedgerEntries = async () => {
+      try {
+        const response = await LedgerService.fetch();
+        console.log('Fetched ledger entries:', response.data);
+      } catch (err) {
+        console.error('Error fetching ledger entries:', err);
+      }
+    };
+
+    fetchLedgerEntries();
+  }, []);
 
   // Handle table item selection
   const handleSelectTableItem = (itemId, checked) => {

@@ -1936,6 +1936,7 @@ export default function EditInvoice() {
           <AddAccountForm
             isOpen={isAddAccountModalOpen}
             onClose={() => setIsAddAccountModalOpen(false)}
+            type={'income'}
             showSuccessModal={() => {
               setIsAddAccountModalOpen(false);
               toast.success('Account added successfully');

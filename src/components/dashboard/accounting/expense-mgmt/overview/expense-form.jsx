@@ -1002,7 +1002,7 @@ export default function ExpenseForm({
                           )}
                         />
 
-                            <FormField
+                        <FormField
                           control={control}
                           name={`categories.${index}.tax`}
                           render={({ field }) => (
@@ -1024,9 +1024,7 @@ export default function ExpenseForm({
                       </div>
 
                       {/* Tax */}
-                      <div className="col-span-3">
-                    
-                      </div>
+                      <div className="col-span-3"></div>
                     </div>
                   </div>
                 ))}
@@ -1206,6 +1204,7 @@ export default function ExpenseForm({
         {/* Add Account Modal */}
         <AddAccountForm
           isOpen={isAddAccountModalOpen}
+          type={'expenses'}
           onClose={setIsAddAccountModalOpen}
           showSuccessModal={async () => {
             // Refresh accounts list

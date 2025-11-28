@@ -1938,6 +1938,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
           <AddAccountForm
             isOpen={isAddAccountModalOpen}
             onClose={() => setIsAddAccountModalOpen(false)}
+            type={'income'}
             showSuccessModal={() => {
               setIsAddAccountModalOpen(false);
               toast.success('Account added successfully');
