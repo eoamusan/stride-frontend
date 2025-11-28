@@ -4,6 +4,7 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import LedgerService from '@/api/ledger';
+import { useNavigate } from 'react-router';
 
 const ledgercolumns = [
   { key: 'id', label: 'Ledger ID' },
@@ -44,6 +45,7 @@ export default function LedgerView() {
   const [accountType, setAccountType] = useState('');
   const [accountingMethod, setAccountingMethod] = useState('cash');
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
+  const navigate = useNavigate();
 
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
@@ -178,6 +180,7 @@ export default function LedgerView() {
         onClose={() => setOpenRunReportForm(false)}
         onSubmit={() => {
           setOpenRunReportForm(false);
+          navigate('/dashboard/accounting/bookkeeping/ledger-view/report');
         }}
       />
     </div>

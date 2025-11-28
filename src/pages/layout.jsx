@@ -47,6 +47,7 @@ import Bills from './dashboard/accounting/expense-management/bills/page';
 import { authMiddleware } from '@/middleware/auth-middleware';
 import VendorExpenseDetails from './dashboard/accounting/expense-management/vendors/[id]/page';
 import ViewCustomer from './dashboard/accounting/invoicing/customers/[id]/page';
+import LedgerReportPage from './dashboard/accounting/bookkeeping/ledger-view/report/page';
 
 const router = createBrowserRouter([
   {
@@ -174,7 +175,16 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'ledger-view',
-                        Component: LedgerView,
+                        children: [
+                          {
+                            index: true,
+                            Component: LedgerView,
+                          },
+                          {
+                            path: 'report',
+                            Component: LedgerReportPage,
+                          },
+                        ],
                       },
                       {
                         path: 'journals',
