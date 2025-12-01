@@ -35,6 +35,11 @@ import {
 import AccountService from '@/api/accounts';
 import { useUserStore } from '@/stores/user-store';
 import toast from 'react-hot-toast';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search } from 'lucide-react';
+import notFoundImg from '@/assets/icons/not-found.png';
 
 const formSchema = z.object({
   accountType: z.string().min(1, { message: 'Account type is required' }),
@@ -43,6 +48,7 @@ const formSchema = z.object({
     .string()
     .min(5, { message: 'Account number must be 5 digits' })
     .max(5),
+  accountRelation: z.string().optional(),
   description: z.string().optional(),
 });
 
@@ -54,10 +60,29 @@ export default function AddAccountForm({
   showSuccessModal,
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedParentAccount, setSelectedParentAccount] = useState(null);
+  const [accountsList, setAccountsList] = useState([
+    {
+      id: 1,
+      accountNumber: '20001',
+      accountType: 'Income',
+      accountName: 'Office equipment',
+    },
+    {
+      id: 2,
+      accountNumber: '20001',
+      accountType: 'Income',
+      accountName: 'Office equipment',
+    },
+    {
+      id: 3,
+      accountNumber: '20001',
+      accountType: 'Income',
+      accountName: 'Office equipment',
+    },
+  ]);
   const { businessData } = useUserStore();
-
-  //COME HERE
-  const accountSuggestions = [40001, 40002, 40003, 40004];
 
   // Get first digit based on account type
   const getFirstDigit = (accountType) => {
@@ -84,6 +109,7 @@ export default function AddAccountForm({
       accountName: '',
       accountNumber: '',
       description: '',
+      accountRelation: 'subaccount',
     },
   });
 
@@ -95,6 +121,7 @@ export default function AddAccountForm({
         accountName: formData.accountName || '',
         accountNumber: formData.accountNumber || '',
         description: formData.description || '',
+        accountRelation: formData.accountRelation || '',
       });
     }
   }, [formData, form, type]);
@@ -174,11 +201,23 @@ export default function AddAccountForm({
     }
   };
 
+  // Filter accounts based on search query
+  const filteredAccounts = accountsList.filter(
+    (account) =>
+      account.accountName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      account.accountNumber.includes(searchQuery) ||
+      account.accountType.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleAccountSelect = (account) => {
+    setSelectedParentAccount(account);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-h-[90vh] w-full max-w-2xl overflow-y-auto p-8 sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Add Account</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Add Service</DialogTitle>
           <DialogDescription className="text-sm">
             Enter the details
           </DialogDescription>
@@ -187,7 +226,7 @@ export default function AddAccountForm({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="space-y-7"
           >
             {/* Account Type */}
             <FormField
@@ -227,11 +266,11 @@ export default function AddAccountForm({
               name="accountName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Account name</FormLabel>
+                  <FormLabel>Service</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder="Enter account name"
+                      placeholder="Enter service"
                       className="h-10"
                     />
                   </FormControl>
@@ -250,26 +289,7 @@ export default function AddAccountForm({
 
                 return (
                   <FormItem>
-                    <div className="flex items-center gap-4">
-                      <FormLabel>Account number</FormLabel>
-                      <div className="flex items-center gap-1">
-                        <p className="text-xs font-medium text-[#434343]">
-                          Account Codes:{' '}
-                        </p>
-                        <ul className="flex items-center text-xs font-medium text-[#EF4444]">
-                          {accountSuggestions.map((code, i) => (
-                            <li
-                              key={code}
-                              className="cursor-pointer rounded px-1"
-                              onClick={() => field.onChange(code.toString())}
-                            >
-                              {code}
-                              {i < accountSuggestions.length - 1 ? ',' : ''}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+                    <FormLabel>Account number</FormLabel>
                     <FormControl>
                       <InputOTP
                         className={'items-center justify-center'}
@@ -318,6 +338,96 @@ export default function AddAccountForm({
               }}
             />
 
+            {/* Account Relation Radio Buttons */}
+            <FormField
+              control={form.control}
+              name="accountRelation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="grid gap-8 sm:grid-cols-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="subaccount" id="subaccount" />
+                        <Label
+                          htmlFor="subaccount"
+                          className="text-sm font-medium"
+                        >
+                          Make this a subaccount
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="parent" id="parent" />
+                        <Label htmlFor="parent" className="text-sm font-medium">
+                          Make this a parent account
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Parent Account Search - Only visible when subaccount is selected */}
+            {form.watch('accountRelation') === 'subaccount' && (
+              <div className="space-y-4">
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="search parent account"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-12 pl-10"
+                  />
+                </div>
+
+                {/* Accounts List */}
+                <div className="max-h-[200px] overflow-y-auto rounded-lg border bg-white p-2 shadow-sm drop-shadow">
+                  {filteredAccounts.length > 0 ? (
+                    <div className="">
+                      {filteredAccounts.map((account) => (
+                        <div
+                          key={account.id}
+                          className="flex cursor-pointer items-center space-x-3 border-b bg-white px-3 py-4 hover:bg-gray-50"
+                          // onClick={() => handleAccountSelect(account)}
+                        >
+                          <Checkbox
+                            checked={selectedParentAccount?.id === account.id}
+                            onCheckedChange={() => handleAccountSelect(account)}
+                          />
+                          <div className="flex flex-1 items-center justify-between text-sm">
+                            <span className="font-medium">
+                              {account.accountNumber}
+                            </span>
+                            <span className="text-gray-600">
+                              {account.accountType}
+                            </span>
+                            <span className="text-gray-600">
+                              {account.accountName}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <div className="mb-3">
+                        <img src={notFoundImg} alt="No Account Found" className="h-24 w-auto" />
+                      </div>
+                      <p className="text-sm font-medium text-gray-700">
+                        No Account found
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Description */}
             <FormField
               control={form.control}
@@ -353,7 +463,7 @@ export default function AddAccountForm({
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Adding...' : 'Add account'}
+                {isSubmitting ? 'Adding...' : 'Add service'}
               </Button>
             </div>
           </form>
