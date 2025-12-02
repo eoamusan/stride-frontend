@@ -62,45 +62,10 @@ export default function AddAccountForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParentAccount, setSelectedParentAccount] = useState(null);
-  const [accountsList, setAccountsList] = useState([
-    {
-      id: 1,
-      accountNumber: '20001',
-      accountType: 'Income',
-      accountName: 'Office equipment',
-    },
-    {
-      id: 2,
-      accountNumber: '20001',
-      accountType: 'Income',
-      accountName: 'Office equipment',
-    },
-    {
-      id: 3,
-      accountNumber: '20001',
-      accountType: 'Income',
-      accountName: 'Office equipment',
-    },
-  ]);
+  const [accountsList, setAccountsList] = useState([]);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+  const [accountRelation, setAccountRelation] = useState('subaccount');
   const { businessData } = useUserStore();
-
-  // Get first digit based on account type
-  const getFirstDigit = (accountType) => {
-    switch (accountType) {
-      case 'assets':
-        return '1';
-      case 'liabilities':
-        return '2';
-      case 'equity':
-        return '3';
-      case 'income':
-        return '4';
-      case 'expenses':
-        return '5';
-      default:
-        return '';
-    }
-  };
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -130,32 +95,73 @@ export default function AddAccountForm({
   useEffect(() => {
     if (type) {
       form.setValue('accountType', type);
-      // Set the first digit of account number when type is provided
-      const firstDigit = getFirstDigit(type);
-      const currentNumber = form.getValues('accountNumber') || '';
-      const restOfNumber = currentNumber.slice(1);
-      form.setValue('accountNumber', firstDigit + restOfNumber);
     }
   }, [type, form]);
 
-  // Watch accountType and update first digit of accountNumber
+  // Call generateCode when accountType is selected
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (
-        name === 'accountType' ||
-        (value.accountType && !form.getValues('accountNumber'))
-      ) {
-        const firstDigit = getFirstDigit(value.accountType);
-        if (firstDigit) {
-          const currentNumber = form.getValues('accountNumber') || '';
-          // Keep the rest of the digits but replace the first one
-          const restOfNumber = currentNumber.slice(1);
-          form.setValue('accountNumber', firstDigit + restOfNumber);
+    const subscription = form.watch(async (value, { name }) => {
+      if (name === 'accountType' && value.accountType) {
+        try {
+          const response = await AccountService.generatecode({
+            accountType: value.accountType,
+          });
+          // Set the generated account number
+          if (response.data?.success && response.data?.data) {
+            form.setValue('accountNumber', response.data.data);
+          }
+        } catch (error) {
+          console.error('Error generating code:', error);
         }
       }
     });
     return () => subscription.unsubscribe();
   }, [form]);
+
+  // Watch accountRelation and update local state
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'accountRelation') {
+        setAccountRelation(value.accountRelation || 'subaccount');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // Fetch accounts with debounce based on accountRelation and search
+  useEffect(() => {
+    // Only fetch if accountRelation is 'subaccount'
+    if (accountRelation !== 'subaccount') {
+      setAccountsList([]);
+      return;
+    }
+
+    const debounceTimer = setTimeout(async () => {
+      try {
+        setIsLoadingAccounts(true);
+        const subAccount = accountRelation === 'subaccount';
+        const parentAccount = accountRelation === 'parent';
+
+        const response = await AccountService.fetch({
+          subAccount,
+          parentAccount,
+          search: searchQuery,
+          page: 1,
+          perPage: 50,
+        });
+
+        setAccountsList(response.data?.data?.accounts || []);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+        toast.error('Failed to fetch accounts');
+        setAccountsList([]);
+      } finally {
+        setIsLoadingAccounts(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, accountRelation]);
 
   const handleSubmit = async (data) => {
     try {
@@ -166,7 +172,10 @@ export default function AddAccountForm({
         businessId: businessData?._id,
         accountType: data.accountType,
         accountName: data.accountName,
-        accountNumber: data.accountNumber,
+        accountCode: data.accountNumber,
+        parentAccountId: selectedParentAccount?._id || '',
+        subAccount: data.accountRelation === 'subaccount',
+        parentAccount: data.accountRelation === 'parent',
         description: data.description || '',
       };
 
@@ -200,14 +209,6 @@ export default function AddAccountForm({
       onClose();
     }
   };
-
-  // Filter accounts based on search query
-  const filteredAccounts = accountsList.filter(
-    (account) =>
-      account.accountName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      account.accountNumber.includes(searchQuery) ||
-      account.accountType.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const handleAccountSelect = (account) => {
     setSelectedParentAccount(account);
@@ -284,9 +285,6 @@ export default function AddAccountForm({
               control={form.control}
               name="accountNumber"
               render={({ field }) => {
-                const accountType = form.watch('accountType');
-                const firstDigit = getFirstDigit(accountType);
-
                 return (
                   <FormItem>
                     <FormLabel>Account number</FormLabel>
@@ -295,15 +293,12 @@ export default function AddAccountForm({
                         className={'items-center justify-center'}
                         maxLength={5}
                         value={field.value}
-                        onChange={(value) => {
-                          const correctedValue = firstDigit + value.slice(1);
-                          field.onChange(correctedValue);
-                        }}
+                        onChange={field.onChange}
                       >
                         <InputOTPGroup>
                           <InputOTPSlot
                             index={0}
-                            className="h-14 w-14 cursor-not-allowed bg-gray-50 text-lg"
+                            className="h-14 w-14 text-lg"
                           />
                         </InputOTPGroup>
                         <InputOTPGroup>
@@ -388,36 +383,46 @@ export default function AddAccountForm({
 
                 {/* Accounts List */}
                 <div className="max-h-[200px] overflow-y-auto rounded-lg border bg-white p-2 shadow-sm drop-shadow">
-                  {filteredAccounts.length > 0 ? (
-                    <div className="">
-                      {filteredAccounts.map((account) => (
+                  {isLoadingAccounts ? (
+                    <div className="flex items-center justify-center py-8">
+                      <p className="text-sm text-gray-500">
+                        Loading accounts...
+                      </p>
+                    </div>
+                  ) : accountsList.length > 0 ? (
+                    <div className="space-y-2">
+                      {accountsList.map((account) => (
                         <div
-                          key={account.id}
-                          className="flex cursor-pointer items-center space-x-3 border-b bg-white px-3 py-4 hover:bg-gray-50"
-                          // onClick={() => handleAccountSelect(account)}
+                          key={account._id || account.id}
+                          className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-3 border-b bg-white px-3 py-4 hover:bg-gray-50"
                         >
                           <Checkbox
-                            checked={selectedParentAccount?.id === account.id}
+                            checked={
+                              selectedParentAccount?._id === account._id ||
+                              selectedParentAccount?.id === account.id
+                            }
                             onCheckedChange={() => handleAccountSelect(account)}
                           />
-                          <div className="flex flex-1 items-center justify-between text-sm">
-                            <span className="font-medium">
-                              {account.accountNumber}
-                            </span>
-                            <span className="text-gray-600">
-                              {account.accountType}
-                            </span>
-                            <span className="text-gray-600">
-                              {account.accountName}
-                            </span>
-                          </div>
+                          <span className="text-sm font-medium">
+                            {account.accountNumber}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {account.accountType}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {account.accountName}
+                          </span>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8">
                       <div className="mb-3">
-                        <img src={notFoundImg} alt="No Account Found" className="h-24 w-auto" />
+                        <img
+                          src={notFoundImg}
+                          alt="No Account Found"
+                          className="h-24 w-auto"
+                        />
                       </div>
                       <p className="text-sm font-medium text-gray-700">
                         No Account found

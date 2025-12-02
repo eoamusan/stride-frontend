@@ -27,14 +27,6 @@ const accountDropdownActions = [
   { key: 'duplicate', label: 'Duplicate' },
 ];
 
-// Pagination data
-const accountPaginationData = {
-  page: 1,
-  totalPages: 10,
-  pageSize: 75,
-  totalCount: 200,
-};
-
 export default function ChartOfAccounts() {
   // State for AccountActions
   const [batchAction, setBatchAction] = useState('');
@@ -42,6 +34,15 @@ export default function ChartOfAccounts() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [accountsData, setAccountsData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationInfo, setPaginationInfo] = useState({
+    totalDocs: 0,
+    limit: 50,
+    totalPages: 1,
+    page: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
   const { businessData } = useUserStore();
   const [columns, setColumns] = useState({
     number: true,
@@ -74,23 +75,42 @@ export default function ChartOfAccounts() {
 
       try {
         setIsLoading(true);
-        const response = await AccountService.fetch();
-        const accounts = response.data?.data || [];
+        const response = await AccountService.fetch({
+          search: searchTerm,
+          page: currentPage,
+          perPage: parseInt(pageSize) || 50,
+        });
+
+        const responseData = response.data?.data;
+        const accounts = responseData?.accounts || [];
+
+        // Update pagination info
+        setPaginationInfo({
+          totalDocs: responseData?.totalDocs || 0,
+          limit: responseData?.limit || 50,
+          totalPages: responseData?.totalPages || 1,
+          page: responseData?.page || 1,
+          hasNextPage: responseData?.hasNextPage || false,
+          hasPrevPage: responseData?.hasPrevPage || false,
+        });
 
         // Transform accounts to match table format
         const transformedAccounts = accounts.map((account) => ({
           id: account._id,
-          accountNumber: account.accountNumber || '',
+          accountNumber: account.accountCode || account.accountNumber || '',
           accountName: account.accountName || '',
           accountType: capitalizeText(account.accountType || ''),
           description: account.description || '',
-          currency: account.currency || '',
+          currency: account.currency || 'USD',
           balance: account.balance
             ? `${new Intl.NumberFormat('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               }).format(Number(account.balance))}`
             : '0.00',
+          parentAccountId: account.parentAccountId || null,
+          subAccount: account.subAccount,
+          parentAccount: account.parentAccount,
         }));
 
         setAccountsData(transformedAccounts);
@@ -102,8 +122,13 @@ export default function ChartOfAccounts() {
       }
     };
 
-    fetchAccounts();
-  }, [businessData]);
+    // Debounce search
+    const debounceTimer = setTimeout(() => {
+      fetchAccounts();
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [businessData, searchTerm, currentPage, pageSize]);
 
   // Handlers
   const handleBatchActionChange = (value) => {
@@ -113,7 +138,13 @@ export default function ChartOfAccounts() {
 
   const handleSearchTermChange = (value) => {
     setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page on search
     console.log('Search term changed to:', value);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    console.log('Page changed to:', page);
   };
 
   const handleColumnsChange = (column, checked) => {
@@ -136,6 +167,7 @@ export default function ChartOfAccounts() {
 
   const handlePageSizeChange = (value) => {
     setPageSize(value);
+    setCurrentPage(1); // Reset to first page when changing page size
     console.log('Page size changed to:', value);
   };
 
@@ -194,36 +226,11 @@ export default function ChartOfAccounts() {
   };
 
   const handleSelectAllItems = (checked) => {
-    const filteredData = getFilteredAccounts();
     if (checked) {
-      setSelectedItems(filteredData.map((item) => item.id));
+      setSelectedItems(accountsData.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
-  };
-
-  // Filter accounts based on search term and column visibility
-  const getFilteredAccounts = () => {
-    let filtered = accountsData;
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (account) =>
-          account.accountName
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          account.accountNumber
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          account.accountType
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          account.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    return filtered;
   };
 
   // Get visible columns based on settings
@@ -291,15 +298,18 @@ export default function ChartOfAccounts() {
         <AccountingTable
           className="mt-10"
           title="Chart of Accounts"
-          data={getFilteredAccounts()}
+          data={accountsData}
           columns={getVisibleColumns()}
           searchFields={['accountName', 'accountNumber', 'accountType']}
           searchPlaceholder="Search accounts..."
           dropdownActions={accountDropdownActions}
           paginationData={{
-            ...accountPaginationData,
-            pageSize: parseInt(pageSize),
+            page: paginationInfo.page,
+            totalPages: paginationInfo.totalPages,
+            pageSize: paginationInfo.limit,
+            totalCount: paginationInfo.totalDocs,
           }}
+          onPageChange={handlePageChange}
           onRowAction={handleAccountRowAction}
           selectedItems={selectedItems}
           handleSelectItem={handleSelectTableItem}
@@ -315,21 +325,39 @@ export default function ChartOfAccounts() {
           setShowAccountSuccess(true);
           // Refresh accounts list
           try {
-            const response = await AccountService.fetch();
-            const accounts = response.data?.data || [];
+            const response = await AccountService.fetch({
+              subAccount: true,
+              parentAccount: true,
+              search: searchTerm,
+              page: currentPage,
+              perPage: parseInt(pageSize) || 50,
+            });
+            const responseData = response.data?.data;
+            const accounts = responseData?.accounts || [];
+
+            // Update pagination info
+            setPaginationInfo({
+              totalDocs: responseData?.totalDocs || 0,
+              limit: responseData?.limit || 50,
+              totalPages: responseData?.totalPages || 1,
+              page: responseData?.page || 1,
+              hasNextPage: responseData?.hasNextPage || false,
+              hasPrevPage: responseData?.hasPrevPage || false,
+            });
+
             const transformedAccounts = accounts.map((account) => ({
               id: account._id,
-              accountNumber: account.accountNumber || '',
+              accountNumber: account.accountCode || account.accountNumber || '',
               accountName: account.accountName || '',
               accountType: capitalizeText(account.accountType || ''),
               description: account.description || '',
-              currency: account.currency || '',
+              currency: account.currency || 'USD',
               balance: account.balance
-                ? `${account.currency || '$'}${new Intl.NumberFormat('en-US', {
+                ? `${new Intl.NumberFormat('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   }).format(Number(account.balance))}`
-                : '$0.00',
+                : '0.00',
             }));
             setAccountsData(transformedAccounts);
           } catch (error) {
