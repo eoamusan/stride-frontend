@@ -178,11 +178,15 @@ export default function AddAccountForm({
         accountType: data.accountType,
         accountName: data.accountName,
         accountCode: data.accountNumber,
-        parentAccountId: selectedParentAccount?._id || '',
         subAccount: data.accountRelation === 'subaccount',
         parentAccount: data.accountRelation === 'parent',
         description: data.description || '',
       };
+
+      // Only add parentAccountId if it exists
+      if (selectedParentAccount?._id) {
+        payload.parentAccountId = selectedParentAccount._id;
+      }
 
       const response = await AccountService.create({ data: payload });
 
@@ -387,7 +391,7 @@ export default function AddAccountForm({
                 </div>
 
                 {/* Accounts List */}
-                <div className="max-h-[200px] overflow-y-auto rounded-lg border bg-white p-2 shadow-sm drop-shadow">
+                <div className="max-h-[250px] overflow-y-auto rounded-lg border bg-white p-2 shadow-sm drop-shadow">
                   {isLoadingAccounts ? (
                     <div className="flex items-center justify-center py-8">
                       <p className="text-sm text-gray-500">
@@ -409,12 +413,12 @@ export default function AddAccountForm({
                             onCheckedChange={() => handleAccountSelect(account)}
                           />
                           <span className="text-sm font-medium">
-                            {account.accountNumber}
+                            {account.accountCode || account.accountNumber}
                           </span>
                           <span className="text-sm text-gray-600">
                             {account.accountType}
                           </span>
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-gray-600 text-nowrap overflow-hidden text-ellipsis">
                             {account.accountName}
                           </span>
                         </div>

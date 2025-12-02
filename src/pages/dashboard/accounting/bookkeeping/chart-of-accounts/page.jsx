@@ -326,8 +326,6 @@ export default function ChartOfAccounts() {
           // Refresh accounts list
           try {
             const response = await AccountService.fetch({
-              subAccount: true,
-              parentAccount: true,
               search: searchTerm,
               page: currentPage,
               perPage: parseInt(pageSize) || 50,
