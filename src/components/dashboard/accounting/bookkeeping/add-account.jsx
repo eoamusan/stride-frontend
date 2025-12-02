@@ -130,6 +130,11 @@ export default function AddAccountForm({
 
   // Fetch accounts with debounce based on accountRelation and search
   useEffect(() => {
+    // Only fetch when the dialog is open
+    if (!isOpen) {
+      return;
+    }
+
     // Only fetch if accountRelation is 'subaccount'
     if (accountRelation !== 'subaccount') {
       setAccountsList([]);
@@ -161,7 +166,7 @@ export default function AddAccountForm({
     }, 500); // 500ms debounce
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery, accountRelation]);
+  }, [searchQuery, accountRelation, isOpen]);
 
   const handleSubmit = async (data) => {
     try {
