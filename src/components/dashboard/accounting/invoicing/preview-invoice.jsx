@@ -45,6 +45,8 @@ export default function PreviewInvoice({
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [calculatedBalanceDue, setCalculatedBalanceDue] = useState(0);
 
+  console.log('preview invoice customer',customers);
+
   // Use business brand color or default
   const primaryColor =
     businessData?.businessInvoiceSettings?.brandColor || '#00aa00';
@@ -299,15 +301,13 @@ export default function PreviewInvoice({
           {/* Proforma Invoice Label */}
           {isProforma && (
             <div className="mb-4">
-              <h2 className="text-lg font-semibold">
-                PROFORMA INVOICE
-              </h2>
+              <h2 className="text-lg font-semibold">PROFORMA INVOICE</h2>
             </div>
           )}
 
           {/* Company Logo and Details */}
 
-          <div className="">
+          <div className="mb-4">
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2 mb-4 grid w-fit grid-cols-1 gap-1 text-left">
                 {businessData?.businessInvoiceSettings?.logoUrl ? (
@@ -357,6 +357,15 @@ export default function PreviewInvoice({
                 <p className="max-w-46 text-sm text-[#727273]">
                   {selectedCustomer?.companyName || ''}
                 </p>
+
+                <p className="max-w-46 text-sm text-[#727273]">
+                  {selectedCustomer?.email || ''}
+                </p>
+
+                <p className="max-w-46 text-sm text-[#727273]">
+                  {selectedCustomer?.phoneNumber || ''}
+                </p>
+
                 <p className="max-w-46 text-sm text-[#727273]">
                   {selectedCustomer?.address?.address1 || ''}
                   {selectedCustomer?.address?.city &&

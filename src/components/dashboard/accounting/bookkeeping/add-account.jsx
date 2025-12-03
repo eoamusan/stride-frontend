@@ -98,25 +98,35 @@ export default function AddAccountForm({
     }
   }, [type, form]);
 
-  // Call generateCode when accountType is selected
+  // Call generateCode when accountType is selected or when type prop changes
   useEffect(() => {
+    const generateCode = async (accountType) => {
+      try {
+        const response = await AccountService.generatecode({
+          accountType: accountType,
+        });
+        // Set the generated account number
+        if (response.data?.success && response.data?.data) {
+          form.setValue('accountNumber', response.data.data);
+        }
+      } catch (error) {
+        console.error('Error generating code:', error);
+      }
+    };
+
+    // Generate code when type prop is provided
+    if (type) {
+      generateCode(type);
+    }
+
+    // Watch for accountType changes
     const subscription = form.watch(async (value, { name }) => {
       if (name === 'accountType' && value.accountType) {
-        try {
-          const response = await AccountService.generatecode({
-            accountType: value.accountType,
-          });
-          // Set the generated account number
-          if (response.data?.success && response.data?.data) {
-            form.setValue('accountNumber', response.data.data);
-          }
-        } catch (error) {
-          console.error('Error generating code:', error);
-        }
+        generateCode(value.accountType);
       }
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, type]);
 
   // Watch accountRelation and update local state
   useEffect(() => {
@@ -418,7 +428,7 @@ export default function AddAccountForm({
                           <span className="text-sm text-gray-600">
                             {account.accountType}
                           </span>
-                          <span className="text-sm text-gray-600 text-nowrap overflow-hidden text-ellipsis">
+                          <span className="overflow-hidden text-sm text-nowrap text-ellipsis text-gray-600">
                             {account.accountName}
                           </span>
                         </div>

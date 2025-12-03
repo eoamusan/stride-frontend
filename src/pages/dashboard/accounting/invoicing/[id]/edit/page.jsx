@@ -104,7 +104,7 @@ const formSchema = z.object({
     .array(
       z.object({
         name: z.string().optional(),
-        account: z.string().optional(),
+        accountId: z.string().optional(),
         description: z.string().optional(),
         unit_price: z
           .number()
@@ -119,9 +119,9 @@ const formSchema = z.object({
     .min(1, { message: 'At least one product is required' })
     .refine(
       (products) =>
-        products.every((product) => product.name || product.account),
+        products.every((product) => product.name || product.accountId),
       {
-        message: 'Product name or account is required',
+        message: 'Product name or accountId is required',
       }
     ),
   discount: z.number().min(0).max(100).optional(),
@@ -175,7 +175,6 @@ export default function EditInvoice() {
       due_date: '',
       products: [
         {
-          name: '',
           description: '',
           unit_price: 0,
           quantity: 1,
@@ -214,7 +213,7 @@ export default function EditInvoice() {
 
           // Detect invoice type based on products data
           const hasAccount = invoiceData.product?.products?.some(
-            (product) => product.account
+            (product) => product.accountId
           );
           const detectedType = hasAccount ? 'regular' : 'proforma';
           setInvoiceType(detectedType);
@@ -239,8 +238,9 @@ export default function EditInvoice() {
               ? new Date(invoiceData.dueDate)
               : undefined,
             products: invoiceData.product?.products?.map((product) => ({
-              name: product.name || '',
-              account: product.account || '',
+              ...(detectedType === 'regular'
+                ? { accountId: product.accountId || '' }
+                : { name: product.name || '' }),
               description: product.description || '',
               unit_price: product.unit_price || 0,
               quantity: product.quantity || 1,
@@ -251,8 +251,6 @@ export default function EditInvoice() {
                   : true,
             })) || [
               {
-                name: '',
-                account: '',
                 description: '',
                 unit_price: 0,
                 quantity: 1,
@@ -315,8 +313,8 @@ export default function EditInvoice() {
       if (invoiceType !== 'regular') return;
 
       try {
-        const response = await AccountService.fetch();
-        const accountsData = response.data?.data || [];
+        const response = await AccountService.fetch({accountType: 'income'});
+        const accountsData = response.data?.data?.accounts || [];
         setAccounts(accountsData);
       } catch (error) {
         console.error('Error fetching accounts:', error);
@@ -470,7 +468,7 @@ export default function EditInvoice() {
   const addProduct = () => {
     append({
       name: '',
-      account: '',
+      accountId: '',
       description: '',
       unit_price: 0,
       quantity: 1,
@@ -1230,7 +1228,7 @@ export default function EditInvoice() {
                         {invoiceType === 'regular' ? (
                           <FormField
                             control={form.control}
-                            name={`products.${index}.account`}
+                            name={`products.${index}.accountId`}
                             render={({ field }) => (
                               <FormItem>
                                 <FormControl>
@@ -1258,6 +1256,10 @@ export default function EditInvoice() {
                                               (account) =>
                                                 account._id === field.value
                                             )?.accountNumber ||
+                                            accounts.find(
+                                              (account) =>
+                                                account._id === field.value
+                                            )?.accountCode ||
                                             'Select account code'
                                           : 'Select account code'}
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -1280,7 +1282,7 @@ export default function EditInvoice() {
                                                 key={account._id}
                                                 onSelect={() => {
                                                   form.setValue(
-                                                    `products.${index}.account`,
+                                                    `products.${index}.accountId`,
                                                     account._id
                                                   );
                                                   setOpenAccountCombobox(
@@ -1303,9 +1305,11 @@ export default function EditInvoice() {
                                                   <span className="font-medium">
                                                     {account.accountName}
                                                   </span>
-                                                  {account.accountNumber && (
+                                                  {(account.accountNumber ||
+                                                    account.accountCode) && (
                                                     <span className="text-muted-foreground text-xs">
-                                                      {account.accountNumber}
+                                                      {account.accountNumber ||
+                                                        account.accountCode}
                                                     </span>
                                                   )}
                                                 </div>

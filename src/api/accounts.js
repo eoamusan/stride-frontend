@@ -36,7 +36,14 @@ export default class AccountService {
     return response;
   }
 
-  static async fetch({ subAccount, parentAccount, search, page, perPage }) {
+  static async fetch({
+    subAccount,
+    parentAccount,
+    search,
+    page,
+    perPage,
+    accountType,
+  }) {
     const userStore = useUserStore.getState();
     const url = 'accounting/account/fetch';
 
@@ -48,18 +55,18 @@ export default class AccountService {
     if (page !== undefined) params.page = page;
     if (perPage !== undefined) params.perPage = perPage;
 
-    const response = await axiosInstance.post(
-      url,
-      {
-        businessId: userStore.businessData?._id,
+    // Build body object with only defined values
+    const body = {
+      businessId: userStore.businessData?._id,
+    };
+    if (accountType !== undefined) body.accountType = accountType;
+
+    const response = await axiosInstance.post(url, body, {
+      params,
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
       },
-      {
-        params,
-        headers: {
-          Authorization: `Bearer ${userStore.data?.accessToken}`,
-        },
-      }
-    );
+    });
     return response;
   }
 

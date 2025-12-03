@@ -104,7 +104,7 @@ const formSchema = z.object({
     .array(
       z.object({
         name: z.string().optional(),
-        account: z.string().optional(),
+        accountId: z.string().optional(),
         description: z.string().optional(),
         unit_price: z
           .number()
@@ -119,9 +119,9 @@ const formSchema = z.object({
     .min(1, { message: 'At least one product is required' })
     .refine(
       (products) =>
-        products.every((product) => product.name || product.account),
+        products.every((product) => product.name || product.accountId),
       {
-        message: 'Product name or account is required',
+        message: 'Product name or accountId is required',
       }
     ),
   discount: z.number().min(0).max(100).optional(),
@@ -132,8 +132,6 @@ const formSchema = z.object({
   display_bank_details: z.boolean().default(true),
   apply_signature: z.boolean().default(false),
 });
-
-const STORAGE_KEY = 'create_invoice_draft';
 
 // Extensive list of invoice categories
 export default function CreateInvoice({ businessId, onBack, invoiceType }) {
@@ -164,32 +162,9 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Get initial values from localStorage if available
-  const getInitialValues = () => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-
-        // Convert date strings back to Date objects
-        if (
-          parsedData.invoice_date &&
-          typeof parsedData.invoice_date === 'string'
-        ) {
-          parsedData.invoice_date = new Date(parsedData.invoice_date);
-        }
-        if (parsedData.due_date && typeof parsedData.due_date === 'string') {
-          parsedData.due_date = new Date(parsedData.due_date);
-        }
-
-        return parsedData;
-      } catch (error) {
-        console.error('Error loading saved invoice data:', error);
-      }
-    }
-
-    // Return default values if no saved data
-    return {
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
       customerId: '',
       currency: '',
       service: '',
@@ -199,8 +174,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       due_date: '',
       products: [
         {
-          name: '',
-          account: '',
+          ...(invoiceType === 'regular' ? { accountId: '' } : { name: '' }),
           description: '',
           unit_price: 0,
           quantity: 1,
@@ -215,12 +189,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       internal_notes: '',
       display_bank_details: true,
       apply_signature: false,
-    };
-  };
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: getInitialValues(),
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -271,8 +240,8 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       if (invoiceType !== 'regular') return;
 
       try {
-        const response = await AccountService.fetch();
-        const accountsData = response.data?.data || [];
+        const response = await AccountService.fetch({accountType: 'income'});
+        const accountsData = response.data?.data?.accounts || [];
         console.log(accountsData);
         setAccounts(accountsData);
       } catch (error) {
@@ -320,14 +289,6 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       }
     }
   }, [customers, searchParams, form]);
-
-  // Save to localStorage whenever form data changes
-  useEffect(() => {
-    const subscription = form.watch((formData) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
 
   // Calculate product total when unit price or quantity changes
   const watchProducts = form.watch('products');
@@ -401,8 +362,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
 
   const addProduct = () => {
     append({
-      name: '',
-      account: '',
+      ...(invoiceType === 'regular' ? { accountId: '' } : { name: '' }),
       description: '',
       unit_price: '',
       quantity: '',
@@ -598,7 +558,6 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       // Store the created invoice data for preview
       setCreatedInvoiceData(res.data?.data);
 
-      localStorage.removeItem(STORAGE_KEY);
       form.reset();
       setIsSuccessModalOpen(true);
     } catch (err) {
@@ -731,7 +690,6 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
               size={'sm'}
               variant={'outline'}
               onClick={() => {
-                localStorage.removeItem(STORAGE_KEY);
                 if (onBack) {
                   onBack();
                 } else {
@@ -1225,7 +1183,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                         {invoiceType === 'regular' ? (
                           <FormField
                             control={form.control}
-                            name={`products.${index}.account`}
+                            name={`products.${index}.accountId`}
                             render={({ field }) => (
                               <FormItem>
                                 <FormControl>
@@ -1249,10 +1207,14 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                         )}
                                       >
                                         {field.value
-                                          ? accounts.find(
+                                          ? accounts?.find(
                                               (account) =>
-                                                account._id === field.value
+                                                account?._id === field.value
                                             )?.accountNumber ||
+                                            accounts?.find(
+                                              (account) =>
+                                                account?._id === field.value
+                                            )?.accountCode ||
                                             'Select account code'
                                           : 'Select account code'}
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -1271,11 +1233,11 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                           <CommandGroup>
                                             {accounts?.map((account) => (
                                               <CommandItem
-                                                value={account._id}
-                                                key={account._id}
+                                                value={account?._id}
+                                                key={account?._id}
                                                 onSelect={() => {
                                                   form.setValue(
-                                                    `products.${index}.account`,
+                                                    `products.${index}.accountId`,
                                                     account._id
                                                   );
                                                   setOpenAccountCombobox(
@@ -1289,18 +1251,20 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                                 <Check
                                                   className={cn(
                                                     'mr-2 h-4 w-4',
-                                                    account._id === field.value
+                                                    account?._id === field.value
                                                       ? 'opacity-100'
                                                       : 'opacity-0'
                                                   )}
                                                 />
                                                 <div className="flex flex-col">
                                                   <span className="font-medium">
-                                                    {account.accountName}
+                                                    {account?.accountName}
                                                   </span>
-                                                  {account.accountNumber && (
+                                                  {(account?.accountNumber ||
+                                                    account?.accountCode) && (
                                                     <span className="text-muted-foreground text-xs">
-                                                      {account.accountNumber}
+                                                      {account?.accountNumber ||
+                                                        account?.accountCode}
                                                     </span>
                                                   )}
                                                 </div>

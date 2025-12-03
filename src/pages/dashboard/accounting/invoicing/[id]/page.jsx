@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import PreviewInvoice from '@/components/dashboard/accounting/invoicing/preview-invoice';
 import InvoiceService from '@/api/invoice';
+import CustomerService from '@/api/customer';
 import toast from 'react-hot-toast';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -9,6 +10,7 @@ export default function ViewInvoice() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
+  const [customer, setCustomer] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Transform API invoice data to form data for preview
@@ -66,19 +68,43 @@ export default function ViewInvoice() {
   };
 
   useEffect(() => {
-    const fetchInvoice = async () => {
+    const fetchInvoiceAndCustomer = async () => {
       try {
         setIsLoading(true);
         const response = await InvoiceService.get({ id });
 
+        let invoiceData = null;
         if (response.data?.data?.invoice) {
-          setInvoice(response.data.data.invoice);
+          invoiceData = response.data.data.invoice;
         } else if (response.data?.data) {
           // Fallback for old API structure
-          setInvoice(response.data.data);
+          invoiceData = response.data.data;
         } else {
           toast.error('Invoice not found');
           navigate('/dashboard/accounting/invoicing');
+          return;
+        }
+
+        setInvoice(invoiceData);
+
+        // Fetch customer data separately
+        const customerId =
+          typeof invoiceData.customerId === 'string'
+            ? invoiceData.customerId
+            : invoiceData.customerId?._id;
+
+        if (customerId) {
+          try {
+            const customerResponse = await CustomerService.get({
+              id: customerId,
+            });
+            console.log('customerResponse', customerResponse);
+            if (customerResponse.data?.data?.customer) {
+              setCustomer(customerResponse.data.data.customer);
+            }
+          } catch (error) {
+            return error;
+          }
         }
       } catch (error) {
         console.error('Error fetching invoice:', error);
@@ -90,7 +116,7 @@ export default function ViewInvoice() {
     };
 
     if (id) {
-      fetchInvoice();
+      fetchInvoiceAndCustomer();
     }
   }, [id, navigate]);
 
@@ -108,18 +134,7 @@ export default function ViewInvoice() {
 
   const formData = transformToFormData(invoice);
 
-  // Extract customer from the invoice's populated customerId field
-  const customer = invoice.customerId;
-  const transformedCustomers = customer
-    ? [
-        {
-          id: customer._id,
-          displayName: customer.displayName,
-          companyName: customer.companyName,
-          address: customer.address,
-        },
-      ]
-    : [];
+  console.log('customer in view invoice page', customer);
 
   return (
     <div className="my-4 min-h-screen">
@@ -130,7 +145,7 @@ export default function ViewInvoice() {
         onEdit={() => {
           navigate('/dashboard/accounting/invoicing/' + formData.id + '/edit');
         }}
-        customers={transformedCustomers}
+        customers={[customer]}
       />
     </div>
   );

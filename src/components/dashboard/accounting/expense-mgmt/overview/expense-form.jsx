@@ -617,20 +617,25 @@ export default function ExpenseForm({
                                     <span className="font-medium">
                                       {account.accountName}
                                     </span>
-                                    {account.accountNumber && (
+                                    {account.accountCode && (
                                       <span className="text-xs text-gray-500">
-                                        {account.accountNumber}
+                                        {account.accountCode}
                                       </span>
                                     )}
                                   </div>
                                 </CommandItem>
                               ))}
                             </CommandGroup>
-                            <div
-                              className="flex cursor-pointer items-center gap-1 px-2 py-1 text-sm font-medium hover:font-semibold"
-                              onClick={() => setIsAddAccountModalOpen(true)}
-                            >
-                              <Plus size={16} color="#254C00" /> Add New
+
+                            <div className="border-t p-2">
+                              <Button
+                                variant="ghost"
+                                className="w-full justify-start"
+                                onClick={() => setIsAddAccountModalOpen(true)}
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Account
+                              </Button>
                             </div>
                           </CommandList>
                         </Command>
@@ -1209,8 +1214,10 @@ export default function ExpenseForm({
           showSuccessModal={async () => {
             // Refresh accounts list
             try {
-              const response = await AccountService.fetch();
-              const accountsData = response.data?.data || [];
+              const response = await AccountService.fetch({
+                accountType: 'expenses',
+              });
+              const accountsData = response.data?.data?.accounts || [];
               setAccounts(accountsData);
             } catch (error) {
               console.error('Error refreshing accounts:', error);
