@@ -5,6 +5,7 @@ import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import AccountService from '@/api/accounts';
 import { useUserStore } from '@/stores/user-store';
 import toast from 'react-hot-toast';
@@ -58,6 +59,12 @@ export default function ChartOfAccounts() {
   const [openAddForm, setOpenAddForm] = useState(false);
   const [showAccountSuccess, setShowAccountSuccess] = useState(false);
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [dateRange, setDateRange] = useState({
+    from: undefined,
+    to: undefined,
+  });
+  const navigate = useNavigate();
 
   // Helper function to capitalize text
   const capitalizeText = (text) => {
@@ -189,6 +196,10 @@ export default function ChartOfAccounts() {
   };
 
   const handleRunReport = () => {
+    if (selectedItems.length === 0) {
+      toast.error('Please select an account first');
+      return;
+    }
     setOpenRunReportForm(true);
   };
 
@@ -218,10 +229,23 @@ export default function ChartOfAccounts() {
   };
 
   const handleSelectTableItem = (itemId, checked) => {
+    let newSelectedItems;
     if (checked) {
-      setSelectedItems([...selectedItems, itemId]);
+      newSelectedItems = [...selectedItems, itemId];
+      setSelectedItems(newSelectedItems);
     } else {
-      setSelectedItems(selectedItems.filter((id) => id !== itemId));
+      newSelectedItems = selectedItems.filter((id) => id !== itemId);
+      setSelectedItems(newSelectedItems);
+    }
+
+    // Set the selected account based on the last item in the array
+    if (newSelectedItems.length > 0) {
+      const lastSelectedId = newSelectedItems[newSelectedItems.length - 1];
+      const account = accountsData.find((acc) => acc.id === lastSelectedId);
+      setSelectedAccount(account);
+      console.log('Account selected:', account);
+    } else {
+      setSelectedAccount(null);
     }
   };
 
@@ -269,9 +293,6 @@ export default function ChartOfAccounts() {
           >
             Add Account
           </Button>
-          <Button variant={'outline'} className={'h-10 rounded-2xl text-sm'}>
-            Date Range
-          </Button>
         </div>
       </div>
       <div className="mt-6">
@@ -293,6 +314,8 @@ export default function ChartOfAccounts() {
           onFilterClick={handleFilterClick}
           onDownloadFormats={handleDownloadFormats}
           onRunReport={handleRunReport}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
         />
 
         <AccountingTable
@@ -376,8 +399,47 @@ export default function ChartOfAccounts() {
       <RunReportForm
         isOpen={openRunReportForm}
         onClose={() => setOpenRunReportForm(false)}
-        onSubmit={() => {
-          setOpenRunReportForm(false);
+        onSubmit={async (data) => {
+          try {
+            if (selectedItems.length === 0) {
+              toast.error('No account selected');
+              return;
+            }
+
+            // Fetch transactions with date range and selected account IDs
+            const response = await AccountService.fetchTransactions({
+              accountingAccountId: selectedItems,
+              startDate: data.fromDate
+                ? data.fromDate.toISOString()
+                : undefined,
+              endDate: data.toDate ? data.toDate.toISOString() : undefined,
+            });
+
+            const transactions = response.data?.data?.transactions || [];
+
+            if (transactions.length === 0) {
+              toast.error('No records found for the selected date range');
+              setOpenRunReportForm(false);
+              return;
+            }
+
+            // Navigate to report page with account and date range data
+            setOpenRunReportForm(false);
+            navigate('/dashboard/accounting/bookkeeping/report', {
+              state: {
+                accountIds: selectedItems,
+                accountId: selectedAccount?.id,
+                accountName: selectedAccount?.accountName,
+                accountNumber: selectedAccount?.accountNumber,
+                startDate: data.fromDate,
+                endDate: data.toDate,
+                accountingMethod: data.accountingMethod,
+              },
+            });
+          } catch (error) {
+            console.error('Error fetching transactions:', error);
+            toast.error('Failed to fetch transactions');
+          }
         }}
       />
     </div>

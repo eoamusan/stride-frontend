@@ -17,7 +17,7 @@ export default function ViewExpenseModal({
   isLoading,
 }) {
   // Calculate total amount from category details
-  const totalAmount = expense?.expense?.total || 0;
+  const totalAmount = expense?.total || 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -31,9 +31,7 @@ export default function ViewExpenseModal({
               <div>
                 <DialogTitle>Expense Details</DialogTitle>
                 {!isLoading && (
-                  <p className="mt-2 text-sm font-medium">
-                    {expense?.expense?.refNo}
-                  </p>
+                  <p className="mt-2 text-sm font-medium">{expense?.refNo}</p>
                 )}
               </div>
             </div>
@@ -126,13 +124,13 @@ export default function ViewExpenseModal({
                       <Building2Icon className="text-primary h-4 w-4" />
                     </div>
                     <h3 className="text-primary text-base font-semibold">
-                      Expense-{expense?.expense?.refNo || 'Expenses-001'}
+                      Expense-{expense?.refNo || 'Expenses-001'}
                     </h3>
                   </div>
                   <p className="text-primary mt-1 text-sm">
                     Payment to{' '}
-                    {expense?.vendor &&
-                      `${expense.vendor.firstName} ${expense.vendor.lastName}`}
+                    {expense?.vendorId &&
+                      `${expense.vendorId.firstName} ${expense.vendorId.lastName}`}
                   </p>
                 </div>
                 <div className="text-right">
@@ -165,20 +163,20 @@ export default function ViewExpenseModal({
                   <div className="grid grid-cols-2 gap-4">
                     <p className="text-sm text-gray-600">Country:</p>
                     <p className="text-sm font-medium">
-                      {expense?.expense?.country || ''}
+                      {expense?.country || ''}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <p className="text-sm text-gray-600">Payment Method:</p>
                     <p className="text-sm font-medium">
-                      {expense?.expense?.paymentMethod || ''}
+                      {expense?.paymentMethod || ''}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <p className="text-sm text-gray-600">Payment Date:</p>
                     <p className="text-sm font-medium">
-                      {expense?.expense?.paymentDate
-                        ? format(new Date(expense.expense.paymentDate), 'PP')
+                      {expense?.paymentDate
+                        ? format(new Date(expense.paymentDate), 'PP')
                         : ''}
                     </p>
                   </div>
@@ -194,16 +192,16 @@ export default function ViewExpenseModal({
                   <div className="grid grid-cols-2 gap-4">
                     <p className="text-sm text-gray-600">Vendor Name:</p>
                     <p className="text-sm font-medium">
-                      {expense?.vendor
-                        ? `${expense.vendor.firstName} ${expense.vendor.lastName}`
+                      {expense?.vendorId
+                        ? `${expense.vendorId.firstName} ${expense.vendorId.lastName}`
                         : 'Not provided'}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <p className="text-sm text-gray-600">Category:</p>
                     <p className="text-sm font-medium">
-                      {expense?.vendor?.businessInformation?.category ||
-                        expense?.expense?.categoryDetails?.[0]?.category ||
+                      {expense?.vendorId?.businessInformation?.category ||
+                        expense?.categoryDetails?.[0]?.category ||
                         'Income Expenses'}
                     </p>
                   </div>
@@ -221,26 +219,24 @@ export default function ViewExpenseModal({
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-4">
                     <p className="text-sm text-gray-600">Country:</p>
-                    <p className="text-sm font-medium">
-                      {expense?.expense?.country}
-                    </p>
+                    <p className="text-sm font-medium">{expense?.country}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <p className="text-sm text-gray-600">Client/Project:</p>
                     <p className="text-sm font-medium">
-                      {expense?.expense?.categoryDetails?.[0]?.clientProject}
+                      {expense?.categoryDetails?.[0]?.clientProject}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <p className="text-sm text-gray-600">Tax:</p>
                     <p className="text-sm font-medium">
-                      {expense?.expense?.categoryDetails?.[0]?.tax || '0'}%
+                      {expense?.categoryDetails?.[0]?.tax || '0'}%
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <p className="text-sm text-gray-600">Billable:</p>
                     <p className="text-sm font-medium">
-                      {expense?.expense?.categoryDetails?.[0]?.billable ||
+                      {expense?.categoryDetails?.[0]?.billable ||
                         'Not provided'}
                     </p>
                   </div>
@@ -251,9 +247,7 @@ export default function ViewExpenseModal({
               <div>
                 <h3 className="mb-4 text-base font-semibold">Memo</h3>
                 <div className="min-h-[150px] rounded-lg border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-sm text-gray-600">
-                    {expense?.expense?.memo || ''}
-                  </p>
+                  <p className="text-sm text-gray-600">{expense?.memo || ''}</p>
                 </div>
               </div>
             </div>
@@ -262,9 +256,8 @@ export default function ViewExpenseModal({
             <div>
               <h3 className="mb-4 text-base font-semibold">Attachments</h3>
               <div className="flex flex-wrap gap-4">
-                {expense?.expense?.attachments &&
-                expense.expense.attachments.length > 0 ? (
-                  expense.expense.attachments.map((attachment, index) => (
+                {expense?.attachments && expense.attachments.length > 0 ? (
+                  expense.attachments.map((attachment, index) => (
                     <a
                       key={index}
                       href={attachment}
@@ -295,11 +288,11 @@ export default function ViewExpenseModal({
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="min-w-[100px] h-10"
+                className="h-10 min-w-[100px]"
               >
                 Close
               </Button>
-              <Button className="min-w-[130px] h-10">Edit Expense</Button>
+              <Button className="h-10 min-w-[130px]">Edit Expense</Button>
             </div>
           </div>
         )}

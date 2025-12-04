@@ -5,36 +5,16 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import LedgerService from '@/api/ledger';
 import { useNavigate } from 'react-router';
+import toast from 'react-hot-toast';
+import { format } from 'date-fns';
 
 const ledgercolumns = [
-  { key: 'id', label: 'Ledger ID' },
-  { key: 'customer', label: 'Customer' },
-  { key: 'originalInvoice', label: 'Original Invoice' },
-  { key: 'reason', label: 'Reason' },
+  { key: 'type', label: 'Type' },
+  { key: 'refNo', label: 'Reference No' },
+  { key: 'account', label: 'Account' },
+  { key: 'description', label: 'Description' },
   { key: 'amount', label: 'Amount' },
-  { key: 'issueDate', label: 'Issue Date' },
-  { key: 'status', label: 'Status' },
-];
-
-const ledgerData = [
-  {
-    id: 'L001',
-    customer: 'ABC Company',
-    originalInvoice: 'INV-001',
-    reason: 'Service Payment',
-    amount: '₦50,000',
-    issueDate: '2024-01-15',
-    status: 'Completed',
-  },
-  {
-    id: 'L002',
-    customer: 'XYZ Corp',
-    originalInvoice: 'INV-002',
-    reason: 'Product Sale',
-    amount: '₦75,000',
-    issueDate: '2024-01-16',
-    status: 'Pending',
-  },
+  { key: 'date', label: 'Date' },
 ];
 
 export default function LedgerView() {
@@ -47,16 +27,86 @@ export default function LedgerView() {
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
   const navigate = useNavigate();
 
-  // State for table selection
+  // State for table selection and data
   const [selectedItems, setSelectedItems] = useState([]);
+  const [ledgerData, setLedgerData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [paginationInfo, setPaginationInfo] = useState({
+    totalDocs: 0,
+    limit: 20,
+    totalPages: 1,
+    page: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
 
   useEffect(() => {
     const fetchLedgerEntries = async () => {
       try {
-        const response = await LedgerService.fetch();
-        console.log('Fetched ledger entries:', response.data);
+        setIsLoading(true);
+        const response = await LedgerService.fetch({});
+        const responseData = response.data?.data;
+
+        // Update pagination info
+        setPaginationInfo({
+          totalDocs: responseData?.totalDocs || 0,
+          limit: responseData?.limit || 20,
+          totalPages: responseData?.totalPages || 1,
+          page: responseData?.page || 1,
+          hasNextPage: responseData?.hasNextPage || false,
+          hasPrevPage: responseData?.hasPrevPage || false,
+        });
+
+        // Transform ledger data
+        const ledgerEntries = responseData?.ledger || [];
+        const transformedData = ledgerEntries
+          .map((entry) => {
+            const isExpense = entry.expense !== null;
+            const isProduct = entry.product !== null;
+
+            if (isExpense) {
+              return {
+                id: entry.ledger._id,
+                type: 'Expense',
+                refNo: entry.expense?.refNo || '-',
+                account: entry.expense?.accountingAccountId?.accountName || '-',
+                description: entry.expense?.memo || '-',
+                amount: `₦${new Intl.NumberFormat('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(Number(entry.expense?.total || 0))}`,
+                date: entry.expense?.paymentDate
+                  ? format(new Date(entry.expense.paymentDate), 'MMM dd, yyyy')
+                  : '-',
+              };
+            } else if (isProduct) {
+              const firstProduct = entry.product?.products?.[0];
+              return {
+                id: entry.ledger._id,
+                type: 'Invoice',
+                refNo: entry.product?.invoiceId || '-',
+                account: firstProduct?.name || '-',
+                description: firstProduct?.description || '-',
+                amount: `₦${new Intl.NumberFormat('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(Number(entry.product?.total || 0))}`,
+                date: entry.ledger?.createdAt
+                  ? format(new Date(entry.ledger.createdAt), 'MMM dd, yyyy')
+                  : '-',
+              };
+            }
+
+            return null;
+          })
+          .filter(Boolean);
+
+        setLedgerData(transformedData);
       } catch (err) {
         console.error('Error fetching ledger entries:', err);
+        toast.error('Failed to fetch ledger entries');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -155,13 +205,13 @@ export default function LedgerView() {
           title="Ledger Entries"
           data={ledgerData}
           columns={ledgercolumns}
-          searchFields={['customer', 'originalInvoice', 'reason']}
+          searchFields={['type', 'refNo', 'account', 'description']}
           searchPlaceholder="Search ledger entries..."
           paginationData={{
-            page: 1,
-            totalPages: 1,
-            pageSize: 10,
-            totalCount: ledgerData.length,
+            page: paginationInfo.page,
+            totalPages: paginationInfo.totalPages,
+            pageSize: paginationInfo.limit,
+            totalCount: paginationInfo.totalDocs,
           }}
           dropdownActions={[
             { key: 'edit', label: 'Edit' },
@@ -172,6 +222,7 @@ export default function LedgerView() {
           handleSelectItem={handleSelectTableItem}
           handleSelectAll={handleSelectAllItems}
           onRowAction={() => {}}
+          isLoading={isLoading}
         />
       </div>
 

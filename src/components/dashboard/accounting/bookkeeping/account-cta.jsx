@@ -18,11 +18,19 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import {
   DownloadIcon,
   FilterIcon,
   SearchIcon,
   SettingsIcon,
+  CalendarIcon,
 } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function AccountActions({
   batchAction,
@@ -42,6 +50,8 @@ export default function AccountActions({
   onFilterClick,
   onDownloadFormats,
   onRunReport,
+  dateRange,
+  onDateRangeChange,
 }) {
   return (
     <div className="flex flex-wrap gap-4 px-1 py-4">
@@ -187,6 +197,38 @@ export default function AccountActions({
             </DropdownMenuCheckboxItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={'outline'}
+              className={'h-10 gap-2 text-sm'}
+            >
+              <CalendarIcon size={16} />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, 'MMM dd, yyyy')} -{' '}
+                    {format(dateRange.to, 'MMM dd, yyyy')}
+                  </>
+                ) : (
+                  format(dateRange.from, 'MMM dd, yyyy')
+                )
+              ) : (
+                'Date Range'
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={onDateRangeChange}
+              numberOfMonths={2}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
 
         <Button size={'sm'} className={'h-10 text-sm'} onClick={onRunReport}>
           Run Report

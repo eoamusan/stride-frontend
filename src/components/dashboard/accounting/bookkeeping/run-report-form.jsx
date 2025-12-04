@@ -28,7 +28,23 @@ import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import {
+  format,
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  startOfQuarter,
+  endOfQuarter,
+  startOfYear,
+  endOfYear,
+  subWeeks,
+  subMonths,
+  subQuarters,
+  subYears,
+} from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
@@ -40,8 +56,70 @@ const formSchema = z.object({
   }),
 });
 
+// Helper function to get date range based on period
+const getDateRangeForPeriod = (period) => {
+  const today = new Date();
+
+  switch (period) {
+    case 'today':
+      return {
+        fromDate: startOfDay(today),
+        toDate: endOfDay(today),
+      };
+    case 'this-week':
+      return {
+        fromDate: startOfWeek(today, { weekStartsOn: 1 }), // Monday
+        toDate: endOfWeek(today, { weekStartsOn: 1 }),
+      };
+    case 'last-week': {
+      const lastWeek = subWeeks(today, 1);
+      return {
+        fromDate: startOfWeek(lastWeek, { weekStartsOn: 1 }),
+        toDate: endOfWeek(lastWeek, { weekStartsOn: 1 }),
+      };
+    }
+    case 'this-month':
+      return {
+        fromDate: startOfMonth(today),
+        toDate: endOfMonth(today),
+      };
+    case 'last-month': {
+      const lastMonth = subMonths(today, 1);
+      return {
+        fromDate: startOfMonth(lastMonth),
+        toDate: endOfMonth(lastMonth),
+      };
+    }
+    case 'this-quarter':
+      return {
+        fromDate: startOfQuarter(today),
+        toDate: endOfQuarter(today),
+      };
+    case 'last-quarter': {
+      const lastQuarter = subQuarters(today, 1);
+      return {
+        fromDate: startOfQuarter(lastQuarter),
+        toDate: endOfQuarter(lastQuarter),
+      };
+    }
+    case 'this-year':
+      return {
+        fromDate: startOfYear(today),
+        toDate: endOfYear(today),
+      };
+    case 'last-year': {
+      const lastYear = subYears(today, 1);
+      return {
+        fromDate: startOfYear(lastYear),
+        toDate: endOfYear(lastYear),
+      };
+    }
+    default:
+      return { fromDate: undefined, toDate: undefined };
+  }
+};
+
 const reportPeriodOptions = [
-  { value: 'all-date', label: 'All Date' },
   { value: 'custom-dates', label: 'Custom dates' },
   { value: 'today', label: 'Today' },
   { value: 'this-week', label: 'This week' },
@@ -73,8 +151,13 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
   useEffect(() => {
     setShowDateRanges(watchReportPeriod === 'custom-dates');
 
-    // Clear date fields when not using custom dates
-    if (watchReportPeriod !== 'custom-dates') {
+    // Set date ranges based on selected period
+    if (watchReportPeriod && watchReportPeriod !== 'custom-dates') {
+      const { fromDate, toDate } = getDateRangeForPeriod(watchReportPeriod);
+      form.setValue('fromDate', fromDate);
+      form.setValue('toDate', toDate);
+    } else if (watchReportPeriod !== 'custom-dates') {
+      // Clear date fields when not using custom dates
       form.setValue('fromDate', undefined);
       form.setValue('toDate', undefined);
     }
@@ -166,7 +249,7 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent
-                          className="w-(--radix-popover-trigger-width) p-0"
+                          className="w-auto p-0"
                           align="start"
                         >
                           <Calendar
@@ -215,7 +298,7 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent
-                          className="w-(--radix-popover-trigger-width) p-0"
+                          className="w-auto p-0"
                           align="start"
                         >
                           <Calendar

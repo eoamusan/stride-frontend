@@ -132,8 +132,8 @@ export default function ExpenseForm({
       if (!open) return;
 
       try {
-        const response = await AccountService.fetch();
-        const accountsData = response.data?.data || [];
+        const response = await AccountService.fetch({ accountType: 'expenses' });
+        const accountsData = response.data?.data?.accounts || [];
         setAccounts(accountsData);
       } catch (error) {
         console.error('Error fetching accounts:', error);
@@ -361,7 +361,7 @@ export default function ExpenseForm({
         businessId,
         vendorId: data.payee,
         refNo: data.refNo || '',
-        paymentAccount: data.paymentAccount,
+        accountingAccountId: data.paymentAccount,
         paymentDate: data.paymentDate,
         paymentMethod: data.paymentMethod,
         country: data.country,

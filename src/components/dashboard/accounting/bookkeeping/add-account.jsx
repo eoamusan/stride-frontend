@@ -26,6 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import {
   InputOTP,
@@ -65,6 +71,7 @@ export default function AddAccountForm({
   const [accountsList, setAccountsList] = useState([]);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [accountRelation, setAccountRelation] = useState('subaccount');
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const { businessData } = useUserStore();
 
   const form = useForm({
@@ -154,15 +161,11 @@ export default function AddAccountForm({
     const debounceTimer = setTimeout(async () => {
       try {
         setIsLoadingAccounts(true);
-        const subAccount = accountRelation === 'subaccount';
-        const parentAccount = accountRelation === 'parent';
+        const parentAccount = !(accountRelation === 'parent');
 
         const response = await AccountService.fetch({
-          subAccount,
           parentAccount,
           search: searchQuery,
-          page: 1,
-          perPage: 50,
         });
 
         setAccountsList(response.data?.data?.accounts || []);
@@ -231,6 +234,7 @@ export default function AddAccountForm({
 
   const handleAccountSelect = (account) => {
     setSelectedParentAccount(account);
+    setIsPopoverOpen(false);
   };
 
   return (
@@ -389,66 +393,89 @@ export default function AddAccountForm({
             {/* Parent Account Search - Only visible when subaccount is selected */}
             {form.watch('accountRelation') === 'subaccount' && (
               <div className="space-y-4">
-                {/* Search Input */}
-                <div className="relative">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    placeholder="search parent account"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-12 pl-10"
-                  />
-                </div>
-
-                {/* Accounts List */}
-                <div className="max-h-[250px] overflow-y-auto rounded-lg border bg-white p-2 shadow-sm drop-shadow">
-                  {isLoadingAccounts ? (
-                    <div className="flex items-center justify-center py-8">
-                      <p className="text-sm text-gray-500">
-                        Loading accounts...
-                      </p>
+                {/* Search Input with Dropdown */}
+                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                  <PopoverAnchor>
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                      <Input
+                        placeholder="search parent account"
+                        value={
+                          selectedParentAccount
+                            ? `${selectedParentAccount.accountCode || selectedParentAccount.accountNumber} - ${selectedParentAccount.accountName}`
+                            : searchQuery
+                        }
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          if (!isPopoverOpen) {
+                            setIsPopoverOpen(true);
+                          }
+                        }}
+                        onFocus={() => setIsPopoverOpen(true)}
+                        onClick={() => setIsPopoverOpen(true)}
+                        className="h-12 pl-10"
+                      />
                     </div>
-                  ) : accountsList.length > 0 ? (
-                    <div className="space-y-2">
-                      {accountsList.map((account) => (
-                        <div
-                          key={account._id || account.id}
-                          className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-3 border-b bg-white px-3 py-4 hover:bg-gray-50"
-                        >
-                          <Checkbox
-                            checked={
-                              selectedParentAccount?._id === account._id ||
-                              selectedParentAccount?.id === account.id
-                            }
-                            onCheckedChange={() => handleAccountSelect(account)}
-                          />
-                          <span className="text-sm font-medium">
-                            {account.accountCode || account.accountNumber}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {account.accountType}
-                          </span>
-                          <span className="overflow-hidden text-sm text-nowrap text-ellipsis text-gray-600">
-                            {account.accountName}
-                          </span>
+                  </PopoverAnchor>
+                  <PopoverContent
+                    className="w-(--radix-popover-trigger-width) p-0"
+                    align="start"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                    {/* Accounts List */}
+                    <div className="max-h-[250px] overflow-y-auto rounded-lg bg-white">
+                      {isLoadingAccounts ? (
+                        <div className="flex items-center justify-center py-8">
+                          <p className="text-sm text-gray-500">
+                            Loading accounts...
+                          </p>
                         </div>
-                      ))}
+                      ) : accountsList.length > 0 ? (
+                        <div className="space-y-1 p-2">
+                          {accountsList.map((account) => (
+                            <div
+                              key={account._id || account.id}
+                              className="grid cursor-pointer grid-cols-[auto_1fr_1fr_1fr] items-center gap-3 rounded px-3 py-3 hover:bg-gray-50"
+                              onClick={() => handleAccountSelect(account)}
+                            >
+                              <Checkbox
+                                checked={
+                                  selectedParentAccount?._id === account._id ||
+                                  selectedParentAccount?.id === account.id
+                                }
+                                onCheckedChange={() =>
+                                  handleAccountSelect(account)
+                                }
+                              />
+                              <span className="text-sm font-medium">
+                                {account.accountCode || account.accountNumber}
+                              </span>
+                              <span className="text-sm text-gray-600">
+                                {account.accountType}
+                              </span>
+                              <span className="overflow-hidden text-sm text-nowrap text-ellipsis text-gray-600">
+                                {account.accountName}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-8">
+                          <div className="mb-3">
+                            <img
+                              src={notFoundImg}
+                              alt="No Account Found"
+                              className="h-24 w-auto"
+                            />
+                          </div>
+                          <p className="text-sm font-medium text-gray-700">
+                            No Account found
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-8">
-                      <div className="mb-3">
-                        <img
-                          src={notFoundImg}
-                          alt="No Account Found"
-                          className="h-24 w-auto"
-                        />
-                      </div>
-                      <p className="text-sm font-medium text-gray-700">
-                        No Account found
-                      </p>
-                    </div>
-                  )}
-                </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             )}
 

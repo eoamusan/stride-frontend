@@ -86,4 +86,28 @@ export default class AccountService {
     );
     return response;
   }
+
+  static async fetchTransactions({ accountingAccountId, startDate, endDate }) {
+    const userStore = useUserStore.getState();
+
+    // Build params object with only defined values
+    const params = {};
+    if (startDate !== undefined) params.startDate = startDate;
+    if (endDate !== undefined) params.endDate = endDate;
+
+    const response = await axiosInstance.post(
+      'accounting/account/transaction',
+      {
+        businessId: userStore.businessData?._id,
+        accountingAccountId: accountingAccountId,
+      },
+      {
+        params,
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      }
+    );
+    return response;
+  }
 }

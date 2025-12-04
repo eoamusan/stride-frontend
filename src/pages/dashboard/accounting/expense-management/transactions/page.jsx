@@ -39,7 +39,7 @@ export default function ExpenseTransactions() {
     setIsLoading(true);
     try {
       const response = await ExpenseService.fetch();
-      const expenseData = response.data?.data?.expense || [];
+      const expenseData = response.data?.data?.expenses || [];
       setExpenses(expenseData);
       setPaginationData({
         totalDocs: response.data?.data?.totalDocs || 0,
@@ -71,7 +71,7 @@ export default function ExpenseTransactions() {
     // Calculate total expenses
     const totalExpenses = expenses.reduce((sum, item) => {
       const expenseTotal =
-        item.expense?.categoryDetails?.reduce(
+        item.categoryDetails?.reduce(
           (catSum, cat) => catSum + (cat.amount || 0),
           0
         ) || 0;
@@ -85,12 +85,12 @@ export default function ExpenseTransactions() {
 
     const thisMonthExpenses = expenses
       .filter((item) => {
-        const expenseDate = new Date(item.expense?.paymentDate);
+        const expenseDate = new Date(item.paymentDate);
         return expenseDate >= monthStart && expenseDate <= monthEnd;
       })
       .reduce((sum, item) => {
         const expenseTotal =
-          item.expense?.categoryDetails?.reduce(
+          item.categoryDetails?.reduce(
             (catSum, cat) => catSum + (cat.amount || 0),
             0
           ) || 0;
@@ -100,7 +100,7 @@ export default function ExpenseTransactions() {
     // Calculate average daily expenses
     const uniqueDays = new Set(
       expenses.map((item) =>
-        startOfDay(new Date(item.expense?.paymentDate)).toISOString()
+        startOfDay(new Date(item.paymentDate)).toISOString()
       )
     ).size;
     const averageDaily = uniqueDays > 0 ? totalExpenses / uniqueDays : 0;
@@ -108,7 +108,7 @@ export default function ExpenseTransactions() {
     // Count unique categories
     const categoriesSet = new Set();
     expenses.forEach((item) => {
-      item.expense?.categoryDetails?.forEach((cat) => {
+      item.categoryDetails?.forEach((cat) => {
         if (cat.category) categoriesSet.add(cat.category);
       });
     });
@@ -146,22 +146,21 @@ export default function ExpenseTransactions() {
   const transactionData = useMemo(() => {
     return expenses.map((item) => {
       const totalAmount =
-        item.expense?.categoryDetails?.reduce(
+        item.categoryDetails?.reduce(
           (sum, cat) => sum + (cat.amount || 0),
           0
         ) || 0;
 
-      const mainCategory =
-        item.expense?.categoryDetails?.[0]?.category || 'N/A';
-      const vendorName = item.vendor
-        ? `${item.vendor.firstName} ${item.vendor.lastName}`
+      const mainCategory = item.categoryDetails?.[0]?.category || 'N/A';
+      const vendorName = item.vendorId
+        ? `${item.vendorId.firstName} ${item.vendorId.lastName}`
         : 'Unknown Vendor';
 
       return {
-        id: item.expense?._id || item.expense?.id,
-        no: item.expense?.refNo || '',
-        date: item.expense?.paymentDate
-          ? format(new Date(item.expense.paymentDate), 'PP')
+        id: item._id || item.id,
+        no: item.refNo || '',
+        date: item.paymentDate
+          ? format(new Date(item.paymentDate), 'PP')
           : 'N/A',
         type: 'Expense',
         payer: vendorName,
@@ -171,8 +170,8 @@ export default function ExpenseTransactions() {
           maximumFractionDigits: 2,
         })}`,
         status: 'Completed',
-        paymentMethod: item.expense?.paymentMethod,
-        refNo: item.expense?.refNo || 'N/A',
+        paymentMethod: item.paymentMethod,
+        refNo: item.refNo || 'N/A',
       };
     });
   }, [expenses]);
@@ -225,9 +224,7 @@ export default function ExpenseTransactions() {
     }
 
     setActiveExpenseLoading(true);
-    const foundExpense = expenses.find(
-      (item) => item.expense?._id === activeExpenseId
-    );
+    const foundExpense = expenses.find((item) => item._id === activeExpenseId);
     setActiveExpense(foundExpense || null);
     setActiveExpenseLoading(false);
   }, [activeExpenseId, expenses]);
