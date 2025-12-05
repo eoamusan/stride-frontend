@@ -70,7 +70,7 @@ export default function AddAccountForm({
   const [selectedParentAccount, setSelectedParentAccount] = useState(null);
   const [accountsList, setAccountsList] = useState([]);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
-  const [accountRelation, setAccountRelation] = useState('subaccount');
+  const [accountRelation, setAccountRelation] = useState('parent');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const { businessData } = useUserStore();
 
@@ -81,7 +81,7 @@ export default function AddAccountForm({
       accountName: '',
       accountNumber: '',
       description: '',
-      accountRelation: 'subaccount',
+      accountRelation: 'parent',
     },
   });
 
@@ -166,6 +166,7 @@ export default function AddAccountForm({
         const response = await AccountService.fetch({
           parentAccount,
           search: searchQuery,
+          accountType: form.getValues('accountType') || type,
         });
 
         setAccountsList(response.data?.data?.accounts || []);
@@ -179,7 +180,7 @@ export default function AddAccountForm({
     }, 500); // 500ms debounce
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery, accountRelation, isOpen]);
+  }, [searchQuery, accountRelation, isOpen, form, type]);
 
   const handleSubmit = async (data) => {
     try {
@@ -369,18 +370,18 @@ export default function AddAccountForm({
                       className="grid gap-8 sm:grid-cols-2"
                     >
                       <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="parent" id="parent" />
+                        <Label htmlFor="parent" className="text-sm font-medium">
+                          Make this a parent account
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="subaccount" id="subaccount" />
                         <Label
                           htmlFor="subaccount"
                           className="text-sm font-medium"
                         >
                           Make this a subaccount
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="parent" id="parent" />
-                        <Label htmlFor="parent" className="text-sm font-medium">
-                          Make this a parent account
                         </Label>
                       </div>
                     </RadioGroup>
