@@ -105,6 +105,7 @@ const formSchema = z.object({
       z.object({
         name: z.string().optional(),
         accountId: z.string().optional(),
+        accountName: z.string().optional(),
         description: z.string().optional(),
         unit_price: z
           .number()
@@ -174,7 +175,9 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       due_date: '',
       products: [
         {
-          ...(invoiceType === 'regular' ? { accountId: '' } : { name: '' }),
+          ...(invoiceType === 'regular'
+            ? { accountId: '', accountName: '' }
+            : { name: '' }),
           description: '',
           unit_price: 0,
           quantity: 1,
@@ -394,7 +397,9 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
 
   const addProduct = () => {
     append({
-      ...(invoiceType === 'regular' ? { accountId: '' } : { name: '' }),
+      ...(invoiceType === 'regular'
+        ? { accountId: '', accountName: '' }
+        : { name: '' }),
       description: '',
       unit_price: '',
       quantity: '',
@@ -1271,6 +1276,11 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                                   form.setValue(
                                                     `products.${index}.accountId`,
                                                     account._id
+                                                  );
+                                                  // Store accountName for preview
+                                                  form.setValue(
+                                                    `products.${index}.accountName`,
+                                                    account.accountName
                                                   );
                                                   setOpenAccountCombobox(
                                                     (prev) => ({

@@ -45,7 +45,7 @@ export default function PreviewInvoice({
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [calculatedBalanceDue, setCalculatedBalanceDue] = useState(0);
 
-  console.log('preview invoice customer',customers);
+  console.log('preview invoice customer', customers);
 
   // Use business brand color or default
   const primaryColor =
@@ -450,7 +450,9 @@ export default function PreviewInvoice({
                 >
                   <div className="col-span-6">
                     <p className="text-sm font-semibold">
-                      {product.name || `Product ${index + 1}`}
+                      {product.name ||
+                        product.accountName ||
+                        `Product ${index + 1}`}
                     </p>
                     <p className="text-xs">
                       {product.description || 'No description provided'}

@@ -105,6 +105,7 @@ const formSchema = z.object({
       z.object({
         name: z.string().optional(),
         accountId: z.string().optional(),
+        accountName: z.string().optional(),
         description: z.string().optional(),
         unit_price: z
           .number()
@@ -313,7 +314,7 @@ export default function EditInvoice() {
       if (invoiceType !== 'regular') return;
 
       try {
-        const response = await AccountService.fetch({accountType: 'income'});
+        const response = await AccountService.fetch({ accountType: 'income' });
         const accountsData = response.data?.data?.accounts || [];
         setAccounts(accountsData);
       } catch (error) {

@@ -11,10 +11,11 @@ export default function ViewInvoice() {
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
   const [customer, setCustomer] = useState(null);
+  const [productsWithAccounts, setProductsWithAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Transform API invoice data to form data for preview
-  const transformToFormData = (invoice) => {
+  const transformToFormData = (invoice, productsWithAccounts) => {
     if (!invoice) return null;
 
     return {
@@ -32,18 +33,23 @@ export default function ViewInvoice() {
       due_date: new Date(invoice.dueDate),
       products: {
         products:
-          invoice.product?.products?.map((product) => ({
-            name: product.name || '',
-            accountId: product.accountId || '',
-            description: product.description || '',
-            unit_price: product.unit_price || 0,
-            quantity: product.quantity || 1,
-            total_price: product.total_price || 0,
-            vat_applicable:
-              product.vat_applicable !== undefined
-                ? product.vat_applicable
-                : true,
-          })) || [],
+          invoice.product?.products?.map((product, index) => {
+            const accountName =
+              productsWithAccounts?.[index]?.accountingAccount?.accountName;
+            return {
+              name: product.name || accountName || '',
+              accountId: product.accountId || '',
+              accountName: accountName || '',
+              description: product.description || '',
+              unit_price: product.unit_price || 0,
+              quantity: product.quantity || 1,
+              total_price: product.total_price || 0,
+              vat_applicable:
+                product.vat_applicable !== undefined
+                  ? product.vat_applicable
+                  : true,
+            };
+          }) || [],
         banks: invoice.product?.banks || [],
         paymentGateways: invoice.product?.paymentGateways || [],
       },
@@ -88,6 +94,11 @@ export default function ViewInvoice() {
         }
 
         setInvoice(invoiceData);
+
+        // Store products with account information
+        if (response.data?.data?.products) {
+          setProductsWithAccounts(response.data.data.products);
+        }
 
         // Fetch customer data separately
         const customerId =
@@ -134,7 +145,7 @@ export default function ViewInvoice() {
     return null;
   }
 
-  const formData = transformToFormData(invoice);
+  const formData = transformToFormData(invoice, productsWithAccounts);
 
   console.log('customer in view invoice page', customer);
 

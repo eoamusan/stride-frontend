@@ -399,7 +399,7 @@ export default function ChartOfAccounts() {
 
             // Fetch transactions with date range and selected account ID
             const response = await AccountService.fetchTransactions({
-              accountingAccountId: [selectedAccount.id],
+              accountingAccountId: selectedAccount.id,
               startDate: data.fromDate
                 ? data.fromDate.toISOString()
                 : undefined,
