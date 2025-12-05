@@ -20,9 +20,10 @@ import {
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
+  PopoverAnchor,
 } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+// import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DownloadIcon,
   FilterIcon,
@@ -30,7 +31,10 @@ import {
   SettingsIcon,
   CalendarIcon,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { useState, useEffect } from 'react';
+import AccountService from '@/api/accounts';
+import notFoundImg from '@/assets/icons/not-found.png';
+// import { format } from 'date-fns';
 
 export default function AccountActions({
   batchAction,
@@ -50,9 +54,42 @@ export default function AccountActions({
   onFilterClick,
   onDownloadFormats,
   onRunReport,
-  dateRange,
-  onDateRangeChange,
+  searchSelectedAccount,
+  onSearchAccountSelect,
+  // dateRange,
+  // onDateRangeChange,
 }) {
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [accountsList, setAccountsList] = useState([]);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+
+  // Fetch accounts with debounce
+  useEffect(() => {
+    const debounceTimer = setTimeout(async () => {
+      try {
+        setIsLoadingAccounts(true);
+        const response = await AccountService.fetch({
+          search: searchTerm,
+        });
+
+        setAccountsList(response.data?.data?.accounts || []);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+        setAccountsList([]);
+      } finally {
+        setIsLoadingAccounts(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
+
+  const handleAccountSelect = (account) => {
+    if (onSearchAccountSelect) {
+      onSearchAccountSelect(account);
+    }
+    setIsPopoverOpen(false);
+  };
   return (
     <div className="flex flex-wrap gap-4 px-1 py-4">
       <Select onValueChange={onBatchActionChange} value={batchAction}>
@@ -66,15 +103,85 @@ export default function AccountActions({
         </SelectContent>
       </Select>
 
-      <div className="relative w-full max-w-xs">
-        <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-        <Input
-          placeholder="Search accounts..."
-          className="h-10 w-full max-w-xs bg-white pl-10"
-          value={searchTerm}
-          onChange={(e) => onSearchTermChange(e.target.value)}
-        />
-      </div>
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        <PopoverAnchor>
+          <div className="relative min-w-sm w-full max-w-md">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+            <Input
+              placeholder="Search accounts..."
+              className="h-10 w-full max-w-lg bg-white pl-10"
+              value={
+                searchSelectedAccount
+                  ? `${searchSelectedAccount.accountCode || searchSelectedAccount.accountNumber} - ${searchSelectedAccount.accountName}`
+                  : searchTerm
+              }
+              onChange={(e) => {
+                // Clear selected account when user starts typing
+                if (searchSelectedAccount && onSearchAccountSelect) {
+                  onSearchAccountSelect(null);
+                }
+                onSearchTermChange(e.target.value);
+                if (!isPopoverOpen) {
+                  setIsPopoverOpen(true);
+                }
+              }}
+              onFocus={() => setIsPopoverOpen(true)}
+              onClick={() => setIsPopoverOpen(true)}
+            />
+          </div>
+        </PopoverAnchor>
+        <PopoverContent
+          className="w-(--radix-popover-trigger-width) p-0"
+          align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          {/* Accounts List */}
+          <div className="max-h-[250px] overflow-y-auto rounded-lg bg-white">
+            {isLoadingAccounts ? (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-sm text-gray-500">Loading accounts...</p>
+              </div>
+            ) : accountsList.length > 0 ? (
+              <div className="space-y-1 p-2">
+                {accountsList.map((account) => (
+                  <div
+                    key={account._id || account.id}
+                    className="grid cursor-pointer grid-cols-[auto_auto_1fr] items-center gap-3 rounded px-3 py-3 hover:bg-gray-50"
+                    onClick={() => handleAccountSelect(account)}
+                  >
+                    <Checkbox
+                      checked={
+                        searchSelectedAccount?._id === account._id ||
+                        searchSelectedAccount?.id === account.id
+                      }
+                      onCheckedChange={() => handleAccountSelect(account)}
+                    />
+                    <span className="text-sm font-medium">
+                      {account.accountCode || account.accountNumber}
+                    </span>
+                    <span className="overflow-hidden text-sm text-nowrap text-ellipsis text-gray-600 pl-6">
+                      {account.accountName}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8">
+                <div className="mb-3">
+                  <img
+                    src={notFoundImg}
+                    alt="No Account Found"
+                    className="h-24 w-auto"
+                  />
+                </div>
+                <p className="text-sm font-medium text-gray-700">
+                  No Account found
+                </p>
+              </div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
 
       <div className="flex items-center gap-2">
         <Button
@@ -197,7 +304,7 @@ export default function AccountActions({
             </DropdownMenuCheckboxItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
+        {/* 
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -228,7 +335,7 @@ export default function AccountActions({
               initialFocus
             />
           </PopoverContent>
-        </Popover>
+        </Popover> */}
 
         <Button size={'sm'} className={'h-10 text-sm'} onClick={onRunReport}>
           Run Report

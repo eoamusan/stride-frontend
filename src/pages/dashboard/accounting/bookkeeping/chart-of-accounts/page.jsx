@@ -31,7 +31,7 @@ const accountDropdownActions = [
 export default function ChartOfAccounts() {
   // State for AccountActions
   const [batchAction, setBatchAction] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(''); // For AccountActions popover search only
   const [selectedItems, setSelectedItems] = useState([]);
   const [accountsData, setAccountsData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,10 +60,10 @@ export default function ChartOfAccounts() {
   const [showAccountSuccess, setShowAccountSuccess] = useState(false);
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
-  const [dateRange, setDateRange] = useState({
-    from: undefined,
-    to: undefined,
-  });
+  // const [dateRange, setDateRange] = useState({
+  //   from: undefined,
+  //   to: undefined,
+  // });
   const navigate = useNavigate();
 
   // Helper function to capitalize text
@@ -83,7 +83,6 @@ export default function ChartOfAccounts() {
       try {
         setIsLoading(true);
         const response = await AccountService.fetch({
-          search: searchTerm,
           page: currentPage,
           perPage: parseInt(pageSize) || 50,
         });
@@ -135,7 +134,7 @@ export default function ChartOfAccounts() {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [businessData, searchTerm, currentPage, pageSize]);
+  }, [businessData, currentPage, pageSize]);
 
   // Handlers
   const handleBatchActionChange = (value) => {
@@ -145,7 +144,7 @@ export default function ChartOfAccounts() {
 
   const handleSearchTermChange = (value) => {
     setSearchTerm(value);
-    setCurrentPage(1); // Reset to first page on search
+    // Note: This only updates the AccountActions search, not the table
     console.log('Search term changed to:', value);
   };
 
@@ -196,7 +195,7 @@ export default function ChartOfAccounts() {
   };
 
   const handleRunReport = () => {
-    if (selectedItems.length === 0) {
+    if (!selectedAccount) {
       toast.error('Please select an account first');
       return;
     }
@@ -236,16 +235,6 @@ export default function ChartOfAccounts() {
     } else {
       newSelectedItems = selectedItems.filter((id) => id !== itemId);
       setSelectedItems(newSelectedItems);
-    }
-
-    // Set the selected account based on the last item in the array
-    if (newSelectedItems.length > 0) {
-      const lastSelectedId = newSelectedItems[newSelectedItems.length - 1];
-      const account = accountsData.find((acc) => acc.id === lastSelectedId);
-      setSelectedAccount(account);
-      console.log('Account selected:', account);
-    } else {
-      setSelectedAccount(null);
     }
   };
 
@@ -314,8 +303,10 @@ export default function ChartOfAccounts() {
           onFilterClick={handleFilterClick}
           onDownloadFormats={handleDownloadFormats}
           onRunReport={handleRunReport}
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
+          searchSelectedAccount={selectedAccount}
+          onSearchAccountSelect={setSelectedAccount}
+          // dateRange={dateRange}
+          // onDateRangeChange={setDateRange}
         />
 
         <AccountingTable
@@ -401,14 +392,14 @@ export default function ChartOfAccounts() {
         onClose={() => setOpenRunReportForm(false)}
         onSubmit={async (data) => {
           try {
-            if (selectedItems.length === 0) {
+            if (!selectedAccount) {
               toast.error('No account selected');
               return;
             }
 
-            // Fetch transactions with date range and selected account IDs
+            // Fetch transactions with date range and selected account ID
             const response = await AccountService.fetchTransactions({
-              accountingAccountId: selectedItems,
+              accountingAccountId: [selectedAccount.id],
               startDate: data.fromDate
                 ? data.fromDate.toISOString()
                 : undefined,
@@ -427,10 +418,10 @@ export default function ChartOfAccounts() {
             setOpenRunReportForm(false);
             navigate('/dashboard/accounting/bookkeeping/report', {
               state: {
-                accountIds: selectedItems,
-                accountId: selectedAccount?.id,
-                accountName: selectedAccount?.accountName,
-                accountNumber: selectedAccount?.accountNumber,
+                accountIds: [selectedAccount.id],
+                accountId: selectedAccount.id,
+                accountName: selectedAccount.accountName,
+                accountNumber: selectedAccount.accountNumber,
                 startDate: data.fromDate,
                 endDate: data.toDate,
                 accountingMethod: data.accountingMethod,

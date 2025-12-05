@@ -34,6 +34,7 @@ export default function ViewInvoice() {
         products:
           invoice.product?.products?.map((product) => ({
             name: product.name || '',
+            accountId: product.accountId || '',
             description: product.description || '',
             unit_price: product.unit_price || 0,
             quantity: product.quantity || 1,
@@ -53,6 +54,7 @@ export default function ViewInvoice() {
       terms: invoice.product?.terms || '',
       internal_notes: invoice.product?.notes || '',
       display_bank_details: invoice.product?.displayBankDetails || false,
+      type: invoice?.type || invoice.product?.type,
       apply_signature: invoice.product?.applySignature || false,
     };
   };

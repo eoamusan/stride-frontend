@@ -197,6 +197,39 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
     name: 'products',
   });
 
+  // Check if form is ready for submission
+  const isFormValid = () => {
+    const values = form.getValues();
+
+    // Check if required fields are filled
+    const hasCustomer = !!values.customerId;
+    const hasCurrency = !!values.currency;
+    const hasService = !!values.service;
+    const hasInvoiceDate = !!values.invoice_date;
+    const hasTermOfPayment = !!values.term_of_payment;
+
+    // Check if at least one product is added and valid
+    const hasValidProducts =
+      values.products &&
+      values.products.length > 0 &&
+      values.products.some((product) => {
+        if (invoiceType === 'regular') {
+          return !!product.accountId && product.unit_price > 0;
+        } else {
+          return !!product.name && product.unit_price > 0;
+        }
+      });
+
+    return (
+      hasCustomer &&
+      hasCurrency &&
+      hasService &&
+      hasInvoiceDate &&
+      hasTermOfPayment &&
+      hasValidProducts
+    );
+  };
+
   // Fetch invoice number on mount
   useEffect(() => {
     const fetchInvoiceNumber = async () => {
@@ -240,9 +273,8 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       if (invoiceType !== 'regular') return;
 
       try {
-        const response = await AccountService.fetch({accountType: 'income'});
+        const response = await AccountService.fetch({ accountType: 'income' });
         const accountsData = response.data?.data?.accounts || [];
-        console.log(accountsData);
         setAccounts(accountsData);
       } catch (error) {
         console.error('Error fetching accounts:', error);
@@ -1210,13 +1242,13 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                           ? accounts?.find(
                                               (account) =>
                                                 account?._id === field.value
-                                            )?.accountNumber ||
+                                            )?.accountName ||
                                             accounts?.find(
                                               (account) =>
                                                 account?._id === field.value
                                             )?.accountCode ||
-                                            'Select account code'
-                                          : 'Select account code'}
+                                            'Select service'
+                                          : 'Select service'}
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                       </Button>
                                     </PopoverTrigger>
@@ -1287,7 +1319,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                               }}
                                             >
                                               <PlusIcon className="mr-2 h-4 w-4" />
-                                              Add Account
+                                              Add Service
                                             </Button>
                                           </div>
                                         </CommandList>
@@ -1857,7 +1889,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                   type="button"
                   className={'h-10'}
                   onClick={handleSave}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isFormValid()}
                 >
                   {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>
@@ -1866,7 +1898,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                   className={'h-10'}
                   variant="outline"
                   onClick={handlePreview}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isFormValid()}
                 >
                   <EyeIcon className="size-4" />
                   Preview

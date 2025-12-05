@@ -78,7 +78,7 @@ const expenseSchema = z.object({
   categories: z
     .array(
       z.object({
-        category: z.string().min(1, 'Category is required'),
+        accountingAccountId: z.string().min(1, 'Category is required'),
         amount: z.string().min(1, 'Amount is required'),
         description: z.string().optional(),
         billable: z.boolean().default(false),
@@ -132,7 +132,9 @@ export default function ExpenseForm({
       if (!open) return;
 
       try {
-        const response = await AccountService.fetch({ accountType: 'expenses' });
+        const response = await AccountService.fetch({
+          accountType: 'expenses',
+        });
         const accountsData = response.data?.data?.accounts || [];
         setAccounts(accountsData);
       } catch (error) {
@@ -168,7 +170,7 @@ export default function ExpenseForm({
       memo: '',
       categories: [
         {
-          category: '',
+          accountingAccountId: '',
           amount: '',
           description: '',
           billable: false,
@@ -182,6 +184,35 @@ export default function ExpenseForm({
 
   const { handleSubmit, reset, control, watch } = form;
   const categories = watch('categories');
+  const payee = watch('payee');
+  const paymentAccount = watch('paymentAccount');
+  const paymentDate = watch('paymentDate');
+  const paymentMethod = watch('paymentMethod');
+  const country = watch('country');
+
+  // Form validation - disable submit button if required fields are empty
+  const isFormValid = () => {
+    // Check required fields
+    if (
+      !payee ||
+      !paymentAccount ||
+      !paymentDate ||
+      !paymentMethod ||
+      !country
+    ) {
+      return false;
+    }
+
+    // Check at least one category with accountingAccountId and amount
+    const hasValidCategory = categories.some(
+      (category) =>
+        category.accountingAccountId &&
+        category.amount &&
+        parseFloat(category.amount) > 0
+    );
+
+    return hasValidCategory;
+  };
 
   // Pre-populate form when in edit mode
   useEffect(() => {
@@ -202,7 +233,7 @@ export default function ExpenseForm({
         categories:
           expense?.categoryDetails?.length > 0
             ? expense.categoryDetails.map((cat) => ({
-                category: cat.category || '',
+                accountingAccountId: cat.accountingAccountId || '',
                 amount: String(cat.amount || ''),
                 description: cat.description || '',
                 billable: cat.billable === true || cat.billable === 'true',
@@ -212,7 +243,7 @@ export default function ExpenseForm({
               }))
             : [
                 {
-                  category: '',
+                  accountingAccountId: '',
                   amount: '',
                   description: '',
                   billable: false,
@@ -237,7 +268,7 @@ export default function ExpenseForm({
         memo: '',
         categories: [
           {
-            category: '',
+            accountingAccountId: '',
             amount: '',
             description: '',
             billable: false,
@@ -301,7 +332,7 @@ export default function ExpenseForm({
     form.setValue('categories', [
       ...currentCategories,
       {
-        category: '',
+        accountingAccountId: '',
         amount: '',
         description: '',
         billable: false,
@@ -366,7 +397,7 @@ export default function ExpenseForm({
         paymentMethod: data.paymentMethod,
         country: data.country,
         categoryDetails: data.categories.map((cat) => ({
-          category: cat.category,
+          accountingAccountId: cat.accountingAccountId,
           amount: parseFloat(cat.amount),
           description: cat.description || '',
           billable: cat.billable || '',
@@ -843,37 +874,92 @@ export default function ExpenseForm({
                       <div className="col-span-3">
                         <FormField
                           control={control}
-                          name={`categories.${index}.category`}
+                          name={`categories.${index}.accountingAccountId`}
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="flex flex-col">
                               <FormLabel>Category</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className="h-10">
-                                    <SelectValue placeholder="Select category" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Bad Debts">
-                                    Bad Debts
-                                  </SelectItem>
-                                  <SelectItem value="Amortisation expense">
-                                    Amortisation expense
-                                  </SelectItem>
-                                  <SelectItem value="Dues and subscriptions">
-                                    Dues and subscriptions
-                                  </SelectItem>
-                                  <SelectItem value="Income Expenses">
-                                    Income Expenses
-                                  </SelectItem>
-                                  <SelectItem value="Utilities">
-                                    Utilities
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <Popover modal={true}>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      className={cn(
+                                        'h-10 w-full justify-between',
+                                        !field.value && 'text-muted-foreground'
+                                      )}
+                                    >
+                                      {field.value
+                                        ? accounts.find(
+                                            (account) =>
+                                              (account._id || account.id) ===
+                                              field.value
+                                          )?.accountName || 'Select category'
+                                        : 'Select category'}
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                  className="w-(--radix-popover-trigger-width) p-0"
+                                  align="start"
+                                >
+                                  <Command>
+                                    <CommandInput placeholder="Search accounts..." />
+                                    <CommandList>
+                                      <CommandEmpty>
+                                        No account found.
+                                      </CommandEmpty>
+                                      <CommandGroup>
+                                        {accounts.map((account) => (
+                                          <CommandItem
+                                            key={account._id || account.id}
+                                            value={account.accountName}
+                                            onSelect={() => {
+                                              field.onChange(
+                                                account._id || account.id
+                                              );
+                                            }}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                'mr-2 h-4 w-4',
+                                                field.value ===
+                                                  (account._id || account.id)
+                                                  ? 'opacity-100'
+                                                  : 'opacity-0'
+                                              )}
+                                            />
+                                            <div className="flex flex-col">
+                                              <span className="font-medium">
+                                                {account.accountName}
+                                              </span>
+                                              {account.accountCode && (
+                                                <span className="text-xs text-gray-500">
+                                                  {account.accountCode}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+
+                                      <div className="border-t p-2">
+                                        <Button
+                                          variant="ghost"
+                                          className="w-full justify-start"
+                                          onClick={() =>
+                                            setIsAddAccountModalOpen(true)
+                                          }
+                                        >
+                                          <Plus className="mr-2 h-4 w-4" />
+                                          Add Account
+                                        </Button>
+                                      </div>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1176,7 +1262,7 @@ export default function ExpenseForm({
               <Button
                 type="submit"
                 className="h-10 min-w-[195px] text-sm"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isFormValid()}
               >
                 {isSubmitting
                   ? isEditMode

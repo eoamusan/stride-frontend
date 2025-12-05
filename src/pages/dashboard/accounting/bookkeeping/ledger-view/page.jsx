@@ -85,7 +85,7 @@ export default function LedgerView() {
                 id: entry.ledger._id,
                 type: 'Invoice',
                 refNo: entry.product?.invoiceId || '-',
-                account: firstProduct?.name || '-',
+                account: '-', // Product accountId needs to be fetched separately or use invoice reference
                 description: firstProduct?.description || '-',
                 amount: `₦${new Intl.NumberFormat('en-US', {
                   minimumFractionDigits: 2,

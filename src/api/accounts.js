@@ -98,7 +98,7 @@ export default class AccountService {
     const response = await axiosInstance.post(
       'accounting/account/transaction',
       {
-        businessId: userStore.businessData?._id,
+        // businessId: userStore.businessData?._id,
         accountingAccountId: accountingAccountId,
       },
       {

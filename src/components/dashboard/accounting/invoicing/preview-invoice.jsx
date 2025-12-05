@@ -53,8 +53,8 @@ export default function PreviewInvoice({
 
   // Determine if this is a proforma invoice (no account field in products)
   const isProforma = Array.isArray(formData.products)
-    ? !formData.products.some((p) => p.account)
-    : !formData.products?.products?.some((p) => p.account);
+    ? !formData.products.some((p) => p.accountId)
+    : !formData.products?.products?.some((p) => p.accountId);
 
   // Find the selected customer
   const selectedCustomer = customers.find(
