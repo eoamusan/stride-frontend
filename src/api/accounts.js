@@ -87,7 +87,13 @@ export default class AccountService {
     return response;
   }
 
-  static async fetchTransactions({ accountingAccountId, startDate, endDate }) {
+  static async fetchTransactions({
+    businessId = false,
+    accountingAccountId,
+    type,
+    startDate,
+    endDate,
+  }) {
     const userStore = useUserStore.getState();
 
     // Build params object with only defined values
@@ -95,12 +101,15 @@ export default class AccountService {
     if (startDate !== undefined) params.startDate = startDate;
     if (endDate !== undefined) params.endDate = endDate;
 
+    const payload = {};
+    if (accountingAccountId !== undefined)
+      payload.accountingAccountId = accountingAccountId;
+    if (type !== undefined) payload.type = type;
+    if (businessId === true) payload.businessId = userStore.businessData?._id;
+
     const response = await axiosInstance.post(
       'accounting/account/transaction',
-      {
-        // businessId: userStore.businessData?._id,
-        accountingAccountId: accountingAccountId,
-      },
+      payload,
       {
         params,
         headers: {

@@ -204,13 +204,6 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const isFormValid = () => {
     const values = form.getValues();
 
-    // Check if required fields are filled
-    const hasCustomer = !!values.customerId;
-    const hasCurrency = !!values.currency;
-    const hasService = !!values.service;
-    const hasInvoiceDate = !!values.invoice_date;
-    const hasTermOfPayment = !!values.term_of_payment;
-
     // Check if at least one product is added and valid
     const hasValidProducts =
       values.products &&
@@ -223,14 +216,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
         }
       });
 
-    return (
-      hasCustomer &&
-      hasCurrency &&
-      hasService &&
-      hasInvoiceDate &&
-      hasTermOfPayment &&
-      hasValidProducts
-    );
+    return hasValidProducts;
   };
 
   // Fetch invoice number on mount

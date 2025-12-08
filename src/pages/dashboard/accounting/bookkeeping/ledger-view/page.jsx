@@ -3,7 +3,7 @@ import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-rep
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
-import LedgerService from '@/api/ledger';
+import AccountService from '@/api/accounts';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -14,6 +14,7 @@ const ledgercolumns = [
   { key: 'account', label: 'Account' },
   { key: 'description', label: 'Description' },
   { key: 'amount', label: 'Amount' },
+  { key: 'balance', label: 'Balance' },
   { key: 'date', label: 'Date' },
 ];
 
@@ -44,7 +45,9 @@ export default function LedgerView() {
     const fetchLedgerEntries = async () => {
       try {
         setIsLoading(true);
-        const response = await LedgerService.fetch({});
+        const response = await AccountService.fetchTransactions({
+          businessId: true,
+        });
         const responseData = response.data?.data;
 
         // Update pagination info
@@ -57,42 +60,49 @@ export default function LedgerView() {
           hasPrevPage: responseData?.hasPrevPage || false,
         });
 
-        // Transform ledger data
-        const ledgerEntries = responseData?.ledger || [];
-        const transformedData = ledgerEntries
-          .map((entry) => {
-            const isExpense = entry.expense !== null;
-            const isProduct = entry.product !== null;
+        // Transform transaction data
+        const transactions = responseData?.transactions || [];
+        const transformedData = transactions
+          .map((transaction) => {
+            const isExpense = transaction.type === 'expense';
+            const isProduct = transaction.type === 'product';
 
             if (isExpense) {
               return {
-                id: entry.ledger._id,
+                id: transaction._id,
                 type: 'Expense',
-                refNo: entry.expense?.refNo || '-',
-                account: entry.expense?.accountingAccountId?.accountName || '-',
-                description: entry.expense?.memo || '-',
+                refNo: transaction.refNo || '-',
+                account: transaction.accountingAccountId?.accountName || '-',
+                description: transaction.description || '-',
                 amount: `₦${new Intl.NumberFormat('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                }).format(Number(entry.expense?.total || 0))}`,
-                date: entry.expense?.paymentDate
-                  ? format(new Date(entry.expense.paymentDate), 'MMM dd, yyyy')
+                }).format(Number(transaction.amount || 0))}`,
+                balance: `${new Intl.NumberFormat('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(Number(transaction.balance || 0))}`,
+                date: transaction.createdAt
+                  ? format(new Date(transaction.createdAt), 'MMM dd, yyyy')
                   : '-',
               };
             } else if (isProduct) {
-              const firstProduct = entry.product?.products?.[0];
               return {
-                id: entry.ledger._id,
+                id: transaction._id,
                 type: 'Invoice',
-                refNo: entry.product?.invoiceId || '-',
-                account: '-', // Product accountId needs to be fetched separately or use invoice reference
-                description: firstProduct?.description || '-',
+                refNo: transaction.invoiceId?.invoiceNo || '-',
+                account: transaction.accountingAccountId?.accountName || '-',
+                description: transaction.description || '-',
                 amount: `₦${new Intl.NumberFormat('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                }).format(Number(entry.product?.total || 0))}`,
-                date: entry.ledger?.createdAt
-                  ? format(new Date(entry.ledger.createdAt), 'MMM dd, yyyy')
+                }).format(Number(transaction.amount || 0))}`,
+                balance: `₦${new Intl.NumberFormat('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(Number(transaction.balance || 0))}`,
+                date: transaction.createdAt
+                  ? format(new Date(transaction.createdAt), 'MMM dd, yyyy')
                   : '-',
               };
             }
