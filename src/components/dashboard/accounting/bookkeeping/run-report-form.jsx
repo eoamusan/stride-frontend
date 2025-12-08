@@ -57,61 +57,79 @@ const formSchema = z.object({
 });
 
 // Helper function to get date range based on period
+// Creates dates that represent local time but will be sent as UTC to match GMT+1
 const getDateRangeForPeriod = (period) => {
   const today = new Date();
+
+  // Helper to create a date that preserves local time when converted to ISO
+  const createUTCDate = (localDate) => {
+    return new Date(
+      Date.UTC(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate(),
+        localDate.getHours(),
+        localDate.getMinutes(),
+        localDate.getSeconds(),
+        localDate.getMilliseconds()
+      )
+    );
+  };
 
   switch (period) {
     case 'today':
       return {
-        fromDate: startOfDay(today),
-        toDate: endOfDay(today),
+        fromDate: createUTCDate(startOfDay(today)),
+        toDate: createUTCDate(endOfDay(today)),
       };
     case 'this-week':
       return {
-        fromDate: startOfWeek(today, { weekStartsOn: 1 }), // Monday
-        toDate: endOfWeek(today, { weekStartsOn: 1 }),
+        fromDate: createUTCDate(startOfWeek(today, { weekStartsOn: 1 })),
+        toDate: createUTCDate(endOfDay(endOfWeek(today, { weekStartsOn: 1 }))),
       };
     case 'last-week': {
       const lastWeek = subWeeks(today, 1);
       return {
-        fromDate: startOfWeek(lastWeek, { weekStartsOn: 1 }),
-        toDate: endOfWeek(lastWeek, { weekStartsOn: 1 }),
+        fromDate: createUTCDate(startOfWeek(lastWeek, { weekStartsOn: 1 })),
+        toDate: createUTCDate(
+          endOfDay(endOfWeek(lastWeek, { weekStartsOn: 1 }))
+        ),
       };
     }
     case 'this-month':
       return {
-        fromDate: startOfMonth(today),
-        toDate: endOfMonth(today),
+        fromDate: createUTCDate(startOfMonth(today)),
+        toDate: createUTCDate(endOfDay(endOfMonth(today))),
       };
     case 'last-month': {
       const lastMonth = subMonths(today, 1);
       return {
-        fromDate: startOfMonth(lastMonth),
-        toDate: endOfMonth(lastMonth),
+        fromDate: createUTCDate(startOfMonth(lastMonth)),
+        toDate: createUTCDate(endOfDay(endOfMonth(lastMonth))),
       };
     }
     case 'this-quarter':
       return {
-        fromDate: startOfQuarter(today),
-        toDate: endOfQuarter(today),
+        fromDate: createUTCDate(startOfQuarter(today)),
+        toDate: createUTCDate(endOfDay(endOfQuarter(today))),
       };
     case 'last-quarter': {
       const lastQuarter = subQuarters(today, 1);
       return {
-        fromDate: startOfQuarter(lastQuarter),
-        toDate: endOfQuarter(lastQuarter),
+        fromDate: createUTCDate(startOfQuarter(lastQuarter)),
+        toDate: createUTCDate(endOfDay(endOfQuarter(lastQuarter))),
       };
     }
     case 'this-year':
       return {
-        fromDate: startOfYear(today),
-        toDate: endOfYear(today),
+        fromDate: createUTCDate(startOfYear(today)),
+        toDate: createUTCDate(endOfDay(endOfYear(today))),
       };
     case 'last-year': {
       const lastYear = subYears(today, 1);
       return {
-        fromDate: startOfYear(lastYear),
-        toDate: endOfYear(lastYear),
+        fromDate: createUTCDate(startOfYear(lastYear)),
+        toDate: createUTCDate(endOfDay(endOfYear(lastYear))),
       };
     }
     default:
@@ -165,6 +183,12 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
 
   const handleSubmit = (data) => {
     console.log('Run report with data:', data);
+
+    // Ensure toDate is set to end of day (23:59:59)
+    if (data.toDate) {
+      data.toDate = endOfDay(data.toDate);
+    }
+
     if (onSubmit) {
       onSubmit(data);
     }
@@ -248,10 +272,7 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent
-                          className="w-auto p-0"
-                          align="start"
-                        >
+                        <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}
@@ -297,10 +318,7 @@ export default function RunReportForm({ isOpen = false, onClose, onSubmit }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent
-                          className="w-auto p-0"
-                          align="start"
-                        >
+                        <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}
