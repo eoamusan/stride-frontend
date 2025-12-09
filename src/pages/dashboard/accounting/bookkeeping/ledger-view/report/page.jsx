@@ -378,11 +378,9 @@ export default function LedgerReportPage() {
                           {accountCode} ({transactionGroup.length})
                         </span>
                       </div>
-                      <div className="font-medium">
+                      <div className="col-span-3 font-medium">
                         {transactionGroup[0]?.accountingAccountId?.accountName}
                       </div>
-                      <div></div>
-                      <div></div>
                       <div></div>
                       <div></div>
                       <div></div>
