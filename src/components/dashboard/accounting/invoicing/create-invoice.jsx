@@ -543,6 +543,14 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
     try {
       setIsSubmitting(true);
 
+      // Ensure each product has the correct total_price calculated
+      const productsWithCalculatedTotals = data.products.map((product) => ({
+        ...product,
+        total_price:
+          parseFloat(product.unit_price || 0) *
+          parseFloat(product.quantity || 1),
+      }));
+
       // Format data according to the new structure
       const formattedData = {
         accountId: businessData?.accountId,
@@ -559,7 +567,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
           invoiceNo: invoiceNumber,
         },
         products: {
-          products: data.products,
+          products: productsWithCalculatedTotals,
           banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
           paymentGateways: paymentGateways,
           terms: data.terms || '',

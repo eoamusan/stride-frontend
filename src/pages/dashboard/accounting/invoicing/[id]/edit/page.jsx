@@ -571,6 +571,14 @@ export default function EditInvoice() {
     try {
       setIsSubmitting(true);
 
+      // Ensure each product has the correct total_price calculated
+      const productsWithCalculatedTotals = data.products.map((product) => ({
+        ...product,
+        total_price:
+          parseFloat(product.unit_price || 0) *
+          parseFloat(product.quantity || 1),
+      }));
+
       // Format data according to the structure
       const formattedData = {
         // businessId: businessData?._id,
@@ -586,7 +594,7 @@ export default function EditInvoice() {
           dueDate: data.due_date,
         },
         products: {
-          products: data.products,
+          products: productsWithCalculatedTotals,
           banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
           paymentGateways: paymentGateways,
           terms: data.terms || '',

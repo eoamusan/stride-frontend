@@ -121,10 +121,10 @@ export default function AccountReportPage() {
   };
 
   // Format currency
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency || 'USD',
     }).format(amount);
   };
 
@@ -389,25 +389,70 @@ export default function AccountReportPage() {
                             key={transaction._id}
                             className="grid grid-cols-8 gap-4 rounded-2xl border p-4 text-sm"
                           >
-                            <div>
+                            <div
+                              title={
+                                transaction.accountingAccountId?.accountCode ||
+                                ''
+                              }
+                            >
                               {transaction.accountingAccountId?.accountCode}
                             </div>
-                            <div>
+                            <div
+                              title={format(
+                                new Date(transaction.createdAt),
+                                'dd/MM/yyyy'
+                              )}
+                            >
                               {format(
                                 new Date(transaction.createdAt),
                                 'dd/MM/yyyy'
                               )}
                             </div>
-                            <div className="capitalize">{transaction.type}</div>
-                            <div className="truncate">
+                            <div
+                              className="capitalize"
+                              title={transaction.type || ''}
+                            >
+                              {transaction.type}
+                            </div>
+                            <div
+                              className="truncate"
+                              title={transaction.description || 'N/A'}
+                            >
                               {transaction.description || 'N/A'}
                             </div>
-                            <div>{getTransactionName(transaction)}</div>
-                            <div>
+                            <div title={getTransactionName(transaction)}>
+                              {getTransactionName(transaction)}
+                            </div>
+                            <div
+                              title={
+                                transaction.accountingAccountId?.accountName ||
+                                ''
+                              }
+                            >
                               {transaction.accountingAccountId?.accountName}
                             </div>
-                            <div>{formatCurrency(transaction.balance)}</div>
-                            <div>{formatCurrency(transaction.balance)}</div>
+                            <div
+                              title={formatCurrency(
+                                transaction.amount,
+                                transaction.invoiceId?.currency
+                              )}
+                            >
+                              {formatCurrency(
+                                transaction.amount,
+                                transaction.invoiceId?.currency
+                              )}
+                            </div>
+                            <div
+                              title={formatCurrency(
+                                transaction.balance,
+                                transaction.invoiceId?.currency
+                              )}
+                            >
+                              {formatCurrency(
+                                transaction.balance,
+                                transaction.invoiceId?.currency
+                              )}
+                            </div>
                           </div>
                         ))}
                         {/* Total Row */}
