@@ -24,6 +24,7 @@ const accountColumns = [
 const accountDropdownActions = [
   { key: 'edit', label: 'Edit' },
   { key: 'view', label: 'View' },
+  { key: 'run-report', label: 'Run Report' },
   { key: 'delete', label: 'Delete' },
   { key: 'duplicate', label: 'Duplicate' },
 ];
@@ -221,6 +222,11 @@ export default function ChartOfAccounts() {
       case 'duplicate':
         console.log('Duplicate account:', account.accountNumber);
         // Add duplicate logic here
+        break;
+      case 'run-report':
+        // Set the account and open run report form
+        setSelectedAccount(account);
+        setOpenRunReportForm(true);
         break;
       default:
         console.log('Unknown action:', action);
