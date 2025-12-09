@@ -57,7 +57,10 @@ export default function AccountReportPage() {
           endDate: endDate ? new Date(endDate).toISOString() : undefined,
         });
 
-        const fetchedTransactions = response.data?.data?.transactions || [];
+        const fetchedTransactions =
+          response.data?.data?.transactions?.length > 0
+            ? response.data?.data?.transactions
+            : response.data?.data?.mergedTransactions || [];
         setTransactions(fetchedTransactions);
         console.log(fetchedTransactions);
 

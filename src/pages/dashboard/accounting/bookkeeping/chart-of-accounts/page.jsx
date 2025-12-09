@@ -406,7 +406,10 @@ export default function ChartOfAccounts() {
               endDate: data.toDate ? data.toDate.toISOString() : undefined,
             });
 
-            const transactions = response.data?.data?.transactions || [];
+            const transactions =
+              response.data?.data?.transactions?.length > 0
+                ? response.data?.data?.transactions
+                : response.data?.data?.mergedTransactions || [];
 
             if (transactions.length === 0) {
               toast.error('No records found for the selected date range');

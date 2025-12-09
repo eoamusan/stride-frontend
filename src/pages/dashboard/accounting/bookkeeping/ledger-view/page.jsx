@@ -1,5 +1,4 @@
 import LedgerViewCta from '@/components/dashboard/accounting/bookkeeping/ledger-view-cta';
-import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
@@ -25,7 +24,7 @@ export default function LedgerView() {
   const [toDate, setToDate] = useState(null);
   const [accountType, setAccountType] = useState('');
   const [accountingMethod, setAccountingMethod] = useState('cash');
-  const [openRunReportForm, setOpenRunReportForm] = useState(false);
+  const [selectedType, setSelectedType] = useState(null);
   const navigate = useNavigate();
 
   // State for table selection and data
@@ -165,9 +164,14 @@ export default function LedgerView() {
     console.log('To date changed to:', date);
   };
 
-  const handleAccountTypeChange = (value) => {
+  const handleTypeChange = (value) => {
     setAccountType(value);
-    console.log('Account type changed to:', value);
+    if (value === 'all' || value === '') {
+      setSelectedType(null);
+    } else {
+      setSelectedType(value);
+    }
+    console.log('Transaction type changed to:', value);
   };
 
   const handleAccountingMethodChange = (value) => {
@@ -176,8 +180,56 @@ export default function LedgerView() {
   };
 
   const handleRunReport = () => {
-    setOpenRunReportForm(true);
+    if (!selectedType) {
+      toast.error('Please select a transaction type first');
+      return;
+    }
+
+    if (!reportPeriod) {
+      toast.error('Please select a report period');
+      return;
+    }
+
+    // Fetch and navigate with the data from LedgerViewCta
+    const fetchAndNavigate = async () => {
+      try {
+        setIsLoading(true);
+
+        // Fetch transactions with date range and selected type
+        const response = await AccountService.fetchTransactions({
+          businessId: true,
+          type: selectedType,
+          startDate: fromDate ? fromDate.toISOString() : undefined,
+          endDate: toDate ? toDate.toISOString() : undefined,
+        });
+
+        const transactions = response.data?.data?.transactions || [];
+
+        if (transactions.length === 0) {
+          toast.error('No records found for the selected criteria');
+          return;
+        }
+
+        // Navigate to report page with type and date range data
+        navigate('/dashboard/accounting/bookkeeping/ledger-view/report', {
+          state: {
+            type: selectedType,
+            startDate: fromDate,
+            endDate: toDate,
+            accountingMethod: accountingMethod,
+          },
+        });
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        toast.error('Failed to fetch transactions');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAndNavigate();
   };
+
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -204,7 +256,7 @@ export default function LedgerView() {
           toDate={toDate}
           onToDateChange={handleToDateChange}
           accountType={accountType}
-          onAccountTypeChange={handleAccountTypeChange}
+          onAccountTypeChange={handleTypeChange}
           accountingMethod={accountingMethod}
           onAccountingMethodChange={handleAccountingMethodChange}
           onRunReport={handleRunReport}
@@ -235,15 +287,6 @@ export default function LedgerView() {
           isLoading={isLoading}
         />
       </div>
-
-      <RunReportForm
-        isOpen={openRunReportForm}
-        onClose={() => setOpenRunReportForm(false)}
-        onSubmit={() => {
-          setOpenRunReportForm(false);
-          navigate('/dashboard/accounting/bookkeeping/ledger-view/report');
-        }}
-      />
     </div>
   );
 }

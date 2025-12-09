@@ -12,13 +12,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import youtubeIcon from '@/assets/icons/youtube-red.png';
+import AccountService from '@/api/accounts';
+import toast from 'react-hot-toast';
+import { format } from 'date-fns';
 
 export default function LedgerReportPage() {
-  const [expandedRows, setExpandedRows] = useState({
-    10001: true, // First account is expanded by default
-  });
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Get data from navigation state
+  const { type, startDate, endDate } = location.state || {};
+
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [expandedRows, setExpandedRows] = useState({});
 
   const [filters, setFilters] = useState({
     codeSeries: false,
@@ -44,10 +55,104 @@ export default function LedgerReportPage() {
     }));
   };
 
+  // Fetch transactions when component mounts
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!type) {
+        toast.error('No transaction type selected');
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await AccountService.fetchTransactions({
+          businessId: true,
+          type: type,
+          startDate: startDate ? new Date(startDate).toISOString() : undefined,
+          endDate: endDate ? new Date(endDate).toISOString() : undefined,
+        });
+
+        const fetchedTransactions =
+          response.data?.data?.transactions?.length > 0
+            ? response.data?.data?.transactions
+            : response.data?.data?.mergedTransactions || [];
+
+        setTransactions(fetchedTransactions);
+
+        // Expand first group by default
+        if (fetchedTransactions.length > 0) {
+          const firstAccountCode =
+            fetchedTransactions[0]?.accountingAccountId?.accountCode;
+          if (firstAccountCode) {
+            setExpandedRows({ [firstAccountCode]: true });
+          }
+        }
+
+        if (fetchedTransactions.length === 0) {
+          toast.error('No transactions found for the selected criteria');
+        }
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        toast.error('Failed to fetch transactions');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [type, startDate, endDate]);
+
+  // Group transactions by account code
+  const groupedTransactions = transactions.reduce((acc, transaction) => {
+    const accountCode = transaction.accountingAccountId?.accountCode;
+    if (!accountCode) return acc;
+
+    if (!acc[accountCode]) {
+      acc[accountCode] = [];
+    }
+    acc[accountCode].push(transaction);
+    return acc;
+  }, {});
+
+  // Calculate totals for each group
+  const calculateGroupTotal = (transactionGroup) => {
+    return transactionGroup.reduce((total, transaction) => {
+      return total + parseFloat(transaction.balance || 0);
+    }, 0);
+  };
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  // Get name from transaction based on type
+  const getTransactionName = (transaction) => {
+    if (transaction.type === 'expense' && transaction.vendorId) {
+      return `${transaction.vendorId.firstName} ${transaction.vendorId.lastName}`;
+    }
+    if (transaction.type === 'product' && transaction.customerId) {
+      return (
+        transaction.customerId.displayName ||
+        `${transaction.customerId.firstName} ${transaction.customerId.lastName}`
+      );
+    }
+    return 'N/A';
+  };
+
   return (
     <div className="my-4 min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-6">
-        <Button variant={'ghost'} className={''}>
+        <Button
+          variant={'ghost'}
+          className={''}
+          onClick={() =>
+            navigate('/dashboard/accounting/bookkeeping/ledger-view')
+          }
+        >
           <ChevronLeft size={16} className="mr-1" />
           Back
         </Button>
@@ -191,142 +296,156 @@ export default function LedgerReportPage() {
         </div>
       </div>
 
-      {/* Account Report Section */}
+      {/* Ledger Report Section */}
       <div className="mt-8 rounded-xl bg-white py-6">
         {/* Report Header */}
         <div className="mb-6 text-center">
-          <h1 className="mb-2 text-xl font-bold">Account Report</h1>
-          <p className="text-sm text-gray-700">December, 2024, December 2025</p>
+          <h1 className="mb-2 text-xl font-bold">Ledger View Report</h1>
+          <p className="text-sm text-gray-700">
+            Transaction Type: {type?.charAt(0).toUpperCase() + type?.slice(1)}
+          </p>
+          <p className="text-sm text-gray-700">
+            {startDate && endDate
+              ? `${format(new Date(startDate), 'MMMM d, yyyy')} - ${format(new Date(endDate), 'MMMM d, yyyy')}`
+              : 'All Time'}
+          </p>
         </div>
 
         {/* Report Table */}
         <div className="px-4">
-          {/* Table Header */}
-          <div className="grid grid-cols-8 gap-4 p-4 text-sm font-medium text-[#7d7d7d]">
-            <div className="flex items-center">
-              Code Series
-              <ChevronsUpDown size={14} className="ml-1" />
+          {isLoading ? (
+            <div className="py-12 text-center">
+              <p className="text-sm text-gray-500">Loading transactions...</p>
             </div>
-            <div className="flex items-center">
-              Transactions Date
-              <ChevronsUpDown size={14} className="ml-1" />
+          ) : transactions.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-sm text-gray-500">No transactions found</p>
             </div>
-            <div className="flex items-center">
-              Type
-              <ChevronsUpDown size={14} className="ml-1" />
-            </div>
-            <div className="flex items-center">
-              Description
-              <ChevronsUpDown size={14} className="ml-1" />
-            </div>
-            <div className="flex items-center">
-              Name
-              <ChevronsUpDown size={14} className="ml-1" />
-            </div>
-            <div className="flex items-center">
-              Account full name
-              <ChevronsUpDown size={14} className="ml-1" />
-            </div>
-            <div className="flex items-center">
-              Amount
-              <ChevronsUpDown size={14} className="ml-1" />
-            </div>
-            <div className="flex items-center">
-              Balance
-              <ChevronsUpDown size={14} className="ml-1" />
-            </div>
-          </div>
-
-          {/* Account Group 1 - 10001 */}
-          <div className="mb-4 space-y-4">
-            {/* Group Header */}
-            <div
-              className="grid cursor-pointer grid-cols-8 gap-4 rounded-2xl border p-4 hover:bg-gray-50"
-              onClick={() => toggleRow('10001')}
-            >
-              <div className="flex items-center font-medium">
-                {expandedRows['10001'] ? (
-                  <ChevronDown size={16} />
-                ) : (
-                  <ChevronUp size={16} />
-                )}
-                <span className="ml-2">10001 (2)</span>
+          ) : (
+            <>
+              {/* Table Header */}
+              <div className="grid grid-cols-8 gap-4 p-4 text-sm font-medium text-[#7d7d7d]">
+                <div className="flex items-center">
+                  Code Series
+                  <ChevronsUpDown size={14} className="ml-1" />
+                </div>
+                <div className="flex items-center">
+                  Transactions Date
+                  <ChevronsUpDown size={14} className="ml-1" />
+                </div>
+                <div className="flex items-center">
+                  Type
+                  <ChevronsUpDown size={14} className="ml-1" />
+                </div>
+                <div className="flex items-center">
+                  Description
+                  <ChevronsUpDown size={14} className="ml-1" />
+                </div>
+                <div className="flex items-center">
+                  Name
+                  <ChevronsUpDown size={14} className="ml-1" />
+                </div>
+                <div className="flex items-center">
+                  Account full name
+                  <ChevronsUpDown size={14} className="ml-1" />
+                </div>
+                <div className="flex items-center">
+                  Amount
+                  <ChevronsUpDown size={14} className="ml-1" />
+                </div>
+                <div className="flex items-center">
+                  Balance
+                  <ChevronsUpDown size={14} className="ml-1" />
+                </div>
               </div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-            </div>
 
-            {/* Expanded Rows */}
-            {expandedRows['10001'] && (
-              <>
-                <div className="grid grid-cols-8 gap-4 rounded-2xl border p-4 text-sm">
-                  <div>10001</div>
-                  <div>08/12/2025</div>
-                  <div>Expenses</div>
-                  <div>Printing of cards</div>
-                  <div>JJ Solutions</div>
-                  <div>Printing Expenses</div>
-                  <div>$200</div>
-                  <div>$453</div>
-                </div>
-                <div className="grid grid-cols-8 gap-4 rounded-2xl border p-4 text-sm">
-                  <div>10001</div>
-                  <div>08/12/2025</div>
-                  <div>Expenses</div>
-                  <div>Printing of cards</div>
-                  <div>JJ Solutions</div>
-                  <div>Printing Expenses</div>
-                  <div>$200</div>
-                  <div>$453</div>
-                </div>
-                <div className="grid grid-cols-8 gap-4 rounded-2xl border p-4 text-sm font-medium">
-                  <div>Total</div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div>$400</div>
-                  <div></div>
-                </div>
-              </>
-            )}
-          </div>
+              {/* Grouped Transactions */}
+              {Object.entries(groupedTransactions).map(
+                ([accountCode, transactionGroup]) => (
+                  <div key={accountCode} className="mb-4 space-y-4">
+                    {/* Group Header */}
+                    <div
+                      className="grid cursor-pointer grid-cols-8 gap-4 rounded-2xl border p-4 hover:bg-gray-50"
+                      onClick={() => toggleRow(accountCode)}
+                    >
+                      <div className="flex items-center font-medium">
+                        {expandedRows[accountCode] ? (
+                          <ChevronDown size={16} />
+                        ) : (
+                          <ChevronUp size={16} />
+                        )}
+                        <span className="ml-2">
+                          {accountCode} ({transactionGroup.length})
+                        </span>
+                      </div>
+                      <div className="font-medium">
+                        {transactionGroup[0]?.accountingAccountId?.accountName}
+                      </div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                    </div>
 
-          {/* Account Group 2 - 10001 (6) - Collapsed */}
-          <div>
-            <div
-              className="grid cursor-pointer grid-cols-8 gap-4 rounded-2xl border p-4 hover:bg-gray-50"
-              onClick={() => toggleRow('10001_6')}
-            >
-              <div className="flex items-center font-medium">
-                {expandedRows['10001_6'] ? (
-                  <ChevronDown size={16} />
-                ) : (
-                  <ChevronUp size={16} />
-                )}
-                <span className="ml-2">20001 (6)</span>
-              </div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-            </div>
-          </div>
+                    {/* Expanded Rows */}
+                    {expandedRows[accountCode] && (
+                      <>
+                        {transactionGroup.map((transaction) => (
+                          <div
+                            key={transaction._id}
+                            className="grid grid-cols-8 gap-4 rounded-2xl border p-4 text-sm"
+                          >
+                            <div>
+                              {transaction.accountingAccountId?.accountCode}
+                            </div>
+                            <div>
+                              {format(
+                                new Date(transaction.createdAt),
+                                'dd/MM/yyyy'
+                              )}
+                            </div>
+                            <div className="capitalize">{transaction.type}</div>
+                            <div className="truncate">
+                              {transaction.description || 'N/A'}
+                            </div>
+                            <div>{getTransactionName(transaction)}</div>
+                            <div>
+                              {transaction.accountingAccountId?.accountName}
+                            </div>
+                            <div>{formatCurrency(transaction.amount)}</div>
+                            <div>{formatCurrency(transaction.balance)}</div>
+                          </div>
+                        ))}
+                        {/* Total Row */}
+                        <div className="grid grid-cols-8 gap-4 rounded-2xl border p-4 text-sm font-medium">
+                          <div>Total</div>
+                          <div></div>
+                          <div></div>
+                          <div></div>
+                          <div></div>
+                          <div></div>
+                          <div>
+                            {formatCurrency(
+                              calculateGroupTotal(transactionGroup)
+                            )}
+                          </div>
+                          <div></div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )
+              )}
+            </>
+          )}
         </div>
 
         {/* Report Footer */}
         <div className="mt-6 text-center">
           <p className="text-sm font-medium text-[#292D32]">
-            Tuesday, November 25, 2025 2:23AM GMT +01:00
+            {format(new Date(), "EEEE, MMMM d, yyyy h:mmaaa 'GMT' XXX")}
           </p>
         </div>
       </div>
