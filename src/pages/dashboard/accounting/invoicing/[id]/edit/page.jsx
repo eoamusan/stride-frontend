@@ -1398,7 +1398,6 @@ export default function EditInvoice() {
                             <FormItem>
                               <FormControl>
                                 <Input
-                                  type="number"
                                   className={'h-10'}
                                   placeholder="QTY"
                                   {...field}

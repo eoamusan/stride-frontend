@@ -24,11 +24,7 @@ export default function AccountReportPage() {
   const navigate = useNavigate();
 
   // Get data from navigation state
-  const {
-    accountIds = [],
-    startDate,
-    endDate,
-  } = location.state || {};
+  const { accountIds = [], startDate, endDate } = location.state || {};
 
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +59,7 @@ export default function AccountReportPage() {
 
         const fetchedTransactions = response.data?.data?.transactions || [];
         setTransactions(fetchedTransactions);
+        console.log(fetchedTransactions);
 
         // Expand first group by default
         if (fetchedTransactions.length > 0) {
@@ -372,7 +369,9 @@ export default function AccountReportPage() {
                           {accountCode} ({transactionGroup.length})
                         </span>
                       </div>
-                      <div></div>
+                      <div className="font-medium">
+                        {transactionGroup[0]?.accountingAccountId?.accountName}
+                      </div>
                       <div></div>
                       <div></div>
                       <div></div>
