@@ -145,6 +145,10 @@ export default function ChartOfAccounts() {
 
   const handleSearchTermChange = (value) => {
     setSearchTerm(value);
+    // Clear selected items when search term changes
+    if (value && value.trim() !== '') {
+      setSelectedItems([]);
+    }
     // Note: This only updates the AccountActions search, not the table
     console.log('Search term changed to:', value);
   };
@@ -196,10 +200,25 @@ export default function ChartOfAccounts() {
   };
 
   const handleRunReport = () => {
-    if (!selectedAccount) {
+    // Check if an account is selected from table (selectedItems) or from search (selectedAccount)
+    let accountToUse = null;
+
+    if (selectedItems.length > 0) {
+      // Find the account from the table data
+      accountToUse = accountsData.find(
+        (account) => account.id === selectedItems[0]
+      );
+    } else if (selectedAccount) {
+      // Use the account from search
+      accountToUse = selectedAccount;
+    }
+
+    if (!accountToUse) {
       toast.error('Please select an account first');
       return;
     }
+
+    setSelectedAccount(accountToUse);
     setOpenRunReportForm(true);
   };
 
@@ -234,19 +253,37 @@ export default function ChartOfAccounts() {
   };
 
   const handleSelectTableItem = (itemId, checked) => {
-    let newSelectedItems;
+    // Don't allow selection if search term is active
+    if (searchTerm && searchTerm.trim() !== '') {
+      toast.error('Cannot select rows when using search filter');
+      return;
+    }
+
+    // Clear search selection when selecting from table
+    if (checked && selectedAccount) {
+      setSelectedAccount(null);
+    }
+
+    // Only allow one selection at a time
     if (checked) {
-      newSelectedItems = [...selectedItems, itemId];
-      setSelectedItems(newSelectedItems);
+      setSelectedItems([itemId]); // Replace with single item
     } else {
-      newSelectedItems = selectedItems.filter((id) => id !== itemId);
-      setSelectedItems(newSelectedItems);
+      setSelectedItems([]);
     }
   };
 
   const handleSelectAllItems = (checked) => {
+    // Don't allow selection if search term is active
+    if (searchTerm && searchTerm.trim() !== '') {
+      toast.error('Cannot select rows when using search filter');
+      return;
+    }
+
+    // Since we only allow one selection, selecting all doesn't make sense
+    // But we'll clear selection when unchecking
     if (checked) {
-      setSelectedItems(accountsData.map((item) => item.id));
+      toast.info('Only one account can be selected at a time');
+      return;
     } else {
       setSelectedItems([]);
     }
@@ -310,7 +347,13 @@ export default function ChartOfAccounts() {
           onDownloadFormats={handleDownloadFormats}
           onRunReport={handleRunReport}
           searchSelectedAccount={selectedAccount}
-          onSearchAccountSelect={setSelectedAccount}
+          onSearchAccountSelect={(account) => {
+            // Clear table selection when selecting from search
+            if (account) {
+              setSelectedItems([]);
+            }
+            setSelectedAccount(account);
+          }}
           // dateRange={dateRange}
           // onDateRangeChange={setDateRange}
         />

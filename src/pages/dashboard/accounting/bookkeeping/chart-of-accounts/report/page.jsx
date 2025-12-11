@@ -116,7 +116,7 @@ export default function AccountReportPage() {
   // Calculate totals for each group
   const calculateGroupTotal = (transactionGroup) => {
     return transactionGroup.reduce((total, transaction) => {
-      return total + parseFloat(transaction.balance || 0);
+      return total + parseFloat(getBalanceByAccountType(transaction) || 0);
     }, 0);
   };
 
@@ -140,6 +140,25 @@ export default function AccountReportPage() {
       );
     }
     return 'N/A';
+  };
+
+  // Get appropriate balance based on account type
+  const getBalanceByAccountType = (transaction) => {
+    const accountType =
+      transaction.accountingAccountId?.accountType?.toLowerCase();
+
+    switch (accountType) {
+      case 'income':
+      case 'equity':
+      case 'liabilities':
+        return transaction.creditBalance || 0;
+      case 'expenses':
+      case 'assets':
+        return transaction.debitBalance || 0;
+      default:
+        // Fallback to whichever balance has a value
+        return transaction.creditBalance || transaction.debitBalance || 0;
+    }
   };
 
   return (
@@ -444,12 +463,12 @@ export default function AccountReportPage() {
                             </div>
                             <div
                               title={formatCurrency(
-                                transaction.balance,
+                                getBalanceByAccountType(transaction),
                                 transaction.invoiceId?.currency
                               )}
                             >
                               {formatCurrency(
-                                transaction.balance,
+                                getBalanceByAccountType(transaction),
                                 transaction.invoiceId?.currency
                               )}
                             </div>
