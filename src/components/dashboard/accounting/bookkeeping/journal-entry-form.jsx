@@ -51,6 +51,7 @@ import JournalService from '@/api/journal';
 import AddAccountForm from '@/components/dashboard/accounting/bookkeeping/add-account';
 import { useUserStore } from '@/stores/user-store';
 import toast from 'react-hot-toast';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 const entrySchema = z.object({
   account: z.string().min(1, { message: 'Account is required' }),
@@ -75,6 +76,7 @@ const formSchema = z.object({
 
 export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
   const [attachments, setAttachments] = useState([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
   const [accountOptions, setAccountOptions] = useState([]);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
@@ -272,7 +274,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
         journalNo: data.journalNo,
         account: formattedEntries,
         memo: data.memo || '',
-        attachments: attachments.map((att) => att.name),
+        attachments: attachments.map((att) => att.url),
         recurring: data.makeRecurring,
         recurringDetails: data.makeRecurring ? [] : undefined,
       };
@@ -337,29 +339,87 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
     }
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
-    const newAttachments = files.map((file, index) => ({
-      id: Date.now() + index,
-      file,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    }));
-    setAttachments([...attachments, ...newAttachments]);
+    if (files.length === 0) return;
+
+    setUploadingFiles(true);
+    const uploadPromises = files.map(async (file) => {
+      try {
+        const result = await uploadToCloudinary(file, {
+          folder: 'journal-attachments',
+        });
+        return {
+          id: Date.now() + Math.random(),
+          url: result.url,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        };
+      } catch (error) {
+        console.error('Upload failed for', file.name, error);
+        toast.error(`Failed to upload ${file.name}`);
+        return null;
+      }
+    });
+
+    try {
+      const uploadedFiles = await Promise.all(uploadPromises);
+      const successfulUploads = uploadedFiles.filter((file) => file !== null);
+      setAttachments([...attachments, ...successfulUploads]);
+      if (successfulUploads.length > 0) {
+        toast.success(
+          `${successfulUploads.length} file(s) uploaded successfully`
+        );
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('File upload failed');
+    } finally {
+      setUploadingFiles(false);
+    }
   };
 
-  const handleFileDrop = (e) => {
+  const handleFileDrop = async (e) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
-    const newAttachments = files.map((file, index) => ({
-      id: Date.now() + index,
-      file,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    }));
-    setAttachments([...attachments, ...newAttachments]);
+    if (files.length === 0) return;
+
+    setUploadingFiles(true);
+    const uploadPromises = files.map(async (file) => {
+      try {
+        const result = await uploadToCloudinary(file, {
+          folder: 'journal-attachments',
+        });
+        return {
+          id: Date.now() + Math.random(),
+          url: result.url,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        };
+      } catch (error) {
+        console.error('Upload failed for', file.name, error);
+        toast.error(`Failed to upload ${file.name}`);
+        return null;
+      }
+    });
+
+    try {
+      const uploadedFiles = await Promise.all(uploadPromises);
+      const successfulUploads = uploadedFiles.filter((file) => file !== null);
+      setAttachments([...attachments, ...successfulUploads]);
+      if (successfulUploads.length > 0) {
+        toast.success(
+          `${successfulUploads.length} file(s) uploaded successfully`
+        );
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('File upload failed');
+    } finally {
+      setUploadingFiles(false);
+    }
   };
 
   const handleDragOver = (e) => {
@@ -380,7 +440,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] w-[90%] max-w-6xl overflow-y-auto p-8 sm:max-w-6xl">
+      <DialogContent className="max-w- max-h-[90vh] w-[90%] max-w-7xl overflow-y-auto p-8 sm:max-w-7xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">New Entry</DialogTitle>
           <DialogDescription>Enter the details</DialogDescription>
@@ -782,10 +842,18 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                     Total NGN
                   </div>
                   <div className="col-span-1 text-sm font-medium">
-                    NGN{totalDebit.toFixed(2)}
+                    NGN{' '}
+                    {totalDebit.toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </div>
                   <div className="col-span-1 text-sm font-medium">
-                    NGN{totalCredit.toFixed(2)}
+                    NGN{' '}
+                    {totalCredit.toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </div>
                   <div className="col-span-7"></div>
                   <div className="col-span-1">
@@ -826,14 +894,22 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Attachments</Label>
               <div
-                className="border-muted-foreground bg-muted hover:bg-muted/80 w-full max-w-xl cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors"
+                className={cn(
+                  'border-muted-foreground bg-muted hover:bg-muted/80 w-full max-w-xl cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors',
+                  uploadingFiles && 'pointer-events-none opacity-50'
+                )}
                 onDrop={handleFileDrop}
                 onDragOver={handleDragOver}
-                onClick={() => document.getElementById('file-upload').click()}
+                onClick={() =>
+                  !uploadingFiles &&
+                  document.getElementById('file-upload').click()
+                }
               >
                 <UploadIcon size={24} className="mx-auto mb-4" />
                 <p className="mb-2 text-sm text-gray-600">
-                  Click or drag file to this area to upload
+                  {uploadingFiles
+                    ? 'Uploading files...'
+                    : 'Click or drag file to this area to upload'}
                 </p>
                 <p className="text-xs text-gray-500">
                   Support for a single or bulk upload
@@ -845,6 +921,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                   onChange={handleFileUpload}
                   className="hidden"
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.xls,.xlsx,.csv,.txt"
+                  disabled={uploadingFiles}
                 />
               </div>
 
