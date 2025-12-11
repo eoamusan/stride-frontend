@@ -59,12 +59,43 @@ export default function LedgerView() {
           hasPrevPage: responseData?.hasPrevPage || false,
         });
 
+        // Helper function to get appropriate balance based on account type
+        const getBalanceByAccountType = (transaction) => {
+          const accountType =
+            transaction.accountingAccountId?.accountType?.toLowerCase();
+
+          switch (accountType) {
+            case 'income':
+            case 'equity':
+            case 'liabilities':
+              return transaction.creditBalance || 0;
+            case 'expenses':
+            case 'assets':
+              return transaction.debitBalance || 0;
+            default:
+              // Fallback to whichever balance has a value
+              return transaction.creditBalance || transaction.debitBalance || 0;
+          }
+        };
+
         // Transform transaction data
         const transactions = responseData?.transactions || [];
         const transformedData = transactions
           .map((transaction) => {
             const isExpense = transaction.type === 'expense';
             const isProduct = transaction.type === 'product';
+            const balance = getBalanceByAccountType(transaction);
+            const currency = transaction.invoiceId?.currency || 'NGN';
+            const currencySymbol =
+              currency === 'NGN'
+                ? '₦'
+                : currency === 'USD'
+                  ? '$'
+                  : currency === 'EUR'
+                    ? '€'
+                    : currency === 'GBP'
+                      ? '£'
+                      : currency;
 
             if (isExpense) {
               return {
@@ -73,14 +104,14 @@ export default function LedgerView() {
                 refNo: transaction.refNo || '-',
                 account: transaction.accountingAccountId?.accountName || '-',
                 description: transaction.description || '-',
-                amount: `₦${new Intl.NumberFormat('en-US', {
+                amount: `${currencySymbol}${new Intl.NumberFormat('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 }).format(Number(transaction.amount || 0))}`,
-                balance: `${new Intl.NumberFormat('en-US', {
+                balance: `${currencySymbol}${new Intl.NumberFormat('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                }).format(Number(transaction.balance || 0))}`,
+                }).format(Number(balance))}`,
                 date: transaction.createdAt
                   ? format(new Date(transaction.createdAt), 'MMM dd, yyyy')
                   : '-',
@@ -92,14 +123,14 @@ export default function LedgerView() {
                 refNo: transaction.invoiceId?.invoiceNo || '-',
                 account: transaction.accountingAccountId?.accountName || '-',
                 description: transaction.description || '-',
-                amount: `₦${new Intl.NumberFormat('en-US', {
+                amount: `${currencySymbol}${new Intl.NumberFormat('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 }).format(Number(transaction.amount || 0))}`,
-                balance: `₦${new Intl.NumberFormat('en-US', {
+                balance: `${currencySymbol}${new Intl.NumberFormat('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                }).format(Number(transaction.balance || 0))}`,
+                }).format(Number(balance))}`,
                 date: transaction.createdAt
                   ? format(new Date(transaction.createdAt), 'MMM dd, yyyy')
                   : '-',

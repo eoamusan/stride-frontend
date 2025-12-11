@@ -117,15 +117,15 @@ export default function LedgerReportPage() {
   // Calculate totals for each group
   const calculateGroupTotal = (transactionGroup) => {
     return transactionGroup.reduce((total, transaction) => {
-      return total + parseFloat(transaction.balance || 0);
+      return total + parseFloat(getBalanceByAccountType(transaction) || 0);
     }, 0);
   };
 
   // Format currency
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency || 'USD',
     }).format(amount);
   };
 
@@ -141,6 +141,25 @@ export default function LedgerReportPage() {
       );
     }
     return 'N/A';
+  };
+
+  // Get appropriate balance based on account type
+  const getBalanceByAccountType = (transaction) => {
+    const accountType =
+      transaction.accountingAccountId?.accountType?.toLowerCase();
+
+    switch (accountType) {
+      case 'income':
+      case 'equity':
+      case 'liabilities':
+        return transaction.creditBalance || 0;
+      case 'expenses':
+      case 'assets':
+        return transaction.debitBalance || 0;
+      default:
+        // Fallback to whichever balance has a value
+        return transaction.creditBalance || transaction.debitBalance || 0;
+    }
   };
 
   return (
@@ -412,8 +431,18 @@ export default function LedgerReportPage() {
                             <div>
                               {transaction.accountingAccountId?.accountName}
                             </div>
-                            <div>{formatCurrency(transaction.amount)}</div>
-                            <div>{formatCurrency(transaction.balance)}</div>
+                            <div>
+                              {formatCurrency(
+                                transaction.amount,
+                                transaction.invoiceId?.currency
+                              )}
+                            </div>
+                            <div>
+                              {formatCurrency(
+                                getBalanceByAccountType(transaction),
+                                transaction.invoiceId?.currency
+                              )}
+                            </div>
                           </div>
                         ))}
                         {/* Total Row */}
