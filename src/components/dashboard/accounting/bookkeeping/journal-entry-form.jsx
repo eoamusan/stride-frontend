@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -33,11 +33,24 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
-import { CalendarIcon, Trash2Icon, Upload, UploadIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  Trash2Icon,
+  Upload,
+  UploadIcon,
+  Plus,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { Switch } from '@/components/ui/switch';
+import AccountService from '@/api/accounts';
+import CustomerService from '@/api/customer';
+import VendorService from '@/api/vendor';
+import JournalService from '@/api/journal';
+import AddAccountForm from '@/components/dashboard/accounting/bookkeeping/add-account';
+import { useUserStore } from '@/stores/user-store';
+import toast from 'react-hot-toast';
 
 const entrySchema = z.object({
   account: z.string().min(1, { message: 'Account is required' }),
@@ -62,6 +75,25 @@ const formSchema = z.object({
 
 export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
   const [attachments, setAttachments] = useState([]);
+  const [accountOptions, setAccountOptions] = useState([]);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+  const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
+  const [nameOptions, setNameOptions] = useState([]);
+  const [isLoadingNames, setIsLoadingNames] = useState(false);
+  const [accountSearchQuery, setAccountSearchQuery] = useState('');
+  const [nameSearchQuery, setNameSearchQuery] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { businessData } = useUserStore();
+
+  // Filter account options based on search query
+  const filteredAccountOptions = accountOptions.filter((option) =>
+    option.label.toLowerCase().includes(accountSearchQuery.toLowerCase())
+  );
+
+  // Filter name options based on search query
+  const filteredNameOptions = nameOptions.filter((option) =>
+    option.label.toLowerCase().includes(nameSearchQuery.toLowerCase())
+  );
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -70,24 +102,6 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
       currency: '',
       journalNo: '',
       entries: [
-        {
-          account: '',
-          debit: '',
-          credit: '',
-          description: '',
-          name: '',
-          branch: '',
-          class: '',
-        },
-        {
-          account: '',
-          debit: '',
-          credit: '',
-          description: '',
-          name: '',
-          branch: '',
-          class: '',
-        },
         {
           account: '',
           debit: '',
@@ -115,20 +129,72 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
     { value: 'gbp', label: 'GBP British Pound' },
   ];
 
-  const accountOptions = [
-    { value: 'cash', label: 'Cash' },
-    { value: 'accounts-receivable', label: 'Accounts Receivable' },
-    { value: 'inventory', label: 'Inventory' },
-    { value: 'accounts-payable', label: 'Accounts Payable' },
-    { value: 'revenue', label: 'Revenue' },
-    { value: 'expenses', label: 'Expenses' },
-  ];
+  // Fetch accounts on mount
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      setIsLoadingAccounts(true);
+      try {
+        const response = await AccountService.fetch({
+          page: 1,
+          perPage: 100,
+        });
+        const accounts = response.data?.data?.accounts || [];
+        const formattedAccounts = accounts.map((account) => ({
+          value: account._id,
+          label: `${account.accountCode || account.accountNumber || ''} - ${account.accountName}`,
+        }));
+        setAccountOptions(formattedAccounts);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+        toast.error('Failed to fetch accounts');
+      } finally {
+        setIsLoadingAccounts(false);
+      }
+    };
 
-  const nameOptions = [
-    { value: 'customer-1', label: 'Customer 1' },
-    { value: 'vendor-1', label: 'Vendor 1' },
-    { value: 'employee-1', label: 'Employee 1' },
-  ];
+    if (isOpen) {
+      fetchAccounts();
+    }
+  }, [isOpen]);
+
+  // Fetch customers and vendors
+  useEffect(() => {
+    const fetchNamesData = async () => {
+      setIsLoadingNames(true);
+      try {
+        const [customersResponse, vendorsResponse] = await Promise.all([
+          CustomerService.fetch({ page: 1, perPage: 100 }),
+          VendorService.fetch({ page: 1, perPage: 100 }),
+        ]);
+
+        const customers = customersResponse.data?.data?.customers || [];
+        const vendors = vendorsResponse.data?.data?.vendors || [];
+
+        const formattedCustomers = customers.map((customer) => ({
+          value: customer?.customer?._id,
+          label: `Customer - ${customer?.customer?.displayName || `${customer?.customer?.firstName} ${customer?.customer?.lastName}`}`,
+          type: 'customer',
+        }));
+
+        const formattedVendors = vendors.map((vendor) => ({
+          value: vendor._id,
+          label: `Vendor - ${vendor.displayName || `${vendor.firstName} ${vendor.lastName}`}`,
+          type: 'vendor',
+        }));
+
+        setNameOptions([...formattedCustomers, ...formattedVendors]);
+      } catch (error) {
+        console.error('Error fetching customers/vendors:', error);
+        toast.error('Failed to fetch customers and vendors');
+      } finally {
+        setIsLoadingNames(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchNamesData();
+    }
+  }, [isOpen]);
 
   const branchOptions = [
     { value: 'main', label: 'Main Branch' },
@@ -177,40 +243,98 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
 
   const { totalDebit, totalCredit } = calculateTotals(watchedEntries || []);
 
-  const handleSubmit = (data) => {
-    const journalData = {
-      ...data,
-      attachments,
-      totalDebit,
-      totalCredit,
-    };
-    console.log('Saving journal entry:', journalData);
-    // Add save logic here
-    onClose();
-    form.reset();
-    onSuccess();
+  const handleSubmit = async (data) => {
+    // Validate that debits equal credits
+    if (totalDebit.toFixed(2) !== totalCredit.toFixed(2)) {
+      toast.error('Journal not balanced', {
+        description: 'Total debits must equal total credits',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Transform entries to match API format
+      const formattedEntries = data.entries.map((entry) => ({
+        accountingAccountId: entry.account,
+        debit: parseFloat(entry.debit) || 0,
+        credit: parseFloat(entry.credit) || 0,
+        description: entry.description || '',
+        name: entry.name || '',
+        branch: entry.branch || '',
+        class: entry.class || '',
+      }));
+
+      const journalData = {
+        businessId: businessData?._id,
+        date: data.journalDate.toISOString(),
+        currency: data.currency,
+        journalNo: data.journalNo,
+        account: formattedEntries,
+        memo: data.memo || '',
+        attachments: attachments.map((att) => att.name),
+        recurring: data.makeRecurring,
+        recurringDetails: data.makeRecurring ? [] : undefined,
+      };
+
+      await JournalService.create({ data: journalData });
+      toast.success('Journal entry created successfully');
+      onClose();
+      form.reset();
+      setAttachments([]);
+      onSuccess();
+    } catch (error) {
+      console.error('Error creating journal entry:', error);
+      toast.error(
+        error.response?.data?.message || 'Failed to create journal entry'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleClearAll = () => {
-    setAttachments([]);
-    form.reset({
-      journalDate: new Date(),
-      currency: '',
-      journalNo: '',
-      entries: [
-        {
-          account: '',
-          debit: '',
-          credit: '',
-          description: '',
-          name: '',
-          branch: '',
-          class: '',
-        },
-      ],
-      memo: '',
-      makeRecurring: false,
-    });
+  // const handleClearAll = () => {
+  //   setAttachments([]);
+  //   form.reset({
+  //     journalDate: new Date(),
+  //     currency: '',
+  //     journalNo: '',
+  //     entries: [
+  //       {
+  //         account: '',
+  //         debit: '',
+  //         credit: '',
+  //         description: '',
+  //         name: '',
+  //         branch: '',
+  //         class: '',
+  //       },
+  //     ],
+  //     memo: '',
+  //     makeRecurring: false,
+  //   });
+  // };
+
+  const handleAccountAdded = async () => {
+    // Refetch accounts after adding a new one
+    setIsLoadingAccounts(true);
+    try {
+      const response = await AccountService.fetch({
+        page: 1,
+        perPage: 100,
+      });
+      const accounts = response.data?.data?.accounts || [];
+      const formattedAccounts = accounts.map((account) => ({
+        value: account._id,
+        label: `${account.accountCode || account.accountNumber || ''} - ${account.accountName}`,
+      }));
+      setAccountOptions(formattedAccounts);
+      toast.success('Account added successfully');
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+    } finally {
+      setIsLoadingAccounts(false);
+    }
   };
 
   const handleFileUpload = (e) => {
@@ -391,21 +515,56 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                             <Select
                               onValueChange={field.onChange}
                               value={field.value}
+                              disabled={isLoadingAccounts}
                             >
                               <FormControl>
                                 <SelectTrigger className="w-full truncate">
-                                  <SelectValue placeholder="Select account" />
+                                  <SelectValue
+                                    placeholder={
+                                      isLoadingAccounts
+                                        ? 'Loading accounts...'
+                                        : 'Select account'
+                                    }
+                                  />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {accountOptions.map((option) => (
-                                  <SelectItem
-                                    key={option.value}
-                                    value={option.value}
+                                <div className="p-2">
+                                  <Input
+                                    placeholder="Search accounts..."
+                                    value={accountSearchQuery}
+                                    onChange={(e) =>
+                                      setAccountSearchQuery(e.target.value)
+                                    }
+                                    className="h-8"
+                                  />
+                                </div>
+                                {filteredAccountOptions.length > 0 ? (
+                                  filteredAccountOptions.map((option) => (
+                                    <SelectItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <div className="p-2 text-center text-sm text-gray-500">
+                                    No accounts found
+                                  </div>
+                                )}
+                                <div className="border-t">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full text-sm"
+                                    onClick={() => setIsAddAccountOpen(true)}
                                   >
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
+                                    <Plus className="h-4 w-4" />
+                                    Add new account
+                                  </Button>
+                                </div>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -490,21 +649,44 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                             <Select
                               onValueChange={field.onChange}
                               value={field.value}
+                              disabled={isLoadingNames}
                             >
                               <FormControl>
                                 <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select name" />
+                                  <SelectValue
+                                    placeholder={
+                                      isLoadingNames
+                                        ? 'Loading...'
+                                        : 'Select name'
+                                    }
+                                  />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {nameOptions.map((option) => (
-                                  <SelectItem
-                                    key={option.value}
-                                    value={option.value}
-                                  >
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
+                                <div className="p-2">
+                                  <Input
+                                    placeholder="Search customers/vendors..."
+                                    value={nameSearchQuery}
+                                    onChange={(e) =>
+                                      setNameSearchQuery(e.target.value)
+                                    }
+                                    className="h-8"
+                                  />
+                                </div>
+                                {filteredNameOptions.length > 0 ? (
+                                  filteredNameOptions.map((option) => (
+                                    <SelectItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <div className="p-2 text-center text-sm text-gray-500">
+                                    No customers or vendors found
+                                  </div>
+                                )}
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -725,24 +907,34 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                 variant="outline"
                 className="h-10 w-[127px] text-sm"
                 onClick={onClose}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button
+              {/* <Button
                 type="button"
                 variant="outline"
                 className="h-10 w-[127px] text-sm"
                 onClick={handleClearAll}
               >
                 Clear all
-              </Button>
-              <Button type="submit" className="h-10 w-44 text-sm">
-                Save
+              </Button> */}
+              <Button
+                type="submit"
+                className="h-10 w-44 text-sm"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Saving...' : 'Save'}
               </Button>
             </div>
           </form>
         </Form>
       </DialogContent>
+      <AddAccountForm
+        isOpen={isAddAccountOpen}
+        onClose={() => setIsAddAccountOpen(false)}
+        showSuccessModal={handleAccountAdded}
+      />
     </Dialog>
   );
 }
