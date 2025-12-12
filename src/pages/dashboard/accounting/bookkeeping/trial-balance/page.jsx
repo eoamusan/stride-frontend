@@ -1,8 +1,8 @@
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
-import AccountingTable from '@/components/dashboard/accounting/table';
 import TrialBalanceCta from '@/components/dashboard/accounting/bookkeeping/trial-balance-cta';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { Printer, Download, Share } from 'lucide-react';
 
 export default function TrialBalance() {
   const [reportPeriod, setReportPeriod] = useState('empty');
@@ -10,7 +10,6 @@ export default function TrialBalance() {
   const [toDate, setToDate] = useState(null);
   const [accountingMethod, setAccountingMethod] = useState('accrual');
   const [openRunReportForm, setOpenRunReportForm] = useState(false);
-  const [selectedItems, setSelectedItems] = useState([]);
 
   // Trial Balance Data based on the image
   const trialBalanceData = [
@@ -31,66 +30,6 @@ export default function TrialBalance() {
       credit: 0,
     },
   ];
-
-  // Calculate totals
-  const totalDebit = trialBalanceData.reduce(
-    (sum, item) => sum + item.debit,
-    0
-  );
-  const totalCredit = trialBalanceData.reduce(
-    (sum, item) => sum + item.credit,
-    0
-  );
-
-  // Table columns configuration
-  const trialBalanceColumns = [
-    {
-      key: 'accountCode',
-      label: 'Account Code',
-    },
-    {
-      key: 'accountName',
-      label: 'Account Name',
-    },
-    {
-      key: 'type',
-      label: 'Type',
-    },
-    {
-      key: 'debit',
-      label: 'Debit',
-      // render: (value) => (value > 0 ? `$${value.toLocaleString()}` : '-'),
-    },
-    {
-      key: 'credit',
-      label: 'Credit',
-      // render: (value) => (value > 0 ? `$${value.toLocaleString()}` : '-'),
-    },
-  ];
-
-  const paginationData = {
-    page: 10,
-    totalPages: 3,
-    pageSize: 10,
-    totalCount: trialBalanceData.length,
-  };
-
-  const handleSelectTableItem = (itemId, checked) => {
-    if (checked) {
-      setSelectedItems([...selectedItems, itemId]);
-    } else {
-      setSelectedItems(selectedItems.filter((id) => id !== itemId));
-    }
-  };
-
-  const handleSelectAllItems = (checked) => {
-    if (checked) {
-      setSelectedItems(trialBalanceData.map((item) => item.id));
-    } else {
-      setSelectedItems([]);
-    }
-    console.log(totalCredit, totalDebit);
-  };
 
   return (
     <div className="my-4 min-h-screen">
@@ -124,24 +63,62 @@ export default function TrialBalance() {
         />
       </div>
 
-      <AccountingTable
-        className="mt-10"
-        title="Trial Balance"
-        data={trialBalanceData}
-        columns={trialBalanceColumns}
-        searchFields={['accountName', 'accountCode']}
-        searchPlaceholder="Search accounts..."
-        paginationData={paginationData}
-        dropdownActions={[
-          { key: 'edit', label: 'Edit' },
-          { key: 'view', label: 'View' },
-          { key: 'delete', label: 'Delete' },
-        ]}
-        onRowAction={() => {}}
-        selectedItems={selectedItems}
-        handleSelectItem={handleSelectTableItem}
-        handleSelectAll={handleSelectAllItems}
-      />
+      <div className="mx-auto mt-10 max-w-2xl rounded-lg border bg-white p-8 shadow-sm">
+        <div className="mb-4 flex items-center justify-between border-b pb-4">
+          <button className="text-xs text-gray-500 hover:text-gray-700">
+            Add notes
+          </button>
+          <div className="flex gap-4">
+            <Printer className="size-4 cursor-pointer text-[#254C00]" />
+            <Download className="size-4 cursor-pointer text-[#254C00]" />
+            <Share className="size-4 cursor-pointer text-[#254C00]" />
+          </div>
+        </div>
+
+        <div className="mb-4 border-b pb-4 text-center">
+          <h2 className="text-2xl font-normal text-[#434343]">
+            Grace Business Solution Limited
+          </h2>
+          <h3 className="mt-2 text-base font-semibold text-[#434343]">
+            Trial Balance
+          </h3>
+          <p className="mt-1 font-medium text-[#D3D3D3]">
+            As of December 12, 2025
+          </p>
+        </div>
+
+        <div className="w-full">
+          <div className="mb-4 grid grid-cols-12 border-b border-gray-200 pb-4">
+            <div className="col-span-6"></div>
+            <div className="col-span-3 text-right text-base">Debit</div>
+            <div className="col-span-3 text-right text-base">Credit</div>
+          </div>
+
+          <div className="space-y-6">
+            {trialBalanceData.map((item) => (
+              <div key={item.id} className="grid grid-cols-12 items-center">
+                <div className="col-span-6 text-base text-[#434343]">
+                  {item.accountCode} {item.accountName}
+                </div>
+                <div className="col-span-3 text-right text-lg text-[#434343]">
+                  {item.debit > 0
+                    ? item.debit.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                      })
+                    : '0.00'}
+                </div>
+                <div className="col-span-3 text-right text-lg text-[#434343]">
+                  {item.credit > 0
+                    ? item.credit.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                      })
+                    : ''}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <RunReportForm
         isOpen={openRunReportForm}
