@@ -86,6 +86,7 @@ export default function ChartOfAccounts() {
         const response = await AccountService.fetch({
           page: currentPage,
           perPage: parseInt(pageSize) || 50,
+          search: searchTerm,
         });
 
         const responseData = response.data?.data;
@@ -135,7 +136,7 @@ export default function ChartOfAccounts() {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [businessData, currentPage, pageSize]);
+  }, [businessData, currentPage, pageSize, searchTerm]);
 
   // Handlers
   const handleBatchActionChange = (value) => {
