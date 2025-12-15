@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import JournalEntriesCta from '@/components/dashboard/accounting/bookkeeping/journals-cta';
 import JournalEntryForm from '@/components/dashboard/accounting/bookkeeping/journal-entry-form';
 import { Button } from '@/components/ui/button';
@@ -6,74 +6,15 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import RunReportForm from '@/components/dashboard/accounting/bookkeeping/run-report-form';
 import RecurringTemplateForm from '@/components/dashboard/accounting/bookkeeping/recurring-template-form';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import JournalService from '@/api/journal';
 
 const journalTableColumns = [
   { key: 'date', label: 'Date' },
   { key: 'ref', label: 'Ref No' },
   { key: 'type', label: 'Type' },
-  { key: 'assigned', label: 'Assigned' },
   { key: 'dueDate', label: 'Due Date' },
   { key: 'balance', label: 'Balance' },
   { key: 'total', label: 'Total' },
-  { key: 'dateModified', label: 'Date Modified' },
-];
-
-const journalEntriesData = [
-  {
-    id: 1,
-    date: '12-12-25',
-    ref: '10004',
-    type: 'Wage expenses',
-    assigned: 'John',
-    dueDate: '12-12-25',
-    balance: '₦453',
-    total: '₦453',
-    dateModified: '12-12-25',
-  },
-  {
-    id: 2,
-    date: '12-12-25',
-    ref: '10005',
-    type: 'Wage expenses',
-    assigned: 'John',
-    dueDate: '12-12-25',
-    balance: '₦453',
-    total: '₦453',
-    dateModified: '12-12-25',
-  },
-  {
-    id: 3,
-    date: '12-12-25',
-    ref: '10006',
-    type: 'Wage expenses',
-    assigned: 'John',
-    dueDate: '12-12-25',
-    balance: '₦453',
-    total: '₦453',
-    dateModified: '12-12-25',
-  },
-  {
-    id: 4,
-    date: '12-12-25',
-    ref: '10007',
-    type: 'Wage expenses',
-    assigned: 'John',
-    dueDate: '12-12-25',
-    balance: '₦453',
-    total: '₦453',
-    dateModified: '12-12-25',
-  },
-  {
-    id: 5,
-    date: '12-12-25',
-    ref: '10008',
-    type: 'Wage expenses',
-    assigned: 'John',
-    dueDate: '12-12-25',
-    balance: '₦453',
-    total: '₦453',
-    dateModified: '12-12-25',
-  },
 ];
 
 export default function JournalEntries() {
@@ -89,6 +30,67 @@ export default function JournalEntries() {
 
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
+  
+  // State for journals data
+  const [journalsData, setJournalsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch journals on component mount
+  useEffect(() => {
+    const fetchJournals = async () => {
+      try {
+        setIsLoading(true);
+        const response = await JournalService.fetch();
+        console.log('Journals:', response.data);
+        
+        // Transform API data to match table format
+        const transformedData = response.data?.data?.map((journal) => {
+          // Calculate total debit and credit
+          const totalDebit = journal.account.reduce((sum, acc) => sum + (acc.debit || 0), 0);
+          const totalCredit = journal.account.reduce((sum, acc) => sum + (acc.credit || 0), 0);
+          const balance = totalDebit - totalCredit;
+          
+          // Format date
+          const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+          };
+          
+          // Get currency symbol
+          const getCurrencySymbol = (currency) => {
+            const currencyMap = {
+              ngn: '₦',
+              usd: '$',
+              eur: '€',
+              gbp: '£',
+            };
+            return currencyMap[currency?.toLowerCase()] || currency?.toUpperCase() || '';
+          };
+          
+          const currencySymbol = getCurrencySymbol(journal.currency);
+          
+          return {
+            id: journal._id,
+            date: formatDate(journal.date),
+            ref: journal.journalNo,
+            type: journal.account[0]?.description || journal.memo || '-',
+            dueDate: '-',
+            balance: `${currencySymbol}${balance.toLocaleString()}`,
+            total: `${currencySymbol}${totalDebit.toLocaleString()}`,
+            dateModified: formatDate(journal.updatedAt),
+          };
+        });
+        
+        setJournalsData(transformedData);
+      } catch (error) {
+        console.error('Error fetching journals:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchJournals();
+  }, []);
 
   // Handle table item selection
   const handleSelectTableItem = (itemId, checked) => {
@@ -104,7 +106,7 @@ export default function JournalEntries() {
   // Handle select all functionality
   const handleSelectAllItems = (checked) => {
     if (checked) {
-      setSelectedItems(journalEntriesData.map((item) => item.id));
+      setSelectedItems(journalsData.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
@@ -188,7 +190,7 @@ export default function JournalEntries() {
       <div className="mt-10">
         <AccountingTable
           title="Journal Entries"
-          data={journalEntriesData}
+          data={journalsData}
           columns={journalTableColumns}
           searchFields={['ref', 'type', 'assigned']}
           searchPlaceholder="Search journal entries..."
@@ -198,10 +200,11 @@ export default function JournalEntries() {
           ]}
           paginationData={{
             page: 1,
-            totalPages: 10,
+            totalPages: Math.ceil(journalsData.length / 10),
             pageSize: 10,
-            totalCount: journalEntriesData.length,
+            totalCount: journalsData.length,
           }}
+          isLoading={isLoading}
           selectedItems={selectedItems}
           handleSelectItem={handleSelectTableItem}
           handleSelectAll={handleSelectAllItems}
