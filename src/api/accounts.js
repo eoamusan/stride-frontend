@@ -93,6 +93,7 @@ export default class AccountService {
     type,
     startDate,
     endDate,
+    trialBalance,
   }) {
     const userStore = useUserStore.getState();
 
@@ -100,12 +101,13 @@ export default class AccountService {
     const params = {};
     if (startDate !== undefined) params.startDate = startDate;
     if (endDate !== undefined) params.endDate = endDate;
-
+    
     const payload = {};
     if (accountingAccountId !== undefined)
       payload.accountingAccountId = accountingAccountId;
     if (type !== undefined) payload.type = type;
     if (businessId === true) payload.businessId = userStore.businessData?._id;
+    if(trialBalance !== undefined) payload.trialBalance = trialBalance;
 
     const response = await axiosInstance.post(
       'accounting/account/transaction',

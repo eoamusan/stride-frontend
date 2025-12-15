@@ -15,7 +15,23 @@ import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { CalendarIcon, DownloadIcon, FilterIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import {
+  format,
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  startOfQuarter,
+  endOfQuarter,
+  startOfYear,
+  endOfYear,
+  subWeeks,
+  subMonths,
+  subQuarters,
+  subYears,
+} from 'date-fns';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -23,6 +39,87 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useEffect } from 'react';
+
+// Helper function to get date range based on period
+const getDateRangeForPeriod = (period) => {
+  const today = new Date();
+
+  // Helper to create a date that preserves local time when converted to ISO
+  const createUTCDate = (localDate) => {
+    return new Date(
+      Date.UTC(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate(),
+        localDate.getHours(),
+        localDate.getMinutes(),
+        localDate.getSeconds(),
+        localDate.getMilliseconds()
+      )
+    );
+  };
+
+  switch (period) {
+    case 'today':
+      return {
+        fromDate: createUTCDate(startOfDay(today)),
+        toDate: createUTCDate(endOfDay(today)),
+      };
+    case 'this-week':
+      return {
+        fromDate: createUTCDate(startOfWeek(today, { weekStartsOn: 1 })),
+        toDate: createUTCDate(endOfDay(endOfWeek(today, { weekStartsOn: 1 }))),
+      };
+    case 'last-week': {
+      const lastWeek = subWeeks(today, 1);
+      return {
+        fromDate: createUTCDate(startOfWeek(lastWeek, { weekStartsOn: 1 })),
+        toDate: createUTCDate(
+          endOfDay(endOfWeek(lastWeek, { weekStartsOn: 1 }))
+        ),
+      };
+    }
+    case 'this-month':
+      return {
+        fromDate: createUTCDate(startOfMonth(today)),
+        toDate: createUTCDate(endOfDay(endOfMonth(today))),
+      };
+    case 'last-month': {
+      const lastMonth = subMonths(today, 1);
+      return {
+        fromDate: createUTCDate(startOfMonth(lastMonth)),
+        toDate: createUTCDate(endOfDay(endOfMonth(lastMonth))),
+      };
+    }
+    case 'this-quarter':
+      return {
+        fromDate: createUTCDate(startOfQuarter(today)),
+        toDate: createUTCDate(endOfDay(endOfQuarter(today))),
+      };
+    case 'last-quarter': {
+      const lastQuarter = subQuarters(today, 1);
+      return {
+        fromDate: createUTCDate(startOfQuarter(lastQuarter)),
+        toDate: createUTCDate(endOfDay(endOfQuarter(lastQuarter))),
+      };
+    }
+    case 'this-year':
+      return {
+        fromDate: createUTCDate(startOfYear(today)),
+        toDate: createUTCDate(endOfDay(endOfYear(today))),
+      };
+    case 'last-year': {
+      const lastYear = subYears(today, 1);
+      return {
+        fromDate: createUTCDate(startOfYear(lastYear)),
+        toDate: createUTCDate(endOfDay(endOfYear(lastYear))),
+      };
+    }
+    default:
+      return { fromDate: undefined, toDate: undefined };
+  }
+};
 
 export default function TrialBalanceCta({
   reportPeriod,
@@ -52,6 +149,32 @@ export default function TrialBalanceCta({
   ];
 
   const showDatePickers = reportPeriod === 'custom-dates';
+
+  // Update date ranges based on selected report period
+  useEffect(() => {
+    if (
+      reportPeriod &&
+      reportPeriod !== 'custom-dates' &&
+      reportPeriod !== 'empty'
+    ) {
+      const { fromDate, toDate } = getDateRangeForPeriod(reportPeriod);
+      if (onFromDateChange && fromDate) {
+        onFromDateChange(fromDate);
+      }
+      if (onToDateChange && toDate) {
+        onToDateChange(toDate);
+      }
+    } else if (reportPeriod === 'empty') {
+      // Clear date fields when empty is selected
+      if (onFromDateChange) {
+        onFromDateChange(null);
+      }
+      if (onToDateChange) {
+        onToDateChange(null);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reportPeriod]);
 
   return (
     <div className="space-y-4 px-1">
@@ -92,7 +215,10 @@ export default function TrialBalanceCta({
                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+            <PopoverContent
+              className="w-(--radix-popover-trigger-width) p-0"
+              align="start"
+            >
               <Calendar
                 mode="single"
                 selected={fromDate}
@@ -124,7 +250,10 @@ export default function TrialBalanceCta({
                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+            <PopoverContent
+              className="w-(--radix-popover-trigger-width) p-0"
+              align="start"
+            >
               <Calendar
                 mode="single"
                 selected={toDate}
