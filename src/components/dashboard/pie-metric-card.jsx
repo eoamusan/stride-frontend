@@ -62,7 +62,7 @@ export default function PieMetricCard({
                   ))}
                 </Pie>
                 <ChartLegend
-                  content={<ChartLegendContent nameKey="value" />}
+                  content={<ChartLegendContent />}
                   className="flex flex-wrap items-center justify-center gap-4 pt-4"
                 />
               </PieChart>

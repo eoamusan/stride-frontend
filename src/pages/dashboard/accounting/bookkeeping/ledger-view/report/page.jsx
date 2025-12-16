@@ -307,7 +307,7 @@ export default function LedgerReportPage() {
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant={'outline'} className={'h-10 rounded-2xl text-sm'}>
+          <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
             <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
             See video guide
           </Button>

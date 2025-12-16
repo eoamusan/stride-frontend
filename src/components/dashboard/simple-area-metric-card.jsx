@@ -37,11 +37,11 @@ export default function SimpleAreaMetricCard({
         <ResponsiveContainer
           width="100%"
           height="100%"
-          className={'h-full max-h-[430px]'}
+          className={'h-full max-h-[550px]'}
         >
           <ChartContainer
             config={chartConfig}
-            className="relative h-full max-h-[430px] w-full"
+            className="relative h-full max-h-[550px] w-full"
           >
             <AreaChart
               data={chartData}
@@ -106,11 +106,11 @@ export default function SimpleAreaMetricCard({
         <ResponsiveContainer
           width="100%"
           height="100%"
-          className={'max-h-[430px]'}
+          className={'max-h-[550px]'}
         >
           <ChartContainer
             config={chartConfig}
-            className="h-full max-h-[430px] w-full"
+            className="h-full max-h-[550px] w-full"
           >
             <AreaChart
               className="h-full w-full"
