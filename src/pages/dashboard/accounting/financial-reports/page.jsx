@@ -5,6 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import FinancialReportService from '@/api/financialReport';
 import {
   Select,
   SelectContent,
@@ -163,6 +164,29 @@ export default function FinancialReports() {
       setToDate(null);
     }
   }, [reportPeriod]);
+
+  // Fetch financial reports data
+  useEffect(() => {
+    const fetchFinancialReports = async () => {
+      try {
+        if (!fromDate || !toDate) return;
+        const params = {};
+        if (fromDate) {
+          params.startDate = fromDate.toISOString();
+        }
+        if (toDate) {
+          params.endDate = toDate.toISOString();
+        }
+
+        const response = await FinancialReportService.fetch(params);
+        console.log('Financial Reports Response:', response);
+      } catch (error) {
+        console.error('Error fetching financial reports:', error);
+      }
+    };
+
+    fetchFinancialReports();
+  }, [fromDate, toDate]);
 
   const handleReportChange = (value) => {
     setSearchParams({ type: value });
