@@ -244,7 +244,6 @@ export default function FinancialReports() {
                 <SelectValue placeholder="Select Date" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="empty">Select Date</SelectItem>
                 <SelectItem value="custom-dates">Custom dates</SelectItem>
                 <SelectItem value="today">Today</SelectItem>
                 <SelectItem value="this-week">This week</SelectItem>
