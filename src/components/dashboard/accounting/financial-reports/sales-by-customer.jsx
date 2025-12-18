@@ -4,14 +4,18 @@ import SimpleAreaMetricCard from '@/components/dashboard/simple-area-metric-card
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { useState } from 'react';
 
-export default function SalesByCustomer() {
+export default function SalesByCustomer({ data }) {
   const [selectedItems, setSelectedItems] = useState([]);
 
   const metrics = [
-    { title: 'Total Invoice', value: '264', symbol: '$' },
-    { title: 'Paid Invoices', value: '164', symbol: '$' },
-    { title: 'Pending Payment', value: '30', symbol: '$' },
-    { title: 'Overdue', value: '26', symbol: '$' },
+    { title: 'Total Invoice', value: data?.totalInvoice || '0', symbol: '$' },
+    { title: 'Paid Invoices', value: data?.paidInvoices || '0', symbol: '$' },
+    {
+      title: 'Pending Payment',
+      value: data?.pendingPayment || '0',
+      symbol: '$',
+    },
+    { title: 'Overdue', value: data?.overDue || '0', symbol: '$' },
   ];
 
   const invoiceStatusData = [

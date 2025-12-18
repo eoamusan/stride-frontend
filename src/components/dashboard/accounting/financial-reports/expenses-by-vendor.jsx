@@ -4,14 +4,14 @@ import PieMetricCard from '@/components/dashboard/pie-metric-card';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { useState } from 'react';
 
-export default function ExpensesByVendor() {
+export default function ExpensesByVendor({ data }) {
   const [selectedItems, setSelectedItems] = useState([]);
 
   const metrics = [
-    { title: 'Total Expenses', value: '264', symbol: '$' },
-    { title: 'Avg Monthly', value: '164', symbol: '$' },
-    { title: 'Pending Claims', value: '30', symbol: '$' },
-    { title: 'Employees', value: '26', symbol: '' },
+    { title: 'Total Expenses', value: data?.totalExpenses || '0', symbol: '$' },
+    { title: 'Avg Monthly', value: data?.avgMonthly || '0', symbol: '$' },
+    { title: 'Pending Claims', value: data?.pendingClaims || '0', symbol: '$' },
+    { title: 'Employees', value: data?.employees || '0', symbol: '' },
   ];
 
   const expensesBudgetData = [

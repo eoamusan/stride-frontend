@@ -2,14 +2,14 @@ import Metrics from '../invoicing/plain-metrics';
 import AreaMetricCard from '@/components/dashboard/area-metric-card';
 import PieMetricCard from '@/components/dashboard/pie-metric-card';
 
-export default function CompanyOverview() {
+export default function CompanyOverview({ data }) {
   const metrics = [
-    { title: 'Total Revenue', value: '264', symbol: '$' },
-    { title: 'Total Expenses', value: '264', symbol: '$' },
-    { title: 'Net Profit', value: '264', symbol: '$' },
-    { title: 'Outstanding AR', value: '264', symbol: '$' },
-    { title: 'Outstanding AP', value: '45', symbol: '$' },
-    { title: 'Cash Balance', value: '264', symbol: '$' },
+    { title: 'Total Revenue', value: data?.totalRevenue || '0', symbol: '$' },
+    { title: 'Total Expenses', value: data?.totalExpenses || '0', symbol: '$' },
+    { title: 'Net Profit', value: data?.netProfit || '0', symbol: '$' },
+    { title: 'Outstanding AR', value: data?.outstandingAr || '0', symbol: '$' },
+    { title: 'Outstanding AP', value: data?.outstandingAp || '0', symbol: '$' },
+    { title: 'Cash Balance', value: data?.cashBalance || '0', symbol: '$' },
   ];
 
   const revenueExpensesData = [

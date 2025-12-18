@@ -2,12 +2,12 @@ import Metrics from '../invoicing/plain-metrics';
 import BarChartOverview from '@/components/dashboard/bar-metric-card';
 import AreaMetricCard from '@/components/dashboard/area-metric-card';
 
-export default function ArApSummary() {
+export default function ArApSummary({ data }) {
   const metrics = [
-    { title: 'Total AR', value: '264', symbol: '$' },
-    { title: 'Total AP', value: '164', symbol: '$' },
-    { title: 'AR Overdue', value: '30', symbol: '$' },
-    { title: 'AP Due Soon', value: '30', symbol: '$' },
+    { title: 'Total AR', value: data?.totalAr || '0', symbol: '$' },
+    { title: 'Total AP', value: data?.totalAp || '0', symbol: '$' },
+    { title: 'AR Overdue', value: data?.arOverDue || '0', symbol: '$' },
+    { title: 'AP Due Soon', value: data?.apDueSoon || '0', symbol: '$' },
   ];
 
   const arAgingData = [

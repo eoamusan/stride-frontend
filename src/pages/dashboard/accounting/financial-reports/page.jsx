@@ -132,9 +132,15 @@ const getDateRangeForPeriod = (period) => {
 export default function FinancialReports() {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentReport = searchParams.get('type') || 'company-overview';
-  const [reportPeriod, setReportPeriod] = useState('empty');
+  const [reportPeriod, setReportPeriod] = useState('this-month');
   const [fromDate, setFromDate] = useState();
   const [toDate, setToDate] = useState();
+
+  // State for report data
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [customerData, setCustomerData] = useState(null);
+  const [vendorData, setVendorData] = useState(null);
+  const [arApData, setArApData] = useState(null);
 
   // Set default report type in URL if not present
   useEffect(() => {
@@ -165,7 +171,7 @@ export default function FinancialReports() {
     }
   }, [reportPeriod]);
 
-  // Fetch financial reports data
+  // Fetch financial reports data based on selected report
   useEffect(() => {
     const fetchFinancialReports = async () => {
       try {
@@ -178,15 +184,45 @@ export default function FinancialReports() {
           params.endDate = toDate.toISOString();
         }
 
-        const response = await FinancialReportService.fetch(params);
-        console.log('Financial Reports Response:', response);
+        // Fetch only the selected report
+        switch (currentReport) {
+          case 'company-overview': {
+            const response = await FinancialReportService.fetch(params);
+            console.log('📊 Main Financial Analytics Report:', response.data);
+            setAnalyticsData(response.data.data);
+            break;
+          }
+          case 'sales-by-customer': {
+            const customerResponse =
+              await FinancialReportService.fetchCustomerReport(params);
+            console.log('👥 Customer Financial Report:', customerResponse.data);
+            setCustomerData(customerResponse.data.data);
+            break;
+          }
+          case 'expenses-by-vendor': {
+            const vendorResponse =
+              await FinancialReportService.fetchVendorReport(params);
+            console.log('🏢 Vendor Financial Report:', vendorResponse.data);
+            setVendorData(vendorResponse.data.data);
+            break;
+          }
+          case 'ar-ap-summary': {
+            const arApResponse =
+              await FinancialReportService.fetchArReport(params);
+            console.log('💰 AR/AP Financial Report:', arApResponse.data);
+            setArApData(arApResponse.data.data);
+            break;
+          }
+          default:
+            break;
+        }
       } catch (error) {
-        console.error('Error fetching financial reports:', error);
+        console.error('❌ Error fetching financial reports:', error);
       }
     };
 
     fetchFinancialReports();
-  }, [fromDate, toDate]);
+  }, [fromDate, toDate, currentReport]);
 
   const handleReportChange = (value) => {
     setSearchParams({ type: value });
@@ -340,10 +376,16 @@ export default function FinancialReports() {
       </div>
 
       <div className="mt-10 mb-24">
-        {currentReport === 'company-overview' && <CompanyOverview />}
-        {currentReport === 'sales-by-customer' && <SalesByCustomer />}
-        {currentReport === 'expenses-by-vendor' && <ExpensesByVendor />}
-        {currentReport === 'ar-ap-summary' && <ArApSummary />}
+        {currentReport === 'company-overview' && (
+          <CompanyOverview data={analyticsData} />
+        )}
+        {currentReport === 'sales-by-customer' && (
+          <SalesByCustomer data={customerData} />
+        )}
+        {currentReport === 'expenses-by-vendor' && (
+          <ExpensesByVendor data={vendorData} />
+        )}
+        {currentReport === 'ar-ap-summary' && <ArApSummary data={arApData} />}
         {currentReport === 'general-ledger' && <GeneralLedger />}
         {currentReport === 'inventory-summary' && <InventorySummary />}
         {currentReport === 'fixed-asset' && <FixedAsset />}
