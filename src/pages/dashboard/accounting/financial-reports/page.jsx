@@ -6,6 +6,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import FinancialReportService from '@/api/financialReport';
+import InvoiceService from '@/api/invoice';
+import ExpenseService from '@/api/expense';
 import {
   Select,
   SelectContent,
@@ -48,6 +50,7 @@ import GeneralLedger from '@/components/dashboard/accounting/financial-reports/g
 import InventorySummary from '@/components/dashboard/accounting/financial-reports/inventory-summary';
 import FixedAsset from '@/components/dashboard/accounting/financial-reports/fixed-asset';
 import Reconciliation from '@/components/dashboard/accounting/financial-reports/reconciliation';
+import { useUserStore } from '@/stores/user-store';
 
 // Helper function to get date range based on period
 const getDateRangeForPeriod = (period) => {
@@ -135,12 +138,18 @@ export default function FinancialReports() {
   const [reportPeriod, setReportPeriod] = useState('this-month');
   const [fromDate, setFromDate] = useState();
   const [toDate, setToDate] = useState();
+  const { businessData } = useUserStore();
 
   // State for report data
   const [analyticsData, setAnalyticsData] = useState(null);
   const [customerData, setCustomerData] = useState(null);
   const [vendorData, setVendorData] = useState(null);
   const [arApData, setArApData] = useState(null);
+  const [expenseData, setExpenseData] = useState(null);
+  const [invoiceGraphData, setInvoiceGraphData] = useState(null);
+  const [expenseGraphData, setExpenseGraphData] = useState(null);
+  const [salesInvoiceData, setSalesInvoiceData] = useState(null);
+  const [vendorExpenseData, setVendorExpenseData] = useState(null);
 
   // Set default report type in URL if not present
   useEffect(() => {
@@ -176,6 +185,7 @@ export default function FinancialReports() {
     const fetchFinancialReports = async () => {
       try {
         if (!fromDate || !toDate) return;
+        const businessId = businessData?._id;
         const params = {};
         if (fromDate) {
           params.startDate = fromDate.toISOString();
@@ -190,6 +200,25 @@ export default function FinancialReports() {
             const response = await FinancialReportService.fetch(params);
             console.log('📊 Main Financial Analytics Report:', response.data);
             setAnalyticsData(response.data.data);
+
+            // Fetch invoice and expense data with graph
+            const invoiceResponse = await InvoiceService.fetch({
+              graph: true,
+              businessId,
+            });
+            console.log('📄 Invoice Graph Data:', invoiceResponse.data);
+            setInvoiceGraphData(invoiceResponse.data.data);
+
+            const expenseResponse = await ExpenseService.fetch({ graph: true });
+            console.log('💸 Expense Graph Data:', expenseResponse.data);
+            setExpenseGraphData(expenseResponse.data.data);
+
+            const expenseResponseNoGraph = await ExpenseService.fetch();
+            console.log(
+              '💸 Expense Data (No Graph):',
+              expenseResponseNoGraph.data
+            );
+            setExpenseData(expenseResponseNoGraph.data.data);
             break;
           }
           case 'sales-by-customer': {
@@ -197,6 +226,17 @@ export default function FinancialReports() {
               await FinancialReportService.fetchCustomerReport(params);
             console.log('👥 Customer Financial Report:', customerResponse.data);
             setCustomerData(customerResponse.data.data);
+
+            const invoiceResponse = await InvoiceService.fetch({
+              businessId,
+              page: 1,
+              perPage: 100,
+            });
+            console.log(
+              '📄 Invoice Data (Sales by Customer):',
+              invoiceResponse.data
+            );
+            setSalesInvoiceData(invoiceResponse.data.data);
             break;
           }
           case 'expenses-by-vendor': {
@@ -204,6 +244,13 @@ export default function FinancialReports() {
               await FinancialReportService.fetchVendorReport(params);
             console.log('🏢 Vendor Financial Report:', vendorResponse.data);
             setVendorData(vendorResponse.data.data);
+
+            const expenseResponse = await ExpenseService.fetch({});
+            console.log(
+              '💸 Expense Data (Expenses by Vendor):',
+              expenseResponse.data
+            );
+            setVendorExpenseData(expenseResponse.data.data);
             break;
           }
           case 'ar-ap-summary': {
@@ -222,7 +269,7 @@ export default function FinancialReports() {
     };
 
     fetchFinancialReports();
-  }, [fromDate, toDate, currentReport]);
+  }, [fromDate, toDate, currentReport, businessData]);
 
   const handleReportChange = (value) => {
     setSearchParams({ type: value });
@@ -377,13 +424,18 @@ export default function FinancialReports() {
 
       <div className="mt-10 mb-24">
         {currentReport === 'company-overview' && (
-          <CompanyOverview data={analyticsData} />
+          <CompanyOverview
+            data={analyticsData}
+            expenseData={expenseData}
+            invoiceGraphData={invoiceGraphData}
+            expenseGraphData={expenseGraphData}
+          />
         )}
         {currentReport === 'sales-by-customer' && (
-          <SalesByCustomer data={customerData} />
+          <SalesByCustomer data={customerData} invoiceData={salesInvoiceData} />
         )}
         {currentReport === 'expenses-by-vendor' && (
-          <ExpensesByVendor data={vendorData} />
+          <ExpensesByVendor data={vendorData} expenseData={vendorExpenseData} />
         )}
         {currentReport === 'ar-ap-summary' && <ArApSummary data={arApData} />}
         {currentReport === 'general-ledger' && <GeneralLedger />}

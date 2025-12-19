@@ -22,19 +22,20 @@ export default class ExpenseService {
     return response;
   }
 
-  static async fetch() {
+  static async fetch({ graph } = {}) {
     const userStore = useUserStore.getState();
     const url = 'expense/fetch';
 
-    const response = await axiosInstance.post(
-      url,
-      { businessId: userStore.businessData?._id },
-      {
-        headers: {
-          Authorization: `Bearer ${userStore.data?.accessToken}`,
-        },
-      }
-    );
+    const body = { businessId: userStore.businessData?._id };
+    if (graph) {
+      body.graph = graph;
+    }
+
+    const response = await axiosInstance.post(url, body, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
     return response;
   }
 }

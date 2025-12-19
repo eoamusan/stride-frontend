@@ -2,7 +2,12 @@ import Metrics from '../invoicing/plain-metrics';
 import AreaMetricCard from '@/components/dashboard/area-metric-card';
 import PieMetricCard from '@/components/dashboard/pie-metric-card';
 
-export default function CompanyOverview({ data }) {
+export default function CompanyOverview({
+  data,
+  expenseData,
+  invoiceGraphData,
+  expenseGraphData,
+}) {
   const metrics = [
     { title: 'Total Revenue', value: data?.totalRevenue || '0', symbol: '$' },
     { title: 'Total Expenses', value: data?.totalExpenses || '0', symbol: '$' },
@@ -12,18 +17,83 @@ export default function CompanyOverview({ data }) {
     { title: 'Cash Balance', value: data?.cashBalance || '0', symbol: '$' },
   ];
 
-  const revenueExpensesData = [
-    { date: '2025-01-01', revenue: 36, expenses: 60 },
-    { date: '2025-02-01', revenue: 10, expenses: 15 },
-    { date: '2025-03-01', revenue: 57, expenses: 63 },
-    { date: '2025-04-01', revenue: 10, expenses: 8 },
-    { date: '2025-05-01', revenue: 30, expenses: 45 },
-    { date: '2025-06-01', revenue: 95, expenses: 68 },
-    { date: '2025-07-01', revenue: 13, expenses: 18 },
-    { date: '2025-08-01', revenue: 95, expenses: 38 },
-    { date: '2025-09-01', revenue: 45, expenses: 14 },
-    { date: '2025-10-01', revenue: 80, expenses: 90 },
-  ];
+  // Process invoice and expense graph data for revenue & expenses chart
+  const processRevenueExpensesData = () => {
+    if (!invoiceGraphData?.graph?.labels && !expenseGraphData?.graph?.labels) {
+      return [];
+    }
+
+    // Combine labels from both datasets
+    const invoiceLabels = invoiceGraphData?.graph?.labels || [];
+    const expenseLabels = expenseGraphData?.graph?.labels || [];
+    const allLabels = [...new Set([...invoiceLabels, ...expenseLabels])].sort();
+
+    // Get data arrays
+    const invoiceData = invoiceGraphData?.graph?.datasets?.[0]?.data || [];
+    const expenseData = expenseGraphData?.graph?.datasets?.[0]?.data || [];
+
+    // Create chart data
+    return allLabels.map((label) => {
+      // For invoice data, use the corresponding index from invoiceLabels
+      const invoiceIndex = invoiceLabels.indexOf(label);
+      const revenue = invoiceIndex !== -1 ? invoiceData[invoiceIndex] || 0 : 0;
+
+      // For expense data, use the corresponding index from expenseLabels
+      const expenseIndex = expenseLabels.indexOf(label);
+      const expenses = expenseIndex !== -1 ? expenseData[expenseIndex] || 0 : 0;
+
+      return {
+        date: label,
+        revenue,
+        expenses,
+      };
+    });
+  };
+
+  // Process expense data for pie chart
+  const processExpenseDistribution = () => {
+    if (!expenseData?.expenses || expenseData.expenses.length === 0) {
+      return [];
+    }
+
+    // Group expenses by account name and sum totals
+    const expensesByAccount = {};
+    expenseData.expenses.forEach((expense) => {
+      const accountName = expense.accountingAccountId?.accountName || 'Other';
+      if (!expensesByAccount[accountName]) {
+        expensesByAccount[accountName] = 0;
+      }
+      expensesByAccount[accountName] += expense.total || 0;
+    });
+
+    // Convert to array format for pie chart
+    const colors = [
+      '#6B8AFF',
+      '#4ADE80',
+      '#FB923C',
+      '#22D3EE',
+      '#A78BFA',
+      '#F472B6',
+    ];
+    return Object.entries(expensesByAccount).map(([name, value], index) => ({
+      name,
+      value,
+      color: colors[index % colors.length],
+    }));
+  };
+
+  const processExpenseChartConfig = (distributionData) => {
+    const config = {};
+    distributionData.forEach((item) => {
+      config[item.name] = {
+        label: item.name,
+        color: item.color,
+      };
+    });
+    return config;
+  };
+
+  const revenueExpensesData = processRevenueExpensesData();
 
   const chartConfig = {
     revenue: {
@@ -36,31 +106,8 @@ export default function CompanyOverview({ data }) {
     },
   };
 
-  const expenseDistributionData = [
-    { name: 'Bills & utilities', value: 100, color: '#6B8AFF' },
-    { name: 'Entertainment', value: 62, color: '#4ADE80' },
-    { name: 'Food & Drinking', value: 50, color: '#FB923C' },
-    { name: 'Shopping', value: 28, color: '#22D3EE' },
-  ];
-
-  const expenseChartConfig = {
-    'Bills & utilities': {
-      label: 'Bills & utilities',
-      color: '#6B8AFF',
-    },
-    Entertainment: {
-      label: 'Entertainment',
-      color: '#4ADE80',
-    },
-    'Food & Drinking': {
-      label: 'Food & Drinking',
-      color: '#FB923C',
-    },
-    Shopping: {
-      label: 'Shopping',
-      color: '#22D3EE',
-    },
-  };
+  const expenseDistributionData = processExpenseDistribution();
+  const expenseChartConfig = processExpenseChartConfig(expenseDistributionData);
 
   return (
     <div className="my-10">

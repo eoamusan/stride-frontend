@@ -4,7 +4,7 @@ import PieMetricCard from '@/components/dashboard/pie-metric-card';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { useState } from 'react';
 
-export default function ExpensesByVendor({ data }) {
+export default function ExpensesByVendor({ data, expenseData }) {
   const [selectedItems, setSelectedItems] = useState([]);
 
   const metrics = [
@@ -14,18 +14,73 @@ export default function ExpensesByVendor({ data }) {
     { title: 'Employees', value: data?.employees || '0', symbol: '' },
   ];
 
-  const expensesBudgetData = [
-    { day: 'Jan', value1: 35000, value2: 60000 },
-    { day: 'Feb', value1: 10000, value2: 12000 },
-    { day: 'Mar', value1: 55000, value2: 60000 },
-    { day: 'Apr', value1: 10000, value2: 12000 },
-    { day: 'May', value1: 28000, value2: 45000 },
-    { day: 'Jun', value1: 93000, value2: 68000 },
-    { day: 'Jul', value1: 15000, value2: 18000 },
-    { day: 'Aug', value1: 98000, value2: 38000 },
-    { day: 'Sept', value1: 45000, value2: 14000 },
-    { day: 'Oct', value1: 78000, value2: 88000 },
-  ];
+  // Process expense data for pie chart
+  const processExpenseDistribution = () => {
+    if (!expenseData?.expenses || expenseData.expenses.length === 0) {
+      return [];
+    }
+
+    // Group expenses by account name and sum totals
+    const expensesByAccount = {};
+    expenseData.expenses.forEach((expense) => {
+      const accountName = expense.accountingAccountId?.accountName || 'Other';
+      if (!expensesByAccount[accountName]) {
+        expensesByAccount[accountName] = 0;
+      }
+      expensesByAccount[accountName] += expense.total || 0;
+    });
+
+    // Convert to array format for pie chart
+    const colors = [
+      '#6B8AFF',
+      '#4ADE80',
+      '#FB923C',
+      '#22D3EE',
+      '#A78BFA',
+      '#F472B6',
+    ];
+    return Object.entries(expensesByAccount).map(([name, value], index) => ({
+      name,
+      value,
+      color: colors[index % colors.length],
+    }));
+  };
+
+  const processExpenseChartConfig = (distributionData) => {
+    const config = {};
+    distributionData.forEach((item) => {
+      config[item.name] = {
+        label: item.name,
+        color: item.color,
+      };
+    });
+    return config;
+  };
+
+  // Process expense vs budget data for bar chart
+  const processExpensesBudgetData = () => {
+    if (!expenseData?.expenses || expenseData.expenses.length === 0) {
+      return [];
+    }
+
+    const monthlyData = {};
+    expenseData.expenses.forEach((expense) => {
+      const date = new Date(expense.paymentDate);
+      const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
+
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { day: monthKey, value1: 0, value2: 0 };
+      }
+
+      const total = parseFloat(expense.total || 0);
+      monthlyData[monthKey].value1 += total; // Expenses
+      // value2 is budget, set to 0 for now
+    });
+
+    return Object.values(monthlyData);
+  };
+
+  const expensesBudgetData = processExpensesBudgetData();
 
   const expensesBudgetConfig = {
     value1: {
@@ -38,52 +93,35 @@ export default function ExpensesByVendor({ data }) {
     },
   };
 
-  const expenseDistributionData = [
-    { name: 'Bills & utilities', value: 100, color: '#6B8AFF' },
-    { name: 'Entertainment', value: 62, color: '#4ADE80' },
-    { name: 'Food & Drinking', value: 50, color: '#FB923C' },
-    { name: 'Shopping', value: 28, color: '#22D3EE' },
-  ];
+  const expenseDistributionData = processExpenseDistribution();
+  const expenseDistributionConfig = processExpenseChartConfig(
+    expenseDistributionData
+  );
 
-  const expenseDistributionConfig = {
-    'Bills & utilities': {
-      label: 'Bills & utilities',
-      color: '#6B8AFF',
-    },
-    Entertainment: {
-      label: 'Entertainment',
-      color: '#4ADE80',
-    },
-    'Food & Drinking': {
-      label: 'Food & Drinking',
-      color: '#FB923C',
-    },
-    Shopping: {
-      label: 'Shopping',
-      color: '#22D3EE',
-    },
+  // Process expense data for table
+  const processTableData = () => {
+    if (!expenseData?.expenses) {
+      return [];
+    }
+
+    return expenseData.expenses.map((expense, index) => ({
+      id: expense._id,
+      no: expense.refNo || `${index + 1}`.padStart(4, '0'),
+      date: new Date(expense.paymentDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      }),
+      type: 'Expenses',
+      payer: expense.vendorId
+        ? `${expense.vendorId.firstName} ${expense.vendorId.lastName}`
+        : 'N/A',
+      category: expense.accountingAccountId?.accountName || 'N/A',
+      total: parseFloat(expense.total || 0),
+    }));
   };
 
-  const expenseTransactionData = [
-    {
-      id: 1,
-      no: '0001',
-      date: '1/10/2024',
-      type: 'Expenses',
-      payer: 'James Doe',
-      category: 'Bank charges',
-      total: 15400.0,
-    },
-    {
-      id: 2,
-      no: '0001',
-      date: '1/10/2024',
-      type: 'Expenses',
-      payer: 'James Doe',
-      category: 'Bank charges',
-      total: 15400.0,
-    },
-  ];
+  const expenseTransactionData = processTableData();
 
   const tableColumns = [
     {
@@ -126,7 +164,8 @@ export default function ExpensesByVendor({ data }) {
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedItems(expenseTransactionData.map((item) => item.id));
+      const tableData = processTableData();
+      setSelectedItems(tableData.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
@@ -143,10 +182,10 @@ export default function ExpensesByVendor({ data }) {
   };
 
   const paginationData = {
-    page: 1,
-    totalPages: 10,
-    pageSize: 2,
-    totalCount: 20,
+    page: expenseData?.page || 1,
+    totalPages: expenseData?.totalPages || 1,
+    pageSize: expenseData?.limit || 20,
+    totalCount: expenseData?.totalDocs || 0,
   };
 
   return (

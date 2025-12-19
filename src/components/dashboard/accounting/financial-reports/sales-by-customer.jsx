@@ -4,7 +4,7 @@ import SimpleAreaMetricCard from '@/components/dashboard/simple-area-metric-card
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { useState } from 'react';
 
-export default function SalesByCustomer({ data }) {
+export default function SalesByCustomer({ data, invoiceData }) {
   const [selectedItems, setSelectedItems] = useState([]);
 
   const metrics = [
@@ -18,18 +18,43 @@ export default function SalesByCustomer({ data }) {
     { title: 'Overdue', value: data?.overDue || '0', symbol: '$' },
   ];
 
-  const invoiceStatusData = [
-    { day: 'Jan', value1: 36000, value2: 60000, value3: 68000 },
-    { day: 'Feb', value1: 12000, value2: 10000, value3: 85000 },
-    { day: 'Mar', value1: 57000, value2: 60000, value3: 58000 },
-    { day: 'Apr', value1: 10000, value2: 11000, value3: 62000 },
-    { day: 'May', value1: 30000, value2: 45000, value3: 36000 },
-    { day: 'Jun', value1: 95000, value2: 68000, value3: 21000 },
-    { day: 'Jul', value1: 13000, value2: 18000, value3: 88000 },
-    { day: 'Aug', value1: 38000, value2: 95000, value3: 44000 },
-    { day: 'Sept', value1: 45000, value2: 14000, value3: 90000 },
-    { day: 'Oct', value1: 80000, value2: 90000, value3: 28000 },
-  ];
+  // Process invoice status by month for bar chart
+  const processInvoiceStatusData = () => {
+    if (!invoiceData?.invoices) {
+      return [];
+    }
+
+    const monthlyData = {};
+    invoiceData.invoices.forEach((invoice) => {
+      const date = new Date(invoice.invoiceDate);
+      const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
+
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = {
+          day: monthKey,
+          value1: 0,
+          value2: 0,
+          value3: 0,
+        };
+      }
+
+      const total = parseFloat(invoice.product?.total || 0);
+      // value1: Total issued
+      monthlyData[monthKey].value1 += total;
+      // value2: Paid
+      if (invoice.status === 'PAID') {
+        monthlyData[monthKey].value2 += total;
+      }
+      // value3: Overdue
+      if (invoice.status === 'OVERDUE') {
+        monthlyData[monthKey].value3 += total;
+      }
+    });
+
+    return Object.values(monthlyData);
+  };
+
+  const invoiceStatusData = processInvoiceStatusData();
 
   const invoiceStatusConfig = {
     value1: {
@@ -46,14 +71,34 @@ export default function SalesByCustomer({ data }) {
     },
   };
 
-  const revenueTrendData = [
-    { date: '2025-01-01', value: 57000 },
-    { date: '2025-02-01', value: 65000 },
-    { date: '2025-03-01', value: 78000 },
-    { date: '2025-04-01', value: 80000 },
-    { date: '2025-05-01', value: 71000 },
-    { date: '2025-06-01', value: 40000 },
-  ];
+  // Process revenue trend data
+  const processRevenueTrendData = () => {
+    if (!invoiceData?.invoices) {
+      return [];
+    }
+
+    const monthlyRevenue = {};
+    invoiceData.invoices.forEach((invoice) => {
+      const date = new Date(invoice.invoiceDate);
+      const monthKey = date.toISOString().substring(0, 7); // YYYY-MM format
+      const firstDay = `${monthKey}-01`;
+
+      if (!monthlyRevenue[firstDay]) {
+        monthlyRevenue[firstDay] = 0;
+      }
+
+      // Only count paid invoices for revenue
+      if (invoice.status === 'PAID') {
+        monthlyRevenue[firstDay] += parseFloat(invoice.product?.total || 0);
+      }
+    });
+
+    return Object.entries(monthlyRevenue)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, value]) => ({ date, value }));
+  };
+
+  const revenueTrendData = processRevenueTrendData();
 
   const revenueTrendConfig = [
     {
@@ -63,63 +108,36 @@ export default function SalesByCustomer({ data }) {
     },
   ];
 
-  const invoiceData = [
-    {
-      id: 1,
-      invoiceNumber: 'INV-1001',
-      customer: 'ABC Corporation',
-      currency: 'NGN',
-      amount: 15400.0,
-      createdBy: 'Adeoye Yemi',
-      issueDate: '$15,400.00',
-      dueDate: 'Jul 20, 2024',
-      status: 'Overdue',
-    },
-    {
-      id: 2,
-      invoiceNumber: 'INV-1001',
-      customer: 'ABC Corporation',
-      currency: 'USD',
-      amount: 15400.0,
-      createdBy: 'James Adeniyi',
-      issueDate: '$15,400.00',
-      dueDate: 'Jul 20, 2024',
-      status: 'Pending',
-    },
-    {
-      id: 3,
-      invoiceNumber: 'INV-1001',
-      customer: 'ABC Corporation',
-      currency: 'USD',
-      amount: 15400.0,
-      createdBy: 'Adeoye Yemi',
-      issueDate: '$15,400.00',
-      dueDate: 'Jul 20, 2024',
-      status: 'Paid',
-    },
-    {
-      id: 4,
-      invoiceNumber: 'INV-1001',
-      customer: 'ABC Corporation',
-      currency: 'EUR',
-      amount: 15400.0,
-      createdBy: 'Adeoye Yemi',
-      issueDate: '$15,400.00',
-      dueDate: 'Jul 20, 2024',
-      status: 'Overdue',
-    },
-    {
-      id: 5,
-      invoiceNumber: 'INV-1001',
-      customer: 'ABC Corporation',
-      currency: 'EUR',
-      amount: 15400.0,
-      createdBy: 'Adeoye Yemi',
-      issueDate: '$15,400.00',
-      dueDate: 'Jul 20, 2024',
-      status: 'Partial',
-    },
-  ];
+  // Process invoice data for table
+  const processTableData = () => {
+    if (!invoiceData?.invoices) {
+      return [];
+    }
+
+    return invoiceData.invoices.map((invoice) => ({
+      id: invoice._id,
+      invoiceNumber: invoice.invoiceNo,
+      customer:
+        invoice.customerId?.displayName ||
+        `${invoice.customerId?.firstName} ${invoice.customerId?.lastName}`,
+      currency: invoice.currency,
+      amount: parseFloat(invoice.product?.total || 0),
+      createdBy: invoice.accountId || 'N/A',
+      issueDate: new Date(invoice.invoiceDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }),
+      dueDate: new Date(invoice.dueDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }),
+      status: invoice.status.charAt(0) + invoice.status.slice(1).toLowerCase(),
+    }));
+  };
+
+  const tableData = processTableData();
 
   const tableColumns = [
     {
@@ -187,10 +205,10 @@ export default function SalesByCustomer({ data }) {
   };
 
   const paginationData = {
-    page: 1,
-    totalPages: 10,
-    pageSize: 5,
-    totalCount: 50,
+    page: invoiceData?.page || 1,
+    totalPages: invoiceData?.totalPages || 1,
+    pageSize: invoiceData?.limit || 100,
+    totalCount: invoiceData?.totalDocs || 0,
   };
 
   return (
@@ -217,7 +235,7 @@ export default function SalesByCustomer({ data }) {
       <div className="mt-10">
         <AccountingTable
           title="Invoice Management"
-          data={invoiceData}
+          data={tableData}
           columns={tableColumns}
           searchFields={['invoiceNumber', 'customer', 'currency']}
           searchPlaceholder="Search invoices......."

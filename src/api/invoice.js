@@ -32,17 +32,27 @@ export default class InvoiceService {
     return response;
   }
 
-  static async fetch({ businessId, page, perPage, search, type }) {
+  static async fetch({ businessId, page, perPage, search, type, graph }) {
     const userStore = useUserStore.getState();
-    const response = await axiosInstance.post(
-      `invoice/fetch?page=${page ?? 1}&perPage=${perPage ?? 10}&search=${search ?? ''}`,
-      { businessId, type },
-      {
-        headers: {
-          Authorization: `Bearer ${userStore.data?.accessToken}`,
-        },
-      }
-    );
+    const body = { businessId, type };
+    if (graph) {
+      body.graph = graph;
+    }
+
+    // Build query params only if provided
+    const queryParams = new URLSearchParams();
+    if (page !== undefined) queryParams.append('page', page);
+    if (perPage !== undefined) queryParams.append('perPage', perPage);
+    if (search !== undefined) queryParams.append('search', search);
+
+    const queryString = queryParams.toString();
+    const url = queryString ? `invoice/fetch?${queryString}` : 'invoice/fetch';
+
+    const response = await axiosInstance.post(url, body, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
     return response;
   }
 
