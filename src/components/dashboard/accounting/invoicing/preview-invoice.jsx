@@ -672,7 +672,11 @@ export default function PreviewInvoice({
           <Button
             variant="outline"
             className="h-10 px-8"
-            disabled={!formData.id || formData.status === 'PAID'}
+            disabled={
+              !formData.id ||
+              formData.status === 'PAID' ||
+              calculatedBalanceDue === 0
+            }
             onClick={() => setShowPaymentForm(true)}
           >
             Record Payment
