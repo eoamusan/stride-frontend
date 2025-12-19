@@ -98,6 +98,15 @@ export default function AreaMetricCard({
                 axisLine={false}
                 tickMargin={8}
                 minTickGap={32}
+                tickFormatter={(value) => {
+                  if (value >= 1000000) {
+                    return `${(value / 1000000).toFixed(1)}M`;
+                  } else if (value >= 1000) {
+                    return `${(value / 1000).toFixed(0)}k`;
+                  } else {
+                    return `${value}`;
+                  }
+                }}
               />
             </AreaChart>
             <div className="absolute top-[25%] z-10 ml-[8%] flex h-40 w-[92%] items-center justify-center bg-white">
@@ -166,11 +175,11 @@ export default function AreaMetricCard({
                 minTickGap={32}
                 tickFormatter={(value) => {
                   if (value >= 1000000) {
-                    return `$${(value / 1000000).toFixed(1)}M`;
+                    return `${(value / 1000000).toFixed(1)}M`;
                   } else if (value >= 1000) {
-                    return `$${(value / 1000).toFixed(0)}k`;
+                    return `${(value / 1000).toFixed(0)}k`;
                   } else {
-                    return `$${value}`;
+                    return `${value}`;
                   }
                 }}
               />
