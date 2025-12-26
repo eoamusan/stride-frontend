@@ -1,13 +1,48 @@
 import { redirect } from 'react-router';
 import { useUserStore } from '@/stores/user-store';
+import BusinessService from '@/api/business';
 
 export async function authMiddleware() {
-  const { data } = useUserStore.getState();
+  const userStore = useUserStore.getState();
+  const { data } = userStore;
 
-  //   Come Back To This Later
+  // Check if tokens exist
   if (!data?.accessToken || !data?.refreshToken) {
+    // Clear storage and redirect to login
+    localStorage.removeItem('user-storage');
     throw redirect('/login');
   }
 
-  return null;
+  try {
+    // Try to fetch business data with existing token
+    await BusinessService.fetch();
+    return null;
+  } catch (error) {
+    // Check if error is 401 unauthorized
+    if (
+      error.response?.data?.statusCode === 401 ||
+      error.response?.status === 401
+    ) {
+      try {
+        // Try to refresh the token
+        await userStore.refresh();
+        return null;
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+
+        // Clear storage and redirect to login
+        localStorage.removeItem('user-storage');
+        useUserStore.setState({ data: null, businessData: null });
+
+        throw redirect('/login');
+      }
+    }
+
+    // For other errors, clear and redirect
+    console.error('Authentication failed:', error);
+    localStorage.removeItem('user-storage');
+    useUserStore.setState({ data: null, businessData: null });
+
+    throw redirect('/login');
+  }
 }

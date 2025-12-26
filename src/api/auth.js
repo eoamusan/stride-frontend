@@ -41,4 +41,11 @@ export default class AuthService {
     const res = await axiosInstance.post('auth/forgot-password/reset', data);
     return res;
   }
+
+  static async refresh(refreshToken) {
+    const response = await axiosInstance.post('auth/refresh', {
+      refreshToken,
+    });
+    return response;
+  }
 }

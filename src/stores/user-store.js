@@ -54,7 +54,34 @@ export const useUserStore = create(
         }
       },
 
-      async refresh() {},
+      async refresh() {
+        try {
+          const { data } = useUserStore.getState();
+          if (!data?.refreshToken) {
+            throw new Error('No refresh token available');
+          }
+
+          const { data: res } = await AuthService.refresh(data.refreshToken);
+
+          // Update only the access token, keep other data
+          set({
+            data: {
+              ...data,
+              accessToken: res.data.accessToken,
+            },
+          });
+
+          return res.data.accessToken;
+        } catch (err) {
+          // If refresh fails, clear everything
+          set({
+            data: null,
+            businessData: null,
+            message: 'Session expired. Please login again.',
+          });
+          throw err;
+        }
+      },
 
       async getBusinessData() {
         const { data: res } = await BusinessService.fetch();
