@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,12 +32,26 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, CreditCardIcon } from 'lucide-react';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  CalendarIcon,
+  CreditCardIcon,
+  ChevronsUpDown,
+  Check,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/stores/user-store';
 import toast from 'react-hot-toast';
 import PaymentService from '@/api/payment';
+import AccountService from '@/api/accounts';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 
 const paymentFormSchema = z.object({
@@ -70,6 +84,8 @@ export default function PaymentForm({
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [accounts, setAccounts] = useState([]);
+  const [openAccountCombobox, setOpenAccountCombobox] = useState(false);
   const { businessData } = useUserStore();
 
   // Create schema with dynamic validation based on amountDue
@@ -96,6 +112,23 @@ export default function PaymentForm({
       notes: '',
     },
   });
+
+  // Fetch accounts on mount
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const response = await AccountService.fetch({});
+        const accountsData = response.data?.data?.accounts || [];
+        setAccounts(accountsData);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+      }
+    };
+
+    if (open) {
+      fetchAccounts();
+    }
+  }, [open]);
   console.log(invoiceId);
   const handleSubmit = async (data) => {
     try {
@@ -348,7 +381,7 @@ export default function PaymentForm({
                       >
                         <FormControl>
                           <SelectTrigger className="h-10 w-full">
-                            <SelectValue placeholder="Bank Transfer" />
+                            <SelectValue placeholder="Select Payment Method" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -407,6 +440,108 @@ export default function PaymentForm({
                   )}
                 />
 
+                {/* Account Code - Only show if payment method is selected */}
+                {form.watch('paymentMethod') && (
+                  <FormField
+                    control={form.control}
+                    name="accountCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Code</FormLabel>
+                        <FormControl>
+                          <Popover
+                            open={openAccountCombobox}
+                            onOpenChange={setOpenAccountCombobox}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  'h-10 w-full justify-between text-sm',
+                                  !field.value && 'text-muted-foreground'
+                                )}
+                              >
+                                {field.value
+                                  ? (() => {
+                                      const selectedAccount = accounts?.find(
+                                        (account) =>
+                                          account?._id === field.value
+                                      );
+                                      if (selectedAccount) {
+                                        const name =
+                                          selectedAccount.accountName || '';
+                                        const code =
+                                          selectedAccount.accountCode ||
+                                          selectedAccount.accountNumber ||
+                                          '';
+                                        return code
+                                          ? `${name} (${code})`
+                                          : name || 'Select account';
+                                      }
+                                      return 'Select account';
+                                    })()
+                                  : 'Select account'}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-(--radix-popover-trigger-width) p-0"
+                              align="start"
+                            >
+                              <Command>
+                                <CommandInput placeholder="Search accounts..." />
+                                <CommandList>
+                                  <CommandEmpty>No account found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {accounts?.map((account) => (
+                                      <CommandItem
+                                        value={account?._id}
+                                        key={account?._id}
+                                        onSelect={() => {
+                                          form.setValue(
+                                            'accountCode',
+                                            account._id
+                                          );
+                                          setOpenAccountCombobox(false);
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            'mr-2 h-4 w-4',
+                                            account?._id === field.value
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
+                                          )}
+                                        />
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">
+                                            {account?.accountName}
+                                          </span>
+                                          {(account?.accountNumber ||
+                                            account?.accountCode) && (
+                                            <span className="text-muted-foreground text-xs">
+                                              {account?.accountNumber ||
+                                                account?.accountCode}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Reference/Transaction Number */}
                 <FormField
                   control={form.control}
@@ -417,27 +552,6 @@ export default function PaymentForm({
                       <FormControl>
                         <Input
                           placeholder="Enter Transaction ID"
-                          className="h-10"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {/* Account Code */}
-                <FormField
-                  control={form.control}
-                  name="accountCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Account Code</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter account code"
                           className="h-10"
                           {...field}
                         />
