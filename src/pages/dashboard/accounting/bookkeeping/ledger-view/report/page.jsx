@@ -10,6 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useState, useEffect } from 'react';
@@ -18,6 +19,7 @@ import youtubeIcon from '@/assets/icons/youtube-red.png';
 import AccountService from '@/api/accounts';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import * as XLSX from 'xlsx';
 
 export default function LedgerReportPage() {
   const location = useLocation();
@@ -159,6 +161,176 @@ export default function LedgerReportPage() {
       default:
         // Fallback to whichever balance has a value
         return transaction.creditBalance || transaction.debitBalance || 0;
+    }
+  };
+
+  // Export to PDF
+  const handleExportPDF = () => {
+    const printContent = document.getElementById('ledger-report-section');
+    if (!printContent) {
+      toast.error('Report content not found');
+      return;
+    }
+
+    const printWindow = window.open('', '', 'width=1200,height=800');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ledger View Report</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; 
+              padding: 40px;
+              background: white;
+            }
+            .mb-6 { margin-bottom: 24px; }
+            .mt-6 { margin-top: 24px; }
+            .text-center { text-align: center; }
+            .text-xl { font-size: 20px; }
+            .text-sm { font-size: 14px; }
+            .font-bold { font-weight: 700; }
+            .font-medium { font-weight: 500; }
+            .text-gray-700 { color: #374151; }
+            .text-gray-500 { color: #6B7280; }
+            .px-4 { padding-left: 16px; padding-right: 16px; }
+            .p-4 { padding: 16px; }
+            .mb-4 { margin-bottom: 16px; }
+            .space-y-4 > * + * { margin-top: 16px; }
+            .grid { display: grid; }
+            .grid-cols-8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+            .gap-4 { gap: 16px; }
+            .rounded-2xl { border-radius: 16px; }
+            .border { 
+              border: 1px solid #e5e7eb;
+              border-radius: 16px;
+            }
+            .hover\\:bg-gray-50:hover { background-color: #f9fafb; }
+            .py-12 { padding-top: 48px; padding-bottom: 48px; }
+            .capitalize { text-transform: capitalize; }
+            .truncate { 
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            .flex { display: flex; }
+            .items-center { align-items: center; }
+            .ml-2 { margin-left: 8px; }
+            .ml-1 { margin-left: 4px; }
+            .col-span-3 { grid-column: span 3 / span 3; }
+            .cursor-pointer { cursor: pointer; }
+            h1 { margin-bottom: 8px; }
+            @media print {
+              body { padding: 10px; }
+              .border { border: 1px solid #ddd; }
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
+  // Export to Excel
+  const handleExportExcel = () => {
+    try {
+      // Prepare data for Excel
+      const excelData = [];
+
+      // Add header row
+      excelData.push([
+        'Code Series',
+        'Transaction Date',
+        'Type',
+        'Description',
+        'Name',
+        'Account Full Name',
+        'Amount',
+        'Balance',
+      ]);
+
+      // Add transaction rows grouped by account
+      Object.entries(groupedTransactions).forEach(
+        ([accountCode, transactionGroup]) => {
+          // Add group header
+          excelData.push([
+            `${accountCode} (${transactionGroup.length})`,
+            '',
+            '',
+            '',
+            '',
+            transactionGroup[0]?.accountingAccountId?.accountName || '',
+            '',
+            '',
+          ]);
+
+          // Add transactions
+          transactionGroup.forEach((transaction) => {
+            excelData.push([
+              transaction.accountingAccountId?.accountCode || '',
+              format(new Date(transaction.createdAt), 'dd/MM/yyyy'),
+              transaction.type || '',
+              transaction.description || 'N/A',
+              getTransactionName(transaction),
+              transaction.accountingAccountId?.accountName || '',
+              transaction.amount || 0,
+              getBalanceByAccountType(transaction),
+            ]);
+          });
+
+          // Add total row
+          excelData.push([
+            'Total',
+            '',
+            '',
+            '',
+            '',
+            '',
+            calculateGroupTotal(transactionGroup),
+            '',
+          ]);
+
+          // Add empty row for spacing
+          excelData.push([]);
+        }
+      );
+
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 12 },
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 25 },
+        { wch: 15 },
+        { wch: 15 },
+      ];
+
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Ledger Report');
+
+      // Generate filename with date
+      const filename = `Ledger_Report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+
+      // Save file
+      XLSX.writeFile(wb, filename);
+      toast.success('Excel file downloaded successfully');
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      toast.error('Failed to export to Excel');
     }
   };
 
@@ -311,12 +483,22 @@ export default function LedgerReportPage() {
             <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
             See video guide
           </Button>
-          <Button className={'h-10 rounded-2xl text-sm'}>Save as</Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className={'h-10 rounded-2xl text-sm'}>Save as</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportPDF}>PDF</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportExcel}>
+                Excel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       {/* Ledger Report Section */}
-      <div className="mt-8 rounded-xl bg-white py-6">
+      <div id="ledger-report-section" className="mt-8 rounded-xl bg-white py-6">
         {/* Report Header */}
         <div className="mb-6 text-center">
           <h1 className="mb-2 text-xl font-bold">Ledger View Report</h1>

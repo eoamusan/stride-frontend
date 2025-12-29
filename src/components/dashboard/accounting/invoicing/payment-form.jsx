@@ -192,7 +192,7 @@ export default function PaymentForm({
         vatCertificate: vatCertificateUrl,
         category: data.category,
         notes: data.notes || '',
-        accountCode: data.accountCode,
+        accountingAccountId: data.accountCode,
         attachment: attachmentUrl,
       };
 
