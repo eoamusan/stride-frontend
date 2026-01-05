@@ -20,11 +20,20 @@ import AccountService from '@/api/accounts';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
+import pdfMake from 'pdfmake/build/pdfmake';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import { useUserStore } from '@/stores/user-store';
+
+if (pdfFonts.pdfMake) {
+  pdfMake.vfs = pdfFonts.pdfMake.vfs;
+} else {
+  pdfMake.vfs = pdfFonts;
+}
 
 export default function LedgerReportPage() {
   const location = useLocation();
   const navigate = useNavigate();
-
+  const businessData = useUserStore((state) => state.businessData);
   // Get data from navigation state
   const { type, startDate, endDate } = location.state || {};
 
@@ -164,79 +173,317 @@ export default function LedgerReportPage() {
     }
   };
 
-  // Export to PDF
-  const handleExportPDF = () => {
-    const printContent = document.getElementById('ledger-report-section');
-    if (!printContent) {
-      toast.error('Report content not found');
-      return;
-    }
+  // Convert image URL to base64
+  const getBase64ImageFromURL = (url) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.setAttribute('crossOrigin', 'anonymous');
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const dataURL = canvas.toDataURL('image/png');
+        resolve(dataURL);
+      };
+      img.onerror = (error) => {
+        reject(error);
+      };
+      img.src = url;
+    });
+  };
 
-    const printWindow = window.open('', '', 'width=1200,height=800');
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Ledger View Report</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; 
-              padding: 40px;
-              background: white;
-            }
-            .mb-6 { margin-bottom: 24px; }
-            .mt-6 { margin-top: 24px; }
-            .text-center { text-align: center; }
-            .text-xl { font-size: 20px; }
-            .text-sm { font-size: 14px; }
-            .font-bold { font-weight: 700; }
-            .font-medium { font-weight: 500; }
-            .text-gray-700 { color: #374151; }
-            .text-gray-500 { color: #6B7280; }
-            .px-4 { padding-left: 16px; padding-right: 16px; }
-            .p-4 { padding: 16px; }
-            .mb-4 { margin-bottom: 16px; }
-            .space-y-4 > * + * { margin-top: 16px; }
-            .grid { display: grid; }
-            .grid-cols-8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
-            .gap-4 { gap: 16px; }
-            .rounded-2xl { border-radius: 16px; }
-            .border { 
-              border: 1px solid #e5e7eb;
-              border-radius: 16px;
-            }
-            .hover\\:bg-gray-50:hover { background-color: #f9fafb; }
-            .py-12 { padding-top: 48px; padding-bottom: 48px; }
-            .capitalize { text-transform: capitalize; }
-            .truncate { 
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            .flex { display: flex; }
-            .items-center { align-items: center; }
-            .ml-2 { margin-left: 8px; }
-            .ml-1 { margin-left: 4px; }
-            .col-span-3 { grid-column: span 3 / span 3; }
-            .cursor-pointer { cursor: pointer; }
-            h1 { margin-bottom: 8px; }
-            @media print {
-              body { padding: 10px; }
-              .border { border: 1px solid #ddd; }
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent.innerHTML}
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+  // Export to PDF
+  const handleExportPDF = async () => {
+    try {
+      // Convert logo to base64 if it exists
+      let logoBase64 = null;
+      if (businessData?.businessInvoiceSettings?.logoUrl) {
+        try {
+          logoBase64 = await getBase64ImageFromURL(
+            businessData.businessInvoiceSettings.logoUrl
+          );
+        } catch (error) {
+          console.error('Error converting logo to base64:', error);
+          toast.error('Failed to load logo for PDF');
+        }
+      }
+
+      // Build content array with separate tables for each group
+      const content = [
+        ...(logoBase64
+          ? [
+              {
+                image: logoBase64,
+                width: 80,
+                alignment: 'center',
+                margin: [0, 0, 0, 15],
+              },
+            ]
+          : [
+              {
+                text: businessData?.businessName || 'Business Name',
+                style: 'businessName',
+                alignment: 'center',
+                margin: [0, 0, 0, 15],
+              },
+            ]),
+        { text: 'Ledger View Report', style: 'header' },
+        {
+          text: `Transaction Type: ${type?.charAt(0).toUpperCase() + type?.slice(1)}`,
+          style: 'subheader',
+        },
+        {
+          text:
+            startDate && endDate
+              ? `${format(new Date(startDate), 'MMMM d, yyyy')} - ${format(new Date(endDate), 'MMMM d, yyyy')}`
+              : 'All Time',
+          style: 'subheader',
+          margin: [0, 0, 0, 30],
+        },
+        // Header row table
+        {
+          table: {
+            widths: [60, 90, 55, '*', 70, 100, 85, 85],
+            body: [
+              [
+                { text: 'Code Series', style: 'tableHeader' },
+                { text: 'Transactions Date', style: 'tableHeader' },
+                { text: 'Type', style: 'tableHeader' },
+                { text: 'Description', style: 'tableHeader' },
+                { text: 'Name', style: 'tableHeader' },
+                { text: 'Account full name', style: 'tableHeader' },
+                { text: 'Amount', style: 'tableHeader' },
+                { text: 'Balance', style: 'tableHeader' },
+              ],
+            ],
+          },
+          layout: {
+            hLineWidth: () => 0,
+            vLineWidth: () => 0,
+            paddingLeft: () => 12,
+            paddingRight: () => 12,
+            paddingTop: () => 0,
+            paddingBottom: () => 0,
+          },
+          margin: [0, 0, 0, 10],
+        },
+      ];
+
+      // Add each group as a separate bordered section
+      Object.entries(groupedTransactions).forEach(
+        ([accountCode, transactionGroup]) => {
+          // Group header
+          content.push({
+            table: {
+              widths: [60, 90, 55, '*', 70, 100, 85, 85],
+              body: [
+                [
+                  {
+                    text: `${accountCode} (${transactionGroup.length})`,
+                    style: 'groupHeader',
+                    colSpan: 4,
+                  },
+                  {},
+                  {},
+                  {},
+                  {
+                    text:
+                      transactionGroup[0]?.accountingAccountId?.accountName ||
+                      '',
+                    style: 'groupHeader',
+                    colSpan: 4,
+                  },
+                  {},
+                  {},
+                  {},
+                ],
+              ],
+            },
+            layout: {
+              hLineWidth: () => 1,
+              vLineWidth: (i, node) => {
+                // Add borders on left and right edges only
+                return i === 0 || i === node.table.widths.length ? 1 : 0;
+              },
+              hLineColor: () => '#d1d5db',
+              vLineColor: () => '#d1d5db',
+              paddingLeft: () => 12,
+              paddingRight: () => 12,
+              paddingTop: () => 10,
+              paddingBottom: () => 10,
+            },
+            margin: [0, 0, 0, 8],
+          });
+
+          // Transaction rows
+          transactionGroup.forEach((transaction) => {
+            content.push({
+              table: {
+                widths: [60, 90, 55, '*', 70, 100, 85, 85],
+                body: [
+                  [
+                    {
+                      text: transaction.accountingAccountId?.accountCode || '',
+                      style: 'tableCell',
+                    },
+                    {
+                      text: format(
+                        new Date(transaction.createdAt),
+                        'dd/MM/yyyy'
+                      ),
+                      style: 'tableCell',
+                    },
+                    { text: transaction.type || '', style: 'tableCell' },
+                    {
+                      text: transaction.description || 'N/A',
+                      style: 'tableCell',
+                    },
+                    {
+                      text: getTransactionName(transaction),
+                      style: 'tableCell',
+                    },
+                    {
+                      text: transaction.accountingAccountId?.accountName || '',
+                      style: 'tableCell',
+                    },
+                    {
+                      text: formatCurrency(
+                        transaction.amount,
+                        transaction.invoiceId?.currency
+                      ),
+                      style: 'tableCell',
+                    },
+                    {
+                      text: formatCurrency(
+                        getBalanceByAccountType(transaction),
+                        transaction.invoiceId?.currency
+                      ),
+                      style: 'tableCell',
+                    },
+                  ],
+                ],
+              },
+              layout: {
+                hLineWidth: () => 1,
+                vLineWidth: (i, node) => {
+                  // Add borders on left and right edges only
+                  return i === 0 || i === node.table.widths.length ? 1 : 0;
+                },
+                hLineColor: () => '#d1d5db',
+                vLineColor: () => '#d1d5db',
+                paddingTop: () => 10,
+                paddingBottom: () => 10,
+              },
+              margin: [0, 0, 0, 8],
+            });
+          });
+
+          // Total row
+          content.push({
+            table: {
+              widths: [60, 90, 55, '*', 70, 100, 85, 85],
+              body: [
+                [
+                  { text: 'Total', colSpan: 6, style: 'totalCell' },
+                  {},
+                  {},
+                  {},
+                  {},
+                  {},
+                  {
+                    text: formatCurrency(calculateGroupTotal(transactionGroup)),
+                    style: 'totalCell',
+                  },
+                  { text: '', style: 'totalCell' },
+                ],
+              ],
+            },
+            layout: {
+              hLineWidth: () => 1,
+              vLineWidth: (i, node) => {
+                // Add borders on left and right edges only
+                return i === 0 || i === node.table.widths.length ? 1 : 0;
+              },
+              hLineColor: () => '#d1d5db',
+              vLineColor: () => '#d1d5db',
+              paddingLeft: () => 12,
+              paddingRight: () => 12,
+              paddingTop: () => 10,
+              paddingBottom: () => 10,
+            },
+            margin: [0, 0, 0, 20],
+          });
+        }
+      );
+
+      // Add footer
+      content.push({
+        text: format(new Date(), "EEEE, MMMM d, yyyy h:mmaaa 'GMT' XXX"),
+        style: 'footer',
+        margin: [0, 20, 0, 0],
+      });
+
+      const docDefinition = {
+        pageSize: 'A4',
+        pageOrientation: 'landscape',
+        pageMargins: [60, 60, 60, 60],
+        content: content,
+        styles: {
+          businessName: {
+            fontSize: 16,
+            bold: true,
+            color: '#000000',
+          },
+          header: {
+            fontSize: 24,
+            bold: true,
+            alignment: 'center',
+            margin: [0, 0, 0, 15],
+          },
+          subheader: {
+            fontSize: 14,
+            alignment: 'center',
+            color: '#374151',
+            margin: [0, 0, 0, 4],
+          },
+          tableHeader: {
+            fontSize: 10,
+            bold: true,
+            color: '#374151',
+            margin: [0, 0, 0, 0],
+          },
+          tableCell: {
+            fontSize: 10,
+            color: '#000000',
+          },
+          groupHeader: {
+            fontSize: 11,
+            bold: true,
+            color: '#000000',
+          },
+          totalCell: {
+            fontSize: 10,
+            bold: true,
+            color: '#000000',
+          },
+          footer: {
+            fontSize: 8,
+            alignment: 'center',
+            color: '#292D32',
+          },
+        },
+      };
+
+      pdfMake
+        .createPdf(docDefinition)
+        .download(`Ledger_Report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to generate PDF');
+    }
   };
 
   // Export to Excel
@@ -501,6 +748,17 @@ export default function LedgerReportPage() {
       <div id="ledger-report-section" className="mt-8 rounded-xl bg-white py-6">
         {/* Report Header */}
         <div className="mb-6 text-center">
+          {businessData?.businessInvoiceSettings?.logoUrl ? (
+            <img
+              src={businessData.businessInvoiceSettings.logoUrl}
+              alt={businessData?.businessName || 'Business Logo'}
+              className="mx-auto mb-4 h-16 object-contain"
+            />
+          ) : (
+            <div className="mx-auto mb-4 text-lg font-bold">
+              {businessData?.businessName || 'Business Name'}
+            </div>
+          )}
           <h1 className="mb-2 text-xl font-bold">Ledger View Report</h1>
           <p className="text-sm text-gray-700">
             Transaction Type: {type?.charAt(0).toUpperCase() + type?.slice(1)}

@@ -39,6 +39,7 @@
     "input-otp": "^1.4.2",
     "jspdf": "^3.0.3",
     "lucide-react": "^0.540.0",
+    "pdfmake": "^0.3.0",
     "quill": "^2.0.3",
     "react": "^19.1.1",
     "react-day-picker": "^9.9.0",
