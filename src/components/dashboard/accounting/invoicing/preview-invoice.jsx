@@ -15,9 +15,15 @@ import {
 import { format } from 'date-fns';
 import { useUserStore } from '@/stores/user-store';
 import { useRef, useState, useEffect } from 'react';
-import html2canvas from 'html2canvas-pro';
-import jsPDF from 'jspdf';
+import pdfMake from 'pdfmake/build/pdfmake';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import toast from 'react-hot-toast';
+
+if (pdfFonts.pdfMake) {
+  pdfMake.vfs = pdfFonts.pdfMake.vfs;
+} else {
+  pdfMake.vfs = pdfFonts;
+}
 import SendInvoiceEmail from './send-email';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import PaymentPreview from './payment-preview';
@@ -154,92 +160,405 @@ export default function PreviewInvoice({
     }
   };
 
-  const generatePDF = async (uploadToCloud = false) => {
-    if (!invoiceRef.current) return;
+  // Convert image URL to base64
+  const getBase64ImageFromURL = (url) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.setAttribute('crossOrigin', 'anonymous');
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const dataURL = canvas.toDataURL('image/png');
+        resolve(dataURL);
+      };
+      img.onerror = (error) => {
+        reject(error);
+      };
+      img.src = url;
+    });
+  };
 
+  const generatePDF = async (uploadToCloud = false) => {
     const loadingToast = toast.loading('Generating PDF...');
     try {
-      // Hide the action buttons temporarily
-      const actionButtons = invoiceRef.current.querySelector('.action-buttons');
-      const editButton = invoiceRef.current.querySelector('.edit-button');
-
-      if (actionButtons) actionButtons.style.display = 'none';
-      if (editButton) editButton.style.display = 'none';
-
-      // Generate canvas from the invoice content
-      const canvas = await html2canvas(invoiceRef.current, {
-        useCORS: true,
-        allowTaint: true,
-        ignoreElements: (element) => {
-          return (
-            element.classList?.contains('action-buttons') ||
-            element.classList?.contains('edit-button')
+      // Convert logo to base64 if it exists
+      let logoBase64 = null;
+      if (businessData?.businessInvoiceSettings?.logoUrl) {
+        try {
+          logoBase64 = await getBase64ImageFromURL(
+            businessData.businessInvoiceSettings.logoUrl
           );
+        } catch (error) {
+          console.error('Error converting logo to base64:', error);
+        }
+      }
+
+      const primaryColor =
+        businessData?.businessInvoiceSettings?.brandColor || '#00aa00';
+
+      // Build PDF content
+      const content = [];
+
+      // Header section with logo and invoice details
+      const headerSection = {
+        columns: [
+          {
+            width: '*',
+            stack: [
+              ...(logoBase64
+                ? [
+                    {
+                      image: logoBase64,
+                      width: 120,
+                      margin: [0, 0, 0, 10],
+                    },
+                  ]
+                : [
+                    {
+                      text: businessData?.businessName || 'Business Name',
+                      fontSize: 16,
+                      bold: true,
+                      margin: [0, 0, 0, 10],
+                    },
+                  ]),
+              {
+                text: businessData?.businessLocation || '',
+                fontSize: 9,
+                color: '#727273',
+                width: 200,
+              },
+            ],
+          },
+          {
+            width: 'auto',
+            stack: [
+              {
+                text: formData.invoice_number || '',
+                fontSize: 14,
+                bold: true,
+                alignment: 'right',
+              },
+              {
+                text: 'Balance Due',
+                fontSize: 9,
+                bold: true,
+                alignment: 'right',
+                margin: [0, 20, 0, 2],
+              },
+              {
+                text: `${formData.currency === 'USD' ? '$' : formData.currency === 'EUR' ? '€' : formData.currency === 'GBP' ? '£' : '₦'} ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                fontSize: 12,
+                bold: true,
+                alignment: 'right',
+              },
+            ],
+          },
+        ],
+        margin: [0, 0, 0, 20],
+      };
+      content.push(headerSection);
+
+      // Billed To and Dates section
+      const billedToSection = {
+        columns: [
+          {
+            width: '*',
+            stack: [
+              {
+                text: 'Billed To:',
+                fontSize: 9,
+                bold: true,
+                margin: [0, 0, 0, 4],
+              },
+              {
+                text: selectedCustomer?.displayName || '',
+                fontSize: 11,
+                bold: true,
+                margin: [0, 0, 0, 2],
+              },
+              {
+                text: selectedCustomer?.companyName || '',
+                fontSize: 9,
+                color: '#727273',
+                margin: [0, 0, 0, 2],
+              },
+              {
+                text: selectedCustomer?.email || '',
+                fontSize: 9,
+                color: '#727273',
+                margin: [0, 0, 0, 2],
+              },
+              {
+                text: selectedCustomer?.phoneNumber || '',
+                fontSize: 9,
+                color: '#727273',
+                margin: [0, 0, 0, 2],
+              },
+              {
+                text: [
+                  selectedCustomer?.address?.address1 || '',
+                  selectedCustomer?.address?.city
+                    ? `, ${selectedCustomer.address.city}`
+                    : '',
+                  selectedCustomer?.address?.state
+                    ? `, ${selectedCustomer.address.state}`
+                    : '',
+                  selectedCustomer?.address?.country
+                    ? `, ${selectedCustomer.address.country}`
+                    : '',
+                ].join(''),
+                fontSize: 9,
+                color: '#727273',
+              },
+            ],
+          },
+          {
+            width: 'auto',
+            stack: [
+              {
+                text: 'Invoice Date',
+                fontSize: 10,
+                bold: true,
+                alignment: 'right',
+                margin: [0, 0, 0, 2],
+              },
+              {
+                text: formData.invoice_date
+                  ? format(new Date(formData.invoice_date), 'MM-dd-yyyy')
+                  : '',
+                fontSize: 9,
+                color: '#727273',
+                alignment: 'right',
+                margin: [0, 0, 0, 10],
+              },
+              {
+                text: 'Due Date',
+                fontSize: 10,
+                bold: true,
+                alignment: 'right',
+                margin: [0, 0, 0, 2],
+              },
+              {
+                text: formData.due_date
+                  ? format(new Date(formData.due_date), 'MM-dd-yyyy')
+                  : '',
+                fontSize: 9,
+                color: '#727273',
+                alignment: 'right',
+              },
+            ],
+          },
+        ],
+        margin: [0, 0, 0, 25],
+      };
+      content.push(billedToSection);
+
+      // Items table
+      const tableBody = [
+        [
+          {
+            text: 'Item',
+            style: 'tableHeader',
+            fillColor: primaryColor,
+            color: '#ffffff',
+          },
+          {
+            text: 'Qty',
+            style: 'tableHeader',
+            fillColor: primaryColor,
+            color: '#ffffff',
+            alignment: 'center',
+          },
+          {
+            text: `Rate (${formData.currency === 'USD' ? '$' : formData.currency === 'EUR' ? '€' : formData.currency === 'GBP' ? '£' : '₦'})`,
+            style: 'tableHeader',
+            fillColor: primaryColor,
+            color: '#ffffff',
+            alignment: 'center',
+          },
+          {
+            text: `Amount (${formData.currency === 'USD' ? '$' : formData.currency === 'EUR' ? '€' : formData.currency === 'GBP' ? '£' : '₦'})`,
+            style: 'tableHeader',
+            fillColor: primaryColor,
+            color: '#ffffff',
+            alignment: 'right',
+          },
+        ],
+      ];
+
+      const products = Array.isArray(formData.products)
+        ? formData.products
+        : formData.products?.products || [];
+      products.forEach((product, index) => {
+        const amount = (product.unit_price || 0) * (product.quantity || 1);
+        tableBody.push([
+          {
+            stack: [
+              {
+                text:
+                  product.name || product.accountName || `Product ${index + 1}`,
+                fontSize: 10,
+                bold: true,
+              },
+              {
+                text: product.description || 'No description provided',
+                fontSize: 8,
+                color: '#666666',
+                margin: [0, 2, 0, 0],
+              },
+            ],
+            fillColor: index % 2 === 1 ? '#f5f5f5' : '#ffffff',
+          },
+          {
+            text: (product.quantity || 1).toString(),
+            fontSize: 10,
+            alignment: 'center',
+            fillColor: index % 2 === 1 ? '#f5f5f5' : '#ffffff',
+          },
+          {
+            text: (product.unit_price || 0).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+            }),
+            fontSize: 10,
+            alignment: 'center',
+            fillColor: index % 2 === 1 ? '#f5f5f5' : '#ffffff',
+          },
+          {
+            text: amount.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+            fontSize: 10,
+            alignment: 'right',
+            fillColor: index % 2 === 1 ? '#f5f5f5' : '#ffffff',
+          },
+        ]);
+      });
+
+      content.push({
+        table: {
+          headerRows: 1,
+          widths: ['*', 60, 80, 100],
+          body: tableBody,
         },
+        layout: {
+          hLineWidth: (i, node) =>
+            i === 0 || i === 1 || i === node.table.body.length ? 1 : 0.5,
+          vLineWidth: () => 1,
+          hLineColor: () => '#dddddd',
+          vLineColor: () => '#dddddd',
+          paddingLeft: () => 10,
+          paddingRight: () => 10,
+          paddingTop: () => 8,
+          paddingBottom: () => 8,
+        },
+        margin: [0, 0, 0, 15],
       });
 
-      // Create PDF
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
+      // Totals section
+      const totalsData = [
+        [
+          'Sub Total:',
+          subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+        ],
+      ];
+
+      if (formData.vat > 0) {
+        totalsData.push([
+          `VAT (${formData.vat}%):`,
+          vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+        ]);
+      }
+
+      totalsData.push([
+        'Total:',
+        total.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+      ]);
+
+      content.push({
+        columns: [
+          { width: '*', text: '' },
+          {
+            width: 'auto',
+            table: {
+              widths: [100, 100],
+              body: totalsData.map((row, index) => [
+                {
+                  text: row[0],
+                  fontSize: 10,
+                  bold: index === totalsData.length - 1,
+                  alignment: 'right',
+                  border: [
+                    false,
+                    false,
+                    false,
+                    index === totalsData.length - 1,
+                  ],
+                },
+                {
+                  text: row[1],
+                  fontSize: 10,
+                  bold: index === totalsData.length - 1,
+                  alignment: 'right',
+                  border: [
+                    false,
+                    false,
+                    false,
+                    index === totalsData.length - 1,
+                  ],
+                },
+              ]),
+            },
+            layout: {
+              hLineWidth: (i) => (i === totalsData.length ? 1 : 0),
+              vLineWidth: () => 0,
+              hLineColor: () => '#000000',
+              paddingTop: () => 6,
+              paddingBottom: () => 6,
+            },
+          },
+        ],
+        margin: [0, 0, 0, 0],
       });
 
-      // Calculate dimensions to fit the page
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 0;
+      const docDefinition = {
+        pageSize: 'A4',
+        pageMargins: [40, 40, 40, 40],
+        content: content,
+        styles: {
+          tableHeader: {
+            fontSize: 11,
+            bold: true,
+          },
+        },
+      };
 
-      pdf.addImage(
-        imgData,
-        'PNG',
-        imgX,
-        imgY,
-        imgWidth * ratio,
-        imgHeight * ratio
-      );
-
-      // Generate filename
-      const fileName = `${formData.invoice_number || 'invoice'}.pdf`;
-
-      let pdfUrl = null;
+      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
 
       if (uploadToCloud) {
-        // Upload to Cloudinary if requested
-        const pdfBlob = pdf.output('blob');
-        pdfUrl = await uploadPdfToCloudinary(pdfBlob, fileName);
+        // Get blob and upload to Cloudinary
+        pdfDocGenerator.getBlob(async (pdfBlob) => {
+          try {
+            const fileName = `${formData.invoice_number || 'invoice'}.pdf`;
+            const pdfUrl = await uploadPdfToCloudinary(pdfBlob, fileName);
+            toast.dismiss(loadingToast);
+            return pdfUrl;
+          } catch (error) {
+            toast.dismiss(loadingToast);
+            toast.error('Failed to upload PDF');
+            throw error;
+          }
+        });
       } else {
-        // Download the PDF normally
-        pdf.save(fileName);
+        // Download the PDF
+        const fileName = `${formData.invoice_number || 'invoice'}.pdf`;
+        pdfDocGenerator.download(fileName);
+        toast.dismiss(loadingToast);
+        toast.success('PDF downloaded successfully!');
       }
-
-      // Show the action buttons again
-      if (actionButtons) actionButtons.style.display = 'flex';
-      if (editButton) editButton.style.display = 'flex';
-
-      // Dismiss loading toast and show success
-      toast.dismiss(loadingToast);
-      if (!uploadToCloud) {
-        toast.success('PDF generated successfully!');
-      }
-
-      return pdfUrl;
     } catch (error) {
       toast.dismiss(loadingToast);
       console.error('Error generating PDF:', error);
-      // Show the action buttons again in case of error
-      const actionButtons =
-        invoiceRef.current?.querySelector('.action-buttons');
-      const editButton = invoiceRef.current?.querySelector('.edit-button');
-      if (actionButtons) actionButtons.style.display = 'flex';
-      if (editButton) editButton.style.display = 'flex';
-
-      // Show error toast
       toast.error('Error generating PDF. Please try again.');
       throw error;
     }
