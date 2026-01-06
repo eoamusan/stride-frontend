@@ -24,9 +24,44 @@ function Calendar({
   buttonVariant = 'ghost',
   formatters,
   components,
+  onSelect,
+  mode,
   ...props
 }) {
   const defaultClassNames = getDefaultClassNames();
+
+  // Wrap onSelect to handle popover closing
+  const handleSelect = React.useCallback(
+    (date, selectedDay, activeModifiers, e) => {
+      if (onSelect) {
+        onSelect(date, selectedDay, activeModifiers, e);
+      }
+
+      // Close popover if in single mode and a date is selected
+      if (mode === 'single' && date) {
+        // Use setTimeout to ensure the selection completes before closing
+        setTimeout(() => {
+          // Try to find and close the popover by simulating click outside
+          const popoverContent = document.querySelector(
+            '[data-radix-popper-content-wrapper]'
+          );
+          if (popoverContent) {
+            // Dispatch escape key event to close the popover
+            const escapeEvent = new KeyboardEvent('keydown', {
+              key: 'Escape',
+              code: 'Escape',
+              keyCode: 27,
+              which: 27,
+              bubbles: true,
+              cancelable: true,
+            });
+            document.dispatchEvent(escapeEvent);
+          }
+        }, 0);
+      }
+    },
+    [onSelect, mode]
+  );
 
   return (
     <DayPicker
@@ -38,6 +73,8 @@ function Calendar({
         className
       )}
       captionLayout={captionLayout}
+      mode={mode}
+      onSelect={handleSelect}
       formatters={{
         formatMonthDropdown: (date) =>
           date.toLocaleString('default', { month: 'short' }),
