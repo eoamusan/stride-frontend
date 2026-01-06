@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice Preview</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+          'Helvetica Neue', Arial, sans-serif;
+        background-color: #f9fafb;
+        padding: 2rem;
+      }
+
+      .invoice-container {
+        max-width: 42rem;
+        margin: 0 auto;
+        background-color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+      }
+
+      .header-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .company-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .company-logo {
+        height: 6rem;
+        width: auto;
+        object-fit: contain;
+      }
+
+      .company-name {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #000000;
+      }
+
+      .company-location {
+        max-width: 12rem;
+        font-size: 0.875rem;
+        color: #727273;
+      }
+
+      .invoice-number-section {
+        text-align: right;
+      }
+
+      .invoice-number {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #000000;
+        margin-bottom: 1.5rem;
+      }
+
+      .balance-due-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #000000;
+        margin-bottom: 0.125rem;
+      }
+
+      .balance-due-amount {
+        font-size: 0.875rem;
+        font-weight: 700;
+      }
+
+      .billing-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .billed-to {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .billed-to-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #000000;
+      }
+
+      .customer-name {
+        font-size: 0.875rem;
+        font-weight: 700;
+      }
+
+      .customer-details {
+        max-width: 11.5rem;
+        font-size: 0.875rem;
+        color: #727273;
+      }
+
+      .dates-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        text-align: right;
+      }
+
+      .date-label {
+        font-weight: 700;
+        font-size: 0.875rem;
+      }
+
+      .date-value {
+        color: #727273;
+        font-size: 0.875rem;
+      }
+
+      .date-group {
+        margin-bottom: 0.5rem;
+      }
+
+      .table-container {
+        margin-bottom: 1.5rem;
+      }
+
+      .table-header {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 1rem;
+        padding: 1rem;
+        font-weight: 600;
+        color: white;
+      }
+
+      .table-body {
+        border-left: 1px solid #e5e7eb;
+        border-right: 1px solid #e5e7eb;
+      }
+
+      .table-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .table-row:nth-child(even) {
+        background-color: rgba(211, 211, 211, 0.2);
+      }
+
+      .item-name {
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      .item-description {
+        font-size: 0.75rem;
+        color: #6b7280;
+      }
+
+      .text-center {
+        text-align: center;
+      }
+
+      .text-right {
+        text-align: right;
+      }
+
+      .totals-section {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .totals-row {
+        display: grid;
+        grid-template-columns: 3fr 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .totals-label {
+        text-align: right;
+        font-weight: 500;
+      }
+
+      .totals-value {
+        text-align: right;
+        font-weight: 700;
+      }
+
+      .total-row {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px dashed #000;
+        font-weight: 600;
+      }
+
+      .terms-section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-size: 0.875rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .section-content {
+        font-size: 0.875rem;
+        color: #4b5563;
+      }
+
+      .bank-details {
+        margin-bottom: 2rem;
+      }
+
+      .bank-item {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: #4b5563;
+      }
+
+      .bank-label {
+        font-weight: 500;
+      }
+
+      .bank-separator {
+        margin: 0.5rem 0;
+        border: none;
+        border-top: 1px solid #e5e7eb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="invoice-container">
+      <!-- Header Section -->
+      <div class="header-section">
+        <div class="company-info">
+          <div class="company-name">
+            <p>Oraimo</p>
+          </div>
+          <p class="company-location">Lagos, Nigeria</p>
+        </div>
+
+        <div class="invoice-number-section">
+          <p class="invoice-number">INV-2025-12-19-0006</p>
+          <p class="balance-due-label">Balance Due</p>
+          <p class="balance-due-amount">₦ 129,000.00</p>
+        </div>
+      </div>
+
+      <!-- Billing Section -->
+      <div class="billing-section">
+        <div class="billed-to">
+          <p class="billed-to-label">Billed To:</p>
+          <p class="customer-name">Seun</p>
+          <p class="customer-details">Speedaf</p>
+          <p class="customer-details">seun@speedaf.com</p>
+          <p class="customer-details">07010003500</p>
+          <p class="customer-details">Ikoyi, Ikoyi, Lagos, NG</p>
+        </div>
+
+        <div class="dates-section">
+          <div class="date-group">
+            <p class="date-label">Invoice Date</p>
+            <p class="date-value">12-16-2025</p>
+          </div>
+          <div class="date-group">
+            <p class="date-label">Due Date</p>
+            <p class="date-value">12-23-2025</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="table-container">
+        <div class="table-header" style="background-color: #4169e1">
+          <div>Item</div>
+          <div class="text-center">Qty</div>
+          <div class="text-center">Rate (₦)</div>
+          <div class="text-right">Amount (₦)</div>
+        </div>
+
+        <div class="table-body">
+          <div class="table-row">
+            <div>
+              <p class="item-name">SOP Writing</p>
+              <p class="item-description">No description provided</p>
+            </div>
+            <div class="text-center">2</div>
+            <div class="text-center">60,000.00</div>
+            <div class="text-right">120,000.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Totals Section -->
+      <div class="totals-section">
+        <div class="totals-row">
+          <div></div>
+          <div class="totals-label">Sub Total:</div>
+          <div class="totals-value">120,000.00</div>
+        </div>
+
+        <div class="totals-row">
+          <div></div>
+          <div class="totals-label">VAT (7.5%):</div>
+          <div class="totals-value">9,000.00</div>
+        </div>
+
+        <div class="totals-row total-row">
+          <div></div>
+          <div class="totals-label">Total:</div>
+          <div class="totals-value">129,000.00</div>
+        </div>
+      </div>
+
+      <!-- Terms & Conditions -->
+      <div class="terms-section">
+        <p class="section-title">Terms & Conditions:</p>
+        <p class="section-content">
+          Payment is due within 7 days of invoice date. Late payments may incur
+          additional charges. Please ensure all payments are made to the bank
+          account details provided below.
+        </p>
+      </div>
+
+      <!-- Bank Details -->
+      <div class="bank-details">
+        <p class="section-title">Bank Details:</p>
+        <div class="bank-item">
+          <p>
+            <span class="bank-label">Account Name:</span> Oraimo Nigeria Limited
+          </p>
+          <p><span class="bank-label">Account Number:</span> 0123456789</p>
+          <p><span class="bank-label">Bank Name:</span> Access Bank</p>
+          <p><span class="bank-label">Sort Code:</span> 044150149</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

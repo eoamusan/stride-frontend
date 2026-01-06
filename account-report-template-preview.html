@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account Report Preview</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+          'Helvetica Neue', Arial, sans-serif;
+        background-color: #f9fafb;
+        padding: 2rem;
+      }
+
+      .report-container {
+        margin-top: 2rem;
+        border-radius: 0.75rem;
+        background-color: white;
+        padding: 1.5rem 0;
+      }
+
+      .report-header {
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+
+      .company-logo {
+        height: 4rem;
+        object-fit: contain;
+        margin: 0 auto 1rem;
+      }
+
+      .company-name {
+        margin: 0 auto 1rem;
+        font-size: 1.125rem;
+        font-weight: 700;
+      }
+
+      .report-title {
+        margin-bottom: 0.5rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+
+      .report-date {
+        font-size: 0.875rem;
+        color: #374151;
+      }
+
+      .report-table {
+        padding: 0 1rem;
+      }
+
+      .table-header {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 1rem;
+        padding: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #7d7d7d;
+      }
+
+      .group-section {
+        margin-bottom: 1rem;
+      }
+
+      .group-header {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 1rem;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+      }
+
+      .group-header .col-span-3 {
+        grid-column: span 3 / span 3;
+      }
+
+      .transaction-row {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 1rem;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+      }
+
+      .total-row {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 1rem;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 1.25rem;
+      }
+
+      .report-footer {
+        margin-top: 1.5rem;
+        padding-bottom: 2rem;
+        text-align: center;
+      }
+
+      .footer-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #292d32;
+      }
+
+      .truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .capitalize {
+        text-transform: capitalize;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="report-container">
+      <!-- Report Header -->
+      <div class="report-header">
+        <div class="company-name">Oraimo</div>
+        <h1 class="report-title">Account Report</h1>
+        <p class="report-date">December 1, 2025 - December 31, 2025</p>
+      </div>
+
+      <!-- Report Table -->
+      <div class="report-table">
+        <!-- Table Header -->
+        <div class="table-header">
+          <div>Code Series</div>
+          <div>Transactions Date</div>
+          <div>Type</div>
+          <div>Description</div>
+          <div>Name</div>
+          <div>Account full name</div>
+          <div>Amount</div>
+          <div>Balance</div>
+        </div>
+
+        <!-- Group 1 -->
+        <div class="group-section">
+          <!-- Group Header -->
+          <div class="group-header">
+            <div>40006 (1)</div>
+            <div class="col-span-3">SOP Writing</div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+
+          <!-- Transaction Row -->
+          <div class="transaction-row">
+            <div>40006</div>
+            <div>19/12/2025</div>
+            <div class="capitalize">product</div>
+            <div class="truncate">N/A</div>
+            <div>Seun</div>
+            <div>SOP Writing</div>
+            <div>NGN 120,000.00</div>
+            <div>NGN 120,000.00</div>
+          </div>
+
+          <!-- Total Row -->
+          <div class="total-row">
+            <div>Total</div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div>$120,000.00</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Group 2 -->
+        <div class="group-section">
+          <!-- Group Header -->
+          <div class="group-header">
+            <div>50001 (2)</div>
+            <div class="col-span-3">Office Supplies</div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+
+          <!-- Transaction Row 1 -->
+          <div class="transaction-row">
+            <div>50001</div>
+            <div>05/12/2025</div>
+            <div class="capitalize">expense</div>
+            <div class="truncate">Purchase of office supplies</div>
+            <div>John Doe</div>
+            <div>Office Supplies</div>
+            <div>NGN 15,000.00</div>
+            <div>NGN 15,000.00</div>
+          </div>
+
+          <!-- Transaction Row 2 -->
+          <div class="transaction-row">
+            <div>50001</div>
+            <div>12/12/2025</div>
+            <div class="capitalize">expense</div>
+            <div class="truncate">Stationery and printer ink</div>
+            <div>Jane Smith</div>
+            <div>Office Supplies</div>
+            <div>NGN 8,500.00</div>
+            <div>NGN 23,500.00</div>
+          </div>
+
+          <!-- Total Row -->
+          <div class="total-row">
+            <div>Total</div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div>$23,500.00</div>
+            <div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report Footer -->
+      <div class="report-footer">
+        <p class="footer-text">Monday, January 5, 2026 3:52pm GMT +01:00</p>
+      </div>
+    </div>
+  </body>
+</html>
