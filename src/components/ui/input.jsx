@@ -20,14 +20,29 @@ function Input({ className, type, formatNumber, ...props }) {
     if (type === 'number' && formatNumber) {
       // Remove commas and format
       const rawValue = e.target.value.replace(/,/g, '');
+
+      // Allow typing decimal point and intermediate states
+      if (rawValue === '' || rawValue === '.' || rawValue.endsWith('.')) {
+        setDisplayValue(rawValue);
+        if (props.onChange) {
+          e.target.value = rawValue;
+          props.onChange(e);
+        }
+        return;
+      }
+
       const numValue = parseFloat(rawValue);
 
-      if (!isNaN(numValue) || rawValue === '') {
-        setDisplayValue(
-          rawValue === '' ? '' : new Intl.NumberFormat('en-US').format(numValue)
-        );
+      if (!isNaN(numValue)) {
+        setDisplayValue(new Intl.NumberFormat('en-US').format(numValue));
 
         // Call the original onChange with raw number
+        if (props.onChange) {
+          e.target.value = rawValue;
+          props.onChange(e);
+        }
+      } else if (rawValue === '') {
+        setDisplayValue('');
         if (props.onChange) {
           e.target.value = rawValue;
           props.onChange(e);

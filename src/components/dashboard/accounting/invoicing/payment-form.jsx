@@ -268,6 +268,7 @@ export default function PaymentForm({
                       <FormControl>
                         <Input
                           type="number"
+                          step="0.01"
                           formatNumber
                           placeholder="Enter price"
                           className="h-10"
@@ -275,8 +276,8 @@ export default function PaymentForm({
                           {...field}
                           onChange={(e) => {
                             const value = parseFloat(e.target.value || 0);
-                            // Restrict to not exceed amountDue
-                            if (value > amountDue) {
+                            // Restrict to not exceed amountDue (with floating-point tolerance)
+                            if (value > amountDue + 0.001) {
                               field.onChange(amountDue);
                               toast.error(
                                 `Amount paid cannot exceed amount due (₦${amountDue?.toLocaleString()})`
@@ -354,6 +355,7 @@ export default function PaymentForm({
                       <FormControl>
                         <Input
                           type="number"
+                          step="0.01"
                           formatNumber
                           placeholder="Enter VAT amount"
                           className="h-10"

@@ -47,7 +47,7 @@ export default function PreviewInvoice({
   const [uploadedPdfUrl, setUploadedPdfUrl] = useState(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [refreshPayments, setRefreshPayments] = useState(false);
+  const [refreshPayments, setRefreshPayments] = useState(0);
   const [fetchedPayments, setFetchedPayments] = useState([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [calculatedBalanceDue, setCalculatedBalanceDue] = useState(0);
@@ -90,13 +90,12 @@ export default function PreviewInvoice({
 
         // Transform payment data to match the expected structure
         const transformedPayments = paymentsData.map((item) => {
-          console.log('Individual Payment:', item.payment);
-          const payment = item.payment;
+          console.log('Individual Payment:', item);
           return {
-            amount: payment.amountPaid,
-            datePaid: payment.paymentDate || payment.createdAt,
-            method: payment.paymentMethod || 'Bank Transfer',
-            dateCreated: payment.createdAt,
+            amount: item.amountPaid,
+            datePaid: item.paymentDate || item.createdAt,
+            method: item.paymentMethod || 'Bank Transfer',
+            dateCreated: item.createdAt,
           };
         });
 
@@ -1271,7 +1270,7 @@ export default function PreviewInvoice({
       <div className="mx-auto my-8 max-w-2xl rounded-2xl bg-white p-8">
         <PaymentPreview
           payments={fetchedPayments}
-          balanceDue={calculatedBalanceDue || balanceDue || total || ''}
+          balanceDue={calculatedBalanceDue ?? balanceDue ?? total ?? 0}
           currency={formData.currency}
           isLoading={isLoadingPayments}
         />
@@ -1285,7 +1284,7 @@ export default function PreviewInvoice({
         amountDue={calculatedBalanceDue || balanceDue || total}
         onSuccess={() => {
           setShowSuccessModal(true);
-          setRefreshPayments(!refreshPayments);
+          setRefreshPayments((prev) => prev + 1);
         }}
       />
 
