@@ -68,14 +68,14 @@ export default function Invoicing() {
 
     return invoices.map((invoice) => ({
       id: invoice.invoiceNo,
-      customer: invoice.customerId.displayName,
+      customer: invoice.customerId?.displayName || '',
       currency: invoice.currency,
       amount: new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(Number(invoice.product?.total) || 0),
-      issueDate: format(invoice.invoiceDate, 'PP'),
-      dueDate: format(invoice.dueDate, 'PP'),
+      issueDate: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), 'PP') : 'N/A',
+      dueDate: invoice.dueDate ? format(new Date(invoice.dueDate), 'PP') : 'N/A',
       status: invoice?.status || 'PENDING',
     }));
   };

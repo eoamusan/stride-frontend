@@ -203,6 +203,16 @@ export default function PreviewInvoice({
       // Build PDF content
       const content = [];
 
+      // Proforma Invoice Label (at the very top)
+      if (isProforma) {
+        content.push({
+          text: 'PROFORMA INVOICE',
+          fontSize: 14,
+          bold: true,
+          margin: [0, 0, 0, 15],
+        });
+      }
+
       // Header section with logo and invoice details
       const headerSection = {
         columns: [
@@ -213,13 +223,13 @@ export default function PreviewInvoice({
                 ? [
                     {
                       image: logoBase64,
-                      width: 120,
+                      width: 80,
                       margin: [0, 0, 0, 10],
                     },
                   ]
                 : [
                     {
-                      text: businessData?.businessName || 'Business Name',
+                      text: businessData?.businessName || '',
                       fontSize: 16,
                       bold: true,
                       margin: [0, 0, 0, 10],
@@ -405,7 +415,7 @@ export default function PreviewInvoice({
                 bold: true,
               },
               {
-                text: product.description || 'No description provided',
+                text: product.description || '',
                 fontSize: 8,
                 color: '#666666',
                 margin: [0, 2, 0, 0],
@@ -519,8 +529,209 @@ export default function PreviewInvoice({
             },
           },
         ],
-        margin: [0, 0, 0, 0],
+        margin: [0, 0, 0, 25],
       });
+
+      // Terms & Conditions
+      if (formData.terms) {
+        content.push({
+          stack: [
+            {
+              text: 'Terms & Conditions:',
+              fontSize: 10,
+              bold: true,
+              margin: [0, 0, 0, 5],
+            },
+            {
+              text: formData.terms,
+              fontSize: 9,
+              color: '#666666',
+            },
+          ],
+          margin: [0, 0, 0, 15],
+        });
+      }
+
+      // Bank Details
+      if (
+        formData.display_bank_details &&
+        formData.products?.banks?.length > 0
+      ) {
+        const bankDetailsContent = [
+          {
+            text: 'Bank Details:',
+            fontSize: 10,
+            bold: true,
+            margin: [0, 0, 0, 5],
+          },
+        ];
+
+        formData.products.banks.forEach((bank, index) => {
+          const bankInfo = [];
+          if (bank.accountName) {
+            bankInfo.push({
+              text: [
+                { text: 'Account Name: ', bold: true },
+                { text: bank.accountName },
+              ],
+              fontSize: 9,
+              color: '#666666',
+              margin: [0, 2, 0, 0],
+            });
+          }
+          if (bank.accountNumber) {
+            bankInfo.push({
+              text: [
+                { text: 'Account Number: ', bold: true },
+                { text: bank.accountNumber },
+              ],
+              fontSize: 9,
+              color: '#666666',
+              margin: [0, 2, 0, 0],
+            });
+          }
+          if (bank.bankName) {
+            bankInfo.push({
+              text: [
+                { text: 'Bank Name: ', bold: true },
+                { text: bank.bankName },
+              ],
+              fontSize: 9,
+              color: '#666666',
+              margin: [0, 2, 0, 0],
+            });
+          }
+          if (bank.sortCode) {
+            bankInfo.push({
+              text: [
+                { text: 'Sort Code: ', bold: true },
+                { text: bank.sortCode },
+              ],
+              fontSize: 9,
+              color: '#666666',
+              margin: [0, 2, 0, 0],
+            });
+          }
+          if (bank.tin) {
+            bankInfo.push({
+              text: [{ text: 'TIN: ', bold: true }, { text: bank.tin }],
+              fontSize: 9,
+              color: '#666666',
+              margin: [0, 2, 0, 0],
+            });
+          }
+          if (bank.swiftCode) {
+            bankInfo.push({
+              text: [
+                { text: 'Swift Code: ', bold: true },
+                { text: bank.swiftCode },
+              ],
+              fontSize: 9,
+              color: '#666666',
+              margin: [0, 2, 0, 0],
+            });
+          }
+          if (bank.fnbUniversalCode) {
+            bankInfo.push({
+              text: [
+                { text: 'FNB Universal Code: ', bold: true },
+                { text: bank.fnbUniversalCode },
+              ],
+              fontSize: 9,
+              color: '#666666',
+              margin: [0, 2, 0, 0],
+            });
+          }
+
+          bankDetailsContent.push(...bankInfo);
+
+          // Add separator line between banks (except for the last one)
+          if (index < formData.products.banks.length - 1) {
+            bankDetailsContent.push({
+              canvas: [
+                {
+                  type: 'line',
+                  x1: 0,
+                  y1: 5,
+                  x2: 515,
+                  y2: 5,
+                  lineWidth: 0.5,
+                  lineColor: '#cccccc',
+                },
+              ],
+              margin: [0, 8, 0, 8],
+            });
+          }
+        });
+
+        content.push({
+          stack: bankDetailsContent,
+          margin: [0, 0, 0, 15],
+        });
+      }
+
+      // Payment Gateways
+      if (formData.products?.paymentGateways?.length > 0) {
+        const gatewayContent = [
+          {
+            text: 'Other Payment Options:',
+            fontSize: 10,
+            bold: true,
+            margin: [0, 0, 0, 5],
+          },
+        ];
+
+        formData.products.paymentGateways.forEach((gateway) => {
+          gatewayContent.push({
+            text: [
+              { text: 'Pay with ', fontSize: 9, color: '#666666' },
+              {
+                text: gateway.name,
+                fontSize: 9,
+                color: '#2563eb',
+                decoration: 'underline',
+                link: gateway.link,
+              },
+            ],
+            margin: [0, 2, 0, 0],
+          });
+        });
+
+        content.push({
+          stack: gatewayContent,
+          margin: [0, 0, 0, 15],
+        });
+      }
+
+      // Signature
+      if (
+        formData.apply_signature &&
+        businessData?.businessInvoiceSettings?.signatureUrl
+      ) {
+        try {
+          const signatureBase64 = await getBase64ImageFromURL(
+            businessData.businessInvoiceSettings.signatureUrl
+          );
+          content.push({
+            stack: [
+              {
+                text: 'Authorized Signature:',
+                fontSize: 10,
+                bold: true,
+                margin: [0, 0, 0, 5],
+              },
+              {
+                image: signatureBase64,
+                width: 150,
+                margin: [0, 5, 0, 0],
+              },
+            ],
+            margin: [0, 0, 0, 0],
+          });
+        } catch (error) {
+          console.error('Error converting signature to base64:', error);
+        }
+      }
 
       const docDefinition = {
         pageSize: 'A4',
@@ -566,41 +777,41 @@ export default function PreviewInvoice({
   };
 
   // New method: Download PDF from backend API
-  const handleDownloadPDF = async () => {
-    if (!formData.id) {
-      toast.error('Invoice ID is required to download PDF');
-      return;
-    }
+  // const handleDownloadPDF = async () => {
+  //   if (!formData.id) {
+  //     toast.error('Invoice ID is required to download PDF');
+  //     return;
+  //   }
 
-    const loadingToast = toast.loading('Downloading PDF from server...');
-    try {
-      const response = await InvoiceService.generatePdf({ id: formData.id });
-      console.log(response);
-      // Create a blob from the response
-      const blob = new Blob([response.data], { type: 'application/pdf' });
+  //   const loadingToast = toast.loading('Downloading PDF from server...');
+  //   try {
+  //     const response = await InvoiceService.generatePdf({ id: formData.id });
+  //     console.log(response);
+  //     // Create a blob from the response
+  //     const blob = new Blob([response.data], { type: 'application/pdf' });
 
-      // Create a URL for the blob
-      const url = window.URL.createObjectURL(blob);
+  //     // Create a URL for the blob
+  //     const url = window.URL.createObjectURL(blob);
 
-      // Create a temporary link and trigger download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${formData.invoice_number || 'invoice'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
+  //     // Create a temporary link and trigger download
+  //     const link = document.createElement('a');
+  //     link.href = url;
+  //     link.download = `${formData.invoice_number || 'invoice'}.pdf`;
+  //     document.body.appendChild(link);
+  //     link.click();
 
-      // Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+  //     // Cleanup
+  //     document.body.removeChild(link);
+  //     window.URL.revokeObjectURL(url);
 
-      toast.dismiss(loadingToast);
-      toast.success('PDF downloaded successfully!');
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      console.error('Error downloading PDF from server:', error);
-      toast.error('Failed to download PDF. Please try again.');
-    }
-  };
+  //     toast.dismiss(loadingToast);
+  //     toast.success('PDF downloaded successfully!');
+  //   } catch (error) {
+  //     toast.dismiss(loadingToast);
+  //     console.error('Error downloading PDF from server:', error);
+  //     toast.error('Failed to download PDF. Please try again.');
+  //   }
+  // };
 
   const handlePrint = () => {
     // Hide all elements except the invoice
@@ -1020,7 +1231,7 @@ export default function PreviewInvoice({
           <Button
             variant="outline"
             className="h-10 px-8"
-            onClick={handleDownloadPDF}
+            onClick={() => generatePDF(false)}
           >
             <DownloadIcon className="mr-2 h-4 w-4" />
             Download
