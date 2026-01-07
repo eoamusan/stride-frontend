@@ -313,6 +313,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
 
   // Calculate product total when unit price or quantity changes
   const watchProducts = form.watch('products');
+
   useEffect(() => {
     watchProducts.forEach((product, index) => {
       const unitPrice = Number(product.unit_price) || 0;
@@ -326,7 +327,13 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
         });
       }
     });
-  }, [watchProducts, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(
+      watchProducts.map((p) => ({ u: p.unit_price, q: p.quantity }))
+    ),
+  ]);
 
   const calculateSubtotal = () => {
     return watchProducts.reduce((sum, product) => {
@@ -387,9 +394,9 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
         ? { accountId: '', accountName: '' }
         : { name: '' }),
       description: '',
-      unit_price: '',
-      quantity: '',
-      total_price: '',
+      unit_price: 0,
+      quantity: 1,
+      total_price: 0,
       vat_applicable: true,
     });
   };
@@ -1409,7 +1416,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                         <FormField
                           control={form.control}
                           name={`products.${index}.total_price`}
-                          render={() => (
+                          render={({ field }) => (
                             <FormItem>
                               <FormControl>
                                 <Input
@@ -1417,10 +1424,8 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
                                   formatNumber
                                   placeholder="TOTAL PRICE"
                                   className={'h-10 bg-gray-50'}
-                                  value={
-                                    (watchProducts[index]?.unit_price || 0) *
-                                    (watchProducts[index]?.quantity || 1)
-                                  }
+                                  {...field}
+                                  value={field.value || 0}
                                   readOnly
                                 />
                               </FormControl>
