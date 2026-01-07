@@ -155,4 +155,15 @@ export default class InvoiceService {
     );
     return response;
   }
+
+  static async generatePdf({ id }) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.get(`invoice/${id}/pdf`, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+      responseType: 'blob', // Important for PDF files
+    });
+    return response;
+  }
 }

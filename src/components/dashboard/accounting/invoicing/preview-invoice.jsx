@@ -30,6 +30,7 @@ import PaymentPreview from './payment-preview';
 import PaymentForm from './payment-form';
 import SuccessModal from '../success-modal';
 import PaymentService from '@/api/payment';
+import InvoiceService from '@/api/invoice';
 
 export default function PreviewInvoice({
   formData,
@@ -564,6 +565,43 @@ export default function PreviewInvoice({
     }
   };
 
+  // New method: Download PDF from backend API
+  const handleDownloadPDF = async () => {
+    if (!formData.id) {
+      toast.error('Invoice ID is required to download PDF');
+      return;
+    }
+
+    const loadingToast = toast.loading('Downloading PDF from server...');
+    try {
+      const response = await InvoiceService.generatePdf({ id: formData.id });
+      console.log(response);
+      // Create a blob from the response
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${formData.invoice_number || 'invoice'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.dismiss(loadingToast);
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Error downloading PDF from server:', error);
+      toast.error('Failed to download PDF. Please try again.');
+    }
+  };
+
   const handlePrint = () => {
     // Hide all elements except the invoice
     const invoice = invoiceRef.current;
@@ -982,7 +1020,7 @@ export default function PreviewInvoice({
           <Button
             variant="outline"
             className="h-10 px-8"
-            onClick={() => generatePDF(false)}
+            onClick={handleDownloadPDF}
           >
             <DownloadIcon className="mr-2 h-4 w-4" />
             Download
