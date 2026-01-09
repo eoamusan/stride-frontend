@@ -14,11 +14,25 @@ import {
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-invoice';
+import InvoiceService from '@/api/invoice';
+import { useUserStore } from '@/stores/user-store';
 
 export default function AccountsReceivable() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [createInvoice, setCreateInvoice] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
+  const { businessData } = useUserStore();
+  const [invoices, setInvoices] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationInfo, setPaginationInfo] = useState({
+    totalDocs: 0,
+    limit: 50,
+    totalPages: 1,
+    page: 1,
+    hasPrevPage: false,
+    hasNextPage: false,
+  });
 
   // State for column visibility
   const [columns, setColumns] = useState({
@@ -45,27 +59,59 @@ export default function AccountsReceivable() {
     }
   }, [searchParams]);
 
+  // Fetch invoices
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        setIsLoading(true);
+        const response = await InvoiceService.fetch({
+          businessId: businessData?._id,
+          page: currentPage,
+          perPage: parseInt(pageSize),
+        });
+        console.log('Fetched invoices:', response.data);
+
+        const invoicesData = response.data?.data?.invoices || [];
+        const pagination = response.data?.data || {};
+
+        // Transform invoice data to match table structure
+        const transformedInvoices = invoicesData.map((invoice) => ({
+          id: invoice._id,
+          customer: invoice.customerId?.displayName || 'Unknown',
+          companyName: invoice.customerId?.companyName || '',
+          totalSales: invoice.totalSales || 0,
+          outstandingBalance: invoice.outstandingBalance || 0,
+          currentDue: invoice.product?.total || 0,
+          dueDate: invoice.dueDate,
+          creditTerms: invoice.termsOfPayment || '',
+          status: invoice.status,
+          invoiceNo: invoice.invoiceNo,
+          currency: invoice.currency,
+        }));
+
+        setInvoices(transformedInvoices);
+        setPaginationInfo({
+          totalDocs: pagination.totalDocs || 0,
+          limit: pagination.limit || 50,
+          totalPages: pagination.totalPages || 1,
+          page: pagination.page || 1,
+          hasPrevPage: pagination.hasPrevPage || false,
+          hasNextPage: pagination.hasNextPage || false,
+        });
+      } catch (error) {
+        console.error('Error fetching invoices:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (businessData?._id) {
+      fetchInvoices();
+    }
+  }, [businessData?._id, currentPage, pageSize]);
+
   // Sample data for Accounts Receivable table
-  const accountsReceivableData = [
-    {
-      id: 1,
-      customer: 'James frank',
-      totalSales: 345,
-      outstandingBalance: 15400.0,
-      currentDue: 15400.0,
-      dueDate: 'Jul 20, 2024',
-      creditTerms: '30 days',
-    },
-    {
-      id: 2,
-      customer: 'James frank',
-      totalSales: 345,
-      outstandingBalance: 15400.0,
-      currentDue: 15400.0,
-      dueDate: 'Jul 20, 2024',
-      creditTerms: '15 days',
-    },
-  ];
+  // Removed - using API data instead
 
   // Table columns configuration
   const tableColumns = [
@@ -73,6 +119,18 @@ export default function AccountsReceivable() {
       key: 'customer',
       label: 'Customer',
       className: 'font-medium',
+      render: (value, item) => (
+        <div>
+          <div className="font-medium">{value}</div>
+          {item.companyName && (
+            <div className="text-xs text-gray-500">{item.companyName}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'invoiceNo',
+      label: 'Invoice No',
     },
     {
       key: 'totalSales',
@@ -81,20 +139,67 @@ export default function AccountsReceivable() {
     {
       key: 'outstandingBalance',
       label: 'Outstanding Balance',
-      render: (value) => `$${value.toLocaleString()}`,
+      render: (value, item) => {
+        const symbol =
+          item.currency === 'USD'
+            ? '$'
+            : item.currency === 'EUR'
+              ? '€'
+              : item.currency === 'GBP'
+                ? '£'
+                : '₦';
+        return `${symbol}${value.toLocaleString()}`;
+      },
     },
     {
       key: 'currentDue',
       label: 'Current Due',
-      render: (value) => `$${value.toLocaleString()}`,
+      render: (value, item) => {
+        const symbol =
+          item.currency === 'USD'
+            ? '$'
+            : item.currency === 'EUR'
+              ? '€'
+              : item.currency === 'GBP'
+                ? '£'
+                : '₦';
+        return `${symbol}${parseFloat(value).toLocaleString()}`;
+      },
     },
     {
       key: 'dueDate',
       label: 'Due Date',
+      render: (value) => {
+        if (!value) return 'N/A';
+        return new Date(value).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+      },
     },
     {
       key: 'creditTerms',
       label: 'Credit Terms',
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (value) => {
+        const statusColors = {
+          PAID: 'bg-green-100 text-green-800',
+          PENDING: 'bg-yellow-100 text-yellow-800',
+          PART: 'bg-blue-100 text-blue-800',
+          OVERDUE: 'bg-red-100 text-red-800',
+        };
+        return (
+          <span
+            className={`rounded-full px-2 py-1 text-xs font-medium ${statusColors[value] || 'bg-gray-100 text-gray-800'}`}
+          >
+            {value}
+          </span>
+        );
+      },
     },
   ];
 
@@ -103,14 +208,6 @@ export default function AccountsReceivable() {
     { key: 'run-report', label: 'Run Report' },
     { key: 'view', label: 'View' },
   ];
-
-  // Pagination data
-  const paginationData = {
-    page: 1,
-    totalPages: 10,
-    pageSize: 50,
-    totalCount: 500,
-  };
 
   // Handler functions
   const onDownloadFormats = (format, checked) => {
@@ -135,6 +232,7 @@ export default function AccountsReceivable() {
 
   const onPageSizeChange = (value) => {
     setPageSize(value);
+    setCurrentPage(1); // Reset to first page when changing page size
   };
 
   const onTableDensityChange = (value) => {
@@ -156,10 +254,14 @@ export default function AccountsReceivable() {
 
   const handleSelectAllItems = (checked) => {
     if (checked) {
-      setSelectedItems(accountsReceivableData.map((item) => item.id));
+      setSelectedItems(invoices.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
   };
 
   const handleToggleCreateInvoice = () => {
@@ -323,17 +425,24 @@ export default function AccountsReceivable() {
       {/* Accounts Receivable Table */}
       <AccountingTable
         title="Accounts Receivable (A/R)"
-        data={accountsReceivableData}
+        data={invoices}
         columns={tableColumns}
-        searchFields={['customer', 'dueDate', 'creditTerms']}
+        searchFields={['customer', 'invoiceNo', 'creditTerms']}
         searchPlaceholder="Search invoices......"
         dropdownActions={dropdownActions}
-        paginationData={paginationData}
+        paginationData={{
+          page: paginationInfo.page,
+          totalPages: paginationInfo.totalPages,
+          pageSize: paginationInfo.limit,
+          totalCount: paginationInfo.totalDocs,
+        }}
+        onPageChange={handlePageChange}
         onRowAction={handleRowAction}
         selectedItems={selectedItems}
         handleSelectItem={handleSelectTableItem}
         handleSelectAll={handleSelectAllItems}
         className="mt-10"
+        isLoading={isLoading}
       />
     </div>
   );
