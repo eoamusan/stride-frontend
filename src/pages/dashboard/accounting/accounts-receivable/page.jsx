@@ -81,7 +81,7 @@ export default function AccountsReceivable() {
           companyName: invoice.customerId?.companyName || '',
           totalSales: invoice.totalSales || 0,
           outstandingBalance: invoice.outstandingBalance || 0,
-          currentDue: invoice.product?.total || 0,
+          totalAmountPaid: invoice.totalAmountPaid || 0,
           dueDate: invoice.dueDate,
           creditTerms: invoice.termsOfPayment || '',
           status: invoice.status,
@@ -152,8 +152,8 @@ export default function AccountsReceivable() {
       },
     },
     {
-      key: 'currentDue',
-      label: 'Current Due',
+      key: 'totalAmountPaid',
+      label: 'Total Amount Paid',
       render: (value, item) => {
         const symbol =
           item.currency === 'USD'
@@ -163,7 +163,7 @@ export default function AccountsReceivable() {
               : item.currency === 'GBP'
                 ? '£'
                 : '₦';
-        return `${symbol}${parseFloat(value).toLocaleString()}`;
+        return `${symbol}${parseFloat(value || 0).toLocaleString()}`;
       },
     },
     {
@@ -185,21 +185,6 @@ export default function AccountsReceivable() {
     {
       key: 'status',
       label: 'Status',
-      render: (value) => {
-        const statusColors = {
-          PAID: 'bg-green-100 text-green-800',
-          PENDING: 'bg-yellow-100 text-yellow-800',
-          PART: 'bg-blue-100 text-blue-800',
-          OVERDUE: 'bg-red-100 text-red-800',
-        };
-        return (
-          <span
-            className={`rounded-full px-2 py-1 text-xs font-medium ${statusColors[value] || 'bg-gray-100 text-gray-800'}`}
-          >
-            {value}
-          </span>
-        );
-      },
     },
   ];
 
@@ -430,6 +415,12 @@ export default function AccountsReceivable() {
         searchFields={['customer', 'invoiceNo', 'creditTerms']}
         searchPlaceholder="Search invoices......"
         dropdownActions={dropdownActions}
+        statusStyles={{
+          PAID: 'bg-green-100 text-[#254c00] hover:bg-green-100',
+          PENDING: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+          PART: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+          OVERDUE: 'bg-red-100 text-red-800 hover:bg-red-100',
+        }}
         paginationData={{
           page: paginationInfo.page,
           totalPages: paginationInfo.totalPages,
