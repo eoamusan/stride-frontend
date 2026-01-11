@@ -21,6 +21,7 @@ import ChartOfAccounts from './dashboard/accounting/bookkeeping/chart-of-account
 import JournalEntries from './dashboard/accounting/bookkeeping/journals/page';
 import TrialBalance from './dashboard/accounting/bookkeeping/trial-balance/page';
 import AccountsReceivable from './dashboard/accounting/accounts-receivable/page';
+import AccountsReceivableReport from './dashboard/accounting/accounts-receivable/report';
 import CustomersAR from './dashboard/accounting/accounts-receivable/customers/page';
 import PaymentsAR from './dashboard/accounting/accounts-receivable/payments/page';
 import CustomerLedgerAR from './dashboard/accounting/accounts-receivable/customer-ledger/page';
@@ -212,6 +213,10 @@ const router = createBrowserRouter([
                       {
                         index: true,
                         Component: AccountsReceivable,
+                      },
+                      {
+                        path: 'report',
+                        Component: AccountsReceivableReport,
                       },
                       {
                         path: 'customers',

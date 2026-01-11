@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router';
+import { useSearchParams, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,11 +14,13 @@ import {
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-invoice';
+import RunReportDialog from '@/components/dashboard/accounting/accounts-receivable/run-report-dialog';
 import InvoiceService from '@/api/invoice';
 import { useUserStore } from '@/stores/user-store';
 
 export default function AccountsReceivable() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [createInvoice, setCreateInvoice] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const { businessData } = useUserStore();
@@ -33,6 +35,8 @@ export default function AccountsReceivable() {
     hasPrevPage: false,
     hasNextPage: false,
   });
+  const [showRunReportDialog, setShowRunReportDialog] = useState(false);
+  const [selectedItemForReport, setSelectedItemForReport] = useState(null);
 
   // State for column visibility
   const [columns, setColumns] = useState({
@@ -77,6 +81,7 @@ export default function AccountsReceivable() {
         // Transform invoice data to match table structure
         const transformedInvoices = invoicesData.map((invoice) => ({
           id: invoice._id,
+          customerId: invoice.customerId?._id || '',
           customer: invoice.customerId?.displayName || 'Unknown',
           companyName: invoice.customerId?.companyName || '',
           totalSales: invoice.totalSales || 0,
@@ -226,7 +231,42 @@ export default function AccountsReceivable() {
 
   const handleRowAction = (action, item) => {
     console.log(`Action ${action} on item:`, item);
-    // Implement row action logic here
+    if (action === 'run-report') {
+      setSelectedItemForReport(item);
+      setShowRunReportDialog(true);
+    }
+    // Implement other row action logic here
+  };
+
+  const handleRunReport = async (data) => {
+    console.log(
+      'Running report for:',
+      selectedItemForReport?.customer,
+      'Data:',
+      data
+    );
+
+    // Build query params
+    const params = new URLSearchParams({
+      customerId: selectedItemForReport?.customerId,
+      status: data.filterReport,
+      period: data.reportPeriod,
+    });
+
+    if (data.fromDate) {
+      params.append('from', data.fromDate.toISOString());
+    }
+    if (data.toDate) {
+      params.append('to', data.toDate.toISOString());
+    }
+
+    // Navigate first
+    navigate(
+      `/dashboard/accounting/accounts-receivable/report?${params.toString()}`
+    );
+
+    // Close dialog after navigation starts
+    setShowRunReportDialog(false);
   };
 
   const handleSelectTableItem = (itemId, checked) => {
@@ -434,6 +474,13 @@ export default function AccountsReceivable() {
         handleSelectAll={handleSelectAllItems}
         className="mt-10"
         isLoading={isLoading}
+      />
+
+      {/* Run Report Dialog */}
+      <RunReportDialog
+        isOpen={showRunReportDialog}
+        onClose={() => setShowRunReportDialog(false)}
+        onSubmit={handleRunReport}
       />
     </div>
   );

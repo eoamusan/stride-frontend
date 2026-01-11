@@ -32,11 +32,33 @@ export default class InvoiceService {
     return response;
   }
 
-  static async fetch({ businessId, page, perPage, search, type, graph }) {
+  static async fetch({
+    businessId,
+    customerId,
+    status,
+    page,
+    perPage,
+    search,
+    type,
+    graph,
+  }) {
     const userStore = useUserStore.getState();
-    const body = { businessId, type };
+    const body = {};
+    
+    if (businessId) {
+      body.businessId = businessId;
+    }
+    if (type) {
+      body.type = type;
+    }
     if (graph) {
       body.graph = graph;
+    }
+    if (customerId) {
+      body.customerId = customerId;
+    }
+    if (status) {
+      body.status = status;
     }
 
     // Build query params only if provided
