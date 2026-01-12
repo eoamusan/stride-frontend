@@ -253,11 +253,10 @@ export default function AccountsReceivable() {
       period: data.reportPeriod,
     });
 
-    if (data.fromDate) {
-      params.append('from', data.fromDate.toISOString());
-    }
-    if (data.toDate) {
-      params.append('to', data.toDate.toISOString());
+    // Only add date range if period is not 'all-date'
+    if (data.reportPeriod !== 'all-date' && data.fromDate && data.toDate) {
+      params.append('startDate', data.fromDate.toISOString());
+      params.append('endDate', data.toDate.toISOString());
     }
 
     // Navigate first

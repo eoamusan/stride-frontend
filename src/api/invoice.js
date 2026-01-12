@@ -41,6 +41,8 @@ export default class InvoiceService {
     search,
     type,
     graph,
+    startDate,
+    endDate,
   }) {
     const userStore = useUserStore.getState();
     const body = {};
@@ -66,6 +68,8 @@ export default class InvoiceService {
     if (page !== undefined) queryParams.append('page', page);
     if (perPage !== undefined) queryParams.append('perPage', perPage);
     if (search !== undefined) queryParams.append('search', search);
+    if( startDate !== undefined ) queryParams.append('startDate', startDate);
+    if( endDate !== undefined ) queryParams.append('endDate', endDate);
 
     const queryString = queryParams.toString();
     const url = queryString ? `invoice/fetch?${queryString}` : 'invoice/fetch';

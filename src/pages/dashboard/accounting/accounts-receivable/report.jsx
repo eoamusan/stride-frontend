@@ -37,8 +37,8 @@ export default function AccountsReceivableReport() {
 
   const customerId = searchParams.get('customerId');
   const status = searchParams.get('status');
-  const fromParam = searchParams.get('from');
-  const toParam = searchParams.get('to');
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
 
   // Fetch invoices with filters
   useEffect(() => {
@@ -59,6 +59,12 @@ export default function AccountsReceivableReport() {
         if (status && status !== 'ALL') {
           fetchParams.status = status;
         }
+        if (startDate) {
+          fetchParams.startDate = startDate;
+        }
+        if (endDate) {
+          fetchParams.endDate = endDate;
+        }
 
         const response = await InvoiceService.fetch(fetchParams);
 
@@ -66,32 +72,8 @@ export default function AccountsReceivableReport() {
 
         const invoicesData = response.data?.data?.invoices || [];
 
-        // No need to filter by customerId since it's already in the fetch params
-        let filteredInvoices = invoicesData;
-
-        // Apply date range filter
-        if (fromParam || toParam) {
-          filteredInvoices = filteredInvoices.filter((invoice) => {
-            const invoiceDate = new Date(invoice.createdAt);
-
-            if (fromParam && toParam) {
-              const fromDate = new Date(fromParam);
-              const toDate = new Date(toParam);
-              return invoiceDate >= fromDate && invoiceDate <= toDate;
-            } else if (fromParam) {
-              const fromDate = new Date(fromParam);
-              return invoiceDate >= fromDate;
-            } else if (toParam) {
-              const toDate = new Date(toParam);
-              return invoiceDate <= toDate;
-            }
-
-            return true;
-          });
-        }
-
         // Transform invoice data
-        const transformedInvoices = filteredInvoices.map((invoice) => ({
+        const transformedInvoices = invoicesData.map((invoice) => ({
           id: invoice._id,
           date: invoice.invoiceDate,
           invoiceNo: invoice.invoiceNo,
@@ -106,8 +88,8 @@ export default function AccountsReceivableReport() {
         setInvoices(transformedInvoices);
 
         // Set customer info from first invoice
-        if (filteredInvoices.length > 0) {
-          const firstInvoice = filteredInvoices[0];
+        if (invoicesData.length > 0) {
+          const firstInvoice = invoicesData[0];
           setCustomerInfo({
             name: firstInvoice.customerId?.displayName || 'Unknown Customer',
             companyName: firstInvoice.customerId?.companyName || '',
@@ -121,7 +103,7 @@ export default function AccountsReceivableReport() {
     };
 
     fetchInvoices();
-  }, [businessData?._id, customerId, status, fromParam, toParam]);
+  }, [businessData?._id, customerId, status, startDate, endDate]);
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
