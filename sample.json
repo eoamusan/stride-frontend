@@ -1,0 +1,747 @@
+{
+    "success": true,
+    "data": {
+        "customers": [
+            {
+                "customer": {
+                    "_id": "69580d6e271e35fb3ff6fd01",
+                    "title": "mr",
+                    "firstName": "Segun",
+                    "lastName": "Mustapha",
+                    "middleName": "",
+                    "displayName": "Segun",
+                    "companyName": "Casio Nigeria Limited",
+                    "phoneNumber": "08012345678",
+                    "email": "m.segun@gmail.com",
+                    "creditLimit": "5000000",
+                    "isSubCustomer": false,
+                    "businessId": "68f2304adee61578fa5a93ab",
+                    "accountId": "68f2301fdee61578fa5a93a6",
+                    "status": "ACTIVE",
+                    "createdAt": "2026-01-02T18:24:46.649Z",
+                    "updatedAt": "2026-01-02T18:24:46.649Z",
+                    "__v": 0,
+                    "address": {
+                        "_id": "69580d6e271e35fb3ff6fd03",
+                        "address1": "70, Adeniran Ogunsanya Street,",
+                        "address2": "",
+                        "city": "Surulere",
+                        "state": "Lagos",
+                        "zipcode": "234",
+                        "country": "NG",
+                        "sameAsBilling": true,
+                        "customerId": "69580d6e271e35fb3ff6fd01",
+                        "createdAt": "2026-01-02T18:24:46.732Z",
+                        "updatedAt": "2026-01-02T18:24:46.732Z",
+                        "__v": 0
+                    },
+                    "id": "69580d6e271e35fb3ff6fd01"
+                },
+                "invoices": [
+                    {
+                        "_id": "69580f05271e35fb3ff6fd25",
+                        "customerId": "69580d6e271e35fb3ff6fd01",
+                        "businessId": "68f2304adee61578fa5a93ab",
+                        "accountId": "68f2301fdee61578fa5a93a6",
+                        "currency": "NGN",
+                        "serviceId": "69580d97271e35fb3ff6fd14",
+                        "co": "",
+                        "invoiceDate": "2026-01-01T23:00:00.000Z",
+                        "termsOfPayment": "30 days",
+                        "dueDate": "2026-01-29T23:00:00.000Z",
+                        "invoiceNo": "INV-2026-01-02-0007",
+                        "status": "PART",
+                        "type": "regular",
+                        "createdAt": "2026-01-02T18:31:33.302Z",
+                        "updatedAt": "2026-01-07T10:09:22.156Z",
+                        "__v": 0,
+                        "product": {
+                            "_id": "69580f05271e35fb3ff6fd27",
+                            "products": [
+                                {
+                                    "accountId": "69580e5c271e35fb3ff6fd1e",
+                                    "accountName": "Brochure design for Alumni Reunion",
+                                    "description": "",
+                                    "unit_price": 500000,
+                                    "quantity": 2,
+                                    "total_price": 1000000,
+                                    "vat_applicable": true
+                                }
+                            ],
+                            "banks": [
+                                {
+                                    "accountName": "Oluwatobi Amusan",
+                                    "accountNumber": "8130983976",
+                                    "bankName": "Opay",
+                                    "tin": "65675",
+                                    "sortCode": "34534"
+                                }
+                            ],
+                            "paymentGateways": [],
+                            "terms": "",
+                            "notes": "",
+                            "displayBankDetails": true,
+                            "applySignature": false,
+                            "invoiceId": "69580f05271e35fb3ff6fd25",
+                            "businessId": "68f2304adee61578fa5a93ab",
+                            "subTotal": "1000000",
+                            "discount": "0",
+                            "vat": "7.5",
+                            "deliveryFee": "0",
+                            "total": "1075000",
+                            "createdAt": "2026-01-02T18:31:33.384Z",
+                            "updatedAt": "2026-01-02T18:31:33.384Z",
+                            "__v": 0
+                        },
+                        "id": "69580f05271e35fb3ff6fd25"
+                    },
+                    {
+                        "_id": "695e52f474667d42397486ad",
+                        "customerId": "69580d6e271e35fb3ff6fd01",
+                        "businessId": "68f2304adee61578fa5a93ab",
+                        "accountId": "68f2301fdee61578fa5a93a6",
+                        "currency": "GBP",
+                        "serviceId": "69580d97271e35fb3ff6fd14",
+                        "co": "",
+                        "invoiceDate": "2026-01-26T23:00:00.000Z",
+                        "termsOfPayment": "14 days",
+                        "dueDate": "2026-01-24T23:00:00.000Z",
+                        "invoiceNo": "INV-2026-01-07-0009",
+                        "status": "PAID",
+                        "type": "proforma",
+                        "createdAt": "2026-01-07T12:35:00.729Z",
+                        "updatedAt": "2026-01-07T19:56:17.364Z",
+                        "__v": 0,
+                        "product": {
+                            "_id": "695e52f474667d42397486af",
+                            "products": [
+                                {
+                                    "name": "Article",
+                                    "description": "",
+                                    "unit_price": 400,
+                                    "quantity": 43,
+                                    "total_price": 17200,
+                                    "vat_applicable": true
+                                },
+                                {
+                                    "name": "Thessis",
+                                    "description": "",
+                                    "unit_price": 200,
+                                    "quantity": 1,
+                                    "total_price": 200,
+                                    "vat_applicable": true
+                                },
+                                {
+                                    "name": "Theology",
+                                    "description": "",
+                                    "unit_price": 300,
+                                    "quantity": 1,
+                                    "total_price": 300,
+                                    "vat_applicable": true
+                                },
+                                {
+                                    "name": "Main",
+                                    "description": "",
+                                    "unit_price": 400,
+                                    "quantity": 1,
+                                    "total_price": 400,
+                                    "vat_applicable": true
+                                }
+                            ],
+                            "banks": [
+                                {
+                                    "accountName": "Oluwatobi Amusan",
+                                    "accountNumber": "8130983976",
+                                    "bankName": "Opay",
+                                    "tin": "65675",
+                                    "sortCode": "34534"
+                                }
+                            ],
+                            "paymentGateways": [],
+                            "terms": "You are to pay within 7 working days",
+                            "notes": "This is the internal note",
+                            "displayBankDetails": true,
+                            "applySignature": true,
+                            "invoiceId": "695e52f474667d42397486ad",
+                            "businessId": "68f2304adee61578fa5a93ab",
+                            "subTotal": "18100",
+                            "discount": "0",
+                            "vat": "0",
+                            "deliveryFee": "0",
+                            "total": "18100",
+                            "createdAt": "2026-01-07T12:35:00.803Z",
+                            "updatedAt": "2026-01-07T19:17:44.648Z",
+                            "__v": 0
+                        },
+                        "id": "695e52f474667d42397486ad"
+                    }
+                ]
+            },
+            {
+                "customer": {
+                    "_id": "69175202c93ede03c256cd34",
+                    "title": "mrs",
+                    "firstName": "Ify",
+                    "lastName": "Alaebe",
+                    "middleName": "Chi",
+                    "displayName": "Ify",
+                    "companyName": "Nicee",
+                    "phoneNumber": "08110943988",
+                    "email": "ify@nicee.com",
+                    "creditLimit": "5000000",
+                    "dueDate": "2025-11-11T23:00:00.000Z",
+                    "isSubCustomer": false,
+                    "businessId": "68f2304adee61578fa5a93ab",
+                    "accountId": "68f2301fdee61578fa5a93a6",
+                    "status": "ACTIVE",
+                    "createdAt": "2025-11-14T16:00:02.642Z",
+                    "updatedAt": "2025-11-14T16:00:02.642Z",
+                    "__v": 0,
+                    "address": {
+                        "_id": "69175202c93ede03c256cd36",
+                        "address1": "Ikoyi",
+                        "address2": "",
+                        "city": "Ikoyi",
+                        "state": "Lagos",
+                        "zipcode": "100243",
+                        "country": "NG",
+                        "sameAsBilling": false,
+                        "customerId": "69175202c93ede03c256cd34",
+                        "createdAt": "2025-11-14T16:00:02.725Z",
+                        "updatedAt": "2025-11-14T16:00:02.725Z",
+                        "__v": 0
+                    },
+                    "id": "69175202c93ede03c256cd34"
+                },
+                "invoices": [
+                    {
+                        "_id": "693bdafc9bb4b7c61a928a38",
+                        "customerId": "69175202c93ede03c256cd34",
+                        "businessId": "68f2304adee61578fa5a93ab",
+                        "accountId": "68f2301fdee61578fa5a93a6",
+                        "currency": "NGN",
+                        "serviceId": "6922f2264d63c9641e92bc0e",
+                        "co": "",
+                        "invoiceDate": "2025-12-01T23:00:00.000Z",
+                        "termsOfPayment": "14 days",
+                        "dueDate": "2025-12-15T23:00:00.000Z",
+                        "invoiceNo": "INV-2025-12-12-0003",
+                        "status": "PAID",
+                        "type": "regular",
+                        "createdAt": "2025-12-12T09:06:04.161Z",
+                        "updatedAt": "2025-12-18T22:36:18.658Z",
+                        "__v": 0,
+                        "product": {
+                            "_id": "693bdafc9bb4b7c61a928a3a",
+                            "products": [
+                                {
+                                    "accountId": "693553a74eaca3742b8dabdc",
+                                    "accountName": "Printing - Flyer",
+                                    "description": "Printing of flyers",
+                                    "unit_price": 1000,
+                                    "quantity": 2000,
+                                    "total_price": 2000000,
+                                    "vat_applicable": true
+                                }
+                            ],
+                            "banks": [
+                                {
+                                    "accountName": "Oluwatobi Amusan",
+                                    "accountNumber": "8130983976",
+                                    "bankName": "Opay",
+                                    "tin": "65675",
+                                    "sortCode": "34534"
+                                }
+                            ],
+                            "paymentGateways": [],
+                            "terms": "",
+                            "notes": "",
+                            "displayBankDetails": true,
+                            "applySignature": false,
+                            "invoiceId": "693bdafc9bb4b7c61a928a38",
+                            "businessId": "68f2304adee61578fa5a93ab",
+                            "subTotal": "2000000",
+                            "discount": "0",
+                            "vat": "0",
+                            "deliveryFee": "0",
+                            "total": "2000000",
+                            "createdAt": "2025-12-12T09:06:04.244Z",
+                            "updatedAt": "2025-12-12T09:06:04.244Z",
+                            "__v": 0
+                        },
+                        "id": "693bdafc9bb4b7c61a928a38"
+                    },
+                    {
+                        "_id": "695e500a74667d4239748595",
+                        "customerId": "69175202c93ede03c256cd34",
+                        "businessId": "68f2304adee61578fa5a93ab",
+                        "accountId": "68f2301fdee61578fa5a93a6",
+                        "currency": "USD",
+                        "serviceId": "69580d97271e35fb3ff6fd14",
+                        "co": "",
+                        "invoiceDate": "2026-01-21T23:00:00.000Z",
+                        "termsOfPayment": "14 days",
+                        "dueDate": "2026-01-18T23:00:00.000Z",
+                        "invoiceNo": "INV-2026-01-07-0008",
+                        "status": "PAID",
+                        "type": "proforma",
+                        "createdAt": "2026-01-07T12:22:34.831Z",
+                        "updatedAt": "2026-01-07T20:11:18.227Z",
+                        "__v": 0,
+                        "product": {
+                            "_id": "695e500a74667d4239748597",
+                            "products": [
+                                {
+                                    "name": "Article",
+                                    "description": "",
+                                    "unit_price": 10,
+                                    "quantity": 2,
+                                    "total_price": 20,
+                                    "vat_applicable": true
+                                },
+                                {
+                                    "name": "Thesis",
+                                    "description": "This",
+                                    "unit_price": 2000,
+                                    "quantity": 32,
+                                    "total_price": 64000,
+                                    "vat_applicable": true
+                                }
+                            ],
+                            "banks": [
+                                {
+                                    "accountName": "Oluwatobi Amusan",
+                                    "accountNumber": "8130983976",
+                                    "bankName": "Opay",
+                                    "tin": "65675",
+                                    "sortCode": "34534"
+                                }
+                            ],
+                            "paymentGateways": [],
+                            "terms": "",
+                            "notes": "",
+                            "displayBankDetails": true,
+                            "applySignature": false,
+                            "invoiceId": "695e500a74667d4239748595",
+                            "businessId": "68f2304adee61578fa5a93ab",
+                            "subTotal": "64020",
+                            "discount": "0",
+                            "vat": "0",
+                            "deliveryFee": "0",
+                            "total": "64020",
+                            "createdAt": "2026-01-07T12:22:34.907Z",
+                            "updatedAt": "2026-01-07T12:22:34.907Z",
+                            "__v": 0
+                        },
+                        "id": "695e500a74667d4239748595"
+                    }
+                ]
+            },
+            {
+                "customer": {
+                    "_id": "690e0d2b9e6bc87c5a4741ac",
+                    "title": "mr",
+                    "firstName": "Ala",
+                    "lastName": "Seun",
+                    "middleName": "Ezekiel",
+                    "displayName": "Seun",
+                    "companyName": "Speedaf",
+                    "phoneNumber": "07010003500",
+                    "email": "seun@speedaf.com",
+                    "creditLimit": "500000",
+                    "dueDate": "2025-11-04T23:00:00.000Z",
+                    "isSubCustomer": false,
+                    "businessId": "68f2304adee61578fa5a93ab",
+                    "accountId": "68f2301fdee61578fa5a93a6",
+                    "status": "ACTIVE",
+                    "createdAt": "2025-11-07T15:15:55.049Z",
+                    "updatedAt": "2025-11-07T15:15:55.049Z",
+                    "__v": 0,
+                    "address": {
+                        "_id": "690e0d2b9e6bc87c5a4741ae",
+                        "address1": "Ikoyi",
+                        "address2": "",
+                        "city": "Ikoyi",
+                        "state": "Lagos",
+                        "zipcode": "100243",
+                        "country": "NG",
+                        "sameAsBilling": false,
+                        "customerId": "690e0d2b9e6bc87c5a4741ac",
+                        "createdAt": "2025-11-07T15:15:55.126Z",
+                        "updatedAt": "2025-11-07T15:15:55.126Z",
+                        "__v": 0
+                    },
+                    "id": "690e0d2b9e6bc87c5a4741ac"
+                },
+                "invoices": [
+                    {
+                        "_id": "693a92a19bb4b7c61a9286f4",
+                        "customerId": "690e0d2b9e6bc87c5a4741ac",
+                        "businessId": "68f2304adee61578fa5a93ab",
+                        "accountId": "68f2301fdee61578fa5a93a6",
+                        "currency": "NGN",
+                        "serviceId": "6922f2264d63c9641e92bc0e",
+                        "co": "",
+                        "invoiceDate": "2025-12-03T23:00:00.000Z",
+                        "termsOfPayment": "7 days",
+                        "dueDate": "2025-12-10T23:00:00.000Z",
+                        "invoiceNo": "INV-2025-12-11-0001",
+                        "status": "PENDING",
+                        "type": "regular",
+                        "createdAt": "2025-12-11T09:45:05.161Z",
+                        "updatedAt": "2025-12-11T09:45:05.161Z",
+                        "__v": 0,
+                        "product": {
+                            "_id": "693a92a19bb4b7c61a9286f6",
+                            "products": [
+                                {
+                                    "accountId": "693553a74eaca3742b8dabdc",
+                                    "accountName": "Printing - Flyer",
+                                    "description": "Printing of flyers",
+                                    "unit_price": 500,
+                                    "quantity": 1500,
+                                    "total_price": 750000,
+                                    "vat_applicable": true
+                                }
+                            ],
+                            "banks": [
+                                {
+                                    "accountName": "Oluwatobi Amusan",
+                                    "accountNumber": "8130983976",
+                                    "bankName": "Opay",
+                                    "tin": "65675",
+                                    "sortCode": "34534"
+                                }
+                            ],
+                            "paymentGateways": [],
+                            "terms": "",
+                            "notes": "",
+                            "displayBankDetails": true,
+                            "applySignature": false,
+                            "invoiceId": "693a92a19bb4b7c61a9286f4",
+                            "businessId": "68f2304adee61578fa5a93ab",
+                            "subTotal": "750000",
+                            "discount": "0",
+                            "vat": "0",
+                            "deliveryFee": "0",
+                            "total": "750000",
+                            "createdAt": "2025-12-11T09:45:05.238Z",
+                            "updatedAt": "2025-12-11T09:45:05.238Z",
+                            "__v": 0
+                        },
+                        "id": "693a92a19bb4b7c61a9286f4"
+                    },
+                    {
+                        "_id": "693a94b89bb4b7c61a928801",
+                        "customerId": "690e0d2b9e6bc87c5a4741ac",
+                        "businessId": "68f2304adee61578fa5a93ab",
+                        "accountId": "68f2301fdee61578fa5a93a6",
+                        "currency": "NGN",
+                        "serviceId": "6922f2264d63c9641e92bc0e",
+                        "co": "",
+                        "invoiceDate": "2025-12-03T23:00:00.000Z",
+                        "termsOfPayment": "7 days",
+                        "dueDate": "2025-12-10T23:00:00.000Z",
+                        "invoiceNo": "INV-2025-12-11-0002",
+                        "status": "PAID",
+                        "type": "regular",
+                        "createdAt": "2025-12-11T09:54:00.460Z",
+                        "updatedAt": "2025-12-19T05:59:13.059Z",
+                        "__v": 0,
+                        "product": {
+                            "_id": "693a94b89bb4b7c61a928803",
+                            "products": [
+                                {
+                                    "accountId": "693553a74eaca3742b8dabdc",
+                                    "accountName": "Printing - Flyer",
+                                    "description": "Printing of flyers",
+                                    "unit_price": 7500,
+                                    "quantity": 150,
+                                    "total_price": 1125000,
+                                    "vat_applicable": true
+                                }
+                            ],
+                            "banks": [
+                                {
+                                    "accountName": "Oluwatobi Amusan",
+                                    "accountNumber": "8130983976",
+                                    "bankName": "Opay",
+                                    "tin": "65675",
+                                    "sortCode": "34534"
+                                }
+                            ],
+                            "paymentGateways": [],
+                            "terms": "",
+                            "notes": "",
+                            "displayBankDetails": true,
+                            "applySignature": false,
+                            "invoiceId": "693a94b89bb4b7c61a928801",
+                            "businessId": "68f2304adee61578fa5a93ab",
+                            "subTotal": "1125000",
+                            "discount": "0",
+                            "vat": "0",
+                            "deliveryFee": "0",
+                            "total": "1125000",
+                            "createdAt": "2025-12-11T09:54:00.535Z",
+                            "updatedAt": "2025-12-11T09:54:00.535Z",
+                            "__v": 0
+                        },
+                        "id": "693a94b89bb4b7c61a928801"
+                    },
+                    {
+                        "_id": "693c3df288ca0f7d155c2cb9",
+                        "customerId": "690e0d2b9e6bc87c5a4741ac",
+                        "businessId": "68f2304adee61578fa5a93ab",
+                        "accountId": "68f2301fdee61578fa5a93a6",
+                        "currency": "NGN",
+                        "serviceId": "6922f2264d63c9641e92bc0e",
+                        "co": "",
+                        "invoiceDate": "2025-12-02T23:00:00.000Z",
+                        "termsOfPayment": "7 days",
+                        "dueDate": "2025-12-09T23:00:00.000Z",
+                        "invoiceNo": "INV-2025-12-12-0004",
+                        "status": "PAID",
+                        "type": "regular",
+                        "createdAt": "2025-12-12T16:08:18.109Z",
+                        "updatedAt": "2025-12-18T22:34:55.611Z",
+                        "__v": 0,
+                        "product": {
+                            "_id": "693c3df288ca0f7d155c2cbb",
+                            "products": [
+                                {
+                                    "accountId": "693c3dd488ca0f7d155c2cb2",
+                                    "accountName": "Printing - Banner",
+                                    "description": "Activation campaign",
+                                    "unit_price": 50000,
+                                    "quantity": 4,
+                                    "total_price": 200000,
+                                    "vat_applicable": true
+                                }
+                            ],
+                            "banks": [
+                                {
+                                    "accountName": "Oluwatobi Amusan",
+                                    "accountNumber": "8130983976",
+                                    "bankName": "Opay",
+                                    "tin": "65675",
+                                    "sortCode": "34534"
+                                }
+                            ],
+                            "paymentGateways": [],
+                            "terms": "",
+                            "notes": "",
+                            "displayBankDetails": true,
+                            "applySignature": false,
+                            "invoiceId": "693c3df288ca0f7d155c2cb9",
+                            "businessId": "68f2304adee61578fa5a93ab",
+                            "subTotal": "200000",
+                            "discount": "0",
+                            "vat": "0",
+                            "deliveryFee": "0",
+                            "total": "200000",
+                            "createdAt": "2025-12-12T16:08:18.177Z",
+                            "updatedAt": "2025-12-12T16:08:18.177Z",
+                            "__v": 0
+                        },
+                        "id": "693c3df288ca0f7d155c2cb9"
+                    },
+                    {
+                        "_id": "6944e0ea792353c992d799c0",
+                        "customerId": "690e0d2b9e6bc87c5a4741ac",
+                        "businessId": "68f2304adee61578fa5a93ab",
+                        "accountId": "68f2301fdee61578fa5a93a6",
+                        "currency": "EUR",
+                        "serviceId": "6922f2264d63c9641e92bc0e",
+                        "co": "Optional C of O",
+                        "invoiceDate": "2025-12-18T23:00:00.000Z",
+                        "termsOfPayment": "7 days",
+                        "dueDate": "2025-12-22T23:00:00.000Z",
+                        "invoiceNo": "INV-2025-12-19-0005",
+                        "status": "PAID",
+                        "type": "regular",
+                        "createdAt": "2025-12-19T05:21:46.771Z",
+                        "updatedAt": "2025-12-19T05:22:34.948Z",
+                        "__v": 0,
+                        "product": {
+                            "_id": "6944e0ea792353c992d799c2",
+                            "products": [
+                                {
+                                    "accountId": "6931d6ed56332535c358e32a",
+                                    "accountName": "Printing - Business card",
+                                    "description": "This is for printing Business Cards",
+                                    "unit_price": 200,
+                                    "quantity": 1,
+                                    "total_price": 200,
+                                    "vat_applicable": true
+                                }
+                            ],
+                            "banks": [
+                                {
+                                    "accountName": "Oluwatobi Amusan",
+                                    "accountNumber": "8130983976",
+                                    "bankName": "Opay",
+                                    "tin": "65675",
+                                    "sortCode": "34534"
+                                }
+                            ],
+                            "paymentGateways": [],
+                            "terms": "Mo Terms and condtionts",
+                            "notes": "No internal notes",
+                            "displayBankDetails": true,
+                            "applySignature": true,
+                            "invoiceId": "6944e0ea792353c992d799c0",
+                            "businessId": "68f2304adee61578fa5a93ab",
+                            "subTotal": "200",
+                            "discount": "0",
+                            "vat": "0",
+                            "deliveryFee": "0",
+                            "total": "200",
+                            "createdAt": "2025-12-19T05:21:46.838Z",
+                            "updatedAt": "2025-12-19T05:21:46.838Z",
+                            "__v": 0
+                        },
+                        "id": "6944e0ea792353c992d799c0"
+                    },
+                    {
+                        "_id": "694507ed792353c992d79e04",
+                        "customerId": "690e0d2b9e6bc87c5a4741ac",
+                        "businessId": "68f2304adee61578fa5a93ab",
+                        "accountId": "68f2301fdee61578fa5a93a6",
+                        "currency": "NGN",
+                        "serviceId": "6922f2264d63c9641e92bc0e",
+                        "co": "",
+                        "invoiceDate": "2025-12-15T23:00:00.000Z",
+                        "termsOfPayment": "7 days",
+                        "dueDate": "2025-12-22T23:00:00.000Z",
+                        "invoiceNo": "INV-2025-12-19-0006",
+                        "status": "PAID",
+                        "type": "regular",
+                        "createdAt": "2025-12-19T08:08:13.556Z",
+                        "updatedAt": "2025-12-29T12:58:51.412Z",
+                        "__v": 0,
+                        "product": {
+                            "_id": "694507ed792353c992d79e06",
+                            "products": [
+                                {
+                                    "accountId": "694507a7792353c992d79dfd",
+                                    "description": "",
+                                    "unit_price": 60000,
+                                    "quantity": 2,
+                                    "total_price": 120000,
+                                    "vat_applicable": true
+                                }
+                            ],
+                            "banks": [
+                                {
+                                    "accountName": "Oluwatobi Amusan",
+                                    "accountNumber": "8130983976",
+                                    "bankName": "Opay",
+                                    "tin": "65675",
+                                    "sortCode": "34534"
+                                }
+                            ],
+                            "paymentGateways": [],
+                            "terms": "",
+                            "notes": "",
+                            "displayBankDetails": false,
+                            "applySignature": false,
+                            "invoiceId": "694507ed792353c992d79e04",
+                            "businessId": "68f2304adee61578fa5a93ab",
+                            "subTotal": "120000",
+                            "discount": "0",
+                            "vat": "0",
+                            "deliveryFee": "0",
+                            "total": "120000",
+                            "createdAt": "2025-12-19T08:08:13.625Z",
+                            "updatedAt": "2025-12-19T08:09:36.311Z",
+                            "__v": 0
+                        },
+                        "id": "694507ed792353c992d79e04"
+                    }
+                ]
+            },
+            {
+                "customer": {
+                    "_id": "690c7acd51de8070387e4c9a",
+                    "title": "mrs",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "middleName": "",
+                    "displayName": "John Doe",
+                    "companyName": "Bluffs Inc.",
+                    "phoneNumber": "08158842213",
+                    "email": "psalmuelle1@gmail.com",
+                    "creditLimit": "100000",
+                    "dueDate": "2025-12-18T23:00:00.000Z",
+                    "isSubCustomer": true,
+                    "businessId": "68f2304adee61578fa5a93ab",
+                    "status": "ACTIVE",
+                    "createdAt": "2025-11-06T10:39:09.599Z",
+                    "updatedAt": "2025-11-06T10:39:09.599Z",
+                    "__v": 0,
+                    "address": {
+                        "_id": "690c7acd51de8070387e4c9c",
+                        "address1": "9, mallot street, Idomogun",
+                        "address2": "Ogijo",
+                        "city": "Shagamu",
+                        "state": "Lagos",
+                        "zipcode": "121101",
+                        "country": "NG",
+                        "sameAsBilling": true,
+                        "customerId": "690c7acd51de8070387e4c9a",
+                        "createdAt": "2025-11-06T10:39:09.675Z",
+                        "updatedAt": "2025-11-06T10:39:09.675Z",
+                        "__v": 0
+                    },
+                    "id": "690c7acd51de8070387e4c9a"
+                },
+                "invoices": []
+            },
+            {
+                "customer": {
+                    "_id": "69048a70b95f0c167f8a6ee6",
+                    "title": "mr",
+                    "firstName": "Femi",
+                    "lastName": "Amoo",
+                    "middleName": "Ibi",
+                    "displayName": "Femi",
+                    "companyName": "Express PLC",
+                    "phoneNumber": "08130003667",
+                    "email": "femi@mail.com",
+                    "creditLimit": "50000",
+                    "dueDate": "2025-11-11T23:00:00.000Z",
+                    "isSubCustomer": false,
+                    "businessId": "68f2304adee61578fa5a93ab",
+                    "createdAt": "2025-10-31T10:07:44.303Z",
+                    "updatedAt": "2025-10-31T10:07:44.303Z",
+                    "__v": 0,
+                    "address": {
+                        "_id": "69048a70b95f0c167f8a6ee8",
+                        "address1": "Ikeja",
+                        "address2": "",
+                        "city": "Ikeja GRA",
+                        "state": "Lagos",
+                        "zipcode": "100233",
+                        "country": "Nigeria",
+                        "sameAsBilling": false,
+                        "customerId": "69048a70b95f0c167f8a6ee6",
+                        "createdAt": "2025-10-31T10:07:44.378Z",
+                        "updatedAt": "2025-10-31T10:07:44.378Z",
+                        "__v": 0
+                    },
+                    "id": "69048a70b95f0c167f8a6ee6"
+                },
+                "invoices": []
+            }
+        ],
+        "totalDocs": 5,
+        "limit": 50,
+        "totalPages": 1,
+        "page": 1,
+        "pagingCounter": 1,
+        "hasPrevPage": false,
+        "hasNextPage": false,
+        "prevPage": null,
+        "nextPage": null
+    }
+}

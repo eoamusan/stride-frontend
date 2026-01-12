@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,74 +13,20 @@ import {
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AddCustomerModal from '@/components/dashboard/accounting/invoicing/customers/add-customer';
 import AccountingTable from '@/components/dashboard/accounting/table';
-
-const customerData = [
-  {
-    id: 'CUST-1001',
-    name: 'John Smith',
-    companyName: 'ABC Corporation',
-    creditLimit: '$50,000.00',
-    balance: '$15,400.00',
-    dueDate: 'Jul 20, 2024',
-    status: 'Active',
-  },
-  {
-    id: 'CUST-1002',
-    name: 'Sarah Johnson',
-    companyName: 'Tech Solutions Ltd',
-    creditLimit: '$25,000.00',
-    balance: '$8,750.00',
-    dueDate: 'Aug 15, 2024',
-    status: 'Active',
-  },
-  {
-    id: 'CUST-1003',
-    name: 'Michael Brown',
-    companyName: 'Global Enterprises',
-    creditLimit: '$100,000.00',
-    balance: '$0.00',
-    dueDate: '-',
-    status: 'Inactive',
-  },
-  {
-    id: 'CUST-1004',
-    name: 'Emily Davis',
-    companyName: 'Creative Agency Inc',
-    creditLimit: '$30,000.00',
-    balance: '$22,500.00',
-    dueDate: 'Jun 30, 2024',
-    status: 'Overdue',
-  },
-];
-const tableColumns = [
-  { key: 'name', label: 'Name' },
-  { key: 'companyName', label: 'Company Name' },
-  { key: 'creditLimit', label: 'Credit Limit' },
-  { key: 'balance', label: 'Balance' },
-  { key: 'dueDate', label: 'Due Date' },
-  { key: 'status', label: 'Status' },
-];
-const customerStatusStyles = {
-  Active: 'bg-green-100 text-green-800 hover:bg-green-100',
-  Inactive: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
-  Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
-};
-const customerDropdownActions = [
-  { key: 'view', label: 'View' },
-  { key: 'create-invoice', label: 'Create Invoice' },
-  { key: 'create-charge', label: 'Create Charge' },
-  { key: 'make-inactive', label: 'Make inactive' },
-  { key: 'create-statement', label: 'Create Statement' },
-  { key: 'create-task', label: 'Create Task' },
-];
+import CustomerService from '@/api/customer';
+import { useUserStore } from '@/stores/user-store';
 
 export default function Customers() {
+  const { businessData } = useUserStore();
+  const [customers, setCustomers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [customerPaginationData, setCustomerPaginationData] = useState({
     page: 1,
-    totalPages: 10,
-    pageSize: 10,
-    totalCount: 100,
+    totalPages: 1,
+    pageSize: 50,
+    totalCount: 0,
   });
   // State for column visibility
   const [columns, setColumns] = useState({
@@ -147,21 +93,116 @@ export default function Customers() {
   const handleSelectAllItems = (checked) => {
     console.log(checked);
     if (checked) {
-      setSelectedItems(customerData.map((item) => item.id));
+      setSelectedItems(customers.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
   };
 
-  // Mock pagination handler
+  // Pagination handler
   const handlePageChange = (newPage) => {
     console.log('Page changed to:', newPage);
-    setCustomerPaginationData((prev) => ({
-      ...prev,
-      page: newPage,
-    }));
-    // In a real app, you would fetch new data here
+    setCurrentPage(newPage);
   };
+
+  // Fetch customers
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      if (!businessData?._id) return;
+
+      try {
+        setIsLoading(true);
+        const response = await CustomerService.fetch({
+          page: currentPage,
+          perPage: parseInt(pageSize),
+        });
+
+        console.log('Customers response:', response.data);
+
+        const customersData = response.data?.data?.customers || [];
+        const pagination = response.data?.data || {};
+
+        // Transform customer data - response is array of {customer, invoices}
+        const transformedCustomers = customersData.map((item) => {
+          const customer = item.customer;
+          const invoices = item.invoices || [];
+
+          // Find earliest due date from unpaid invoices
+          const unpaidInvoices = invoices.filter(
+            (inv) => inv.status !== 'PAID'
+          );
+          const earliestDueDate =
+            unpaidInvoices.length > 0
+              ? unpaidInvoices.reduce((earliest, invoice) => {
+                  const dueDate = new Date(invoice.dueDate);
+                  return dueDate < earliest ? dueDate : earliest;
+                }, new Date(unpaidInvoices[0].dueDate))
+              : null;
+
+          return {
+            id: customer._id,
+            name:
+              customer.displayName ||
+              `${customer.firstName} ${customer.lastName}`,
+            companyName: customer.companyName || '-',
+            creditLimit: `₦${parseFloat(
+              customer.creditLimit || 0
+            ).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}`,
+            balance: '-',
+            dueDate: earliestDueDate
+              ? new Date(earliestDueDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : '-',
+            status: customer.status || 'ACTIVE',
+          };
+        });
+
+        setCustomers(transformedCustomers);
+        setCustomerPaginationData({
+          page: pagination.page || currentPage,
+          totalPages: pagination.totalPages || 1,
+          pageSize: pagination.limit || parseInt(pageSize),
+          totalCount: pagination.totalDocs || customersData.length,
+        });
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, [businessData?._id, currentPage, pageSize]);
+
+  const tableColumns = [
+    { key: 'name', label: 'Name' },
+    { key: 'companyName', label: 'Company Name' },
+    { key: 'creditLimit', label: 'Credit Limit' },
+    { key: 'balance', label: 'Balance' },
+    { key: 'dueDate', label: 'Due Date' },
+    { key: 'status', label: 'Status' },
+  ];
+
+  const customerStatusStyles = {
+    ACTIVE: 'bg-green-100 text-green-800 hover:bg-green-100',
+    INACTIVE: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
+    OVERDUE: 'bg-red-100 text-red-800 hover:bg-red-100',
+  };
+
+  const customerDropdownActions = [
+    { key: 'view', label: 'View' },
+    { key: 'create-invoice', label: 'Create Invoice' },
+    { key: 'create-charge', label: 'Create Charge' },
+    { key: 'make-inactive', label: 'Make inactive' },
+    { key: 'create-statement', label: 'Create Statement' },
+    { key: 'create-task', label: 'Create Task' },
+  ];
 
   return (
     <div className="my-4 min-h-screen">
@@ -301,7 +342,7 @@ export default function Customers() {
       <AccountingTable
         className="mt-10"
         title={'Customer Management'}
-        data={customerData}
+        data={customers}
         columns={tableColumns}
         searchFields={['name', 'companyName', 'id']}
         searchPlaceholder="Search customers..."
@@ -313,6 +354,7 @@ export default function Customers() {
         handleSelectItem={handleSelectTableItem}
         handleSelectAll={handleSelectAllItems}
         onPageChange={handlePageChange}
+        isLoading={isLoading}
       />
 
       <AddCustomerModal
