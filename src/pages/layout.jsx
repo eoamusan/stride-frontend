@@ -51,6 +51,7 @@ import ViewCustomer from './dashboard/accounting/invoicing/customers/[id]/page';
 import LedgerReportPage from './dashboard/accounting/bookkeeping/ledger-view/report/page';
 import AccountReportPage from './dashboard/accounting/bookkeeping/chart-of-accounts/report/page';
 import FinancialReports from './dashboard/accounting/financial-reports/page';
+import Budgeting from './dashboard/accounting/budgeting/page';
 
 const router = createBrowserRouter([
   {
@@ -317,7 +318,7 @@ const router = createBrowserRouter([
                   },
                   {
                     path: 'budgeting',
-                    Component: () => <div>Budgeting & Forecasting</div>,
+                    Component: Budgeting,
                   },
                   {
                     path: 'asset-depreciation',

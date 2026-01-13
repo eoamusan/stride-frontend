@@ -235,6 +235,21 @@ const expenseManagementItems = [
   },
 ];
 
+const budgetingAndForcastingItems = [
+  {
+    title: 'Budget Overview',
+    link: '/dashboard/accounting/budgeting',
+  },
+  {
+    title: 'Analytics & Reports',
+    link: '/dashboard/accounting/budgeting/reports',
+  },
+  {
+    title: 'Forecasting',
+    link: '/dashboard/accounting/budgeting/forecasting',
+  }
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -302,12 +317,12 @@ const accountingTopItems = {
   overview: accountingItems,
   invoicing: invoicingItems,
   expenseManagement: expenseManagementItems,
+  budgeting: budgetingAndForcastingItems,
   bookkeeping: bookkeepingItems,
   financialReports: [],
   accountsReceivable: accountsReceivableItems,
   accountsPayable: accountsPayableItems,
   inventoryManagement: inventoryManagementItems,
-  budgeting: [],
   fixedAssetManagement: [],
   taxManagement: [],
   bankingReconciliation: [],
