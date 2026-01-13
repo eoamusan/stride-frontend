@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,61 +13,8 @@ import {
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
-
-const paymentMetrics = [
-  { title: 'Total Payments', value: '264' },
-  {
-    title: 'Total Received',
-    value: '$15,600',
-  },
-  {
-    title: 'Completed',
-    value: '$64',
-  },
-  {
-    title: 'Pending',
-    value: '$64',
-  },
-];
-
-const paymentData = [
-  {
-    id: 'P-35476',
-    customer: 'ABC Corporation',
-    invoice: '#INV-001',
-    method: 'Bank Transfer',
-    amount: '$15,400.00',
-    date: 'Jul 20, 2024',
-    status: 'Overdue',
-  },
-  {
-    id: 'P-35477',
-    customer: 'Tech Solutions Ltd',
-    invoice: '#INV-002',
-    method: 'Credit Card',
-    amount: '$8,750.00',
-    date: 'Aug 15, 2024',
-    status: 'Completed',
-  },
-  {
-    id: 'P-35478',
-    customer: 'Global Enterprises',
-    invoice: '#INV-003',
-    method: 'Bank Transfer',
-    amount: '$25,000.00',
-    date: 'Aug 10, 2024',
-    status: 'Pending',
-  },
-  {
-    id: 'P-35479',
-    customer: 'Creative Agency Inc',
-    invoice: '#INV-004',
-    method: 'PayPal',
-    amount: '$12,300.00',
-    date: 'Jul 30, 2024',
-    status: 'Failed',
-  },
-];
+import PaymentService from '@/api/payment';
+import { useUserStore } from '@/stores/user-store';
 
 const paymentColumns = [
   { key: 'id', label: 'Payment ID' },
@@ -93,14 +40,19 @@ const paymentDropdownActions = [
   { key: 'export', label: 'Export' },
 ];
 
-const paymentPaginationData = {
-  page: 1,
-  totalPages: 10,
-  pageSize: 10,
-  totalCount: 100,
-};
-
 export default function Payments() {
+  const { businessData } = useUserStore();
+  const [payments, setPayments] = useState([]);
+  const [rawPayments, setRawPayments] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paymentPaginationData, setPaymentPaginationData] = useState({
+    page: 1,
+    totalPages: 1,
+    pageSize: 50,
+    totalCount: 0,
+  });
+
   // State for column visibility
   const [columns, setColumns] = useState({
     number: true,
@@ -133,10 +85,16 @@ export default function Payments() {
   // Handle select all functionality
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedItems(paymentData.map((item) => item.id));
+      setSelectedItems(payments.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    setSelectedItems([]);
   };
 
   // Handler functions
@@ -177,6 +135,113 @@ export default function Payments() {
     console.log('Payment action:', action, payment);
     // Handle different actions here
   };
+
+  // Calculate metrics from payment data
+  const calculateMetrics = () => {
+    const totalPayments = paymentPaginationData.totalCount || 0;
+    const completedPayments = rawPayments.filter(
+      (item) => item.invoiceId?.status === 'PAID'
+    ).length;
+    const pendingPayments = totalPayments - completedPayments;
+
+    // Calculate total amount received
+    const totalAmount = rawPayments.reduce((sum, item) => {
+      const amount = Number(item.amountPaid || 0);
+      return sum + amount;
+    }, 0);
+
+    return [
+      {
+        title: 'Total Payments',
+        value: totalPayments,
+      },
+      {
+        title: 'Total Received',
+        value: totalAmount,
+        symbol: '',
+      },
+      {
+        title: 'Completed',
+        value: completedPayments,
+      },
+      {
+        title: 'Pending',
+        value: pendingPayments,
+      },
+    ];
+  };
+
+  // Fetch payments
+  useEffect(() => {
+    const fetchPayments = async () => {
+      if (!businessData?._id) return;
+
+      try {
+        setIsLoading(true);
+        const response = await PaymentService.fetch({
+          page: currentPage,
+          perPage: parseInt(pageSize),
+        });
+
+        console.log('Payments response:', response.data);
+
+        const paymentsData = response.data?.data?.payments || [];
+        const pagination = response.data?.data || {};
+
+        // Store raw payment data for metrics calculation
+        setRawPayments(paymentsData);
+
+        // Transform payment data
+        const transformedPayments = paymentsData.map((payment) => {
+          const invoice = payment.invoiceId;
+          const currency = invoice?.currency || 'NGN';
+          const symbol =
+            currency === 'USD'
+              ? '$'
+              : currency === 'EUR'
+                ? '€'
+                : currency === 'GBP'
+                  ? '£'
+                  : '₦';
+
+          return {
+            id: payment._id,
+            customer: invoice?.customerId || '-',
+            invoice: invoice?.invoiceNo || '-',
+            method: payment.paymentMethod || '-',
+            amount: `${symbol}${parseFloat(
+              payment.amountPaid || 0
+            ).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}`,
+            date: payment.paymentDate
+              ? new Date(payment.paymentDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : '-',
+            status: invoice?.status || 'Completed',
+          };
+        });
+
+        setPayments(transformedPayments);
+        setPaymentPaginationData({
+          page: pagination.page || currentPage,
+          totalPages: pagination.totalPages || 1,
+          pageSize: pagination.limit || parseInt(pageSize),
+          totalCount: pagination.totalDocs || paymentsData.length,
+        });
+      } catch (error) {
+        console.error('Error fetching payments:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPayments();
+  }, [businessData?._id, currentPage, pageSize]);
 
   return (
     <div className="my-4 min-h-screen">
@@ -318,25 +383,25 @@ export default function Payments() {
       </div>
 
       <div className="mt-10">
-        {paymentMetrics && paymentMetrics.length > 0 && (
-          <Metrics metrics={paymentMetrics} />
-        )}
+        <Metrics metrics={calculateMetrics()} />
       </div>
 
       <AccountingTable
         className="mt-10"
         title={'Incoming Payments'}
-        data={paymentData}
+        data={payments}
         columns={paymentColumns}
         searchFields={['customer', 'invoice', 'id']}
         searchPlaceholder="Search payment......"
         statusStyles={paymentStatusStyles}
         dropdownActions={paymentDropdownActions}
         paginationData={paymentPaginationData}
+        onPageChange={handlePageChange}
         selectedItems={selectedItems}
         handleSelectItem={handleSelectItem}
         handleSelectAll={handleSelectAll}
         onRowAction={handlePaymentAction}
+        isLoading={isLoading}
       />
     </div>
   );

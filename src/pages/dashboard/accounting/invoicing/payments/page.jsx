@@ -41,31 +41,33 @@ export default function Payments() {
   const transformPaymentData = (payments) => {
     if (!payments || !Array.isArray(payments)) return [];
 
-    return payments.map((item) => {
-      const payment = item.payment;
-      const invoice = item.invoice;
-      const customer = invoice?.customerId;
-      const customerName = customer
-        ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
-        : 'N/A';
+    return payments.map((payment) => {
+      const invoice = payment.invoiceId;
+      const currency = invoice?.currency || 'NGN';
+      const currencySymbol =
+        currency === 'USD'
+          ? '$'
+          : currency === 'EUR'
+            ? '€'
+            : currency === 'GBP'
+              ? '£'
+              : '₦';
 
       return {
-        id: payment.trxNo || payment._id,
-        customer: customerName,
-        invoice: invoice?.invoiceNo || 'N/A',
-        method:
-          payment.paymentMethod?.charAt(0).toUpperCase() +
-            payment.paymentMethod?.slice(1).replace(/-/g, ' ') || 'N/A',
-        amount: invoice?.product?.total
-          ? `$${Number(invoice.product.total).toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`
-          : '$0.00',
+        id: payment._id,
+        customer: invoice?.customerId || '-',
+        invoice: invoice?.invoiceNo || '-',
+        method: payment.paymentMethod || '-',
+        amount: `${currencySymbol}${parseFloat(
+          payment.amountPaid || 0
+        ).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
         date: payment.paymentDate
           ? format(new Date(payment.paymentDate), 'MMM dd, yyyy')
-          : 'N/A',
-        status: invoice?.status === 'PAID' ? 'Completed' : 'Pending',
+          : '-',
+        status: invoice?.status || 'Completed',
       };
     });
   };
@@ -74,13 +76,13 @@ export default function Payments() {
   const calculateMetrics = () => {
     const totalPayments = paginationData.totalCount || 0;
     const completedPayments = paymentList.filter(
-      (item) => item.invoice?.status === 'PAID'
+      (item) => item.invoiceId?.status === 'PAID'
     ).length;
     const pendingPayments = totalPayments - completedPayments;
 
     // Calculate total amount received
     const totalAmount = paymentList.reduce((sum, item) => {
-      const amount = Number(item.invoice?.product?.total || 0);
+      const amount = Number(item.amountPaid || 0);
       return sum + amount;
     }, 0);
 
@@ -88,7 +90,7 @@ export default function Payments() {
       {
         title: 'Total Payments Received',
         value: totalAmount,
-        symbol: '$',
+        symbol: '',
       },
       {
         title: 'Successful Payments',
