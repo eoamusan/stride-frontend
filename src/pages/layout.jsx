@@ -48,6 +48,7 @@ import Bills from './dashboard/accounting/expense-management/bills/page';
 import { authMiddleware } from '@/middleware/auth-middleware';
 import VendorExpenseDetails from './dashboard/accounting/expense-management/vendors/[id]/page';
 import ViewCustomer from './dashboard/accounting/invoicing/customers/[id]/page';
+import ViewCustomerAR from './dashboard/accounting/accounts-receivable/customers/[id]/page';
 import LedgerReportPage from './dashboard/accounting/bookkeeping/ledger-view/report/page';
 import AccountReportPage from './dashboard/accounting/bookkeeping/chart-of-accounts/report/page';
 import FinancialReports from './dashboard/accounting/financial-reports/page';
@@ -220,7 +221,16 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'customers',
-                        Component: CustomersAR,
+                        children: [
+                          {
+                            index: true,
+                            Component: CustomersAR,
+                          },
+                          {
+                            path: ':id',
+                            Component: ViewCustomerAR,
+                          },
+                        ],
                       },
                       {
                         path: 'payments',
