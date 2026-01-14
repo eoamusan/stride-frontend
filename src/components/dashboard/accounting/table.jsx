@@ -65,7 +65,7 @@ export default function AccountingTable({
   isLoading = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeProductView, setActiveProductView] = useState('grid');
+  const [activeProductView, setActiveProductView] = useState('list');
 
   const getStatusBadge = (status) => {
     const defaultStyles = 'bg-gray-100 text-gray-800 hover:bg-gray-100';

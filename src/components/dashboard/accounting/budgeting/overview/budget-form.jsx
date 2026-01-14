@@ -25,11 +25,10 @@ import {
 } from "@/components/ui/select"
 import z from "zod"
 import PeriodSelector from "@/components/core/period-selector";
-import { useEffect } from "react";
 import { CircleDashed } from 'lucide-react';
 
 
-export default function BudgetForm() {
+export default function BudgetForm({ onCreateBudget }) {
 
   const periodSchema = z
     .object({
@@ -46,7 +45,7 @@ export default function BudgetForm() {
     budgetType: z.string(),
     period: periodSchema,
     budgetFormat: z.string(),
-    profileData: z.string()
+    profileData: z.string({ message: 'Select a profile'})
   })
 
   const form = useForm({
@@ -63,12 +62,10 @@ export default function BudgetForm() {
 
   const { isValid, errors } = formState
 
-  useEffect(() => {
-    console.log(isValid, formState, errors)
-  }, [formState, isValid, errors])
-
   const onSubmit = (values) => {
     console.log(values)
+    reset()
+    onCreateBudget(values)
   }
 
   const handleCancel = () => {
@@ -78,7 +75,7 @@ export default function BudgetForm() {
   return (
     <div>
       <Form {...form} >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <p className="text-sm mt-4">Select your preferred options</p>
           <FormField
             control={control}
@@ -156,20 +153,22 @@ export default function BudgetForm() {
             render={({ field }) => (
               <FormItem className="flex gap-3">
                 <FormLabel className="whitespace-nowrap min-w-25">Profile Data</FormLabel>
-                <FormControl className="flex gap-8">
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="(Optional) Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Profiles</SelectLabel>
-                        <SelectItem value="profile1">Profile 1</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
+                <div className="w-full">
+                  <FormControl className="flex gap-8">
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="(Optional) Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Profiles</SelectLabel>
+                          <SelectItem value="profile1">Profile 1</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage className="block" />
+                </div>
               </FormItem>
             )}
           />
@@ -177,15 +176,19 @@ export default function BudgetForm() {
 
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium">Available setup option</span>
-            <div className="flex flex-col items-center text-center text-[8pt] max-w-42 p-2 rounded-md border border-primary" role="button">
+            <button type="button" className="flex flex-col items-center text-center text-[8pt] max-w-42 p-2 rounded-md border border-primary">
               <CircleDashed className="my-2" />
               <span>Custom Budgets</span>
               <span>Create a budget from scratch</span>
-            </div>
+            </button>
             <div>
-              <Button variant="link" size="sm" className="text-xs underline px-0">Import Budget</Button>
+              <button
+                type="button"
+                className="text-xs underline text-primary font-medium bg-transparent p-0"
+              >
+                Import Budget
+              </button>
             </div>
-            
           </div>
           
 
