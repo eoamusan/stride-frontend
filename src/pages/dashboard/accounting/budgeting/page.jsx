@@ -27,6 +27,22 @@ const sampleData = [
     date: 'Mar 2025-Feb2025',
     lastModifiedBy: 'James Doe',
     timeModified: 'Thur 12:23pm'
+  },
+  {
+    id: 'Q3 2025',
+    name: 'Marketing Budget',
+    type: 'Profit and loss',
+    date: 'Mar 2025-Feb2025',
+    lastModifiedBy: 'James Doe',
+    timeModified: 'Thur 12:23pm'
+  },
+  {
+    id: 'Q4 2025',
+    name: 'Marketing Budget',
+    type: 'Profit and loss',
+    date: 'Mar 2025-Feb2025',
+    lastModifiedBy: 'James Doe',
+    timeModified: 'Thur 12:23pm'
   }
 ]
 
@@ -117,8 +133,10 @@ export default function Budgeting() {
 
   // Dropdown actions for each row
   const dropdownActions = [
-    { key: 'edit', label: 'Edit' },
-    { key: 'view', label: 'View' },
+    { key: 'run-budget', label: 'Run Budget vs. Actuals report' },
+    { key: 'run-overveiw', label: 'Run Budget Overview report' },
+    { key: 'archive', label: 'Archive' },
+    { key: 'duplicate', label: 'Duplicate' },
     { key: 'delete', label: 'Delete' },
   ];
 

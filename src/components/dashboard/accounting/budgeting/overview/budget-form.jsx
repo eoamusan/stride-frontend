@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { useState } from 'react'
 import {
   Form,
   FormControl,
@@ -26,9 +27,13 @@ import {
 import z from "zod"
 import PeriodSelector from "@/components/core/period-selector";
 import { CircleDashed } from 'lucide-react';
+import { AppDialog } from "@/components/core/app-dialog";
+import CustomBudgetForm from "./custom-budget-form";
 
 
 export default function BudgetForm({ onCreateBudget }) {
+
+    const [openCustomBudgetForm, setOpenCustomBudgetForm] = useState(false)
 
   const periodSchema = z
     .object({
@@ -176,7 +181,7 @@ export default function BudgetForm({ onCreateBudget }) {
 
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium">Available setup option</span>
-            <button type="button" className="flex flex-col items-center text-center text-[8pt] max-w-42 p-2 rounded-md border border-primary">
+            <button type="button" className="flex flex-col items-center text-center text-[8pt] max-w-42 p-2 rounded-md border border-primary cursor-pointer" onClick={() => setOpenCustomBudgetForm(true)}>
               <CircleDashed className="my-2" />
               <span>Custom Budgets</span>
               <span>Create a budget from scratch</span>
@@ -184,7 +189,7 @@ export default function BudgetForm({ onCreateBudget }) {
             <div>
               <button
                 type="button"
-                className="text-xs underline text-primary font-medium bg-transparent p-0"
+                className="text-xs underline text-primary font-medium bg-transparent p-0 cursor-pointer"
               >
                 Import Budget
               </button>
@@ -194,29 +199,34 @@ export default function BudgetForm({ onCreateBudget }) {
 
           
           {/* Footer Buttons */}
-            <div className="flex justify-end space-x-4 pt-10 pb-5">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                className="h-10 min-w-[130px] text-sm"
-              >
-                Cancel
-              </Button>
+          <div className="flex justify-end space-x-4 pt-10 pb-5">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              className="h-10 min-w-[130px] text-sm"
+            >
+              Cancel
+            </Button>
 
-              <Button
-                type="submit"
-                className="h-10 min-w-[195px] text-sm"
-                disabled={!isValid}
-              >
-                Next {isValid}
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              className="h-10 min-w-[195px] text-sm"
+              disabled={!isValid}
+            >
+              Next
+            </Button>
+          </div>
         </form>
       </Form>
-      {/* <p>
-        Select your preferred options
-      </p> */}
+      <AppDialog 
+        title="Custom Budgets"
+        description="Create a budget from scratch"
+        open={openCustomBudgetForm} 
+        onOpenChange={setOpenCustomBudgetForm}
+      >
+        <CustomBudgetForm />
+      </AppDialog>
     </div>
   )
 }
