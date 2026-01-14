@@ -1,12 +1,34 @@
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import BudgetForm from '@/components/dashboard/accounting/budgeting/overview/budget-form';
 import { AppDialog } from '@/components/core/app-dialog';
 import { PiggyBank } from 'lucide-react';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import Metrics from '../../invoicing/plain-metrics';
 
 const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
+
+  const budgetMetrics = useMemo(() => {
+    return [
+      {
+        title: 'Total Budget',
+        value: 2000,
+      },
+      {
+        title: 'Actual Spend',
+        value: 3000,
+      },
+      {
+        title: 'Variance',
+        value: 1500,
+      },
+      {
+        title: 'Forecast Accuracy',
+        value: 1000,
+      },
+    ]
+  })
 
   const [openBudgetForm, setOpenBudgetForm] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
@@ -51,6 +73,10 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
           </Button>
         </div>
       </div>
+      <div className="mt-10">
+        <Metrics metrics={budgetMetrics} />
+      </div>
+
       <AppDialog 
         title="How do you want to set up your budget?"
         headerIcon={<PiggyBank />} 
