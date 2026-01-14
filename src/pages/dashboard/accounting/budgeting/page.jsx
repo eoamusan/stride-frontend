@@ -1,14 +1,15 @@
-import { Button } from '@/components/ui/button';
-import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import EmptyBudget from '@/components/dashboard/accounting/budgeting/overview/empty-state';
-import BudgetForm from '@/components/dashboard/accounting/budgeting/overview/budget-form';
-import { AppDialog } from '@/components/core/app-dialog';
-import { PiggyBank } from 'lucide-react';
-import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import BudgetCard from '@/components/dashboard/accounting/budgeting/overview/budget-card';
+import BudgetHeader from '@/components/dashboard/accounting/budgeting/shared/budget-header';
+import { AppDialog } from '@/components/core/app-dialog';
+
+import BudgetForm from '@/components/dashboard/accounting/budgeting/overview/budget-form';
+import { PiggyBank } from 'lucide-react';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import { cn } from '@/lib/utils';
 
 // Mock data
 const sampleData = [
@@ -48,15 +49,11 @@ const sampleData = [
 
 export default function Budgeting() {
   
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [ openBudgetForm, setOpenBudgetForm ] = useState(false)
   const [budgets] = useState([...sampleData])
-  const [openBudgetForm, setOpenBudgetForm] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
-
-  const handleOnCreateBudget = () => {
-    setOpenBudgetForm(false)
-    setIsSuccessModalOpen(true)
-  }
-
+  
   // Mock computed data
   const budgetMetrics = useMemo(() => {
     return [
@@ -78,9 +75,6 @@ export default function Budgeting() {
       },
     ]
   })
-
-  // State for table selection
-  const [selectedItems, setSelectedItems] = useState([]);
 
   // Handle table item selection
   const handleSelectItem = (itemId, checked) => {
@@ -158,34 +152,17 @@ export default function Budgeting() {
     }
   };
 
+  const handleSetOpenBudgetForm = useCallback((value) => {
+    setOpenBudgetForm(value)
+  }, [])
+
   return (
     <div className='my-4 min-h-screen'>
-    { !budgets.length ? <EmptyBudget onClick={() => setOpenBudgetForm(true)} /> : 
+    <div className={cn(!budgets.length && 'hidden')}>
+      <BudgetHeader triggerBudgetForm={openBudgetForm} setTriggerBudgetForm={handleSetOpenBudgetForm} />
+    </div>
+    { !budgets.length ? <EmptyBudget onClick={() => handleSetOpenBudgetForm(true)} /> : 
       <>
-        <div className="flex flex-wrap items-center justify-between gap-6">
-          <hgroup>
-            <h1 className="text-2xl font-bold">Budgeting & Forecasting</h1>
-            <p className="text-sm text-[#7D7D7D]">
-              Manage budgets, forecasts, and financial planning
-            </p>
-          </hgroup>
-
-          <div className="flex space-x-4">
-            <Button
-              onClick={() => setOpenBudgetForm(true)}
-              className={'h-10 rounded-2xl text-sm'}
-            >
-              <PlusCircleIcon className="size-4" />
-              Create Budget
-            </Button>
-            <Button size={'icon'} className={'size-10'} variant={'outline'}>
-              <DownloadIcon size={16} />
-            </Button>
-            <Button size={'icon'} className={'size-10'} variant={'outline'}>
-              <SettingsIcon size={16} />
-            </Button>
-          </div>
-        </div>
         <div className="mt-10">
           <Metrics metrics={budgetMetrics} />
         </div>
@@ -208,25 +185,6 @@ export default function Budgeting() {
           />
         </div>
       </>}
-      <AppDialog 
-        title="How do you want to set up your budget?"
-        headerIcon={<PiggyBank />} 
-        open={openBudgetForm} 
-        onOpenChange={setOpenBudgetForm}
-      >
-        <BudgetForm onCreateBudget={handleOnCreateBudget} />
-      </AppDialog>
-
-      <SuccessModal
-        title={'Budget Created'}
-        description={"You've successfully created a budget."}
-        open={isSuccessModalOpen}
-        onOpenChange={setIsSuccessModalOpen}
-        backText={'Back'}
-        handleBack={() => {
-          setIsSuccessModalOpen(false);
-        }}
-      />
     </div>
   );
 }

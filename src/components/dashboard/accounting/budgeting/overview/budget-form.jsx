@@ -33,7 +33,7 @@ import CustomBudgetForm from "./custom-budget-form";
 
 export default function BudgetForm({ onCreateBudget }) {
 
-    const [openCustomBudgetForm, setOpenCustomBudgetForm] = useState(false)
+  const [openCustomBudgetForm, setOpenCustomBudgetForm] = useState(false)
 
   const periodSchema = z
     .object({
