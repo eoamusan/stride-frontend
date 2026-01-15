@@ -53,6 +53,8 @@ import ReportsAR from './dashboard/accounting/accounts-receivable/reports/page';
 import LedgerReportPage from './dashboard/accounting/bookkeeping/ledger-view/report/page';
 import AccountReportPage from './dashboard/accounting/bookkeeping/chart-of-accounts/report/page';
 import FinancialReports from './dashboard/accounting/financial-reports/page';
+import Budgeting from './dashboard/accounting/budgeting/page';
+import BudgetingAnalytics from './dashboard/accounting/budgeting/reports/page';
 
 const router = createBrowserRouter([
   {
@@ -328,7 +330,20 @@ const router = createBrowserRouter([
                   },
                   {
                     path: 'budgeting',
-                    Component: () => <div>Budgeting & Forecasting</div>,
+                    children: [
+                      {
+                        index: true,
+                        Component: Budgeting,
+                      },
+                      {
+                        path: 'reports',
+                        Component: BudgetingAnalytics,
+                      },
+                      {
+                        path: 'forecasting',
+                        Component: ExpenseTransactions,
+                      }
+                    ],
                   },
                   {
                     path: 'asset-depreciation',

@@ -18,6 +18,7 @@ export default function ColorPicker({
   brandColors = DEFAULT_BRAND_COLORS,
   className = '',
   disabled = false,
+  showTitle = true
 }) {
   const colorPickerRef = useRef(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -65,7 +66,7 @@ export default function ColorPicker({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <p className="text-sm text-gray-600">Select Color</p>
+      {showTitle && <p className="text-sm text-gray-600">Select Color</p>}
       <div className="flex items-center gap-3">
         {brandColors.map((color) => (
           <button
