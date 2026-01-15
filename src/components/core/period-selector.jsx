@@ -147,7 +147,7 @@ export default function PeriodSelector({ onPeriodChange, value, onChange }) {
   }, [datePeriod, fromDate, toDate, onChange])
 
   return (
-    <div className="grid grid-cols-3 w-full gap-2">
+    <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-2">
       {/* Report Period Selector */}
       <div className="flex items-end max-[50px] gap-2 w-full">
         <Select value={datePeriod} onValueChange={setDatePeriod}>
@@ -169,7 +169,7 @@ export default function PeriodSelector({ onPeriodChange, value, onChange }) {
         </Select>
       </div>
 
-      <div className='grid grid-cols-2 gap-2 w-full col-span-2'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 w-full col-span-2'>
         {/* From Date */}
         <div className="flex flex-col w-full">
           <label className="text-sm font-medium">From</label>
