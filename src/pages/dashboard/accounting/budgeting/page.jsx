@@ -9,36 +9,52 @@ import { cn } from '@/lib/utils';
 // Mock data
 const sampleData = [
   {
-    id: 'Q1 2025',
+    id: 'Q1 2024 Revenue Budget',
     name: 'Marketing Budget',
     type: 'Profit and loss',
     date: 'Mar 2025-Feb2025',
     lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm'
+    timeModified: 'Thur 12:23pm',
+    budgetAmount: 150000,
+    actualAmount: 150000,
+    status: 'Active',
+    variance: 90,
   },
   {
-    id: 'Q2 2025',
+    id: 'Q2 2024 Revenue Budget',
     name: 'Marketing Budget',
     type: 'Profit and loss',
     date: 'Mar 2025-Feb2025',
     lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm'
+    timeModified: 'Thur 12:23pm',
+    budgetAmount: 150000,
+    actualAmount: 150000,
+    status: 'Active',
+    variance: 23,
   },
   {
-    id: 'Q3 2025',
+    id: 'Q3 2024 Revenue Budget',
     name: 'Marketing Budget',
     type: 'Profit and loss',
     date: 'Mar 2025-Feb2025',
     lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm'
+    timeModified: 'Thur 12:23pm',
+    budgetAmount: 150000,
+    actualAmount: 150000,
+    status: 'Active',
+    variance: 51,
   },
   {
-    id: 'Q4 2025',
+    id: 'Q4 2024 Revenue Budget',
     name: 'Marketing Budget',
     type: 'Profit and loss',
     date: 'Mar 2025-Feb2025',
     lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm'
+    timeModified: 'Thur 12:23pm',
+    budgetAmount: 150000,
+    actualAmount: 150000,
+    status: 'Active',
+    variance: 67,
   }
 ]
 
@@ -101,7 +117,7 @@ export default function Budgeting() {
   // Dropdown actions for each row
   const dropdownActions = [
     { key: 'run-budget', label: 'Run Budget vs. Actuals report' },
-    { key: 'run-overveiw', label: 'Run Budget Overview report' },
+    { key: 'run-overview', label: 'Run Budget Overview report' },
     { key: 'archive', label: 'Archive' },
     { key: 'duplicate', label: 'Duplicate' },
     { key: 'delete', label: 'Delete' },

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   Form,
   FormControl,
@@ -77,6 +77,19 @@ export default function BudgetForm({ onCreateBudget }) {
     reset();
   };
 
+  const fileInputRef = useRef(null)
+
+  const handleClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      console.log(file)
+    }
+  }
+
   return (
     <div>
       <Form {...form} >
@@ -111,7 +124,7 @@ export default function BudgetForm({ onCreateBudget }) {
             render={({ field }) => (
               <FormItem className="flex gap-3 items-baseline">
                 <FormLabel className="whitespace-nowrap min-w-25">Period</FormLabel>
-                <FormControl className="flex">
+                <FormControl className="flex w-full">
                   <div className="flex flex-col">
                     <PeriodSelector
                       value={field.value}
@@ -187,8 +200,16 @@ export default function BudgetForm({ onCreateBudget }) {
               <span>Create a budget from scratch</span>
             </button>
             <div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept=".csv,.xlsx"
+              />
               <button
                 type="button"
+                onClick={handleClick}
                 className="text-xs underline text-primary font-medium bg-transparent p-0 cursor-pointer"
               >
                 Import Budget
@@ -224,6 +245,7 @@ export default function BudgetForm({ onCreateBudget }) {
         description="Create a budget from scratch"
         open={openCustomBudgetForm} 
         onOpenChange={setOpenCustomBudgetForm}
+        className='sm:max-w-150'
       >
         <CustomBudgetForm />
       </AppDialog>

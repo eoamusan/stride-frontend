@@ -147,9 +147,9 @@ export default function PeriodSelector({ onPeriodChange, value, onChange }) {
   }, [datePeriod, fromDate, toDate, onChange])
 
   return (
-    <div className="flex flex-col w-full flex-wrap gap-2">
+    <div className="grid grid-cols-3 w-full gap-2">
       {/* Report Period Selector */}
-      <div className="flex flex-col gap-2 w-full">
+      <div className="flex items-end max-[50px] gap-2 w-full">
         <Select value={datePeriod} onValueChange={setDatePeriod}>
           <SelectTrigger className="h-10 bg-white w-full">
             <SelectValue placeholder="Select Date" />
@@ -169,9 +169,9 @@ export default function PeriodSelector({ onPeriodChange, value, onChange }) {
         </Select>
       </div>
 
-      <div className='grid grid-cols-2 gap-2 w-full'>
+      <div className='grid grid-cols-2 gap-2 w-full col-span-2'>
         {/* From Date */}
-        <div className="flex flex-col w-full gap-2">
+        <div className="flex flex-col w-full">
           <label className="text-sm font-medium">From</label>
           <Popover>
             <PopoverTrigger asChild>
@@ -204,7 +204,7 @@ export default function PeriodSelector({ onPeriodChange, value, onChange }) {
         </div>
 
         {/* To Date */}
-        <div className="flex w-full flex-col gap-2">
+        <div className="flex w-full flex-col">
           <label className="text-sm font-medium">To</label>
           <Popover>
             <PopoverTrigger asChild>

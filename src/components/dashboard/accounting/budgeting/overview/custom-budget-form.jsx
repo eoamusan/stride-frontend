@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
+import checker from '@/assets/images/checker.png';
 
 export default function CustomBudgetForm() {
   return (
@@ -8,22 +7,7 @@ export default function CustomBudgetForm() {
       <h2 className="text-white bg-primary px-4 py-1">Budget Template</h2>
 
       <div className="relative mb-3">
-        <Input
-          type="file"
-          className="hidden"
-          id="logo"
-        />
-        <label
-          htmlFor="vat-certificate"
-          className="border-input flex h-10 cursor-pointer items-center justify-between rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
-        >
-          <span className="text-muted-foreground">
-            {'No file chosen'}
-          </span>
-          <span className="rounded bg-gray-200 px-3 py-1 text-xs text-gray-700">
-            Upload Logo
-          </span>
-        </label>
+        <img src={checker} className="w-30" alt="No vendors" />
       </div>
 
       <h3 className="font-medium">Directions:</h3>
@@ -32,9 +16,28 @@ export default function CustomBudgetForm() {
         <li>Add the actual expenses for each item for the month.</li>
       </ol>
       <p className="space-y-28 text-sm">
-        Note; Only add information to the blue cells. white cells will auto-calculate for you. <span className="text-red-500">Red text</span> means you are over budget, 
+        Note: Only add information to the blue cells. white cells will auto-calculate for you. <span className="text-red-500">Red text</span> means you are over budget, 
         <span className="text-primary">Purple text</span> means you are under / within budget
       </p>
+
+      <div className="w-full border border-gray-200 rounded-lg overflow-hidden">
+        {/* Header */}
+        <div className="grid grid-cols-4 bg-primary text-white text-sm font-medium">
+          <div className="p-3 border-r whitespace-nowrap">Monthly Expenses</div>
+          <div className="p-3 border-r">Category</div>
+          <div className="p-3 border-r">Budget</div>
+          <div className="p-3">Actual</div>
+        </div>
+
+        {/* Row */}
+        <div className="grid grid-cols-4 text-sm border-t">
+          <div className="p-3 border-r">John Doe</div>
+          <div className="p-3 border-r">john@email.com</div>
+          <div className="p-3 border-r">Admin</div>
+          <div className="p-3">Active</div>
+        </div>
+
+      </div>
 
       <div className="flex justify-start space-x-4 pt-10 pb-5">
         <Button

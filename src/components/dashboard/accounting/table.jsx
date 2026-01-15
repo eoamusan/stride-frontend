@@ -65,7 +65,7 @@ export default function AccountingTable({
   isLoading = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeProductView, setActiveProductView] = useState('list');
+  const [activeProductView, setActiveProductView] = useState('grid');
 
   const getStatusBadge = (status) => {
     const defaultStyles = 'bg-gray-100 text-gray-800 hover:bg-gray-100';
@@ -257,7 +257,7 @@ export default function AccountingTable({
 
       {/* Table */}
       {isProductTable && activeProductView === 'grid' ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredData.map((item, i) => (
             <ProductCard
               key={i}

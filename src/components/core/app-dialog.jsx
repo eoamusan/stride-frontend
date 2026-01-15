@@ -14,10 +14,11 @@ export function AppDialog({
   description,
   children,
   footer,
+  className
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className={className}>
         {/* Header */}
         <div className="flex gap-3">
           { headerIcon && <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#254C00] text-white">

@@ -82,6 +82,7 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
         headerIcon={<PiggyBank />} 
         open={openBudgetForm} 
         onOpenChange={setOpenBudgetForm}
+        className='sm:max-w-163'
       >
         <BudgetForm onCreateBudget={handleOnCreateBudget} />
       </AppDialog>
