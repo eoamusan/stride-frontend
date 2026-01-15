@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,24 +14,38 @@ import { CalendarDaysIcon, DownloadIcon, SettingsIcon } from 'lucide-react';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import temporaryImg from '@/assets/images/customer-ledger-temp.png';
-
-const ledgerMetrics = [
-  { title: 'Total Outstanding', value: '$264' },
-  {
-    title: 'Overdue',
-    value: '$15,600',
-  },
-  {
-    title: 'Due This week',
-    value: '$64',
-  },
-  {
-    title: 'Active Customers',
-    value: '264',
-  },
-];
+import CustomerService from '@/api/customer';
+import { useUserStore } from '@/stores/user-store';
 
 export default function CustomerLedger() {
+  const { businessData } = useUserStore();
+  const [customers, setCustomers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationData, setPaginationData] = useState({
+    page: 1,
+    totalPages: 1,
+    pageSize: 50,
+    totalCount: 0,
+  });
+
+  // Dynamic ledger metrics
+  const ledgerMetrics = [
+    { title: 'Total Outstanding', value: '$264' },
+    {
+      title: 'Overdue',
+      value: '$15,600',
+    },
+    {
+      title: 'Due This week',
+      value: '$64',
+    },
+    {
+      title: 'Active Customers',
+      value: paginationData.totalCount.toString(),
+    },
+  ];
+
   // State for column visibility
   const [columns, setColumns] = useState({
     number: true,
@@ -64,87 +78,11 @@ export default function CustomerLedger() {
   // Handle select all functionality
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedItems(customerLedgerData.map((item) => item.id));
+      setSelectedItems(customers.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
   };
-
-  // Customer Ledger data based on the image
-  const customerLedgerData = [
-    {
-      id: 1,
-      customer: 'ABC Corporation',
-      totalSales: 4999,
-      outstandingBalance: 15400.0,
-      creditLimit: 15400.0,
-      creditAvailable: 15400.0,
-    },
-    {
-      id: 2,
-      customer: 'ABC Corporation',
-      totalSales: 4999,
-      outstandingBalance: 15400.0,
-      creditLimit: 15400.0,
-      creditAvailable: 15400.0,
-    },
-    {
-      id: 3,
-      customer: 'ABC Corporation',
-      totalSales: 4999,
-      outstandingBalance: 15400.0,
-      creditLimit: 15400.0,
-      creditAvailable: 15400.0,
-    },
-    {
-      id: 4,
-      customer: 'ABC Corporation',
-      totalSales: 4999,
-      outstandingBalance: 15400.0,
-      creditLimit: 15400.0,
-      creditAvailable: 15400.0,
-    },
-    {
-      id: 5,
-      customer: 'ABC Corporation',
-      totalSales: 4999,
-      outstandingBalance: 15400.0,
-      creditLimit: 15400.0,
-      creditAvailable: 15400.0,
-    },
-    {
-      id: 6,
-      customer: 'ABC Corporation',
-      totalSales: 4999,
-      outstandingBalance: 15400.0,
-      creditLimit: 15400.0,
-      creditAvailable: 15400.0,
-    },
-    {
-      id: 7,
-      customer: 'ABC Corporation',
-      totalSales: 4999,
-      outstandingBalance: 15400.0,
-      creditLimit: 15400.0,
-      creditAvailable: 15400.0,
-    },
-    {
-      id: 8,
-      customer: 'ABC Corporation',
-      totalSales: 4999,
-      outstandingBalance: 15400.0,
-      creditLimit: 15400.0,
-      creditAvailable: 15400.0,
-    },
-    {
-      id: 9,
-      customer: 'ABC Corporation',
-      totalSales: 4999,
-      outstandingBalance: 15400.0,
-      creditLimit: 15400.0,
-      creditAvailable: 15400.0,
-    },
-  ];
 
   // Table columns configuration
   const tableColumns = [
@@ -156,25 +94,35 @@ export default function CustomerLedger() {
     {
       key: 'totalSales',
       label: 'Total sales',
+      render: (value) => value,
     },
     {
       key: 'outstandingBalance',
       label: 'Outstanding Balance',
       render: (value) => (
-        <span className="text-[#FFAE4C]">${value.toLocaleString()}</span>
+        <span className="text-[#FFAE4C]">
+          {value.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </span>
       ),
     },
     {
       key: 'creditLimit',
       label: 'Credit Limit',
-      render: (value) => `$${value.toLocaleString()}`,
+      render: (value) =>
+        value.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
     },
     {
       key: 'creditAvailable',
       label: 'Credit Available',
-      render: (value) => (
-        <span className="text-[#24A959]">${value.toLocaleString()}</span>
-      ),
+      render: (value) => {
+        return <span className="text-[#24A959]">{value}</span>;
+      },
     },
   ];
 
@@ -185,12 +133,9 @@ export default function CustomerLedger() {
     { key: 'credit-note', label: 'Credit note' },
   ];
 
-  // Pagination data
-  const paginationData = {
-    page: 1,
-    totalPages: 10,
-    pageSize: 50,
-    totalCount: 500,
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
   };
 
   // Handler functions
@@ -226,6 +171,70 @@ export default function CustomerLedger() {
     console.log(`Action ${action} on item:`, item);
     // Implement row action logic here
   };
+
+  // Transform customer data for ledger table
+  const transformCustomerData = (customersData) => {
+    return customersData.map((item, index) => {
+      const customer = item.customer;
+      const invoices = item.invoices || [];
+
+      // Total sales placeholder for now
+      const totalSales = '-';
+
+      // Outstanding balance from API balance field
+      const outstandingBalance = item.balance || 0;
+
+      const creditLimit = parseFloat(customer.creditLimit || 0);
+      const creditAvailable = '-'; // Placeholder for now
+
+      return {
+        id: customer._id || index,
+        customer:
+          customer.displayName || `${customer.firstName} ${customer.lastName}`,
+        totalSales,
+        outstandingBalance,
+        creditLimit,
+        creditAvailable,
+        currency: invoices[0]?.currency || 'NGN', // Get currency from first invoice
+      };
+    });
+  };
+
+  // Fetch customers
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      if (!businessData?._id) return;
+
+      try {
+        setIsLoading(true);
+        const response = await CustomerService.fetch({
+          page: currentPage,
+          perPage: 50,
+        });
+
+        console.log('Customers response:', response.data);
+
+        const customersData = response.data?.data?.customers || [];
+        const transformedData = transformCustomerData(customersData);
+        setCustomers(transformedData);
+
+        // Update pagination data
+        const apiData = response.data?.data;
+        setPaginationData({
+          page: apiData?.page || 1,
+          totalPages: apiData?.totalPages || 1,
+          pageSize: apiData?.limit || 50,
+          totalCount: apiData?.totalDocs || 0,
+        });
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, [businessData?._id, currentPage]);
 
   return (
     <div className="my-4 min-h-screen">
@@ -365,7 +374,7 @@ export default function CustomerLedger() {
       <div className="mt-10 flex gap-6">
         <AccountingTable
           title={'Customer Ledger'}
-          data={customerLedgerData}
+          data={customers}
           columns={tableColumns}
           searchFields={['customer', 'totalSales']}
           searchPlaceholder="Search customer......"
@@ -375,6 +384,8 @@ export default function CustomerLedger() {
           handleSelectItem={handleSelectItem}
           handleSelectAll={handleSelectAll}
           onRowAction={handleRowAction}
+          onPageChange={handlePageChange}
+          isLoading={isLoading}
         />
         <div className="hidden w-full max-w-[188px] lg:block">
           <img src={temporaryImg} alt="temporary" className="w-full" />

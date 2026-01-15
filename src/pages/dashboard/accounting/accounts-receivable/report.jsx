@@ -51,6 +51,7 @@ export default function AccountsReceivableReport() {
         // Build fetch params
         const fetchParams = {
           customerId: customerId,
+          businessId: businessData._id,
           page: 1,
           perPage: 1000,
         };
