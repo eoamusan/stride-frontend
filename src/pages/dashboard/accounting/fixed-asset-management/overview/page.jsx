@@ -1,15 +1,15 @@
 import { useCallback, useMemo, useState } from 'react';
 import AccountingTable from '@/components/dashboard/accounting/table';
-import EmptyBudget from '@/components/dashboard/accounting/budgeting/overview/empty-state';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import BudgetCard from '@/components/dashboard/accounting/budgeting/overview/budget-card';
-import BudgetHeader from '@/components/dashboard/accounting/budgeting/shared/budget-header';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import EmptyAsset from '@/components/dashboard/accounting/fixed-asset-management/overview/empty-state';
 import UpcomingMaintenance from '@/components/dashboard/accounting/fixed-asset-management/overview/upcoming-maintenance';
 import AreaMetricCard from '@/components/dashboard/area-metric-card';
+import AssetCategories from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-categories';
+import PieMetricCard from '@/components/dashboard/pie-metric-card';
+import AssetCard from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-card';
 
 // Mock data
 const sampleData = [
@@ -64,11 +64,37 @@ const sampleData = [
 ]
 
 export default function FixedAssetMgtOverview() {
-  
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
   const [ openBudgetForm, setOpenBudgetForm ] = useState(false)
   const [assets] = useState([...sampleData])
+
+  const pieData = [
+    { name: 'Disposed', value: 93, color: '#6366f1' },
+    { name: 'Idle', value: 85, color: '#22c55e' },
+    { name: 'In Use', value: 53, color: '#f59e0b' },
+    { name: 'In Repair', value: 43, color: '#06b6d4' },
+  ];
+
+  const pieConfig = {
+    Disposed: {
+      label: 'Disposed',
+      color: '#6366f1',
+    },
+    'Idle': {
+      label: 'Idle',
+      color: '#22c55e',
+    },
+    'In Use': {
+      label: 'In Use',
+      color: '#f59e0b',
+    },
+    'In Repair': {
+      label: 'In Repair',
+      color: '#06b6d4',
+    },
+  };
+
 
   const sampleChartData = [
     { date: '2024-01-01', expenses: 5000 },
@@ -230,7 +256,7 @@ export default function FixedAssetMgtOverview() {
     </div>
     { !assets.length ? <EmptyAsset onClick={() => handleSetOpenBudgetForm(true)} /> : 
       <>
-        <div className='grid grid-cols-3 gap-4 mt-10'>
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-4 mt-10'>
           <div className='col-span-2'>
             <AreaMetricCard
               className={'h-full w-full'}
@@ -240,6 +266,20 @@ export default function FixedAssetMgtOverview() {
             />
           </div>
           <UpcomingMaintenance />
+        </div>
+        <div className='grid grid-cols-3 gap-4 mt-10'>
+          <div>
+            <PieMetricCard
+              title="Assets By Status"
+              chartData={pieData}
+              chartConfig={pieConfig}
+              className="w-full h-full"
+            />
+          </div>
+          <div className='col-span-2 flex'>
+            <AssetCategories />
+          </div>
+          
         </div>
         <div className="relative mt-10">
           <AccountingTable
@@ -256,7 +296,7 @@ export default function FixedAssetMgtOverview() {
             onRowAction={handleRowAction}
             isProductTable
             showDataSize
-            itemComponent={BudgetCard}
+            itemComponent={AssetCard}
           />
         </div>
       </>}

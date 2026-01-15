@@ -5,7 +5,7 @@ export default function UpcomingMaintenance() {
   const [upcomingItems] = useState([])
   return (
     <div className="flex flex-col min-h-[300px] w-full p-6  bg-white rounded-2xl">
-      <h2 className='font-medium'>Upcoming Maintenance</h2>
+      <h2 className='font-semibold'>Upcoming Maintenance</h2>
       { upcomingItems.length ? <div className="flex items-center justify-center h-full">
         <img src={emptyStateImg} alt="Empty State" />
       </div> :
