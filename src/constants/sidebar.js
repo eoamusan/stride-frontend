@@ -250,6 +250,37 @@ const budgetingAndForcastingItems = [
   }
 ];
 
+const fixedAssetManagementItems = [
+  {
+    title: 'Overview',
+    link: '/dashboard/accounting/fixed-asset-management',
+  },
+  {
+    title: 'Assets',
+    link: '/dashboard/accounting/fixed-asset-management/assets',
+  },
+  {
+    title: 'Categories',
+    link: '/dashboard/accounting/fixed-asset-management/categories',
+  },
+  {
+    title: 'Maintenance',
+    link: '/dashboard/accounting/fixed-asset-management/maintenance',
+  },
+  {
+    title: 'Audits',
+    link: '/dashboard/accounting/fixed-asset-management/audits',
+  },
+  {
+    title: 'Assets Assignment',
+    link: '/dashboard/accounting/fixed-asset-management/assets-assignment',
+  },
+  {
+    title: 'Reports',
+    link: '/dashboard/accounting/fixed-asset-management/reports',
+  }
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -323,7 +354,7 @@ const accountingTopItems = {
   accountsReceivable: accountsReceivableItems,
   accountsPayable: accountsPayableItems,
   inventoryManagement: inventoryManagementItems,
-  fixedAssetManagement: [],
+  fixedAssetManagement: fixedAssetManagementItems,
   taxManagement: [],
   bankingReconciliation: [],
 };

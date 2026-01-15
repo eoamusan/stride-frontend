@@ -53,6 +53,7 @@ import AccountReportPage from './dashboard/accounting/bookkeeping/chart-of-accou
 import FinancialReports from './dashboard/accounting/financial-reports/page';
 import Budgeting from './dashboard/accounting/budgeting/page';
 import BudgetingAnalytics from './dashboard/accounting/budgeting/reports/page';
+import FixedAssetMgtOverview from './dashboard/accounting/fixed-asset-management/overview/page';
 
 const router = createBrowserRouter([
   {
@@ -331,6 +332,43 @@ const router = createBrowserRouter([
                       {
                         path: 'forecasting',
                         Component: ExpenseTransactions,
+                      }
+                    ],
+                  },
+                  {
+                    path: 'fixed-asset-management',
+                    children: [
+                      {
+                        index: true,
+                        Component: FixedAssetMgtOverview,
+                      },
+                      {
+                        path: 'assets',
+                        Component: FixedAssetMgtOverview,
+                      },
+                      {
+                        path: 'forecasting',
+                        Component: FixedAssetMgtOverview,
+                      },
+                      {
+                        path: 'categories',
+                        Component: FixedAssetMgtOverview,
+                      },
+                      {
+                        path: 'maintenance',
+                        Component: FixedAssetMgtOverview,
+                      },
+                      {
+                        path: 'audits',
+                        Component: FixedAssetMgtOverview,
+                      },
+                      {
+                        path: 'assets-assignment',
+                        Component: FixedAssetMgtOverview,
+                      },
+                      {
+                        path: 'reports',
+                        Component: FixedAssetMgtOverview,
                       }
                     ],
                   },
