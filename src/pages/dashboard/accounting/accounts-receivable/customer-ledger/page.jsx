@@ -126,10 +126,11 @@ export default function CustomerLedger() {
       key: 'creditAvailable',
       label: 'Credit Available',
       render: (value) => {
+        const safeValue = Number(value) < 0 ? 0 : Number(value) || 0;
         return (
           <span className="text-[#24A959]">
-            {value.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
+            {safeValue.toLocaleString(undefined, {
+              minimumFractionDigits: 0,
               maximumFractionDigits: 2,
             })}
           </span>
@@ -205,7 +206,8 @@ export default function CustomerLedger() {
       const totalSales = item.totalSales || 0;
       const outstandingBalance = item.balance || 0;
       const creditLimit = parseFloat(customer.creditLimit || 0);
-      const creditAvailable = item.creditAvailable || 0;
+      const creditAvailableRaw = item.creditAvailable ?? 0;
+      const creditAvailable = creditAvailableRaw < 0 ? 0 : creditAvailableRaw;
 
       return {
         id: customer._id || index,
