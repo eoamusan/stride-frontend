@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -94,7 +95,11 @@ export default function CustomerLedger() {
     {
       key: 'totalSales',
       label: 'Total sales',
-      render: (value) => value,
+      render: (value) =>
+        value.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
     },
     {
       key: 'outstandingBalance',
@@ -121,16 +126,23 @@ export default function CustomerLedger() {
       key: 'creditAvailable',
       label: 'Credit Available',
       render: (value) => {
-        return <span className="text-[#24A959]">{value}</span>;
+        return (
+          <span className="text-[#24A959]">
+            {value.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        );
       },
     },
   ];
 
   // Dropdown actions for each row
   const dropdownActions = [
-    { key: 'invoices', label: 'Invoices' },
-    { key: 'receipt', label: 'Receipt' },
-    { key: 'credit-note', label: 'Credit note' },
+    { key: 'view-invoices', label: 'View Invoices' },
+    { key: 'receipt', label: 'Generate Receipt' },
+    { key: 'view-credit-notes', label: 'View Credit Notes' },
   ];
 
   // Handle page change
@@ -167,9 +179,20 @@ export default function CustomerLedger() {
     setTableDensity(value);
   };
 
+  const navigate = useNavigate();
+
   const handleRowAction = (action, item) => {
     console.log(`Action ${action} on item:`, item);
-    // Implement row action logic here
+
+    if (action === 'view-invoices') {
+      navigate(
+        `/dashboard/accounting/accounts-receivable/customer-ledger/${item.id}?view=invoices`
+      );
+    } else if (action === 'view-credit-notes') {
+      navigate(
+        `/dashboard/accounting/accounts-receivable/customer-ledger/${item.id}?view=credit-notes`
+      );
+    }
   };
 
   // Transform customer data for ledger table
@@ -179,13 +202,10 @@ export default function CustomerLedger() {
       const invoices = item.invoices || [];
 
       // Total sales placeholder for now
-      const totalSales = '-';
-
-      // Outstanding balance from API balance field
+      const totalSales = item.totalSales || 0;
       const outstandingBalance = item.balance || 0;
-
       const creditLimit = parseFloat(customer.creditLimit || 0);
-      const creditAvailable = '-'; // Placeholder for now
+      const creditAvailable = item.creditAvailable || 0;
 
       return {
         id: customer._id || index,
@@ -387,7 +407,7 @@ export default function CustomerLedger() {
           onPageChange={handlePageChange}
           isLoading={isLoading}
         />
-        <div className="hidden w-full max-w-[188px] lg:block">
+        <div className="hidden w-full max-w-47 lg:block">
           <img src={temporaryImg} alt="temporary" className="w-full" />
         </div>
       </div>
