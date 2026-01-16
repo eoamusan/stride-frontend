@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from "@/components/ui/progress"
+import ProgressBar from '@/components/dashboard/accounting/shared/progress-bar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useEffect } from 'react'
 import { Dot } from 'lucide-react';
@@ -23,7 +23,7 @@ const BudgetCard = ({ isSelected, handleSelect, data}) => {
               <span className='text-gray-600 text-sm flex items-center'>{ data.type } <Dot /> Finance</span>
             </div>
           </div>
-          <Badge className="bg-[#254C00]/10 text-[#254C00]">{ data.status }</Badge>
+          <Badge variant='success'>{ data.status }</Badge>
         </div>
         
         <div className='flex flex-col gap-2 mb-4 text-sm'>
@@ -40,7 +40,7 @@ const BudgetCard = ({ isSelected, handleSelect, data}) => {
               <span className='text-gray-600 font-medium'>Variance</span>
               <span className={cn('font-bold', data.variance > 50 ? 'text-[#254C00]':'text-[#CF0505]')}>{ data.variance }%</span>
             </div>
-            <Progress value={data.variance} className='bg-[#D3D3D3]' indicatorClassName={cn(data.variance > 50 ? 'bg-[#254C00]' : 'bg-[#CF0505]')} />
+            <ProgressBar variant={data.variance > 50 ? 'success' : 'danger'} value={data.variance} />
           </div>
           <div className='grid grid-cols-2'>
             <span className='text-gray-600 font-medium'>Modified By</span>
