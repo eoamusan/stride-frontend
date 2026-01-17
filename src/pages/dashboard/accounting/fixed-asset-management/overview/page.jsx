@@ -3,13 +3,15 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
+import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import EmptyAsset from '@/components/dashboard/accounting/fixed-asset-management/overview/empty-state';
 import UpcomingMaintenance from '@/components/dashboard/accounting/fixed-asset-management/overview/upcoming-maintenance';
 import AreaMetricCard from '@/components/dashboard/area-metric-card';
 import AssetCategories from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-categories';
 import PieMetricCard from '@/components/dashboard/pie-metric-card';
 import AssetCard from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-card';
+import AssetForm from '@/components/dashboard/accounting/fixed-asset-management/assets/asset-form';
+import { AppDialog } from '@/components/core/app-dialog';
 
 // Mock data
 const sampleData = [
@@ -66,7 +68,7 @@ const sampleData = [
 export default function FixedAssetMgtOverview() {
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
-  const [ openBudgetForm, setOpenBudgetForm ] = useState(false)
+  const [ openAssetForm, setOpenAssetForm ] = useState(false)
   const [assets] = useState([...sampleData])
 
   const pieData = [
@@ -218,8 +220,12 @@ export default function FixedAssetMgtOverview() {
     }
   };
 
-  const handleSetOpenBudgetForm = useCallback((value) => {
-    setOpenBudgetForm(value)
+  const handleSetOpenAssetForm = useCallback((value) => {
+    setOpenAssetForm(value)
+  }, [])
+
+  const handleOnCreateAsset = useCallback((data) => {
+    console.log('Asset created:', data)
   }, [])
 
   return (
@@ -235,7 +241,7 @@ export default function FixedAssetMgtOverview() {
 
         <div className="flex space-x-4">
           <Button
-            onClick={() => setOpenBudgetForm(true)}
+            onClick={() => setOpenAssetForm(true)}
             className={'h-10 rounded-2xl text-sm'}
           >
             <PlusCircleIcon className="size-4" />
@@ -254,7 +260,7 @@ export default function FixedAssetMgtOverview() {
         <Metrics metrics={assetMetrics} />
       </div>
     </div>
-    { !assets.length ? <EmptyAsset onClick={() => handleSetOpenBudgetForm(true)} /> : 
+    { !assets.length ? <EmptyAsset onClick={() => handleSetOpenAssetForm(true)} /> : 
       <>
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-4 mt-10'>
           <div className='col-span-2'>
@@ -300,6 +306,16 @@ export default function FixedAssetMgtOverview() {
           />
         </div>
       </>}
+      <AppDialog 
+        title="Add New Asset"
+        description="Create a new asset entry with comprehensive information and documentation"
+        headerIcon={<HousePlus />}
+        open={openAssetForm} 
+        onOpenChange={setOpenAssetForm}
+        className='sm:max-w-163'
+      >
+        <AssetForm onCreateAsset={handleOnCreateAsset} />
+      </AppDialog>
     </div>
   );
 }
