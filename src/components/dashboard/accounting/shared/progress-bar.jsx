@@ -1,6 +1,6 @@
 import { Progress } from "@/components/ui/progress";
 
-export default function ProgressBar({ variant, value }) {
+export default function ProgressBar({ variant, value, className }) {
   let cls = ''
   switch(variant) {
     case 'success':
@@ -12,6 +12,6 @@ export default function ProgressBar({ variant, value }) {
     default:
   }
   return (
-    <Progress value={value} className='bg-[#D3D3D3]' indicatorClassName={cls} />
+    <Progress value={value} className={`bg-[#D3D3D3] ${className}`} indicatorClassName={cls} />
   );
 }

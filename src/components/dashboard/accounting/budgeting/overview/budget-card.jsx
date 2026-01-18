@@ -16,7 +16,7 @@ const BudgetCard = ({ isSelected, handleSelect, data}) => {
     <Card className="w-full p-4">
       <CardContent className={'px-0'}>
         <div className='flex gap-4 items-center justify-between my-4'>
-          <div className='flex items-center gap-2'>
+          <div className='flex flex-wrap items-center gap-2'>
             <Checkbox checked={isSelected} onCheckedChange={handleSelect} />
             <div className='flex flex-col'>
               <h1 className='font-medium'>{ data.id }</h1>

@@ -54,6 +54,7 @@ import FinancialReports from './dashboard/accounting/financial-reports/page';
 import Budgeting from './dashboard/accounting/budgeting/page';
 import BudgetingAnalytics from './dashboard/accounting/budgeting/reports/page';
 import FixedAssetMgtOverview from './dashboard/accounting/fixed-asset-management/overview/page';
+import FixedAssetMgtAssets from './dashboard/accounting/fixed-asset-management/assets/page';
 
 const router = createBrowserRouter([
   {
@@ -344,7 +345,7 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'assets',
-                        Component: FixedAssetMgtOverview,
+                        Component: FixedAssetMgtAssets,
                       },
                       {
                         path: 'forecasting',

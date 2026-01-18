@@ -13,30 +13,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import FileUploadDropzone from "../../shared/file-upload-dropzone";
+import { Input } from "@/components/ui/input";
 
 export default function FileUploadForm({ onBack, onNext }) {
   const formSchema = z.object({
-      insuranceCompany: z.string().min(1, "Insurance company is required"),
-      plan: z.string().min(1, "Plan is required"),
-      risk: z.string().min(1, "Risk is required"),
-      startDate: z.date().min(1, "Start date is required"),
-      endDate: z.date().min(1, "End date is required"),
-      purchasePrice: z.coerce.number().min(1, "Sum insured is required"),
-      exclusions: z.string().min(1, "Exclusions is required"),
-      hasClaimed: z.string({ message: 'Select an option'}),
-    })
+    description: z.string().min(1, "Description is required"),
+  })
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      insuranceCompany: '',
-      plan: '',
-      risk: '',
-      startDate: null,
-      endDate: null,
-      purchasePrice: 0,
-      exclusions: '',
-      hasClaimed: ''
+      description: 'Test description',
     },
     mode: "onChange"
   })
@@ -45,7 +32,8 @@ export default function FileUploadForm({ onBack, onNext }) {
   const { isValid } = formState
 
   const handleNext = (values) => {
-    if (!isValid) return
+    // if (!isValid) return
+    console.log(values, 'kkkkkk')
     onNext(values)
   }
 
@@ -54,6 +42,19 @@ export default function FileUploadForm({ onBack, onNext }) {
       <Form {...form} >
         <form onSubmit={handleSubmit(handleNext)} className="space-y-5">
 
+          {/* <FormField
+            control={control}
+            name="description"
+            render={({ field }) => (
+              <FormItem className="flex flex-col gap-3 items-baseline">
+                <FormLabel className="whitespace-nowrap min-w-25">Decription</FormLabel>
+                <FormControl className="flex w-full">
+                  <Input placeholder="Enter detailed asset description" onChange={field.onChange} value={field.value} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          /> */}
           
           <div className="space-y-2">
             <Label className="text-sm font-medium">Asset Photos</Label>
@@ -87,7 +88,6 @@ export default function FileUploadForm({ onBack, onNext }) {
             <Button
               type="submit"
               className="h-10 px-10 text-sm rounded-3xl"
-              disabled={!isValid}
             >
               Submit
             </Button>

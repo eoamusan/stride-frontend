@@ -9,7 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { MoreVerticalIcon, User } from 'lucide-react';
 import AppDropdownMenu from '@/components/dashboard/accounting/shared/app-dropdown-menu';
 
-const AssetCard = ({ isSelected, handleSelect, data}) => {
+const AssetCard = ({ isSelected, handleSelect, data, setShowDetails }) => {
 
   const dropdownActions = [
     { key: 'edit', label: 'Edit Asset' },
@@ -52,9 +52,9 @@ const AssetCard = ({ isSelected, handleSelect, data}) => {
           <div className='grid grid-cols-2'>
             <span className='font-semibold'>Ikeja Building</span>
             <span className='flex flex-col text-lg items-end font-medium text-right'>
-              { data.budgetAmount }
+              { data?.budgetAmount }
               <div className='w-17'>
-                <ProgressBar variant={data.variance > 50 ? 'success' : 'danger'} value={data.variance} />
+                <ProgressBar variant={data?.variance > 50 ? 'success' : 'danger'} value={data?.variance} />
               </div>
             </span>
           </div>
@@ -81,7 +81,7 @@ const AssetCard = ({ isSelected, handleSelect, data}) => {
           </div>
           <div className='flex gap-2 justify-between'>
             <div className='grow'>
-              <Button className='w-full rounded-2xl'>View Details</Button>
+              <Button className='w-full rounded-2xl' onClick={() => setShowDetails(true)}>View Details</Button>
             </div>
             <AppDropdownMenu dropdownActions={dropdownActions} handleDropdownAction={handleDropdownAction} data={data} />
           </div>

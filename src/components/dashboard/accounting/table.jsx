@@ -63,6 +63,7 @@ export default function AccountingTable({
   isProductTable = false,
   itemComponent,
   isLoading = false,
+  setShowDetails,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeProductView, setActiveProductView] = useState('grid');
@@ -268,6 +269,7 @@ export default function AccountingTable({
               }}
               handleDropdownAction={handleDropdownAction}
               data={item}
+              setShowDetails={setShowDetails}
             />
           ))}
         </div>

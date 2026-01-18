@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
+import ProgressBar from '@/components/dashboard/accounting/shared/progress-bar';
 
 function StepIndicator({ isActive = true }) {
   return (
@@ -22,22 +23,26 @@ function Indicators({ totalSteps, currentStep, steps }) {
   const labelRefs = useRef([])
   const [widths, setWidths] = useState([])
 
+
   useLayoutEffect(() => {
     const measured = labelRefs.current.map(
       (el) => el?.offsetWidth ?? 0
     )
     setWidths(measured)
   }, [])
+  
+  const getFullConnectorWidth = () => {
+    const totalWidth = widths.reduce((sum, w) => sum + w, 0)
+    const firstStepInHalf = widths[0] / 2
+    const lastStepInHalf = widths[widths.length - 1] / 2
+    const spacing = 8 * widths.length
 
-  const getConnectorWidth = (index) => {
-    const current = widths[index] ?? 0
-    const next = widths[index + 1] ?? 0
-    return Math.max(current, next)
+    return totalWidth - firstStepInHalf - lastStepInHalf + spacing
   }
 
 
   return (
-    <div className="flex items-start justify-center mb-4 gap-2">
+    <div className="flex items-start justify-center mb-4 gap-2 relative">
       {steps.map((step, index) => (
         <div
           key={index}
@@ -53,20 +58,18 @@ function Indicators({ totalSteps, currentStep, steps }) {
               { step.name }
             </span>
           </div>
-
-          {/* Connector */}
-          {index !== totalSteps - 1 && (
-            <>
-            <div
-              style={{ width: getConnectorWidth(index) + 'px' }}
-              className={cn(
-                "absolute top-2.5  h-0.5 transform -right-12.5",
-                index < currentStep ? "bg-[#254C00]" : `bg-gray-400`
-              )}
-            /></>
-          )}
         </div>
       ))}
+      {totalSteps > 1 && (
+      <div
+        style={{ width: getFullConnectorWidth() + 'px' }}
+        className={cn(
+          "absolute top-2.5  transform translate-x-[2%] bg-gray-400",
+        )}
+      >
+        <ProgressBar variant="success" className="h-0.5" value={(currentStep / (totalSteps - 1)) * 100} />
+      </div>
+      )}
     </div>
   )
 }
@@ -83,7 +86,6 @@ export default function MultiStepForm({
   const isLastStep = currentStep === totalSteps - 1;
 
   const handleNext = (values) => {
-    console.log('values', values);
     const updatedValues = { ...formValues, ...values };
     setFormValues(updatedValues);
     if (isLastStep) {
@@ -109,18 +111,6 @@ export default function MultiStepForm({
         isLastStep={isLastStep}
         isFirstStep={currentStep === 0}
       />
-      {/* <div className="flex gap-2 justify-end mt-4">
-        <Button variant="secondary" onClick={handleBack} disabled={currentStep === 0}  className="h-10 px-10 text-sm rounded-3xl">
-          Back
-        </Button>
-        <Button
-          type="submit"
-          className="h-10 px-10 text-sm rounded-3xl"
-          onClick={() => handleNext(formValues)}
-        >
-          {isLastStep ? "Submit" : "Next"}
-        </Button>
-      </div> */}
     </div>
   );
 } 
