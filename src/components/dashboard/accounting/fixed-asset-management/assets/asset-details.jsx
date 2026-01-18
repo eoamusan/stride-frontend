@@ -1,5 +1,5 @@
 import AssetCard from "./asset-card";
-import { ArrowLeft, ArrowLeftIcon, ArrowRightIcon, DownloadIcon, HousePlus } from "lucide-react";
+import { ArrowLeft, ArrowLeftIcon, ArrowRightIcon, Check, DownloadIcon, HousePlus, Pencil, Share2 } from "lucide-react";
 import ProgressBar from "@/components/dashboard/accounting/shared/progress-bar";
 import {Badge} from "@/components/ui/badge";
 import pdfIcon from '@/assets/icons/pdf-icon.svg';
@@ -117,8 +117,8 @@ function AssignedImages() {
   <div className="mt-4">
     <ImageCarousel images={[
       'https://placehold.co/600x400',
-      'https://placehold.co/600x400',
-      'https://placehold.co/600x400',
+      'https://placehold.co/600x500',
+      'https://placehold.co/600x300',
     ]} />
   </div>
   
@@ -138,7 +138,7 @@ function InsuranceDetails() {
           <AccordionItem value={`item-${index + 1}`} key={index} className="border-b">
             <AccordionTrigger>
               <h3 className="font-semibold text-base">
-                202{ 5 - index}
+                202{ 5 - index }
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 text-balance">
@@ -184,7 +184,7 @@ function InsuranceDetails() {
   </>
 }
 
-export default function AssetDetails({ data, setShowDetails }) {
+export default function AssetDetails({ setShowDetails }) {
 
   const assetData = [
     {
@@ -310,16 +310,50 @@ export default function AssetDetails({ data, setShowDetails }) {
   return (
     <>
       <div className="w-full rounded-2xl bg-white p-6"> 
-        <div className="flex gap-2 items-center">
-          <button className="cursor-pointer" onClick={() => setShowDetails(false)}>
-            <ArrowLeft />
-          </button>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#254C00] text-white">
-            <HousePlus />
+        <div className="flex gap-2 items-center justify-between">
+          <hgroup className="flex gap-2 items-center">
+            <button className="cursor-pointer" onClick={() => setShowDetails(false)}>
+              <ArrowLeft />
+            </button>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#254C00] text-white">
+              <HousePlus />
+            </div>
+            <h1 className="text-2xl font-bold">
+              Asset Details
+            </h1>
+          </hgroup>
+
+          <div className="flex space-x-4">
+            <Button
+              className={'h-10 rounded-2xl text-sm'}
+            >
+              <Check />
+              Sell On Shobu
+            </Button>
+            <Button
+              className={'h-10 rounded-2xl text-sm'}
+              variant="outline"
+            >
+              <Pencil />
+              Edit Asset
+            </Button>
+            <Button
+              className={'h-10 rounded-2xl text-sm'}
+              variant="outline"
+            >
+              <Pencil />
+              Assign Asset
+            </Button>
+            <Button
+              className={'h-10 rounded-2xl text-sm'}
+              variant="outline"
+            >
+              <Share2 />
+              Share
+            </Button>
           </div>
-          <h1 className="text-2xl font-bold">
-            Asset Details
-          </h1>
+
+
         </div>
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <AssetCard title="Asset Information" data={assetData} />

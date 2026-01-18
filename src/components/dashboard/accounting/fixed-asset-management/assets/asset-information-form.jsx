@@ -163,7 +163,7 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
             name="description"
             render={({ field }) => (
               <FormItem className="flex flex-col gap-3 items-baseline">
-                <FormLabel className="whitespace-nowrap min-w-25">Decription</FormLabel>
+                <FormLabel className="whitespace-nowrap min-w-25">Description</FormLabel>
                 <FormControl className="flex w-full">
                   <Textarea type="text" placeholder="Enter detailed asset description" onChange={field.onChange} value={field.value} />
                 </FormControl>
