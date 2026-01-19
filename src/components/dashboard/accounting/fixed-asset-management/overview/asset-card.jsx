@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { MoreVerticalIcon, User } from 'lucide-react';
 import AppDropdownMenu from '@/components/dashboard/accounting/shared/app-dropdown-menu';
+import { useNavigate } from 'react-router';
 
 const AssetCard = ({ isSelected, handleSelect, data, setShowDetails }) => {
 
@@ -34,6 +35,13 @@ const AssetCard = ({ isSelected, handleSelect, data, setShowDetails }) => {
   useEffect(() => {
     console.log(data)
   }, [data])
+
+  const navigate = useNavigate()
+  const handleShowDetails = () => {
+    const slug = data.id.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+    navigate({hash: `assetId=${slug}`})
+    setShowDetails(true);
+  }
 
   return (
     <Card className="w-full p-4">
@@ -81,7 +89,7 @@ const AssetCard = ({ isSelected, handleSelect, data, setShowDetails }) => {
           </div>
           <div className='flex gap-2 justify-between'>
             <div className='grow'>
-              <Button className='w-full rounded-2xl' onClick={() => setShowDetails(true)}>View Details</Button>
+              <Button className='w-full rounded-2xl' onClick={() => handleShowDetails()}>View Details</Button>
             </div>
             <AppDropdownMenu dropdownActions={dropdownActions} handleDropdownAction={handleDropdownAction} data={data} />
           </div>
