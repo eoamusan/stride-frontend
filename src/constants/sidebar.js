@@ -20,6 +20,17 @@ import {
   CreditCard,
   FileSpreadsheet,
   ChartNoAxesColumn,
+  UserPen,
+  Handshake,
+  ChartLine,
+  Settings,
+  TriangleAlert,
+  BriefcaseBusiness,
+  Lightbulb,
+  CalendarDays,
+  SquareActivity,
+  Landmark,
+  Workflow,
 } from 'lucide-react';
 
 const accountingItems = [
@@ -247,7 +258,70 @@ const budgetingAndForcastingItems = [
   {
     title: 'Forecasting',
     link: '/dashboard/accounting/budgeting/forecasting',
-  }
+  },
+];
+
+const hrItems = [
+  {
+    title: 'HR Overview',
+    icon: LayoutGrid,
+    link: '/dashboard/hr/overview',
+  },
+  {
+    title: 'Recruitment',
+    icon: UserPen,
+    link: '/dashboard/hr/recruitment',
+  },
+  {
+    title: 'Onboarding',
+    icon: Handshake,
+    link: '/dashboard/hr/onboarding',
+  },
+  {
+    title: 'Employee Directory',
+    icon: Workflow,
+    link: '/dashboard/hr/employee-directory',
+  },
+  {
+    title: 'Attendance & Leave',
+    icon: CalendarDays,
+    link: '/dashboard/hr/attendance-leave',
+  },
+  {
+    title: 'Performance',
+    icon: SquareActivity,
+    link: '/dashboard/hr/performance',
+  },
+  {
+    title: 'Payroll',
+    icon: Landmark,
+    link: '/dashboard/hr/payroll',
+  },
+  {
+    title: 'Learning & Development',
+    icon: Lightbulb,
+    link: '/dashboard/hr/learning-and-development',
+  },
+  {
+    title: 'Engagement',
+    icon: BriefcaseBusiness,
+    link: '/dashboard/hr/engagement',
+  },
+  {
+    title: 'Analytics',
+    icon: ChartLine,
+    link: '/dashboard/hr/analytics',
+  },
+  {
+    title: 'Disciplinary & Exit',
+    icon: TriangleAlert,
+    link: '/dashboard/hr/disciplinary-and-exit',
+  },
+  {
+    title: 'Setup',
+    icon: Settings,
+    link: '/dashboard/hr/setup',
+  },
 ];
 
 const sidebarItems = [
@@ -303,7 +377,7 @@ const sidebarItems = [
     title: 'HR',
     icon: Heart,
     link: '/dashboard/hr',
-    children: [],
+    children: hrItems,
   },
   {
     title: 'Help Center',
@@ -327,4 +401,20 @@ const accountingTopItems = {
   taxManagement: [],
   bankingReconciliation: [],
 };
-export { sidebarItems, accountingTopItems };
+
+const hrTopItems = {
+  overview: hrItems,
+  recruitment: [],
+  onboarding: [],
+  employeeDirectory: [],
+  attendanceLeave: [],
+  performance: [],
+  payroll: [],
+  learningAndDevelopement: [],
+  engagement: [],
+  analytics: [],
+  disciplinaryAndExit: [],
+  setup: [],
+};
+
+export { sidebarItems, accountingTopItems, hrTopItems };
