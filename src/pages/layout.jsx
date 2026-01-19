@@ -61,6 +61,8 @@ import FixedAssetMgtAudits from './dashboard/accounting/fixed-asset-management/a
 import FixedAssetMgtAssetAssignment from './dashboard/accounting/fixed-asset-management/assets-assignment/page';
 import FixedAssetMgtAssetRetrieval from './dashboard/accounting/fixed-asset-management/assets-retrievals/page';
 import FixedAssetMgtReport from './dashboard/accounting/fixed-asset-management/reports/page';
+import TaxOverview from './dashboard/accounting/tax-management/overview/page';
+import BusinessTax from './dashboard/accounting/tax-management/business-tax/page';
 
 const router = createBrowserRouter([
   {
@@ -376,6 +378,23 @@ const router = createBrowserRouter([
                       {
                         path: 'reports',
                         Component: FixedAssetMgtReport,
+                      }
+                    ],
+                  },
+                  {
+                    path: 'tax-management',
+                    children: [
+                      {
+                        index: true,
+                        Component: TaxOverview,
+                      },
+                      {
+                        path: 'sales-tax',
+                        Component: BusinessTax,
+                      },
+                      {
+                        path: 'business-tax',
+                        Component: BusinessTax,
                       }
                     ],
                   },

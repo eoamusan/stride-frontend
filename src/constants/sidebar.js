@@ -285,6 +285,21 @@ const fixedAssetManagementItems = [
   }
 ];
 
+const taxManagementItems = [
+  {
+    title: 'Overview',
+    link: '/dashboard/accounting/tax-management',
+  },
+  {
+    title: 'Sales Tax',
+    link: '/dashboard/accounting/tax-management/sales-tax',
+  },
+  {
+    title: 'Business Tax',
+    link: '/dashboard/accounting/tax-management/business-tax',
+  },
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -359,7 +374,7 @@ const accountingTopItems = {
   accountsPayable: accountsPayableItems,
   inventoryManagement: inventoryManagementItems,
   fixedAssetManagement: fixedAssetManagementItems,
-  taxManagement: [],
+  taxManagement: taxManagementItems,
   bankingReconciliation: [],
 };
 export { sidebarItems, accountingTopItems };
