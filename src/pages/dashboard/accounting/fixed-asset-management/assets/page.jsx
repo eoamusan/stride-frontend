@@ -1,14 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import EmptyAsset from '@/components/dashboard/accounting/fixed-asset-management/overview/empty-state';
-import UpcomingMaintenance from '@/components/dashboard/accounting/fixed-asset-management/overview/upcoming-maintenance';
-import AreaMetricCard from '@/components/dashboard/area-metric-card';
-import AssetCategories from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-categories';
-import PieMetricCard from '@/components/dashboard/pie-metric-card';
 import AssetCard from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-card';
 import AssetForm from '@/components/dashboard/accounting/fixed-asset-management/assets/asset-form';
 import { AppDialog } from '@/components/core/app-dialog';
@@ -191,7 +186,7 @@ export default function FixedAssetMgtAssets() {
     <div className='my-4 min-h-screen'>
       { showDetails ? <AssetDetails data={null} setShowDetails={setShowDetails} /> :
       <>
-        <div className={cn(!assets.length && 'hidden')}>
+        <div>
           <div className="flex flex-wrap items-center justify-between gap-6">
             <hgroup>
               <h1 className="text-2xl font-bold">Asset Management</h1>

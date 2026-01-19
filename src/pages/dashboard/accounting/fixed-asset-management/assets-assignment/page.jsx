@@ -3,85 +3,66 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-react';
+import EmptyAsset from '@/components/dashboard/accounting/fixed-asset-management/overview/empty-state';
+import AssetCard from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-card';
 import { AppDialog } from '@/components/core/app-dialog';
-import CategoryForm from '@/components/dashboard/accounting/fixed-asset-management/categories/category-form';
+import geishaImg from '@/assets/images/geisha.png';
+import AssetAssignmentForm from '@/components/dashboard/accounting/fixed-asset-management/assets-assignment/asset-assignment-form';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 
 // Mock data
 const sampleData = [
   {
-    id: 'Q1 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
+    id: '1',
+    img: geishaImg,
+    name: 'Canon EOS R5',
+    employee: 'John Doe',
+    category: 'Mar 2025-Feb2025',
+    department: 'James Doe',
+    assignedDate: 'Thur 12:23pm',
+    returnDate: 150000,
+    condition: 150000,
+    actualReturn: 150000,
     status: 'Active',
-    variance: 90,
   },
   {
-    id: 'Q2 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
+    id: '2',
+    img: geishaImg,
+    name: 'MacBook Pro 16"',
+    employee: 'Jane Smith',
+    category: 'Mar 2025-Feb2025',
+    department: 'Emily Clark',
+    assignedDate: 'Mon 09:15am',
+    returnDate: 150000,
+    condition: 150000,
+    actualReturn: 150000,
     status: 'Active',
-    variance: 23,
-  },
-  {
-    id: 'Q3 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 51,
-  },
-  {
-    id: 'Q4 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 67,
   }
 ]
 
-export default function FixedAssetMgtCategories() {
+export default function FixedAssetMgtAssetAssignment() {
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
-  const [ openCategoryForm, setOpenCategoryForm ] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+  const [ openAssignmentForm, setOpenAssignmentForm ] = useState(false)
   const [assets] = useState([...sampleData])
 
   const assetMetrics = useMemo(() => {
     return [
       {
-        title: 'Total Categories',
+        title: 'Active Assignment',
         value: 2000,
       },
       {
-        title: 'Total Assets',
+        title: 'Unassigned Assets',
         value: 3000,
       },
       {
-        title: 'Most Used Category',
+        title: 'Total Employees',
         value: 23,
       },
       {
-        title: 'Avg. Depreciation Rate',
+        title: 'Transfer History',
         value: 1000,
       },
     ]
@@ -110,34 +91,59 @@ export default function FixedAssetMgtCategories() {
   // Table columns configuration
   const tableColumns = [
     {
-      key: 'type',
+      key: 'img',
+      label: 'IMG',
+      render: (value) => (
+        <div className="flex h-10 w-10 items-center justify-center rounded">
+          <img
+            src={value}
+            alt="Product"
+            className="h-8 w-8 rounded object-cover"
+          />
+        </div>
+      ),
+    },
+    {
+      key: 'name',
+      label: 'Asset',
+    },
+    {
+      key: 'employee',
+      label: 'Employee',
+    },
+    {
+      key: 'category',
       label: 'Category',
     },
     {
-      key: 'date',
-      label: 'Depreciation Method',
+      key: 'department',
+      label: 'Department',
     },
     {
-      key: 'lastModifiedBy',
-      label: 'Asset Count',
+      key: 'assignedDate',
+      label: 'Assigned Date',
     },
     {
-      key: 'timeModified',
-      label: 'Useful Life',
+      key: 'returnDate',
+      label: 'Return Date',
     },
     {
-      key: 'timeModified',
-      label: 'Salvage Value',
+      key: 'condition',
+      label: 'Condition',
     },
     {
-      key: 'timeModified',
-      label: 'Status',
+      key: 'actualReturn',
+      label: 'Actual Return',
     },
   ];
 
   // Dropdown actions for each row
   const dropdownActions = [
-    { key: 'view', label: 'View' },
+    { key: 'run-budget', label: 'Run Budget vs. Actuals report' },
+    { key: 'run-overview', label: 'Run Budget Overview report' },
+    { key: 'archive', label: 'Archive' },
+    { key: 'duplicate', label: 'Duplicate' },
+    { key: 'delete', label: 'Delete' },
   ];
 
   // Pagination data
@@ -158,8 +164,12 @@ export default function FixedAssetMgtCategories() {
     }
   };
 
-  const handleOnCreateCategory = useCallback((data) => {
-    console.log('Category created:', data)
+  const handleSetOpenAssignmentForm = useCallback((value) => {
+    setOpenAssignmentForm(value)
+  }, [])
+
+  const handleOnCreateAssignment = useCallback((data) => {
+    console.log('Assignment created:', data)
     setIsSuccessModalOpen(true)
   }, [])
 
@@ -169,19 +179,19 @@ export default function FixedAssetMgtCategories() {
         <div>
           <div className="flex flex-wrap items-center justify-between gap-6">
             <hgroup>
-              <h1 className="text-2xl font-bold">Asset Categories Management</h1>
+              <h1 className="text-2xl font-bold">Assets Assignment</h1>
               <p className="text-sm text-[#7D7D7D]">
-                Configure and manage depreciation settings for different asset types
+                Manage all your organization's assets with advanced filtering and bulk operations
               </p>
             </hgroup>
 
             <div className="flex space-x-4">
               <Button
-                onClick={() => setOpenCategoryForm(true)}
+                onClick={() => setOpenAssignmentForm(true)}
                 className={'h-10 rounded-2xl text-sm'}
               >
                 <PlusCircleIcon className="size-4" />
-                Add New Category
+                Assign Asset
               </Button>
               <Button size={'icon'} className={'size-10'} variant={'outline'}>
                 <DownloadIcon size={16} />
@@ -196,10 +206,12 @@ export default function FixedAssetMgtCategories() {
             <Metrics metrics={assetMetrics} />
           </div>
         </div>
+        { !assets.length ? <EmptyAsset onClick={() => handleSetOpenAssignmentForm(true)} /> : 
           <>
             <div className="relative mt-10">
               <AccountingTable
-                title="Categories"
+                title="Asset Assignments"
+                description="Manage asset assignments and employee transfers"
                 data={assets}
                 columns={tableColumns}
                 searchFields={[]}
@@ -211,29 +223,30 @@ export default function FixedAssetMgtCategories() {
                 handleSelectAll={handleSelectAll}
                 onRowAction={handleRowAction}
                 showDataSize
+                itemComponent={AssetCard}
               />
             </div>
-          </>
+          </>}
           <AppDialog 
-            title="Add New Category"
+            title="Assign Asset"
             headerIcon={<HousePlus />}
-            open={openCategoryForm} 
-            onOpenChange={setOpenCategoryForm}
+            open={openAssignmentForm} 
+            onOpenChange={setOpenAssignmentForm}
             className='sm:max-w-163'
           >
-            <CategoryForm onCreateCategory={handleOnCreateCategory} onCancel={() => setOpenCategoryForm(false)} />
+            <AssetAssignmentForm onCancel={() => setOpenAssignmentForm(false)} onSubmit={handleOnCreateAssignment} />
           </AppDialog>
 
           <SuccessModal
-            title={'Category Added'}
-            description={"You've successfully added a category."}
+            title={'Asset Assigned Successfully'}
+            description={"You've successfully assigned an asset to Sale Team."}
             open={isSuccessModalOpen}
             onOpenChange={setIsSuccessModalOpen}
             backText={'Back'}
             handleBack={() => {
               setIsSuccessModalOpen(false);
             }} 
-          />
+          />  
       </>
     </div>
   );

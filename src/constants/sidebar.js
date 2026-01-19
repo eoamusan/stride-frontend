@@ -276,6 +276,10 @@ const fixedAssetManagementItems = [
     link: '/dashboard/accounting/fixed-asset-management/assets-assignment',
   },
   {
+    title: 'Assets Retrieval',
+    link: '/dashboard/accounting/fixed-asset-management/assets-retrievals',
+  },
+  {
     title: 'Reports',
     link: '/dashboard/accounting/fixed-asset-management/reports',
   }

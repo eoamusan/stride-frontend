@@ -57,6 +57,9 @@ import FixedAssetMgtOverview from './dashboard/accounting/fixed-asset-management
 import FixedAssetMgtAssets from './dashboard/accounting/fixed-asset-management/assets/page';
 import FixedAssetMgtCategories from './dashboard/accounting/fixed-asset-management/categories/page';
 import FixedAssetMgtMaintenance from './dashboard/accounting/fixed-asset-management/maintenance/page';
+import FixedAssetMgtAudits from './dashboard/accounting/fixed-asset-management/audits/page';
+import FixedAssetMgtAssetAssignment from './dashboard/accounting/fixed-asset-management/assets-assignment/page';
+import FixedAssetMgtAssetRetrieval from './dashboard/accounting/fixed-asset-management/assets-retrievals/page';
 
 const router = createBrowserRouter([
   {
@@ -359,11 +362,15 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'audits',
-                        Component: FixedAssetMgtOverview,
+                        Component: FixedAssetMgtAudits,
                       },
                       {
                         path: 'assets-assignment',
-                        Component: FixedAssetMgtOverview,
+                        Component: FixedAssetMgtAssetAssignment,
+                      },
+                      {
+                        path: 'assets-retrievals',
+                        Component: FixedAssetMgtAssetRetrieval,
                       },
                       {
                         path: 'reports',

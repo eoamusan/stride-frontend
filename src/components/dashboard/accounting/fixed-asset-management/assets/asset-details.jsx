@@ -19,6 +19,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import ImageCarousel from "../../shared/image-carousel";
+import temporaryImg from '@/assets/images/customer-ledger-temp.png';
 
 function MaintenanceHistory() {
   return <div>
@@ -355,13 +356,18 @@ export default function AssetDetails({ setShowDetails }) {
 
 
         </div>
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AssetCard title="Asset Information" data={assetData} />
-          <AssetCard title="Attached Images" data={ { component: AssignedImages } } />
-          <AssetCard title="Purchase Information" data={purchaseData} />
-          <AssetCard title="Location" data={locationData} />
-          <AssetCard title="Maintenance History" data={ { component: MaintenanceHistory } } />
-          <AssetCard title="Insurance details" data={ { component: InsuranceDetails}} />
+        <div className="flex gap-6 mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AssetCard title="Asset Information" data={assetData} />
+            <AssetCard title="Attached Images" data={ { component: AssignedImages } } />
+            <AssetCard title="Purchase Information" data={purchaseData} />
+            <AssetCard title="Location" data={locationData} />
+            <AssetCard title="Maintenance History" data={ { component: MaintenanceHistory } } />
+            <AssetCard title="Insurance details" data={ { component: InsuranceDetails}} />
+          </div>
+          <div className="hidden w-full max-w-47 lg:block">
+            <img src={temporaryImg} alt="temporary" className="w-full" />
+          </div>
         </div>
       </div>
     </>

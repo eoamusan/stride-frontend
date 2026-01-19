@@ -4,8 +4,9 @@ import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { AppDialog } from '@/components/core/app-dialog';
-import CategoryForm from '@/components/dashboard/accounting/fixed-asset-management/categories/category-form';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import MaintenanceForm from '@/components/dashboard/accounting/fixed-asset-management/maintenance/maintenance-form';
+import AuditForm from '@/components/dashboard/accounting/fixed-asset-management/audits/audit-form';
 
 // Mock data
 const sampleData = [
@@ -18,6 +19,7 @@ const sampleData = [
     timeModified: 'Thur 12:23pm',
     budgetAmount: 150000,
     actualAmount: 150000,
+    cost: 150000,
     status: 'Active',
     variance: 90,
   },
@@ -30,6 +32,7 @@ const sampleData = [
     timeModified: 'Thur 12:23pm',
     budgetAmount: 150000,
     actualAmount: 150000,
+    cost: 150000,
     status: 'Active',
     variance: 23,
   },
@@ -41,48 +44,37 @@ const sampleData = [
     lastModifiedBy: 'James Doe',
     timeModified: 'Thur 12:23pm',
     budgetAmount: 150000,
+    cost: 150000,
     actualAmount: 150000,
     status: 'Active',
     variance: 51,
-  },
-  {
-    id: 'Q4 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 67,
   }
 ]
 
-export default function FixedAssetMgtCategories() {
+export default function FixedAssetMgtAudits() {
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
-  const [ openCategoryForm, setOpenCategoryForm ] = useState(false)
+  const [ openAuditForm, setOpenAuditForm ] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const [assets] = useState([...sampleData])
 
   const assetMetrics = useMemo(() => {
     return [
       {
-        title: 'Total Categories',
+        title: 'Total Audited',
         value: 2000,
       },
       {
-        title: 'Total Assets',
+        title: 'Verified',
         value: 3000,
       },
       {
-        title: 'Most Used Category',
+        title: 'Pending',
         value: 23,
       },
       {
-        title: 'Avg. Depreciation Rate',
-        value: 1000,
+        title: 'Missing',
+        value: 10,
       },
     ]
   })
@@ -111,23 +103,19 @@ export default function FixedAssetMgtCategories() {
   const tableColumns = [
     {
       key: 'type',
-      label: 'Category',
+      label: 'Asset',
     },
     {
       key: 'date',
-      label: 'Depreciation Method',
+      label: 'Audited By',
     },
     {
       key: 'lastModifiedBy',
-      label: 'Asset Count',
+      label: 'Audit Date',
     },
     {
       key: 'timeModified',
-      label: 'Useful Life',
-    },
-    {
-      key: 'timeModified',
-      label: 'Salvage Value',
+      label: 'Notes',
     },
     {
       key: 'timeModified',
@@ -158,8 +146,8 @@ export default function FixedAssetMgtCategories() {
     }
   };
 
-  const handleOnCreateCategory = useCallback((data) => {
-    console.log('Category created:', data)
+  const handleOnCreateAudit = useCallback((data) => {
+    console.log('Audit scheduled:', data)
     setIsSuccessModalOpen(true)
   }, [])
 
@@ -169,19 +157,19 @@ export default function FixedAssetMgtCategories() {
         <div>
           <div className="flex flex-wrap items-center justify-between gap-6">
             <hgroup>
-              <h1 className="text-2xl font-bold">Asset Categories Management</h1>
+              <h1 className="text-2xl font-bold">Asset Auditing</h1>
               <p className="text-sm text-[#7D7D7D]">
-                Configure and manage depreciation settings for different asset types
+                Conduct periodic audits to verify asset availability and condition
               </p>
             </hgroup>
 
             <div className="flex space-x-4">
               <Button
-                onClick={() => setOpenCategoryForm(true)}
+                onClick={() => setOpenAuditForm(true)}
                 className={'h-10 rounded-2xl text-sm'}
               >
                 <PlusCircleIcon className="size-4" />
-                Add New Category
+                New Audit
               </Button>
               <Button size={'icon'} className={'size-10'} variant={'outline'}>
                 <DownloadIcon size={16} />
@@ -199,7 +187,7 @@ export default function FixedAssetMgtCategories() {
           <>
             <div className="relative mt-10">
               <AccountingTable
-                title="Categories"
+                title="Audit History"
                 data={assets}
                 columns={tableColumns}
                 searchFields={[]}
@@ -215,18 +203,18 @@ export default function FixedAssetMgtCategories() {
             </div>
           </>
           <AppDialog 
-            title="Add New Category"
+            title="New Audit"
             headerIcon={<HousePlus />}
-            open={openCategoryForm} 
-            onOpenChange={setOpenCategoryForm}
+            open={openAuditForm} 
+            onOpenChange={setOpenAuditForm}
             className='sm:max-w-163'
           >
-            <CategoryForm onCreateCategory={handleOnCreateCategory} onCancel={() => setOpenCategoryForm(false)} />
+            <AuditForm onCreate={handleOnCreateAudit} onCancel={() => setOpenAuditForm(false)} />
           </AppDialog>
 
           <SuccessModal
-            title={'Category Added'}
-            description={"You've successfully added a category."}
+            title={'Audit Confirmed'}
+            description={"You've successfully started an audit."}
             open={isSuccessModalOpen}
             onOpenChange={setIsSuccessModalOpen}
             backText={'Back'}

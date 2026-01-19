@@ -3,86 +3,68 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-react';
+import EmptyAsset from '@/components/dashboard/accounting/fixed-asset-management/overview/empty-state';
 import { AppDialog } from '@/components/core/app-dialog';
-import CategoryForm from '@/components/dashboard/accounting/fixed-asset-management/categories/category-form';
+import geishaImg from '@/assets/images/geisha.png';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import { Badge } from '@/components/ui/badge';
+import AssetRetrievalForm from '@/components/dashboard/accounting/fixed-asset-management/assets-retrieve/assets-retrieval-form';
+import AssetDetailCard from '@/components/dashboard/accounting/fixed-asset-management/assets-retrieve/asset-detail-card';
 
 // Mock data
 const sampleData = [
   {
-    id: 'Q1 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 90,
+    id: '1',
+    img: geishaImg,
+    name: 'Canon EOS R5',
+    employee: 'John Doe',
+    category: 'Good',
+    department: 'Sales Team',
+    assignedDate: 'Thur 12:23pm',
+    returnDate: 'Mon 09:15am',
+    condition: 150000,
+    actualReturn: 150000,
+    status: 'Retrieved',
   },
   {
-    id: 'Q2 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 23,
-  },
-  {
-    id: 'Q3 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 51,
-  },
-  {
-    id: 'Q4 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 67,
+    id: '2',
+    img: geishaImg,
+    name: 'MacBook Pro 16"',
+    employee: 'Jane Smith',
+    category: 'Good',
+    department: 'Marketing Team ',
+    assignedDate: 'Mon 09:15am',
+    returnDate: 'Mon 09:15am',
+    condition: 150000,
+    actualReturn: 150000,
+    status: 'Retrieved',
   }
 ]
 
-export default function FixedAssetMgtCategories() {
+export default function FixedAssetMgtAssetRetrieval() {
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
-  const [ openCategoryForm, setOpenCategoryForm ] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+  const [ openAssignmentForm, setOpenAssignmentForm ] = useState(false)
   const [assets] = useState([...sampleData])
 
   const assetMetrics = useMemo(() => {
     return [
       {
-        title: 'Total Categories',
+        title: 'Total Asset Retrieved',
         value: 2000,
       },
       {
-        title: 'Total Assets',
+        title: 'Assets due for Retrieval',
         value: 3000,
       },
       {
-        title: 'Most Used Category',
+        title: 'Current Value',
         value: 23,
       },
       {
-        title: 'Avg. Depreciation Rate',
-        value: 1000,
+        title: 'Recovery Rate',
+        value: 17,
       },
     ]
   })
@@ -110,34 +92,58 @@ export default function FixedAssetMgtCategories() {
   // Table columns configuration
   const tableColumns = [
     {
-      key: 'type',
-      label: 'Category',
+      key: 'img',
+      label: 'IMG',
+      render: (value) => (
+        <div className="flex h-10 w-10 items-center justify-center rounded">
+          <img
+            src={value}
+            alt="Product"
+            className="h-8 w-8 rounded object-cover"
+          />
+        </div>
+      ),
     },
     {
-      key: 'date',
-      label: 'Depreciation Method',
+      key: 'name',
+      label: 'Asset',
     },
     {
-      key: 'lastModifiedBy',
-      label: 'Asset Count',
+      key: 'employee',
+      label: 'Employee',
     },
     {
-      key: 'timeModified',
-      label: 'Useful Life',
+      key: 'category',
+      label: 'Depreciation Status',
     },
     {
-      key: 'timeModified',
-      label: 'Salvage Value',
+      key: 'department',
+      label: 'Department',
     },
     {
-      key: 'timeModified',
+      key: 'assignedDate',
+      label: 'Assigned Date',
+    },
+    {
+      key: 'returnDate',
+      label: 'Retrieval Date',
+    },
+    {
+      key: 'status',
       label: 'Status',
-    },
+      render: (value) => (
+        <Badge variant="success">{value} qwerty</Badge>
+      ),
+    }
   ];
 
   // Dropdown actions for each row
   const dropdownActions = [
-    { key: 'view', label: 'View' },
+    { key: 'run-budget', label: 'Run Budget vs. Actuals report' },
+    { key: 'run-overview', label: 'Run Budget Overview report' },
+    { key: 'archive', label: 'Archive' },
+    { key: 'duplicate', label: 'Duplicate' },
+    { key: 'delete', label: 'Delete' },
   ];
 
   // Pagination data
@@ -158,8 +164,12 @@ export default function FixedAssetMgtCategories() {
     }
   };
 
-  const handleOnCreateCategory = useCallback((data) => {
-    console.log('Category created:', data)
+  const handleSetOpenAssignmentForm = useCallback((value) => {
+    setOpenAssignmentForm(value)
+  }, [])
+
+  const handleOnCreateAssignment = useCallback((data) => {
+    console.log('Assignment created:', data)
     setIsSuccessModalOpen(true)
   }, [])
 
@@ -169,19 +179,19 @@ export default function FixedAssetMgtCategories() {
         <div>
           <div className="flex flex-wrap items-center justify-between gap-6">
             <hgroup>
-              <h1 className="text-2xl font-bold">Asset Categories Management</h1>
+              <h1 className="text-2xl font-bold">Assets Retrievals</h1>
               <p className="text-sm text-[#7D7D7D]">
-                Configure and manage depreciation settings for different asset types
+                Asset Recovery and Management
               </p>
             </hgroup>
 
             <div className="flex space-x-4">
               <Button
-                onClick={() => setOpenCategoryForm(true)}
+                onClick={() => setOpenAssignmentForm(true)}
                 className={'h-10 rounded-2xl text-sm'}
               >
                 <PlusCircleIcon className="size-4" />
-                Add New Category
+                Retrieve Assets
               </Button>
               <Button size={'icon'} className={'size-10'} variant={'outline'}>
                 <DownloadIcon size={16} />
@@ -196,10 +206,11 @@ export default function FixedAssetMgtCategories() {
             <Metrics metrics={assetMetrics} />
           </div>
         </div>
+        { !assets.length ? <EmptyAsset onClick={() => handleSetOpenAssignmentForm(true)} /> : 
           <>
             <div className="relative mt-10">
               <AccountingTable
-                title="Categories"
+                title="Asset Retrievals History"
                 data={assets}
                 columns={tableColumns}
                 searchFields={[]}
@@ -211,29 +222,31 @@ export default function FixedAssetMgtCategories() {
                 handleSelectAll={handleSelectAll}
                 onRowAction={handleRowAction}
                 showDataSize
+                isProductTable
+                itemComponent={AssetDetailCard}
               />
             </div>
-          </>
+          </>}
           <AppDialog 
-            title="Add New Category"
+            title="Retrieve Assets"
             headerIcon={<HousePlus />}
-            open={openCategoryForm} 
-            onOpenChange={setOpenCategoryForm}
+            open={openAssignmentForm} 
+            onOpenChange={setOpenAssignmentForm}
             className='sm:max-w-163'
           >
-            <CategoryForm onCreateCategory={handleOnCreateCategory} onCancel={() => setOpenCategoryForm(false)} />
+            <AssetRetrievalForm onCancel={() => setOpenAssignmentForm(false)} onSubmit={handleOnCreateAssignment} />
           </AppDialog>
 
           <SuccessModal
-            title={'Category Added'}
-            description={"You've successfully added a category."}
+            title={'Asset Retrieved Successfully'}
+            description={"You've successfully retrieved an asset from Sale Team."}
             open={isSuccessModalOpen}
             onOpenChange={setIsSuccessModalOpen}
             backText={'Back'}
             handleBack={() => {
               setIsSuccessModalOpen(false);
             }} 
-          />
+          />  
       </>
     </div>
   );

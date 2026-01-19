@@ -61,7 +61,7 @@ export default function AccountingTable({
   handleSelectItem,
   showDataSize = false,
   isProductTable = false,
-  itemComponent,
+  itemComponent = null,
   isLoading = false,
   setShowDetails,
 }) {
