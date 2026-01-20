@@ -40,7 +40,13 @@ export default function RecentActivity() {
       category: 'Transaction Matching',
       time: '30 mins ago',
       arrowDirection: 'down',
-    }
+    },
+    {
+      description: 'Started reconciliation for savings account',
+      category: 'Reconciliation',
+      time: '1 hour ago',
+      arrowDirection: 'up',
+    },
   ]
 
   return (

@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import ProgressBar from '../../shared/progress-bar';
+import { Button } from '@/components/ui/button';
 
 export default function ReconciliationActivity() {
 
@@ -38,6 +39,12 @@ export default function ReconciliationActivity() {
             <span>Discrepancies</span>
             <span className='text-destructive'>2</span>
           </div>
+        </div>
+
+        <div>
+          <Button className='w-full mt-6 rounded-2xl'>
+            Start Reconciliation
+          </Button>
         </div>
         
       </CardContent>
