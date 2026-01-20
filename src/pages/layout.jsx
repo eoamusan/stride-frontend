@@ -63,6 +63,7 @@ import FixedAssetMgtAssetRetrieval from './dashboard/accounting/fixed-asset-mana
 import FixedAssetMgtReport from './dashboard/accounting/fixed-asset-management/reports/page';
 import TaxOverview from './dashboard/accounting/tax-management/overview/page';
 import BusinessTax from './dashboard/accounting/tax-management/business-tax/page';
+import SalesTax from './dashboard/accounting/tax-management/sales-tax/page';
 
 const router = createBrowserRouter([
   {
@@ -390,7 +391,7 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'sales-tax',
-                        Component: BusinessTax,
+                        Component: SalesTax,
                       },
                       {
                         path: 'business-tax',

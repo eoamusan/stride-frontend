@@ -41,6 +41,7 @@ import emptyTableImg from '@/assets/icons/empty-table.svg';
 
 export default function AccountingTable({
   title,
+  description,
   data = [],
   columns = [],
   searchFields = [],
@@ -220,7 +221,10 @@ export default function AccountingTable({
           </>
         ) : (
           <>
-            <h2 className="text-xl font-bold">{title}</h2>
+            <div>
+              <h2 className="text-xl font-bold">{title}</h2>
+            { description && <span className='text-[#7D7D7D] text-sm'>{description}</span> }
+            </div>
 
             <div className="flex items-center gap-3">
               {isProductTable && (

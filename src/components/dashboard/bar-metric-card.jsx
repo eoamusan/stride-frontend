@@ -18,6 +18,7 @@ import emptyStateImg from '@/assets/images/empty-chart-state.png';
 
 export default function BarChartOverview({
   title,
+  description,
   chartConfig,
   chartData,
   className,
@@ -29,7 +30,10 @@ export default function BarChartOverview({
     <Card className={`p-6 ${className}`}>
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-lg font-semibold">{title}</h3>
+        <div>
+          <h3 className="text-lg font-semibold">{title}</h3>
+          {description && <span className='text-[#7D7D7D] text-sm'>{description}</span>}
+        </div>
         <button className="cursor-pointer text-sm font-medium text-gray-500 hover:text-gray-700">
           MORE
         </button>

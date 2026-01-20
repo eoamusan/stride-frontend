@@ -4,7 +4,7 @@ export default function ProgressBar({ variant, value, className }) {
   let cls = ''
   switch(variant) {
     case 'success':
-      cls = 'bg-[#254C00]'
+      cls = 'bg-[#24A959]'
       break;
     case 'danger':
       cls = 'bg-[#CF0505]'
