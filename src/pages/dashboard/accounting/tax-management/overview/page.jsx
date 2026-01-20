@@ -187,15 +187,15 @@ export default function TaxOverview() {
     </div>
     { !taxData.length ? <EmptyTax onClick={() => handleSetOpenTaxForm(true)} /> : 
       <>
-        <div className='mt-5 flex gap-4 w-full'>
-          <div className='w-3/5'>
+        <div className='mt-5 flex flex-col lg:flex-row gap-4 w-full'>
+          <div className='w-full lg:w-3/5'>
             <UpcomingDeadlines />
           </div>
-          <div className='flex gap-4 w-4/5'>
-            <div className='w-3/5'>
+          <div className='flex flex-col lg:flex-row gap-4 lg:w-4/5'>
+            <div className='w-full lg:w-3/5'>
               <ComplianceRate />
             </div>
-            <div className='flex w-2/5 max-h-[300px]'>
+            <div className='w-2/5 max-h-75 hidden lg:flex bg'>
               <img src={temporaryImg} alt="temporary" className="w-full object-cover" />
             </div>
           </div>

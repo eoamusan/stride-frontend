@@ -6,9 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MoreVerticalIcon, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import AppDropdownMenu from '@/components/dashboard/accounting/shared/app-dropdown-menu';
-import { useNavigate } from 'react-router';
+import { useSearchParams } from 'react-router';
 
 const AssetCard = ({ isSelected, handleSelect, data, setShowDetails }) => {
 
@@ -36,10 +36,14 @@ const AssetCard = ({ isSelected, handleSelect, data, setShowDetails }) => {
     console.log(data)
   }, [data])
 
-  const navigate = useNavigate()
+  const [_searchParams, setSearchParams] = useSearchParams()
   const handleShowDetails = () => {
     const slug = data.id.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
-    navigate({hash: `assetId=${slug}`})
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
+      params.set("type", slug)
+      return params;
+    });
     setShowDetails(true);
   }
 

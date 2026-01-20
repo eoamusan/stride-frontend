@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 export default function UpcomingMaintenance() {
   const [upcomingItems] = useState([])
   return (
-    <Card className="w-full max-w-xs overflow-hidden p-4">
+    <Card className="w-full overflow-hidden p-4">
       <CardContent className={'px-0'}>
         <h2 className='font-semibold'>Upcoming Maintenance</h2>
         { upcomingItems.length ? <div className="flex items-center justify-center h-full">
