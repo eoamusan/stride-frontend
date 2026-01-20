@@ -300,6 +300,25 @@ const taxManagementItems = [
   },
 ];
 
+const bankingAndReconciliationItems = [
+  {
+    title: 'Overview',
+    link: '/dashboard/accounting/banking-reconciliation',
+  },
+  {
+    title: 'Transaction Matching',
+    link: '/dashboard/accounting/banking-reconciliation/transaction-matching',
+  },
+  {
+    title: 'Bank Rules',
+    link: '/dashboard/accounting/banking-reconciliation/bank-rules',
+  },
+  {
+    title: 'Audit Trail',
+    link: '/dashboard/accounting/banking-reconciliation/audit-trail',
+  }
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -375,6 +394,6 @@ const accountingTopItems = {
   inventoryManagement: inventoryManagementItems,
   fixedAssetManagement: fixedAssetManagementItems,
   taxManagement: taxManagementItems,
-  bankingReconciliation: [],
+  bankingReconciliation: bankingAndReconciliationItems,
 };
 export { sidebarItems, accountingTopItems };

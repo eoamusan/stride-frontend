@@ -64,6 +64,7 @@ import FixedAssetMgtReport from './dashboard/accounting/fixed-asset-management/r
 import TaxOverview from './dashboard/accounting/tax-management/overview/page';
 import BusinessTax from './dashboard/accounting/tax-management/business-tax/page';
 import SalesTax from './dashboard/accounting/tax-management/sales-tax/page';
+import BankingOverview from './dashboard/accounting/banking/overview/page';
 
 const router = createBrowserRouter([
   {
@@ -400,17 +401,29 @@ const router = createBrowserRouter([
                     ],
                   },
                   {
+                    path: 'banking-reconciliation',
+                    children: [
+                      {
+                        index: true,
+                        Component: BankingOverview,
+                      },
+                      {
+                        path: 'sales-tax',
+                        Component: SalesTax,
+                      },
+                      {
+                        path: 'business-tax',
+                        Component: BusinessTax,
+                      }
+                    ],
+                  },
+                  {
                     path: 'asset-depreciation',
                     Component: () => <div>Asset & Depreciation Management</div>,
                   },
                   {
                     path: 'sales-income',
                     Component: () => <div>Sales & Income</div>,
-                  },
-                  { path: 'tax', Component: () => <div>Tax Management</div> },
-                  {
-                    path: 'banking-reconciliation',
-                    Component: () => <div>Banking & Reconciliation</div>,
                   },
                   {
                     path: 'remunerations',
