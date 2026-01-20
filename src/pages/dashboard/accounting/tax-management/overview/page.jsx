@@ -7,33 +7,32 @@ import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-re
 import { AppDialog } from '@/components/core/app-dialog';
 import EmptyTax from '@/components/dashboard/accounting/tax-management/overview/empty-state';
 import TaxForm from '@/components/dashboard/accounting/tax-management/overview/tax-form';
+import UpcomingDeadlines from '@/components/dashboard/accounting/tax-management/overview/upcoming-deadlines';
+import ComplianceRate from '@/components/dashboard/accounting/tax-management/overview/compliance-rate';
+import temporaryImg from '@/assets/images/customer-ledger-temp.png';
 
 // Mock data
 const sampleData = [
-  // {
-  //   id: 'Q1 2024 Revenue Budget',
-  //   name: 'Marketing Budget',
-  //   type: 'Profit and loss',
-  //   date: 'Mar 2025-Feb2025',
-  //   lastModifiedBy: 'James Doe',
-  //   timeModified: 'Thur 12:23pm',
-  //   budgetAmount: 150000,
-  //   actualAmount: 150000,
-  //   status: 'Active',
-  //   variance: 90,
-  // },
-  // {
-  //   id: 'Q2 2024 Revenue Budget',
-  //   name: 'Marketing Budget',
-  //   type: 'Profit and loss',
-  //   date: 'Mar 2025-Feb2025',
-  //   lastModifiedBy: 'James Doe',
-  //   timeModified: 'Thur 12:23pm',
-  //   budgetAmount: 150000,
-  //   actualAmount: 150000,
-  //   status: 'Active',
-  //   variance: 23,
-  // },
+  {
+    id: 'INV-1001',
+    date: 'Jan 2024-Dec 2024',
+    customer: 'Acme Corp',
+    amount: 50000,
+    vatRate: '15%',
+    vatAmount: 7500,
+    total: 57500,
+    status: 'Paid',
+  },
+  {
+    id: 'INV-1002',
+    date: 'Jan 2024-Dec 2024',
+    customer: 'Beta LLC',
+    amount: 30000,
+    vatRate: '15%',
+    vatAmount: 4500,
+    total: 34500,
+    status: 'Pending',
+  },
 ]
 
 export default function TaxOverview() {
@@ -87,35 +86,34 @@ export default function TaxOverview() {
   const tableColumns = [
     {
       key: 'id',
-      label: 'No',
-    },
-    {
-      key: 'name',
-      label: 'Asset',
-      className: 'font-medium',
-    },
-    {
-      key: 'type',
-      label: 'Category',
+      label: 'Invoice ID',
     },
     {
       key: 'date',
-      label: 'Department',
+      label: 'Date',
     },
     {
-      key: 'lastModifiedBy',
-      label: 'Value',
+      key: 'customer',
+      label: 'Customer',
     },
     {
-      key: 'timeModified',
-      label: 'Last Updated',
+      key: 'amount',
+      label: 'Amount',
     },
     {
-      key: 'timeModified',
-      label: 'Depreciation',
+      key: 'vatRate',
+      label: 'VAT Rate',
     },
     {
-      key: 'timeModified',
+      key: 'vatAmount',
+      label: 'VAT Amount',
+    },
+    {
+      key: 'total',
+      label: 'Total',
+    },
+    {
+      key: 'status',
       label: 'Status',
     },
   ];
@@ -189,7 +187,20 @@ export default function TaxOverview() {
     </div>
     { !taxData.length ? <EmptyTax onClick={() => handleSetOpenTaxForm(true)} /> : 
       <>
-        <div className="relative mt-10">
+        <div className='mt-5 flex gap-4 w-full'>
+          <div className='w-3/5'>
+            <UpcomingDeadlines />
+          </div>
+          <div className='flex gap-4 w-4/5'>
+            <div className='w-3/5'>
+              <ComplianceRate />
+            </div>
+            <div className='flex w-2/5 max-h-[300px]'>
+              <img src={temporaryImg} alt="temporary" className="w-full object-cover" />
+            </div>
+          </div>
+        </div>
+        <div className="relative mt-5">
           <AccountingTable
             title="Sales Tax Transactions"
             description="Detailed breakdown of VAT on sales"

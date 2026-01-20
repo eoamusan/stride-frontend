@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -121,7 +120,7 @@ export default function CompanyInformation({ onBack, onNext, formValues }) {
           />
 
           <div className="flex gap-2 justify-end mt-4">
-            <Button variant="secondary" onClick={onBack} className="h-10 px-10 text-sm rounded-3xl">
+            <Button variant="secondary" onClick={onBack} disabled className="h-10 px-10 text-sm rounded-3xl">
               Back
             </Button>
             <Button
