@@ -71,7 +71,7 @@ const customerFormSchema = z.object({
 });
 
 export default function AddCustomerModal({ open, onOpenChange, onSuccess }) {
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [countries, setCountries] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -105,11 +105,11 @@ export default function AddCustomerModal({ open, onOpenChange, onSuccess }) {
   const onSubmit = async (data) => {
     try {
       setIsLoading(true);
-      const businessId = businessData?._id;
+      const businessId = activeBusiness?._id;
       const dataWithAccountId = {
         ...data,
         businessId: businessId,
-        accountId: businessData?.accountId,
+        accountId: activeBusiness?.accountId,
       };
 
       await CustomerService.create({
@@ -345,7 +345,12 @@ export default function AddCustomerModal({ open, onOpenChange, onSuccess }) {
                     <FormItem className={'md:col-span-2'}>
                       <FormLabel>Credit Limit</FormLabel>
                       <FormControl>
-                        <Input type={'number'} formatNumber className={'h-10'} {...field} />
+                        <Input
+                          type={'number'}
+                          formatNumber
+                          className={'h-10'}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -472,7 +477,10 @@ export default function AddCustomerModal({ open, onOpenChange, onSuccess }) {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent align="start" className="w-(--radix-popover-trigger-width) p-0">
+                        <PopoverContent
+                          align="start"
+                          className="w-(--radix-popover-trigger-width) p-0"
+                        >
                           <Command>
                             <CommandInput
                               placeholder="Search countries..."

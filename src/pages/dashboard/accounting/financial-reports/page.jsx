@@ -138,7 +138,7 @@ export default function FinancialReports() {
   const [reportPeriod, setReportPeriod] = useState('this-month');
   const [fromDate, setFromDate] = useState();
   const [toDate, setToDate] = useState();
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
 
   // State for report data
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -185,7 +185,7 @@ export default function FinancialReports() {
     const fetchFinancialReports = async () => {
       try {
         if (!fromDate || !toDate) return;
-        const businessId = businessData?._id;
+        const businessId = activeBusiness?._id;
         const params = {};
         if (fromDate) {
           params.startDate = fromDate.toISOString();
@@ -269,7 +269,7 @@ export default function FinancialReports() {
     };
 
     fetchFinancialReports();
-  }, [fromDate, toDate, currentReport, businessData]);
+  }, [fromDate, toDate, currentReport, activeBusiness]);
 
   const handleReportChange = (value) => {
     setSearchParams({ type: value });

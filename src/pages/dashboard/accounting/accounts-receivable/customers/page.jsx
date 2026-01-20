@@ -19,7 +19,7 @@ import { useUserStore } from '@/stores/user-store';
 
 export default function Customers() {
   const navigate = useNavigate();
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
@@ -125,7 +125,7 @@ export default function Customers() {
   // Fetch customers
   useEffect(() => {
     const fetchCustomers = async () => {
-      if (!businessData?._id) return;
+      if (!activeBusiness?._id) return;
 
       try {
         setIsLoading(true);
@@ -186,7 +186,7 @@ export default function Customers() {
     };
 
     fetchCustomers();
-  }, [businessData?._id, currentPage, pageSize]);
+  }, [activeBusiness?._id, currentPage, pageSize]);
 
   const tableColumns = [
     { key: 'name', label: 'Name' },

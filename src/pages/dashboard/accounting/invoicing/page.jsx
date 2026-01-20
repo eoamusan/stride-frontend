@@ -59,7 +59,7 @@ export default function Invoicing() {
     pageSize: 10,
     totalCount: 0,
   });
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const navigate = useNavigate();
 
   // Transform invoice data to match table format
@@ -74,8 +74,12 @@ export default function Invoicing() {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(Number(invoice.product?.total) || 0),
-      issueDate: invoice.invoiceDate ? format(new Date(invoice.invoiceDate), 'PP') : 'N/A',
-      dueDate: invoice.dueDate ? format(new Date(invoice.dueDate), 'PP') : 'N/A',
+      issueDate: invoice.invoiceDate
+        ? format(new Date(invoice.invoiceDate), 'PP')
+        : 'N/A',
+      dueDate: invoice.dueDate
+        ? format(new Date(invoice.dueDate), 'PP')
+        : 'N/A',
       status: invoice?.status || 'PENDING',
     }));
   };
@@ -85,9 +89,9 @@ export default function Invoicing() {
       try {
         setIsLoadingData(true);
 
-        const businessId = businessData?._id;
+        const businessId = activeBusiness?._id;
         setHasBankAccount(
-          businessData?.businessInvoiceSettings?.bankAccounts?.length > 0
+          activeBusiness?.businessInvoiceSettings?.bankAccounts?.length > 0
         );
 
         // Fetch invoices with pagination
@@ -130,10 +134,10 @@ export default function Invoicing() {
       }
     };
 
-    if (businessData?._id) {
+    if (activeBusiness?._id) {
       fetchInvoices();
     }
-  }, [businessData, currentPage, paginationData.pageSize, filterInvoiceType]);
+  }, [activeBusiness, currentPage, paginationData.pageSize, filterInvoiceType]);
 
   // Handle row actions for the table
   const handleRowAction = async (action, item) => {
@@ -269,7 +273,7 @@ export default function Invoicing() {
           <div className="mt-4 mb-10 flex w-full flex-wrap gap-4">
             {/* Total Invoices Metric */}
             <MetricCard
-              className="w-full max-w-[259px]"
+              className="w-full max-w-64.75"
               title="Total Invoices"
               unit=""
               value={invoiceStatsData?.totalInvoices || 0}
@@ -280,7 +284,7 @@ export default function Invoicing() {
 
             {/* Total Amount Metric */}
             <MetricCard
-              className="w-full max-w-[259px]"
+              className="w-full max-w-64.75"
               title="Total Amount"
               unit="$"
               value={parseFloat(invoiceStatsData?.totalAmount || 0).toFixed(2)}
@@ -291,7 +295,7 @@ export default function Invoicing() {
 
             {/* Placeholder metrics for future data */}
             <MetricCard
-              className="w-full max-w-[259px]"
+              className="w-full max-w-64.75"
               title="Outstanding Invoices"
               unit="$"
               value={parseFloat(
@@ -303,7 +307,7 @@ export default function Invoicing() {
             />
 
             <MetricCard
-              className="w-full max-w-[259px]"
+              className="w-full max-w-64.75"
               title="Unpaid Invoices"
               unit=""
               value={invoiceStatsData?.unPaidInvoices || 0}
@@ -313,7 +317,7 @@ export default function Invoicing() {
             />
 
             <MetricCard
-              className="w-full max-w-[259px]"
+              className="w-full max-w-64.75"
               title="Collection Rate"
               unit="%"
               value={invoiceStatsData?.collectionRate || 0}

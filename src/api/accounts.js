@@ -57,7 +57,7 @@ export default class AccountService {
 
     // Build body object with only defined values
     const body = {
-      businessId: userStore.businessData?._id,
+      businessId: userStore.activeBusiness?._id,
     };
     if (accountType !== undefined) body.accountType = accountType;
 
@@ -75,7 +75,7 @@ export default class AccountService {
     const response = await axiosInstance.post(
       'accounting/account/generate/code',
       {
-        businessId: userStore.businessData?._id,
+        businessId: userStore.activeBusiness?._id,
         accountType: accountType,
       },
       {
@@ -101,13 +101,13 @@ export default class AccountService {
     const params = {};
     if (startDate !== undefined) params.startDate = startDate;
     if (endDate !== undefined) params.endDate = endDate;
-    
+
     const payload = {};
     if (accountingAccountId !== undefined)
       payload.accountingAccountId = accountingAccountId;
     if (type !== undefined) payload.type = type;
-    if (businessId === true) payload.businessId = userStore.businessData?._id;
-    if(trialBalance !== undefined) payload.trialBalance = trialBalance;
+    if (businessId === true) payload.businessId = userStore.activeBusiness?._id;
+    if (trialBalance !== undefined) payload.trialBalance = trialBalance;
 
     const response = await axiosInstance.post(
       'accounting/account/transaction',

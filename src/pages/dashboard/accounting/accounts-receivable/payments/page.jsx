@@ -41,7 +41,7 @@ const paymentDropdownActions = [
 ];
 
 export default function Payments() {
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [payments, setPayments] = useState([]);
   const [rawPayments, setRawPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -174,7 +174,7 @@ export default function Payments() {
   // Fetch payments
   useEffect(() => {
     const fetchPayments = async () => {
-      if (!businessData?._id) return;
+      if (!activeBusiness?._id) return;
 
       try {
         setIsLoading(true);
@@ -241,7 +241,7 @@ export default function Payments() {
     };
 
     fetchPayments();
-  }, [businessData?._id, currentPage, pageSize]);
+  }, [activeBusiness?._id, currentPage, pageSize]);
 
   return (
     <div className="my-4 min-h-screen">

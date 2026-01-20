@@ -19,7 +19,7 @@ import CustomerService from '@/api/customer';
 import { useUserStore } from '@/stores/user-store';
 
 export default function CustomerLedger() {
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -225,7 +225,7 @@ export default function CustomerLedger() {
   // Fetch customers
   useEffect(() => {
     const fetchCustomers = async () => {
-      if (!businessData?._id) return;
+      if (!activeBusiness?._id) return;
 
       try {
         setIsLoading(true);
@@ -256,7 +256,7 @@ export default function CustomerLedger() {
     };
 
     fetchCustomers();
-  }, [businessData?._id, currentPage]);
+  }, [activeBusiness?._id, currentPage]);
 
   return (
     <div className="my-4 min-h-screen">

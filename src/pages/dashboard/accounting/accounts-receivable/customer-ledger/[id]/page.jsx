@@ -22,7 +22,7 @@ export default function ViewCustomerLedger() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const view = searchParams.get('view') || 'invoices'; // 'invoices' or 'credit-notes'
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [customer, setCustomer] = useState(null);
   const [invoices, setInvoices] = useState([]);
   const [creditNotes, setCreditNotes] = useState([]);
@@ -102,7 +102,7 @@ export default function ViewCustomerLedger() {
     };
 
     fetchCreditNotes();
-  }, [view, businessData?._id, id, currentPage]);
+  }, [view, activeBusiness?._id, id, currentPage]);
 
   const formatCurrency = (amount, currency) => {
     const symbol =

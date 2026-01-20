@@ -19,7 +19,7 @@ import AccountingTable from '@/components/dashboard/accounting/table';
 
 export default function AccountsReceivableReports() {
   const [dateFilter, setDateFilter] = useState();
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -96,7 +96,7 @@ export default function AccountsReceivableReports() {
       try {
         setIsLoading(true);
         const response = await InvoiceService.fetch({
-          businessId: businessData?._id,
+          businessId: activeBusiness?._id,
           page: currentPage,
           perPage: parseInt(pageSize),
         });
@@ -137,10 +137,10 @@ export default function AccountsReceivableReports() {
       }
     };
 
-    if (businessData?._id) {
+    if (activeBusiness?._id) {
       fetchInvoices();
     }
-  }, [businessData?._id, currentPage, pageSize]);
+  }, [activeBusiness?._id, currentPage, pageSize]);
 
   // Table columns configuration
   const tableColumns = [

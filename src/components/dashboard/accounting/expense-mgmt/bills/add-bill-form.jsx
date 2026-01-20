@@ -83,7 +83,7 @@ export default function AddBillForm({
   const isEditing = Boolean(
     initialData && (initialData.billNo || initialData.billId)
   );
-  const businessId = useUserStore((state) => state.businessData?._id);
+  const businessId = useUserStore((state) => state.activeBusiness?._id);
 
   // Fetch vendors
   useEffect(() => {
@@ -371,7 +371,10 @@ export default function AddBillForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                        <PopoverContent
+                          className="w-(--radix-popover-trigger-width) p-0"
+                          align="start"
+                        >
                           <Calendar
                             mode="single"
                             selected={field.value}
@@ -433,7 +436,10 @@ export default function AddBillForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                        <PopoverContent
+                          className="w-(--radix-popover-trigger-width) p-0"
+                          align="start"
+                        >
                           <Calendar
                             mode="single"
                             selected={field.value}
@@ -525,14 +531,14 @@ export default function AddBillForm({
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                className="h-10 min-w-[120px] text-sm"
+                className="h-10 min-w-30 text-sm"
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="h-10 min-w-[140px] text-sm"
+                className="h-10 min-w-35 text-sm"
                 disabled={isSubmitting}
               >
                 {isSubmitting

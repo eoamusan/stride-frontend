@@ -87,7 +87,7 @@ export default class VendorService {
 
     const response = await axiosInstance.post(
       url,
-      { businessId: userStore.businessData?._id },
+      { businessId: userStore.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,
@@ -101,7 +101,7 @@ export default class VendorService {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(
       'vendor/analytics',
-      { businessId: userStore.businessData?._id },
+      { businessId: userStore.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,

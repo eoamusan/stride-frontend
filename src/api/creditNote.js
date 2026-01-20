@@ -47,18 +47,14 @@ export default class CreditNoteService {
       : 'credit-note/fetch';
 
     const body = {};
-    body.businessId = userStore.businessData?._id;
+    body.businessId = userStore.activeBusiness?._id;
     if (customerId) body.customerId = customerId;
 
-    const response = await axiosInstance.post(
-      url,
-      body,
-      {
-        headers: {
-          Authorization: `Bearer ${userStore.data?.accessToken}`,
-        },
-      }
-    );
+    const response = await axiosInstance.post(url, body, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
     return response;
   }
 
@@ -67,7 +63,7 @@ export default class CreditNoteService {
     const response = await axiosInstance.post(
       'credit-note/generate/memo',
       {
-        businessId: userStore.businessData?._id,
+        businessId: userStore.activeBusiness?._id,
       },
       {
         headers: {

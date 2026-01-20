@@ -17,7 +17,7 @@ export default class FinancialReportService {
 
     const response = await axiosInstance.post(
       url,
-      { businessId: userStore.businessData?._id },
+      { businessId: userStore.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,
@@ -42,7 +42,7 @@ export default class FinancialReportService {
 
     const response = await axiosInstance.post(
       url,
-      { businessId: userStore.businessData?._id },
+      { businessId: userStore.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,
@@ -67,7 +67,7 @@ export default class FinancialReportService {
 
     const response = await axiosInstance.post(
       url,
-      { businessId: userStore.businessData?._id },
+      { businessId: userStore.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,
@@ -92,7 +92,7 @@ export default class FinancialReportService {
 
     const response = await axiosInstance.post(
       url,
-      { businessId: userStore.businessData?._id },
+      { businessId: userStore.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,

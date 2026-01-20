@@ -24,7 +24,7 @@ export default function AccountsReceivable() {
   const navigate = useNavigate();
   const [createInvoice, setCreateInvoice] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,7 +73,7 @@ export default function AccountsReceivable() {
       try {
         setIsLoading(true);
         const response = await InvoiceService.fetch({
-          businessId: businessData?._id,
+          businessId: activeBusiness?._id,
           page: currentPage,
           perPage: parseInt(pageSize),
         });
@@ -114,10 +114,10 @@ export default function AccountsReceivable() {
       }
     };
 
-    if (businessData?._id) {
+    if (activeBusiness?._id) {
       fetchInvoices();
     }
-  }, [businessData?._id, currentPage, pageSize]);
+  }, [activeBusiness?._id, currentPage, pageSize]);
 
   // Sample data for Accounts Receivable table
   // Removed - using API data instead

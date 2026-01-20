@@ -275,7 +275,7 @@ export default function ContactSupplierForm({
                         placeholder="Type message..."
                         currentValue={field.value}
                         setCurrentValue={field.onChange}
-                        className="min-h-[200px]"
+                        className="min-h-50"
                       />
                     </div>
                   </FormControl>
@@ -364,11 +364,11 @@ export default function ContactSupplierForm({
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                className="h-10 min-w-[120px] rounded-full"
+                className="h-10 min-w-30 rounded-full"
               >
                 Cancel
               </Button>
-              <Button type="submit" className="h-10 min-w-[140px] rounded-full">
+              <Button type="submit" className="h-10 min-w-35 rounded-full">
                 Send Message
               </Button>
             </div>

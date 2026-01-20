@@ -33,7 +33,7 @@ const customerDropdownActions = [
 export default function Customers() {
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -128,7 +128,7 @@ export default function Customers() {
   };
 
   useEffect(() => {
-    if (businessData) {
+    if (activeBusiness) {
       // Fetch customer data based on businessId
       const fetchCustomerData = async () => {
         try {
@@ -173,7 +173,7 @@ export default function Customers() {
       fetchCustomerData();
     }
   }, [
-    businessData,
+    activeBusiness,
     isCreateCustomerOpen,
     currentPage,
     paginationData.pageSize,

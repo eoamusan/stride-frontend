@@ -18,7 +18,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import StrideLogo from '@/assets/icons/stride.svg';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { LandmarkIcon } from 'lucide-react';
+import { useState } from 'react';
+import BusinessService from '@/api/business';
+import { useUserStore } from '@/stores/user-store';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 
 const formSchema = z.object({
   businessName: z
@@ -53,40 +64,74 @@ const formSchema = z.object({
   }),
 });
 
-export default function Setup({ setNext, setFormData, formData }) {
+export default function AddBusinessModal({ isOpen, onClose }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const userStore = useUserStore();
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      business_name: formData.business_name || '',
-      num_of_employees: formData.num_of_employees || '',
-      business_location: formData.business_location || '',
-      industry: formData.industry || '',
-      currency: formData.currency || '',
-      time_zone: formData.time_zone || '',
+      businessName: '',
+      numberOfEmployees: '',
+      businessLocation: '',
+      industry: '',
+      currency: '',
+      timezone: '',
     },
   });
 
-  const onSubmit = (data) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-    setNext();
+  const onSubmit = async (data) => {
+    try {
+      setIsLoading(true);
+      await BusinessService.create({
+        businessName: data.businessName,
+        numberOfEmployees: data.numberOfEmployees,
+        businessLocation: data.businessLocation,
+        industry: data.industry,
+        currency: data.currency,
+        timezone: data.timezone,
+        goals: [], // Empty goals array for now
+        accountId: userStore.data?.account?._id,
+      });
+
+      // Refresh business data
+      await userStore.getBusinessData();
+
+      // Show success modal
+      setShowSuccess(true);
+      form.reset();
+    } catch (err) {
+      console.error('Error creating business:', err);
+      // Handle error - you can add toast notification here
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSuccessClose = () => {
+    setShowSuccess(false);
+    onClose();
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-16">
-      <div className="mx-auto flex w-full max-w-180 flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
-        <header>
-          <img
-            src={StrideLogo}
-            alt="Oneda"
-            className="mx-auto block w-32.75"
-          />
-          <hgroup className="mt-6 max-w-105 text-center">
-            <h1 className="text-4xl font-semibold">
-              Complete Your Business Information
-            </h1>
-          </hgroup>
-        </header>
-        <main className="mt-4 w-full max-w-105">
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-155">
+          <DialogHeader>
+            <div className="mb-2 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#254C00]">
+                <LandmarkIcon className="h-6 w-6 text-white" />
+              </div>
+              <DialogTitle className="text-2xl">
+                Fill your Business Information
+              </DialogTitle>
+            </div>
+            <DialogDescription className="sr-only">
+              Complete the form to add a new business
+            </DialogDescription>
+          </DialogHeader>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -94,11 +139,13 @@ export default function Setup({ setNext, setFormData, formData }) {
                 name="businessName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Business Name</FormLabel>
+                    <FormLabel>
+                      Business Name<span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Your business name"
-                        className={'h-10'}
+                        placeholder="Enter Business name"
+                        className="h-11"
                         {...field}
                       />
                     </FormControl>
@@ -118,8 +165,8 @@ export default function Setup({ setNext, setFormData, formData }) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select number of employees" />
+                        <SelectTrigger className="h-11 w-full">
+                          <SelectValue placeholder="Select option" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -148,8 +195,8 @@ export default function Setup({ setNext, setFormData, formData }) {
                     <FormLabel>Business Location</FormLabel>
                     <FormControl>
                       <Input
-                        className={'h-10'}
-                        placeholder="e.g., Lagos, Nigeria"
+                        className="h-11"
+                        placeholder="Lagos, Nigeria"
                         {...field}
                       />
                     </FormControl>
@@ -169,8 +216,8 @@ export default function Setup({ setNext, setFormData, formData }) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select your industry" />
+                        <SelectTrigger className="h-11 w-full">
+                          <SelectValue placeholder="Select Industry" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -205,8 +252,8 @@ export default function Setup({ setNext, setFormData, formData }) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select currency" />
+                        <SelectTrigger className="h-11 w-full">
+                          <SelectValue placeholder="Select Currency" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -246,8 +293,8 @@ export default function Setup({ setNext, setFormData, formData }) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select time zone" />
+                        <SelectTrigger className="h-11 w-full">
+                          <SelectValue placeholder="Select Time Zone" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -288,13 +335,27 @@ export default function Setup({ setNext, setFormData, formData }) {
                 )}
               />
 
-              <Button className={'h-10 w-full'} size={'lg'} type="submit">
-                Next
+              <Button
+                className="h-12 w-full"
+                size="lg"
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Adding Business...' : 'Add Business'}
               </Button>
             </form>
           </Form>
-        </main>
-      </div>
-    </div>
+        </DialogContent>
+      </Dialog>
+
+      <SuccessModal
+        open={showSuccess}
+        onOpenChange={setShowSuccess}
+        title="Business Added"
+        description="You've successfully added a new business."
+        backText="Done"
+        handleBack={handleSuccessClose}
+      />
+    </>
   );
 }

@@ -101,7 +101,7 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
   const [openInvoiceCombobox, setOpenInvoiceCombobox] = useState(false);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -222,7 +222,7 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
       }
     };
 
-    if (open && businessData?._id) {
+    if (open && activeBusiness?._id) {
       // Debounce the search - wait 500ms after user stops typing
       const debounceTimer = setTimeout(() => {
         fetchCustomers();
@@ -231,7 +231,7 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
       // Cleanup function to clear timeout if user keeps typing
       return () => clearTimeout(debounceTimer);
     }
-  }, [open, businessData?._id, customerSearchQuery]);
+  }, [open, activeBusiness?._id, customerSearchQuery]);
 
   // Fetch invoices with debounced search query
   useEffect(() => {
@@ -239,7 +239,7 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
       try {
         setIsLoadingInvoices(true);
         const response = await InvoiceService.fetch({
-          businessId: businessData?._id,
+          businessId: activeBusiness?._id,
           search: invoiceSearchQuery,
           page: 1,
           perPage: 50,
@@ -253,7 +253,7 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
       }
     };
 
-    if (open && businessData?._id) {
+    if (open && activeBusiness?._id) {
       // Debounce the search - wait 500ms after user stops typing
       const debounceTimer = setTimeout(() => {
         fetchInvoices();
@@ -262,7 +262,7 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
       // Cleanup function to clear timeout if user keeps typing
       return () => clearTimeout(debounceTimer);
     }
-  }, [open, businessData?._id, invoiceSearchQuery]);
+  }, [open, activeBusiness?._id, invoiceSearchQuery]);
 
   const calculateSubtotal = () => {
     return watchLineItems.reduce((sum, item) => {
@@ -312,7 +312,7 @@ export default function EditCreditNote({ open, onOpenChange, creditNoteData }) {
 
       // Transform form data to match backend API structure
       const payload = {
-        businessId: businessData?._id,
+        businessId: activeBusiness?._id,
         customerId: data.customer,
         invoiceId: data.invoiceId || '',
         memoDate: data.credit_memo_date.toISOString(),
