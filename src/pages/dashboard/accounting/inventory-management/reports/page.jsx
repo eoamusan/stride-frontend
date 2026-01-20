@@ -64,7 +64,7 @@ export default function Reports() {
                 <ChevronDownIcon className="ml-auto h-4 w-4 opacity-90" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+            <PopoverContent className="p-0" align="start">
               <Calendar
                 className={'w-full'}
                 mode="single"

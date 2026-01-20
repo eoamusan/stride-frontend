@@ -24,6 +24,7 @@ export default function BarChartOverview({
   emptyState = false,
   showLegend = false,
   numberOfBars = 1,
+  yAxisFormatter,
 }) {
   return (
     <Card className={`p-6 ${className}`}>
@@ -116,6 +117,7 @@ export default function BarChartOverview({
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12, fill: '#6B7280' }}
+                tickFormatter={yAxisFormatter}
               />
               <ChartTooltip
                 cursor={{ fill: 'rgba(139, 92, 246, 0.1)' }}

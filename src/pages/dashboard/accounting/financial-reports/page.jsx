@@ -323,7 +323,7 @@ export default function FinancialReports() {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Report Period</label>
             <Select value={reportPeriod} onValueChange={setReportPeriod}>
-              <SelectTrigger className="h-10 min-w-[170px] bg-white">
+              <SelectTrigger className="h-10 min-w-42.5 bg-white">
                 <SelectValue placeholder="Select Date" />
               </SelectTrigger>
               <SelectContent>
@@ -349,7 +349,7 @@ export default function FinancialReports() {
                 <Button
                   variant="outline"
                   className={cn(
-                    'h-10 min-w-[220px] justify-start text-left text-sm font-normal',
+                    'h-10 min-w-55 justify-start text-left text-sm font-normal',
                     !fromDate && 'text-muted-foreground',
                     reportPeriod !== 'custom-dates' &&
                       'cursor-not-allowed opacity-50'
@@ -382,7 +382,7 @@ export default function FinancialReports() {
                 <Button
                   variant="outline"
                   className={cn(
-                    'h-10 min-w-[220px] justify-start text-left text-sm font-normal',
+                    'h-10 min-w-55 justify-start text-left text-sm font-normal',
                     !toDate && 'text-muted-foreground',
                     reportPeriod !== 'custom-dates' &&
                       'cursor-not-allowed opacity-50'

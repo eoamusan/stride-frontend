@@ -13,21 +13,17 @@ export default function MobileSidebar({ isOpen, onClose }) {
 
   // Effect to automatically set view based on pathname
   useEffect(() => {
-    if (location.pathname.includes('/accounting')) {
-      // Find the accounting parent item
-      const accountingParent = sidebarItems.find(
-        (item) =>
-          item.title === 'Accounting' &&
-          item.children &&
-          item.children.length > 0
-      );
+    // Dynamically find the parent item based on the current path
+    const activeItem = sidebarItems.find(
+      (item) =>
+        item.children?.length > 0 && location.pathname.startsWith(item.link)
+    );
 
-      if (accountingParent) {
-        setCurrentView('children');
-        setActiveParent(accountingParent);
-      }
+    if (activeItem) {
+      setCurrentView('children');
+      setActiveParent(activeItem);
     } else {
-      // Reset to main view if not in accounting section
+      // Reset to main view if no matching parent with children is found
       setCurrentView('main');
       setActiveParent(null);
     }
@@ -37,6 +33,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
     if (item.children && item.children.length > 0) {
       setCurrentView('children');
       setActiveParent(item);
+      navigate(item.children[0].link);
     } else {
       navigate(item.link);
       onClose();
@@ -51,6 +48,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
   const handleBackClick = () => {
     setCurrentView('main');
     setActiveParent(null);
+    navigate('/dashboard');
   };
 
   const handleClose = () => {
