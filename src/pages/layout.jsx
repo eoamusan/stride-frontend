@@ -65,6 +65,7 @@ import TaxOverview from './dashboard/accounting/tax-management/overview/page';
 import BusinessTax from './dashboard/accounting/tax-management/business-tax/page';
 import SalesTax from './dashboard/accounting/tax-management/sales-tax/page';
 import BankingOverview from './dashboard/accounting/banking/overview/page';
+import TransactionMatching from './dashboard/accounting/banking/transaction-matching/page';
 
 const router = createBrowserRouter([
   {
@@ -408,12 +409,16 @@ const router = createBrowserRouter([
                         Component: BankingOverview,
                       },
                       {
-                        path: 'sales-tax',
-                        Component: SalesTax,
+                        path: 'transaction-matching',
+                        Component: TransactionMatching,
                       },
                       {
-                        path: 'business-tax',
-                        Component: BusinessTax,
+                        path: 'bank-rules',
+                        Component: BankingOverview,
+                      },
+                      {
+                        path: 'audit-trail',
+                        Component: BankingOverview,
                       }
                     ],
                   },

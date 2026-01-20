@@ -1,47 +1,54 @@
 import { useCallback, useMemo, useState } from 'react';
+import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, HousePlus, Landmark, PlusCircleIcon, SettingsIcon, UploadIcon } from 'lucide-react';
+import { DownloadIcon, HousePlus, Landmark, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { AppDialog } from '@/components/core/app-dialog';
-import UpcomingDeadlines from '@/components/dashboard/accounting/tax-management/overview/upcoming-deadlines';
-import ComplianceRate from '@/components/dashboard/accounting/tax-management/overview/compliance-rate';
-import temporaryImg from '@/assets/images/customer-ledger-temp.png';
-import EmptyBank from '@/components/dashboard/accounting/banking/overview/empty-state';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import BankForm from '@/components/dashboard/accounting/banking/overview/bank-form';
 
 // Mock data
 const sampleData = [
-  // {
-  //   id: 'INV-1001',
-  //   date: 'Jan 2024-Dec 2024',
-  //   customer: 'Acme Corp',
-  //   amount: 50000,
-  //   vatRate: '15%',
-  //   vatAmount: 7500,
-  //   total: 57500,
-  //   status: 'Paid',
-  // },
-  // {
-  //   id: 'INV-1002',
-  //   date: 'Jan 2024-Dec 2024',
-  //   customer: 'Beta LLC',
-  //   amount: 30000,
-  //   vatRate: '15%',
-  //   vatAmount: 4500,
-  //   total: 34500,
-  //   status: 'Pending',
-  // },
+  {
+    id: 'TXN-1001',
+    date: '2024-01-15',
+    bankTransaction: 'Payment to Supplier A',
+    amount: 1500,
+    ledgerMatch: 'Invoice INV-1001',
+    confidence: 'High',
+    status: 'Matched',
+  },
+  {
+    id: 'TXN-1002',
+    date: '2024-01-20',
+    bankTransaction: 'Payment from Client B',
+    amount: 2500,
+    ledgerMatch: 'Invoice INV-1002',
+    confidence: 'Medium',
+    status: 'Matched',
+  },
+  {
+    id: 'TXN-1003',
+    date: '2024-01-22',
+    bankTransaction: 'Unrecognized Transaction',
+    amount: 500,
+    ledgerMatch: 'N/A',
+    confidence: 'Medium',
+    status: 'Unmatched',
+  },
 ]
 
 export default function TransactionMatching() {
-  const [ openTaxForm, setOpenTaxForm ] = useState(false)
-  const [bankData] = useState([...sampleData])
+  // State for table selection
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [ openBankForm, setOpenBankForm ] = useState(false)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+  const [assets] = useState([...sampleData])
 
   const assetMetrics = useMemo(() => {
     return [
       {
-        title: 'Total Bank Balance',
+        title: 'Total Transactions',
         value: 2000,
       },
       {
@@ -49,89 +56,165 @@ export default function TransactionMatching() {
         value: 3000,
       },
       {
-        title: 'Pending Reconciliation',
+        title: 'Unmatched',
         value: 23,
       },
       {
-        title: 'Discrepancies',
+        title: 'Auto Suggestions',
         value: 1000,
       },
     ]
   })
 
-  const handleSetOpenTaxForm = useCallback((value) => {
-    setOpenTaxForm(value)
-  }, [])
+  // Handle table item selection
+  const handleSelectItem = (itemId, checked) => {
+    setSelectedItems((prevItems) => {
+      if (checked) {
+        return [...prevItems, itemId];
+      } else {
+        return prevItems.filter((id) => id !== itemId);
+      }
+    });
+  };
 
-  const handleOnCreateTax = useCallback((data) => {
-    console.log('Tax created:', data)
+  // Handle select all functionality
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedItems(assets.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
+  // Table columns configuration
+  const tableColumns = [
+    {
+      key: 'date',
+      label: 'Date',
+    },
+    {
+      key: 'bankTransaction',
+      label: 'Bank Transaction',
+    },
+    {
+      key: 'amount',
+      label: 'Amount',
+    },
+    {
+      key: 'ledgerMatch',
+      label: 'Ledger Match',
+    },
+    {
+      key: 'confidence',
+      label: 'Confidence',
+    },
+    {
+      key: 'status',
+      label: 'Status',
+    },
+  ];
+
+  // Dropdown actions for each row
+  const dropdownActions = [
+    { key: 'view', label: 'View' },
+  ];
+
+  // Pagination data
+  const paginationData = {
+    page: 1,
+    totalPages: 6,
+    pageSize: 12,
+    totalCount: 64,
+  };
+
+  const handleRowAction = (action, item) => {
+    console.log(`Action ${action} on item:`, item);
+
+    // Implement row action logic here
+    switch (action) {
+      case 'view':
+        break;
+    }
+  };
+
+  const handleOnCreateBank = useCallback((data) => {
+    console.log('Bank created:', data)
   }, [])
 
   return (
     <div className='my-4 min-h-screen'>
-    <div className={cn(!bankData.length && 'hidden')}>
-      <div className="flex flex-wrap items-center justify-between gap-6">
-        <hgroup>
-          <h1 className="text-2xl font-bold">Overview</h1>
-          <p className="text-sm text-[#7D7D7D]">
-            Overview of your bank accounts, match transactions and reconcile statements
-          </p>
-        </hgroup>
-
-        <div className="flex space-x-4">
-          <Button
-            className={'h-10 rounded-2xl text-sm'}
-            variant="outline"
-          >
-            <UploadIcon className="size-4" />
-            Upload Statement
-          </Button>
-          <Button
-            onClick={() => setOpenTaxForm(true)}
-            className={'h-10 rounded-2xl text-sm'}
-          >
-            <PlusCircleIcon className="size-4" />
-            Connect Bank
-          </Button>
-          <Button size={'icon'} className={'size-10'} variant={'outline'}>
-            <DownloadIcon size={16} />
-          </Button>
-          <Button size={'icon'} className={'size-10'} variant={'outline'}>
-            <SettingsIcon size={16} />
-          </Button>
-        </div>
-      </div>
-
-      <div className="mt-10">
-        <Metrics metrics={assetMetrics} />
-      </div>
-    </div>
-    { !bankData.length ? <EmptyBank onClick={() => handleSetOpenTaxForm(true)} /> : 
       <>
-        <div className='mt-5 flex flex-col lg:flex-row gap-4 w-full'>
-          <div className='w-full lg:w-3/5'>
-            <UpcomingDeadlines />
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <hgroup>
+              <h1 className="text-2xl font-bold">Asset Categories Management</h1>
+              <p className="text-sm text-[#7D7D7D]">
+                Configure and manage depreciation settings for different asset types
+              </p>
+            </hgroup>
+
+            <div className="flex space-x-4">
+              <Button
+                onClick={() => setOpenBankForm(true)}
+                className={'h-10 rounded-2xl text-sm'}
+              >
+                <PlusCircleIcon className="size-4" />
+                Connect Bank
+              </Button>
+              <Button size={'icon'} className={'size-10'} variant={'outline'}>
+                <DownloadIcon size={16} />
+              </Button>
+              <Button size={'icon'} className={'size-10'} variant={'outline'}>
+                <SettingsIcon size={16} />
+              </Button>
+            </div>
           </div>
-          <div className='flex flex-col lg:flex-row gap-4 lg:w-4/5'>
-            <div className='w-full lg:w-3/5'>
-              <ComplianceRate />
-            </div>
-            <div className='w-2/5 max-h-75 hidden lg:flex bg'>
-              <img src={temporaryImg} alt="temporary" className="w-full object-cover" />
-            </div>
+
+          <div className="mt-10">
+            <Metrics metrics={assetMetrics} />
           </div>
         </div>
-      </>}
-      <AppDialog 
-        title="Connect Bank Account"
-        description="Connect your bank account via secure API or upload a CSV statement "
-        headerIcon={<Landmark />}
-        open={openTaxForm} 
-        onOpenChange={setOpenTaxForm}
-        className='sm:max-w-163'
-      >
-        <BankForm onCreateTax={handleOnCreateTax} />
-      </AppDialog>
+          <>
+            <div className="relative mt-10">
+              <AccountingTable
+                title="Transaction Matching"
+                description="Automatically Reconcile and Verify Your Financial Transactions"
+                data={assets}
+                columns={tableColumns}
+                searchFields={[]}
+                searchPlaceholder="Search......"
+                dropdownActions={dropdownActions}
+                paginationData={paginationData}
+                selectedItems={selectedItems}
+                handleSelectItem={handleSelectItem}
+                handleSelectAll={handleSelectAll}
+                onRowAction={handleRowAction}
+                showDataSize
+              />
+            </div>
+          </>
+          <AppDialog 
+            title="Connect Bank Account"
+            description="Connect your bank account via secure API or upload a CSV statement "
+            headerIcon={<Landmark />}
+            open={openBankForm} 
+            onOpenChange={setOpenBankForm}
+            className='sm:max-w-163'
+          >
+            <BankForm onCreateBank={handleOnCreateBank} />
+          </AppDialog>
+
+          <SuccessModal
+            title={'Category Added'}
+            description={"You've successfully added a category."}
+            open={isSuccessModalOpen}
+            onOpenChange={setIsSuccessModalOpen}
+            backText={'Back'}
+            handleBack={() => {
+              setIsSuccessModalOpen(false);
+            }} 
+          />
+      </>
     </div>
   );
 }
