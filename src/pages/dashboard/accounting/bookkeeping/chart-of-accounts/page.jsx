@@ -45,7 +45,7 @@ export default function ChartOfAccounts() {
     hasNextPage: false,
     hasPrevPage: false,
   });
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [columns, setColumns] = useState({
     number: true,
     type: true,
@@ -79,7 +79,7 @@ export default function ChartOfAccounts() {
   // Fetch accounts from API
   useEffect(() => {
     const fetchAccounts = async () => {
-      if (!businessData?._id) return;
+      if (!activeBusiness?._id) return;
 
       try {
         setIsLoading(true);
@@ -136,7 +136,7 @@ export default function ChartOfAccounts() {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [businessData, currentPage, pageSize, searchTerm]);
+  }, [activeBusiness, currentPage, pageSize, searchTerm]);
 
   // Handlers
   const handleBatchActionChange = (value) => {

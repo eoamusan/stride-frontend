@@ -99,7 +99,7 @@ export default function AddVendorForm({
     vendorPassport: [],
   });
 
-  const businessId = useUserStore((state) => state.businessData?._id);
+  const businessId = useUserStore((state) => state.activeBusiness?._id);
 
   // Fetch countries when modal opens
   useEffect(() => {

@@ -151,7 +151,7 @@ const reportPeriodOptions = [
 const filterReportOptions = [
   { value: 'ALL', label: 'All Invoices' },
   { value: 'PAID', label: 'Paid Invoices' },
-  { value: 'UNPAID', label: 'Unpaid Invoice' },
+  { value: 'PENDING', label: 'Unpaid Invoice' },
 ];
 
 export default function RunReportDialog({ isOpen = false, onClose, onSubmit }) {

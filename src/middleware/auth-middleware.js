@@ -32,7 +32,7 @@ export async function authMiddleware() {
 
         // Clear storage and redirect to login
         localStorage.removeItem('user-storage');
-        useUserStore.setState({ data: null, businessData: null });
+        useUserStore.setState({ data: null, activeBusiness: null });
 
         throw redirect('/login');
       }
@@ -41,7 +41,7 @@ export async function authMiddleware() {
     // For other errors, clear and redirect
     console.error('Authentication failed:', error);
     localStorage.removeItem('user-storage');
-    useUserStore.setState({ data: null, businessData: null });
+    useUserStore.setState({ data: null, activeBusiness: null });
 
     throw redirect('/login');
   }

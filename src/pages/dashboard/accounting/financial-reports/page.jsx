@@ -138,7 +138,7 @@ export default function FinancialReports() {
   const [reportPeriod, setReportPeriod] = useState('this-month');
   const [fromDate, setFromDate] = useState();
   const [toDate, setToDate] = useState();
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
 
   // State for report data
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -185,7 +185,7 @@ export default function FinancialReports() {
     const fetchFinancialReports = async () => {
       try {
         if (!fromDate || !toDate) return;
-        const businessId = businessData?._id;
+        const businessId = activeBusiness?._id;
         const params = {};
         if (fromDate) {
           params.startDate = fromDate.toISOString();
@@ -269,7 +269,7 @@ export default function FinancialReports() {
     };
 
     fetchFinancialReports();
-  }, [fromDate, toDate, currentReport, businessData]);
+  }, [fromDate, toDate, currentReport, activeBusiness]);
 
   const handleReportChange = (value) => {
     setSearchParams({ type: value });
@@ -323,7 +323,7 @@ export default function FinancialReports() {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Report Period</label>
             <Select value={reportPeriod} onValueChange={setReportPeriod}>
-              <SelectTrigger className="h-10 min-w-[170px] bg-white">
+              <SelectTrigger className="h-10 min-w-42.5 bg-white">
                 <SelectValue placeholder="Select Date" />
               </SelectTrigger>
               <SelectContent>
@@ -349,7 +349,7 @@ export default function FinancialReports() {
                 <Button
                   variant="outline"
                   className={cn(
-                    'h-10 min-w-[220px] justify-start text-left text-sm font-normal',
+                    'h-10 min-w-55 justify-start text-left text-sm font-normal',
                     !fromDate && 'text-muted-foreground',
                     reportPeriod !== 'custom-dates' &&
                       'cursor-not-allowed opacity-50'
@@ -382,7 +382,7 @@ export default function FinancialReports() {
                 <Button
                   variant="outline"
                   className={cn(
-                    'h-10 min-w-[220px] justify-start text-left text-sm font-normal',
+                    'h-10 min-w-55 justify-start text-left text-sm font-normal',
                     !toDate && 'text-muted-foreground',
                     reportPeriod !== 'custom-dates' &&
                       'cursor-not-allowed opacity-50'

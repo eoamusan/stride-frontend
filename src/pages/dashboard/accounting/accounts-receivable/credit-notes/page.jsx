@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,42 +12,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AddCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/add-credit';
+import EditCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/edit-credit';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import ViewCreditNote from '@/components/dashboard/accounting/invoicing/credit-notes/view-credit';
-
-const creditNotes = [
-  {
-    id: 'CN-2024-001',
-    customer: 'ABC Corporation',
-    originalInvoice: 'INV-2024-001',
-    reason: 'Product Return',
-    amount: '$15,400.00',
-    issueDate: 'Jul 20, 2024',
-    status: 'Approved',
-  },
-  {
-    id: 'CN-2024-001',
-    customer: 'ABC Corporation',
-    originalInvoice: 'INV-2024-001',
-    reason: 'Invoice error',
-    amount: '$15,400.00',
-    issueDate: 'Jul 20, 2024',
-    status: 'Pending',
-  },
-  {
-    id: 'CN-2024-001',
-    customer: 'ABC Corporation',
-    originalInvoice: 'INV-2024-001',
-    reason: 'Product Return',
-    amount: '$15,400.00',
-    issueDate: 'Jul 20, 2024',
-    status: 'Refunded',
-  },
-];
+import CreditNoteService from '@/api/creditNote';
+import { format } from 'date-fns';
 
 const creditNoteColumns = [
-  { key: 'id', label: 'Credit Note ID' },
+  { key: 'id', label: 'Credit Memo No' },
   { key: 'customer', label: 'Customer' },
   { key: 'originalInvoice', label: 'Original Invoice' },
   { key: 'reason', label: 'Reason' },
@@ -57,43 +30,32 @@ const creditNoteColumns = [
 ];
 
 const creditNoteStatusStyles = {
-  Approved: 'bg-green-100 text-green-800 hover:bg-green-100',
-  Pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-  Refunded: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+  approved: 'bg-green-100 text-green-800 hover:bg-green-100',
+  pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+  refunded: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
 };
 
 const creditNoteDropdownActions = [
-  { key: 'edit', label: 'Edit' },
   { key: 'view', label: 'View' },
+  { key: 'edit', label: 'Edit' },
   { key: 'export', label: 'Export' },
-];
-
-const creditNotePaginationData = {
-  page: 1,
-  totalPages: 10,
-  pageSize: 10,
-  totalCount: 100,
-};
-
-const creditMetrics = [
-  { title: 'Total Credit Notes', value: '24' },
-  {
-    title: 'Total Amount',
-    value: '$15,600',
-  },
-  {
-    title: 'Pending Credits',
-    value: '$64',
-  },
-  {
-    title: 'Applied Credits',
-    value: '$15,600',
-  },
 ];
 
 export default function CreditNotes() {
   const [openCreditNoteForm, setOpenCreditNoteForm] = useState(false);
+  const [isEditCreditNoteOpen, setIsEditCreditNoteOpen] = useState(false);
   const [isViewCreditNoteOpen, setIsViewCreditNoteOpen] = useState(false);
+  const [selectedCreditNote, setSelectedCreditNote] = useState(null);
+  const [creditNoteList, setCreditNoteList] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationData, setPaginationData] = useState({
+    page: 1,
+    totalPages: 1,
+    pageSize: 20,
+    totalCount: 0,
+  });
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   // State for column visibility
   const [columns, setColumns] = useState({
     number: true,
@@ -126,11 +88,200 @@ export default function CreditNotes() {
   // Handle select all functionality
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedItems(creditNotes.map((item) => item.id));
+      const transformedData = transformCreditNoteData(creditNoteList);
+      setSelectedItems(transformedData.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
   };
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    setSelectedItems([]);
+  };
+
+  // Calculate metrics from credit note data
+  const calculateMetrics = () => {
+    const totalAmount = creditNoteList.reduce((sum, item) => {
+      const lineItemsTotal =
+        item.lineItems?.reduce(
+          (itemSum, lineItem) => itemSum + lineItem.amount * lineItem.qty,
+          0
+        ) || 0;
+      return sum + lineItemsTotal;
+    }, 0);
+
+    const pendingCredits = creditNoteList
+      .filter((item) => item.sendLater)
+      .reduce((sum, item) => {
+        const lineItemsTotal =
+          item.lineItems?.reduce(
+            (itemSum, lineItem) => itemSum + lineItem.amount * lineItem.qty,
+            0
+          ) || 0;
+        return sum + lineItemsTotal;
+      }, 0);
+
+    const appliedCredits = creditNoteList
+      .filter((item) => !item.sendLater)
+      .reduce((sum, item) => {
+        const lineItemsTotal =
+          item.lineItems?.reduce(
+            (itemSum, lineItem) => itemSum + lineItem.amount * lineItem.qty,
+            0
+          ) || 0;
+        return sum + lineItemsTotal;
+      }, 0);
+
+    return [
+      {
+        title: 'Total Credit Notes',
+        value: String(paginationData.totalCount || 0),
+      },
+      {
+        title: 'Total Amount',
+        value: totalAmount.toFixed(2),
+        symbol: '$',
+      },
+      {
+        title: 'Pending Credits',
+        value: pendingCredits.toFixed(2),
+        symbol: '$',
+      },
+      {
+        title: 'Applied Credits',
+        value: appliedCredits.toFixed(2),
+        symbol: '$',
+      },
+    ];
+  };
+
+  // Transform credit note data to match table format
+  const transformCreditNoteData = (creditNotes) => {
+    if (!creditNotes || !Array.isArray(creditNotes)) return [];
+
+    return creditNotes.map((item) => ({
+      id: item.memoNumber || 'N/A',
+      customer: item.customerId?.displayName || 'N/A',
+      originalInvoice: item.invoiceId?.invoiceNo || '-',
+      reason: item.messageOnMemo || 'N/A',
+      amount: `${item.lineItems?.reduce((sum, lineItem) => sum + lineItem.amount * lineItem.qty, 0).toFixed(2) || '0.00'}`,
+      issueDate: item.memoDate
+        ? format(new Date(item.memoDate), 'MMM dd, yyyy')
+        : 'N/A',
+      status: item.status?.toLowerCase(),
+    }));
+  };
+
+  // Transform credit note data for the view component
+  const transformCreditNoteForView = (item) => {
+    if (!item) return null;
+
+    const totalAmount =
+      item.lineItems?.reduce(
+        (sum, lineItem) => sum + lineItem.amount * lineItem.qty,
+        0
+      ) || 0;
+
+    return {
+      id: item.memoNumber || 'N/A',
+      issueDate: item.memoDate
+        ? format(new Date(item.memoDate), 'MMM dd, yyyy')
+        : 'N/A',
+      originalInvoice: item.invoiceId?.invoiceNo || '-',
+      type: item.memoNumber || 'N/A',
+      status: item.sendLater ? 'Pending' : 'Approved',
+      refundStatus: item.sendLater ? 'Pending' : 'Approved',
+      reason: item.messageOnMemo || 'N/A',
+      description: item.messageOnStatement || 'No description provided',
+      customer: {
+        id: item.customerId?.displayName || 'N/A',
+        email: item.customerId?.email || 'N/A',
+        phone: item.customerId?.phoneNumber || 'N/A',
+      },
+      items:
+        item.lineItems?.map((lineItem) => ({
+          name: lineItem.service || 'N/A',
+          qty: lineItem.qty || 0,
+          unitPrice: lineItem.amount || 0,
+          total: (lineItem.amount || 0) * (lineItem.qty || 0),
+        })) || [],
+      amounts: {
+        subtotal: totalAmount,
+        vat: 0,
+        vatAmount: 0,
+        total: totalAmount,
+        totalCredit: totalAmount,
+      },
+      approval: {
+        approvedBy: '',
+        approvalDate: item.memoDate
+          ? format(new Date(item.memoDate), 'MMM dd, yyyy')
+          : 'N/A',
+      },
+    };
+  };
+
+  const handleCreditNoteAction = (action, creditNote) => {
+    console.log('Credit note action:', action, creditNote);
+
+    // Find the full credit note data from the list
+    const creditNoteData = creditNoteList.find(
+      (item) => item.memoNumber === creditNote.id
+    );
+
+    // Handle different actions here
+    switch (action) {
+      case 'edit':
+        if (creditNoteData) {
+          setSelectedCreditNote(creditNoteData);
+          setIsEditCreditNoteOpen(true);
+        }
+        break;
+      case 'view':
+        if (creditNoteData) {
+          setSelectedCreditNote(creditNoteData);
+          setIsViewCreditNoteOpen(true);
+        }
+        break;
+      case 'export':
+        // Handle export action
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Fetch credit notes
+  useEffect(() => {
+    const fetchCreditNotes = async () => {
+      try {
+        setIsLoadingData(true);
+        const response = await CreditNoteService.fetch({
+          page: currentPage,
+          perPage: paginationData.pageSize,
+        });
+
+        const creditNotes = response.data?.data?.creditNotes || [];
+        setCreditNoteList(creditNotes);
+
+        // Update pagination data from API response
+        setPaginationData({
+          page: response.data?.data?.page || currentPage,
+          totalPages: response.data?.data?.totalPages || 1,
+          pageSize: response.data?.data?.limit || 20,
+          totalCount: response.data?.data?.totalDocs || 0,
+        });
+      } catch (error) {
+        console.error('Error fetching credit notes:', error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchCreditNotes();
+  }, [currentPage, paginationData.pageSize, refreshTrigger]);
 
   // Handler functions
   const onDownloadFormats = (format, checked) => {
@@ -159,23 +310,6 @@ export default function CreditNotes() {
 
   const onTableDensityChange = (value) => {
     setTableDensity(value);
-  };
-
-  const handleCreditNoteAction = (action, creditNote) => {
-    console.log('Credit note action:', action, creditNote);
-    // Handle different actions here
-    switch (action) {
-      case 'edit':
-        break;
-      case 'view':
-        setIsViewCreditNoteOpen(true);
-        break;
-      case 'export':
-        // Handle export action
-        break;
-      default:
-        break;
-    }
   };
 
   return (
@@ -317,36 +451,50 @@ export default function CreditNotes() {
         </div>
       </div>
 
-      {creditMetrics && creditMetrics.length > 0 && (
-        <div className="mt-10">
-          <Metrics metrics={creditMetrics} />
-        </div>
-      )}
+      <div className="mt-10">
+        <Metrics metrics={calculateMetrics()} />
+      </div>
 
       <div className="mt-10">
         <AccountingTable
           title={'Credit notes & returns'}
-          data={creditNotes}
+          data={transformCreditNoteData(creditNoteList)}
           columns={creditNoteColumns}
           searchFields={['id', 'customer', 'originalInvoice', 'reason']}
           searchPlaceholder="Search credit notes......"
           statusStyles={creditNoteStatusStyles}
           dropdownActions={creditNoteDropdownActions}
-          paginationData={creditNotePaginationData}
+          paginationData={paginationData}
+          onPageChange={handlePageChange}
           selectedItems={selectedItems}
           handleSelectItem={handleSelectItem}
           handleSelectAll={handleSelectAll}
           onRowAction={handleCreditNoteAction}
+          isLoading={isLoadingData}
         />
       </div>
 
       <AddCreditNote
         open={openCreditNoteForm}
         onOpenChange={setOpenCreditNoteForm}
+        onSuccess={() => setRefreshTrigger((prev) => prev + 1)}
       />
+
+      <EditCreditNote
+        open={isEditCreditNoteOpen}
+        onOpenChange={(open) => {
+          setIsEditCreditNoteOpen(open);
+          if (!open) {
+            setRefreshTrigger((prev) => prev + 1);
+          }
+        }}
+        creditNoteData={selectedCreditNote}
+      />
+
       <ViewCreditNote
         open={isViewCreditNoteOpen}
         onOpenChange={setIsViewCreditNoteOpen}
+        creditNote={transformCreditNoteForView(selectedCreditNote)}
       />
     </div>
   );

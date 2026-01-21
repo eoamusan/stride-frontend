@@ -41,7 +41,7 @@ export default function PreviewInvoice({
   balanceDue,
 }) {
   const subtotal = calculateSubtotal();
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const invoiceRef = useRef(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [uploadedPdfUrl, setUploadedPdfUrl] = useState(null);
@@ -56,7 +56,7 @@ export default function PreviewInvoice({
 
   // Use business brand color or default
   const primaryColor =
-    businessData?.businessInvoiceSettings?.brandColor || '#00aa00';
+    activeBusiness?.businessInvoiceSettings?.brandColor || '#00aa00';
 
   // Determine if this is a proforma invoice (no account field in products)
   const isProforma = Array.isArray(formData.products)
@@ -186,10 +186,10 @@ export default function PreviewInvoice({
     try {
       // Convert logo to base64 if it exists
       let logoBase64 = null;
-      if (businessData?.businessInvoiceSettings?.logoUrl) {
+      if (activeBusiness?.businessInvoiceSettings?.logoUrl) {
         try {
           logoBase64 = await getBase64ImageFromURL(
-            businessData.businessInvoiceSettings.logoUrl
+            activeBusiness.businessInvoiceSettings.logoUrl
           );
         } catch (error) {
           console.error('Error converting logo to base64:', error);
@@ -197,7 +197,7 @@ export default function PreviewInvoice({
       }
 
       const primaryColor =
-        businessData?.businessInvoiceSettings?.brandColor || '#00aa00';
+        activeBusiness?.businessInvoiceSettings?.brandColor || '#00aa00';
 
       // Build PDF content
       const content = [];
@@ -228,14 +228,14 @@ export default function PreviewInvoice({
                   ]
                 : [
                     {
-                      text: businessData?.businessName || '',
+                      text: activeBusiness?.businessName || '',
                       fontSize: 16,
                       bold: true,
                       margin: [0, 0, 0, 10],
                     },
                   ]),
               {
-                text: businessData?.businessLocation || '',
+                text: activeBusiness?.businessLocation || '',
                 fontSize: 9,
                 color: '#727273',
                 width: 200,
@@ -705,11 +705,11 @@ export default function PreviewInvoice({
       // Signature
       if (
         formData.apply_signature &&
-        businessData?.businessInvoiceSettings?.signatureUrl
+        activeBusiness?.businessInvoiceSettings?.signatureUrl
       ) {
         try {
           const signatureBase64 = await getBase64ImageFromURL(
-            businessData.businessInvoiceSettings.signatureUrl
+            activeBusiness.businessInvoiceSettings.signatureUrl
           );
           content.push({
             stack: [
@@ -877,20 +877,20 @@ export default function PreviewInvoice({
           <div className="mb-4">
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2 mb-4 grid w-fit grid-cols-1 gap-1 text-left">
-                {businessData?.businessInvoiceSettings?.logoUrl ? (
+                {activeBusiness?.businessInvoiceSettings?.logoUrl ? (
                   <img
-                    src={businessData.businessInvoiceSettings.logoUrl}
+                    src={activeBusiness.businessInvoiceSettings.logoUrl}
                     alt="Company Logo"
                     className="h-24 w-auto object-contain"
                   />
                 ) : (
                   <div className="text-sm font-bold text-black">
-                    <p>{businessData?.businessName || 'Business Name'}</p>
+                    <p>{activeBusiness?.businessName || 'Business Name'}</p>
                   </div>
                 )}
 
                 <p className="max-w-48 text-sm text-[#727273]">
-                  {businessData?.businessLocation || ''}
+                  {activeBusiness?.businessLocation || ''}
                 </p>
               </div>
 
@@ -1190,11 +1190,11 @@ export default function PreviewInvoice({
 
         {/* Signature */}
         {formData.apply_signature &&
-          businessData?.businessInvoiceSettings?.signatureUrl && (
+          activeBusiness?.businessInvoiceSettings?.signatureUrl && (
             <div className="mb-8">
               <p className="text-sm font-bold">Authorized Signature:</p>
               <img
-                src={businessData.businessInvoiceSettings.signatureUrl}
+                src={activeBusiness.businessInvoiceSettings.signatureUrl}
                 alt="Authorized Signature"
                 className="mt-2 h-16 w-auto object-contain"
               />
@@ -1257,7 +1257,7 @@ export default function PreviewInvoice({
           invoiceData={{
             ...formData,
             customer: selectedCustomer,
-            businessSettings: businessData?.businessInvoiceSettings,
+            businessSettings: activeBusiness?.businessInvoiceSettings,
             total,
             subtotal,
             vatAmount,

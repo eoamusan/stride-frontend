@@ -12,21 +12,17 @@ export default function Sidebar() {
 
   // Effect to automatically set view based on pathname
   useEffect(() => {
-    if (location.pathname.includes('/accounting')) {
-      // Find the accounting parent item
-      const accountingParent = sidebarItems.find(
-        (item) =>
-          item.title === 'Accounting' &&
-          item.children &&
-          item.children.length > 0
-      );
+    // Dynamically find the parent item based on the current path
+    const activeItem = sidebarItems.find(
+      (item) =>
+        item.children?.length > 0 && location.pathname.startsWith(item.link)
+    );
 
-      if (accountingParent) {
-        setCurrentView('children');
-        setActiveParent(accountingParent);
-      }
+    if (activeItem) {
+      setCurrentView('children');
+      setActiveParent(activeItem);
     } else {
-      // Reset to main view if not in accounting section
+      // Reset to main view if no matching parent with children is found
       setCurrentView('main');
       setActiveParent(null);
     }
@@ -36,6 +32,7 @@ export default function Sidebar() {
     if (item.children && item.children.length > 0) {
       setCurrentView('children');
       setActiveParent(item);
+      navigate(item.children[0].link);
     } else {
       navigate(item.link);
     }
@@ -48,6 +45,7 @@ export default function Sidebar() {
   const handleBackClick = () => {
     setCurrentView('main');
     setActiveParent(null);
+    navigate('/dashboard');
   };
 
   const renderMainView = () => (

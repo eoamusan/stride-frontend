@@ -38,7 +38,7 @@ export default class CustomerService {
 
     const response = await axiosInstance.post(
       url,
-      { businessId: userStore?.businessData?._id },
+      { businessId: userStore?.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,
@@ -62,7 +62,7 @@ export default class CustomerService {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.post(
       'customer/analytics',
-      { businessId: userStore?.businessData?._id },
+      { businessId: userStore?.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,

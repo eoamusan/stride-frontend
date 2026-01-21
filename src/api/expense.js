@@ -26,7 +26,7 @@ export default class ExpenseService {
     const userStore = useUserStore.getState();
     const url = 'expense/fetch';
 
-    const body = { businessId: userStore.businessData?._id };
+    const body = { businessId: userStore.activeBusiness?._id };
     if (graph) {
       body.graph = graph;
     }

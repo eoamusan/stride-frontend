@@ -73,20 +73,20 @@ export default function Setup({ setNext, setFormData, formData }) {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-16">
-      <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
+      <div className="mx-auto flex w-full max-w-180 flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
           <img
             src={StrideLogo}
             alt="Oneda"
-            className="mx-auto block w-[131px]"
+            className="mx-auto block w-32.75"
           />
-          <hgroup className="mt-6 max-w-[420px] text-center">
+          <hgroup className="mt-6 max-w-105 text-center">
             <h1 className="text-4xl font-semibold">
               Complete Your Business Information
             </h1>
           </hgroup>
         </header>
-        <main className="mt-4 w-full max-w-[420px]">
+        <main className="mt-4 w-full max-w-105">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField

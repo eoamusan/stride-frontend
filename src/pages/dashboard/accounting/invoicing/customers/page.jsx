@@ -33,7 +33,7 @@ const customerDropdownActions = [
 export default function Customers() {
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,18 +52,30 @@ export default function Customers() {
   const navigate = useNavigate();
 
   // Transform customer data to match table format
-  const transformCustomerData = (customers) => {
-    return customers.map((customer) => ({
-      id: customer.id || customer._id,
-      name: customer.displayName,
-      companyName: customer.companyName || '-',
-      creditLimit: customer.creditLimit
-        ? `$${parseFloat(customer.creditLimit).toLocaleString()}`
-        : '$0.00',
-      balance: '$0.00',
-      email: customer.email || '-',
-      status: customer.status === 'ACTIVE' ? 'Active' : 'Inactive',
-    }));
+  const transformCustomerData = (customersData) => {
+    return customersData.map((item) => {
+      const customer = item.customer;
+      const balance = item.balance || 0;
+
+      return {
+        id: customer.id || customer._id,
+        name: customer.displayName,
+        companyName: customer.companyName || '-',
+        creditLimit: `${parseFloat(customer.creditLimit || 0).toLocaleString(
+          'en-US',
+          {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          }
+        )}`,
+        balance: `${parseFloat(balance).toLocaleString('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2,
+        })}`,
+        email: customer.email || '-',
+        status: customer.status === 'ACTIVE' ? 'Active' : 'Inactive',
+      };
+    });
   };
 
   const customerData = transformCustomerData(customers);
@@ -86,7 +98,7 @@ export default function Customers() {
       case 'create-invoice':
         // Navigate to invoice creation with customer pre-selected
         navigate(
-          `/dashboard/accounting/invoicing?create=true&customerId=${customer.id}`
+          `/dashboard/accounting/invoicing/create?customerId=${customer.id}`
         );
         break;
       default:
@@ -116,7 +128,7 @@ export default function Customers() {
   };
 
   useEffect(() => {
-    if (businessData) {
+    if (activeBusiness) {
       // Fetch customer data based on businessId
       const fetchCustomerData = async () => {
         try {
@@ -125,18 +137,19 @@ export default function Customers() {
             page: currentPage,
             perPage: paginationData.pageSize,
           });
-          // Extract customer objects from the new response structure
+          // Extract customer data from the new response structure
           const responseData = response.data?.data || {};
-          const customerData = responseData.customers || [];
-          const extractedCustomers = customerData.map((item) => item.customer);
-          setCustomers(extractedCustomers);
+          const customersData = responseData.customers || [];
+
+          // Store the full customer data (includes customer, invoices, balance)
+          setCustomers(customersData);
 
           // Update pagination data from API response
           setPaginationData({
             page: responseData.page || 1,
             totalPages: responseData.totalPages || 1,
             pageSize: responseData.limit || 20,
-            totalCount: responseData.totalDocs || extractedCustomers.length,
+            totalCount: responseData.totalDocs || customersData.length,
           });
 
           // Fetch analytics data
@@ -160,7 +173,7 @@ export default function Customers() {
       fetchCustomerData();
     }
   }, [
-    businessData,
+    activeBusiness,
     isCreateCustomerOpen,
     currentPage,
     paginationData.pageSize,

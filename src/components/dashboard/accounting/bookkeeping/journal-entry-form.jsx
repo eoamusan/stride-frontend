@@ -85,7 +85,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
   const [accountSearchQuery, setAccountSearchQuery] = useState('');
   const [nameSearchQuery, setNameSearchQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
 
   // Filter account options based on search query
   const filteredAccountOptions = accountOptions.filter((option) =>
@@ -268,7 +268,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
       }));
 
       const journalData = {
-        businessId: businessData?._id,
+        businessId: activeBusiness?._id,
         date: data.journalDate.toISOString(),
         currency: data.currency,
         journalNo: data.journalNo,
@@ -458,7 +458,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                 control={form.control}
                 name="journalDate"
                 render={({ field }) => (
-                  <FormItem className="w-[197px]">
+                  <FormItem className="w-49.25">
                     <FormLabel className="text-sm font-medium">
                       Journal date
                     </FormLabel>
@@ -468,7 +468,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                           <Button
                             variant="outline"
                             className={cn(
-                              'h-10 w-[197px] justify-start text-left text-sm font-normal',
+                              'h-10 w-49.25 justify-start text-left text-sm font-normal',
                               !field.value && 'text-muted-foreground'
                             )}
                           >
@@ -501,13 +501,13 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                 control={form.control}
                 name="currency"
                 render={({ field }) => (
-                  <FormItem className="w-[197px]">
+                  <FormItem className="w-49.25">
                     <FormLabel className="text-sm font-medium">
                       Currency
                     </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-[197px] text-sm">
+                        <SelectTrigger className="w-49.25 text-sm">
                           <SelectValue placeholder="NGN Nigerian Naira" />
                         </SelectTrigger>
                       </FormControl>
@@ -529,14 +529,14 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                 control={form.control}
                 name="journalNo"
                 render={({ field }) => (
-                  <FormItem className="w-[197px]">
+                  <FormItem className="w-49.25">
                     <FormLabel className="text-sm font-medium">
                       Journal no
                     </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        className="h-10 w-[197px]"
+                        className="h-10 w-49.25"
                         placeholder="Enter no"
                       />
                     </FormControl>
@@ -548,7 +548,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
 
             {/* Journal Entries Table */}
             <div className="w-full max-w-[75vw] overflow-auto sm:max-w-[80vw] lg:max-w-[85vw]">
-              <div className="mt-4 min-w-[1086px] space-y-4 overflow-auto">
+              <div className="mt-4 min-w-271.5 space-y-4 overflow-auto">
                 <div className="grid grid-cols-12 gap-2 text-sm font-medium text-[#434343]">
                   <div className="col-span-2">Account</div>
                   <div className="col-span-1">Debits(NGN)</div>
@@ -882,7 +882,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
                     <Textarea
                       {...field}
                       placeholder="Enter memo details..."
-                      className="min-h-[100px] w-full max-w-xl"
+                      className="min-h-25 w-full max-w-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -982,7 +982,7 @@ export default function JournalEntryForm({ isOpen, onClose, onSuccess }) {
               <Button
                 type="button"
                 variant="outline"
-                className="h-10 w-[127px] text-sm"
+                className="h-10 w-31.75 text-sm"
                 onClick={onClose}
                 disabled={isSubmitting}
               >

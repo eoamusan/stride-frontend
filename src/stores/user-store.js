@@ -7,9 +7,10 @@ export const useUserStore = create(
   persist(
     (set) => ({
       data: null,
-      businessData: null,
       isLoading: false,
       message: null,
+      activeBusiness: null,
+      allBusinesses: [],
 
       async register(data) {
         try {
@@ -76,7 +77,8 @@ export const useUserStore = create(
           // If refresh fails, clear everything
           set({
             data: null,
-            businessData: null,
+            activeBusiness: null,
+            allBusinesses: [],
             message: 'Session expired. Please login again.',
           });
           throw err;
@@ -84,9 +86,54 @@ export const useUserStore = create(
       },
 
       async getBusinessData() {
-        const { data: res } = await BusinessService.fetch();
-        set({ businessData: res.data[0] });
-        return res.data[0];
+        try {
+          const { data: res } = await BusinessService.fetch();
+          const businesses = res.data || [];
+
+          // Check if there's a business with switchActive === true
+          let activeBusiness = businesses.find(
+            (business) => business.switchActive === true
+          );
+
+          // If no active business found, switch to the first business
+          if (!activeBusiness && businesses.length > 0) {
+            const firstBusiness = businesses[0];
+
+            try {
+              const { data: switchRes } = await BusinessService.switch({
+                id: firstBusiness._id,
+              });
+
+              // Use the switch response directly as the active business
+              activeBusiness = switchRes.data;
+
+              // Update the businesses array with the switched business
+              const updatedBusinesses = businesses.map((business) =>
+                business._id === activeBusiness._id
+                  ? { ...business, switchActive: true }
+                  : { ...business, switchActive: false }
+              );
+
+              set({ activeBusiness, allBusinesses: updatedBusinesses });
+              return activeBusiness;
+            } catch (switchErr) {
+              console.error('Error switching business:', switchErr);
+              // If switch fails, fall back to first business without switchActive
+              activeBusiness = firstBusiness;
+              set({ activeBusiness, allBusinesses: businesses });
+              throw new Error(
+                switchErr.response?.data?.message ||
+                  'Failed to activate business'
+              );
+            }
+          }
+
+          set({ activeBusiness, allBusinesses: businesses });
+          return activeBusiness;
+        } catch (err) {
+          console.error('Error fetching business data:', err);
+          throw err;
+        }
       },
 
       logout() {
@@ -105,7 +152,8 @@ export const useUserStore = create(
       name: 'user-storage',
       partialize: (state) => ({
         data: state.data ? state.data : null,
-        businessData: state.businessData ? state.businessData : null,
+        activeBusiness: state.activeBusiness ? state.activeBusiness : null,
+        allBusinesses: state.allBusinesses ? state.allBusinesses : [],
       }),
     }
   )

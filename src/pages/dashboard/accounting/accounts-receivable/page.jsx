@@ -15,6 +15,7 @@ import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import CreateInvoice from '@/components/dashboard/accounting/invoicing/create-invoice';
 import RunReportDialog from '@/components/dashboard/accounting/accounts-receivable/run-report-dialog';
+import StatementOfAccountModal from '@/components/dashboard/accounting/accounts-receivable/statement-of-account-modal';
 import InvoiceService from '@/api/invoice';
 import { useUserStore } from '@/stores/user-store';
 
@@ -23,7 +24,7 @@ export default function AccountsReceivable() {
   const navigate = useNavigate();
   const [createInvoice, setCreateInvoice] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,6 +38,9 @@ export default function AccountsReceivable() {
   });
   const [showRunReportDialog, setShowRunReportDialog] = useState(false);
   const [selectedItemForReport, setSelectedItemForReport] = useState(null);
+  const [showStatementModal, setShowStatementModal] = useState(false);
+  const [selectedItemForStatement, setSelectedItemForStatement] =
+    useState(null);
 
   // State for column visibility
   const [columns, setColumns] = useState({
@@ -69,7 +73,7 @@ export default function AccountsReceivable() {
       try {
         setIsLoading(true);
         const response = await InvoiceService.fetch({
-          businessId: businessData?._id,
+          businessId: activeBusiness?._id,
           page: currentPage,
           perPage: parseInt(pageSize),
         });
@@ -110,10 +114,10 @@ export default function AccountsReceivable() {
       }
     };
 
-    if (businessData?._id) {
+    if (activeBusiness?._id) {
       fetchInvoices();
     }
-  }, [businessData?._id, currentPage, pageSize]);
+  }, [activeBusiness?._id, currentPage, pageSize]);
 
   // Sample data for Accounts Receivable table
   // Removed - using API data instead
@@ -195,8 +199,9 @@ export default function AccountsReceivable() {
 
   // Dropdown actions for each row
   const dropdownActions = [
-    { key: 'run-report', label: 'Run Report' },
     { key: 'view', label: 'View' },
+    { key: 'run-report', label: 'Run Report' },
+    { key: 'statement-of-account', label: 'Statement of Account' },
   ];
 
   // Handler functions
@@ -234,6 +239,9 @@ export default function AccountsReceivable() {
     if (action === 'run-report') {
       setSelectedItemForReport(item);
       setShowRunReportDialog(true);
+    } else if (action === 'statement-of-account') {
+      setSelectedItemForStatement(item);
+      setShowStatementModal(true);
     }
     // Implement other row action logic here
   };
@@ -480,6 +488,13 @@ export default function AccountsReceivable() {
         isOpen={showRunReportDialog}
         onClose={() => setShowRunReportDialog(false)}
         onSubmit={handleRunReport}
+      />
+
+      {/* Statement of Account Modal */}
+      <StatementOfAccountModal
+        isOpen={showStatementModal}
+        onClose={() => setShowStatementModal(false)}
+        customer={selectedItemForStatement}
       />
     </div>
   );

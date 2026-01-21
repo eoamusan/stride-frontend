@@ -162,7 +162,7 @@ export default function EditInvoice() {
   const [invoiceNo, setInvoiceNo] = useState('');
   const [invoiceType, setInvoiceType] = useState('proforma'); // default to proforma
   const [paymentGateways, setPaymentGateways] = useState([]);
-  const { businessData, getBusinessData, data: userData } = useUserStore();
+  const { activeBusiness, getBusinessData, data: userData } = useUserStore();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -489,7 +489,7 @@ export default function EditInvoice() {
   const handleTemplateSave = async ({ selectedTemplate, selectedColor }) => {
     try {
       await BusinessService.patchSettings({
-        id: businessData?._id,
+        id: activeBusiness?._id,
         data: {
           template: selectedTemplate,
           brandColor: selectedColor,
@@ -510,14 +510,14 @@ export default function EditInvoice() {
     try {
       // Get current business settings
       const currentBankAccounts =
-        businessData?.businessInvoiceSettings?.bankAccounts || [];
+        activeBusiness?.businessInvoiceSettings?.bankAccounts || [];
 
       // Add the new bank to existing banks
       const updatedBankAccounts = [...currentBankAccounts, newBankData];
 
       // Update business settings
       await BusinessService.patchSettings({
-        id: businessData?._id,
+        id: activeBusiness?._id,
         data: {
           bankAccounts: updatedBankAccounts,
         },
@@ -581,7 +581,7 @@ export default function EditInvoice() {
 
       // Format data according to the structure
       const formattedData = {
-        // businessId: businessData?._id,
+        // businessId: activeBusiness?._id,
         invoice: {
           customerId: data.customerId,
           invoiceNo: invoiceNo,
@@ -595,7 +595,7 @@ export default function EditInvoice() {
         },
         products: {
           products: productsWithCalculatedTotals,
-          banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
+          banks: activeBusiness?.businessInvoiceSettings?.bankAccounts || [],
           paymentGateways: paymentGateways,
           terms: data.terms || '',
           notes: data.internal_notes || '',
@@ -677,7 +677,7 @@ export default function EditInvoice() {
       ...formValues,
       products: {
         products: formValues.products || [],
-        banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
+        banks: activeBusiness?.businessInvoiceSettings?.bankAccounts || [],
         paymentGateways: paymentGateways || [],
       },
     };
@@ -748,8 +748,8 @@ export default function EditInvoice() {
         <InvoiceTemplateSettings
           onBack={handleTemplateBack}
           onSave={handleTemplateSave}
-          initialTemplate={businessData?.businessInvoiceSettings?.template}
-          initialColor={businessData?.businessInvoiceSettings?.brandColor}
+          initialTemplate={activeBusiness?.businessInvoiceSettings?.template}
+          initialColor={activeBusiness?.businessInvoiceSettings?.brandColor}
         />
       ) : (
         <>
@@ -790,21 +790,21 @@ export default function EditInvoice() {
 
           {/* Company Info with Logo */}
           <div className="mb-6 flex flex-col items-start gap-4">
-            {businessData?.businessInvoiceSettings?.logoUrl ? (
+            {activeBusiness?.businessInvoiceSettings?.logoUrl ? (
               <div className="flex h-24 items-center justify-center">
                 <img
-                  src={businessData.businessInvoiceSettings.logoUrl}
-                  alt={businessData?.businessName || 'Company Logo'}
+                  src={activeBusiness.businessInvoiceSettings.logoUrl}
+                  alt={activeBusiness?.businessName || 'Company Logo'}
                   className="h-24 w-auto object-contain"
                 />
               </div>
             ) : (
               <div className="text-sm font-bold">
-                <p>{businessData?.businessName || 'Business Name'}</p>
+                <p>{activeBusiness?.businessName || 'Business Name'}</p>
               </div>
             )}
             <div className="text-sm font-medium">
-              <p>{businessData?.businessLocation || 'Business Location'}</p>
+              <p>{activeBusiness?.businessLocation || 'Business Location'}</p>
               {userData?.account?.email && <p>{userData.account.email}</p>}
               {userData?.account?.phoneNumber && (
                 <p>{userData.account.phoneNumber}</p>
@@ -1524,9 +1524,9 @@ export default function EditInvoice() {
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-6">
                   <div className="flex flex-col gap-2">
-                    {businessData?.businessInvoiceSettings?.bankAccounts
+                    {activeBusiness?.businessInvoiceSettings?.bankAccounts
                       ?.length > 0 ? (
-                      businessData.businessInvoiceSettings.bankAccounts.map(
+                      activeBusiness.businessInvoiceSettings.bankAccounts.map(
                         (bank, index) => (
                           <div
                             key={index}

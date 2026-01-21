@@ -36,6 +36,22 @@ export default class BusinessService {
     return response;
   }
 
+  static async switch({ id }) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.patch(
+      `business/${id}/switch`,
+      {
+        accountId: userStore.data?.account?._id,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      }
+    );
+    return response;
+  }
+
   static async patchSettings({ id, data }) {
     const userStore = useUserStore.getState();
     const response = await axiosInstance.patch(

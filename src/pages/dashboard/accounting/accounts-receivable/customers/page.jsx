@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,7 +18,8 @@ import CustomerService from '@/api/customer';
 import { useUserStore } from '@/stores/user-store';
 
 export default function Customers() {
-  const { businessData } = useUserStore();
+  const navigate = useNavigate();
+  const { activeBusiness } = useUserStore();
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
@@ -79,7 +81,22 @@ export default function Customers() {
 
   const handleCustomerTableAction = (action, customer) => {
     console.log('Customer action:', action, customer);
-    // Handle different actions here
+
+    switch (action) {
+      case 'view':
+        navigate(
+          `/dashboard/accounting/accounts-receivable/customers/${customer.id}`
+        );
+        break;
+      case 'create-invoice':
+        // Navigate to invoice creation with customer pre-selected
+        navigate(
+          `/dashboard/accounting/invoicing/create?customerId=${customer.id}`
+        );
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
   };
 
   const handleSelectTableItem = (itemId, checked) => {
@@ -108,7 +125,7 @@ export default function Customers() {
   // Fetch customers
   useEffect(() => {
     const fetchCustomers = async () => {
-      if (!businessData?._id) return;
+      if (!activeBusiness?._id) return;
 
       try {
         setIsLoading(true);
@@ -122,22 +139,10 @@ export default function Customers() {
         const customersData = response.data?.data?.customers || [];
         const pagination = response.data?.data || {};
 
-        // Transform customer data - response is array of {customer, invoices}
+        // Transform customer data - response is array of {customer, invoices, balance}
         const transformedCustomers = customersData.map((item) => {
           const customer = item.customer;
-          const invoices = item.invoices || [];
-
-          // Find earliest due date from unpaid invoices
-          const unpaidInvoices = invoices.filter(
-            (inv) => inv.status !== 'PAID'
-          );
-          const earliestDueDate =
-            unpaidInvoices.length > 0
-              ? unpaidInvoices.reduce((earliest, invoice) => {
-                  const dueDate = new Date(invoice.dueDate);
-                  return dueDate < earliest ? dueDate : earliest;
-                }, new Date(unpaidInvoices[0].dueDate))
-              : null;
+          const balance = item.balance || 0;
 
           return {
             id: customer._id,
@@ -145,21 +150,24 @@ export default function Customers() {
               customer.displayName ||
               `${customer.firstName} ${customer.lastName}`,
             companyName: customer.companyName || '-',
-            creditLimit: `₦${parseFloat(
+            creditLimit: `${parseFloat(
               customer.creditLimit || 0
             ).toLocaleString('en-US', {
-              minimumFractionDigits: 2,
+              minimumFractionDigits: 0,
               maximumFractionDigits: 2,
             })}`,
-            balance: '-',
-            dueDate: earliestDueDate
-              ? new Date(earliestDueDate).toLocaleDateString('en-US', {
+            balance: `${parseFloat(balance).toLocaleString('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2,
+            })}`,
+            dueDate: customer.dueDate
+              ? new Date(customer.dueDate).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
                 })
               : '-',
-            status: customer.status || 'ACTIVE',
+            status: customer.status === 'ACTIVE' ? 'Active' : 'Inactive',
           };
         });
 
@@ -178,7 +186,7 @@ export default function Customers() {
     };
 
     fetchCustomers();
-  }, [businessData?._id, currentPage, pageSize]);
+  }, [activeBusiness?._id, currentPage, pageSize]);
 
   const tableColumns = [
     { key: 'name', label: 'Name' },
@@ -190,18 +198,18 @@ export default function Customers() {
   ];
 
   const customerStatusStyles = {
-    ACTIVE: 'bg-green-100 text-green-800 hover:bg-green-100',
-    INACTIVE: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
-    OVERDUE: 'bg-red-100 text-red-800 hover:bg-red-100',
+    Active: 'bg-green-100 text-green-800 hover:bg-green-100',
+    Inactive: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
+    Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
   };
 
   const customerDropdownActions = [
     { key: 'view', label: 'View' },
     { key: 'create-invoice', label: 'Create Invoice' },
-    { key: 'create-charge', label: 'Create Charge' },
-    { key: 'make-inactive', label: 'Make inactive' },
-    { key: 'create-statement', label: 'Create Statement' },
-    { key: 'create-task', label: 'Create Task' },
+    // { key: 'create-charge', label: 'Create Charge' },
+    // { key: 'make-inactive', label: 'Make inactive' },
+    // { key: 'create-statement', label: 'Create Statement' },
+    // { key: 'create-task', label: 'Create Task' },
   ];
 
   return (

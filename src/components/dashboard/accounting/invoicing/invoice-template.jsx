@@ -9,11 +9,11 @@ export default function InvoiceTemplateSettings({
   initialTemplate,
   initialColor,
 }) {
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [selectedTemplate, setSelectedTemplate] = useState('0');
   const [selectedColor, setSelectedColor] = useState(
     initialColor ||
-      businessData?.businessInvoiceSettings?.brandColor ||
+      activeBusiness?.businessInvoiceSettings?.brandColor ||
       '#3300C9'
   );
 
@@ -31,21 +31,21 @@ export default function InvoiceTemplateSettings({
   useEffect(() => {
     if (initialColor) {
       setSelectedColor(initialColor);
-    } else if (businessData?.businessInvoiceSettings?.brandColor) {
-      setSelectedColor(businessData.businessInvoiceSettings.brandColor);
+    } else if (activeBusiness?.businessInvoiceSettings?.brandColor) {
+      setSelectedColor(activeBusiness.businessInvoiceSettings.brandColor);
     }
 
     // Set template based on initial value or business data
     if (initialTemplate) {
       setSelectedTemplate((parseInt(initialTemplate) - 1 || 0).toString());
-    } else if (businessData?.businessInvoiceSettings?.template) {
+    } else if (activeBusiness?.businessInvoiceSettings?.template) {
       setSelectedTemplate(
         (
-          parseInt(businessData.businessInvoiceSettings.template) - 1 || 0
+          parseInt(activeBusiness.businessInvoiceSettings.template) - 1 || 0
         ).toString()
       );
     }
-  }, [businessData, initialTemplate, initialColor]);
+  }, [activeBusiness, initialTemplate, initialColor]);
 
   const handleSave = () => {
     // Call the parent's save function with the selected values

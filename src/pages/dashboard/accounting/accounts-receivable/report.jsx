@@ -27,7 +27,7 @@ if (pdfFonts.pdfMake) {
 export default function AccountsReceivableReport() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
@@ -43,7 +43,7 @@ export default function AccountsReceivableReport() {
   // Fetch invoices with filters
   useEffect(() => {
     const fetchInvoices = async () => {
-      if (!businessData?._id || !customerId) return;
+      if (!activeBusiness?._id || !customerId) return;
 
       try {
         setIsLoading(true);
@@ -51,6 +51,7 @@ export default function AccountsReceivableReport() {
         // Build fetch params
         const fetchParams = {
           customerId: customerId,
+          businessId: activeBusiness._id,
           page: 1,
           perPage: 1000,
         };
@@ -103,7 +104,7 @@ export default function AccountsReceivableReport() {
     };
 
     fetchInvoices();
-  }, [businessData?._id, customerId, status, startDate, endDate]);
+  }, [activeBusiness?._id, customerId, status, startDate, endDate]);
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
@@ -176,10 +177,10 @@ export default function AccountsReceivableReport() {
     try {
       // Convert logo to base64 if it exists
       let logoBase64 = null;
-      if (businessData?.businessInvoiceSettings?.logoUrl) {
+      if (activeBusiness?.businessInvoiceSettings?.logoUrl) {
         try {
           logoBase64 = await getBase64ImageFromURL(
-            businessData.businessInvoiceSettings.logoUrl
+            activeBusiness.businessInvoiceSettings.logoUrl
           );
         } catch (error) {
           console.error('Error converting logo to base64:', error);
@@ -274,7 +275,7 @@ export default function AccountsReceivableReport() {
             ]
           : [
               {
-                text: businessData?.businessName || 'Business Name',
+                text: activeBusiness?.businessName || 'Business Name',
                 style: 'businessName',
                 alignment: 'center',
                 margin: [0, 0, 0, 15],

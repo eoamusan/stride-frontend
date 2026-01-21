@@ -7,7 +7,7 @@ export default class CategoryService {
     const response = await axiosInstance.post(
       'service',
       {
-        businessId: userStore.businessData?._id,
+        businessId: userStore.activeBusiness?._id,
         name,
       },
       {
@@ -34,7 +34,7 @@ export default class CategoryService {
     const response = await axiosInstance.patch(
       `service/${id}`,
       {
-        businessId: userStore.businessData?._id,
+        businessId: userStore.activeBusiness?._id,
         name,
       },
       {
@@ -60,7 +60,7 @@ export default class CategoryService {
 
     const response = await axiosInstance.post(
       url,
-      { businessId: userStore.businessData?._id },
+      { businessId: userStore.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,

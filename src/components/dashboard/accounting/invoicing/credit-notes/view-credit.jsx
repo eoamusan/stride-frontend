@@ -8,50 +8,9 @@ import {
 } from '@/components/ui/dialog';
 
 export default function ViewCreditNote({ open, onOpenChange, creditNote }) {
-  // Sample data - in real app this would come from props
-  const defaultCreditNote = {
-    id: 'CN-2024-001',
-    issueDate: '2024-01-15',
-    originalInvoice: 'INV-2024-001',
-    type: 'CN-2024-001',
-    status: 'Approved',
-    refundStatus: 'Approved',
-    reason: 'Product Return',
-    description:
-      'Credit note issued for returned merchandise. Items were returned in original condition within return policy period.',
-    customer: {
-      id: 'CN-2024-001',
-      email: '2024-01-15',
-      phone: 'INV-2024-001',
-    },
-    items: [
-      {
-        name: 'Product A - Model X1',
-        qty: 2,
-        unitPrice: 100000.0,
-        total: 200000.0,
-      },
-      {
-        name: 'Product A - Model X1',
-        qty: 2,
-        unitPrice: 100000.0,
-        total: 200000.0,
-      },
-    ],
-    amounts: {
-      subtotal: 200000.0,
-      vat: 7.5,
-      vatAmount: 75,
-      total: 200000.0,
-      totalCredit: 200000.0,
-    },
-    approval: {
-      approvedBy: 'John Smith',
-      approvalDate: '2024-01-15',
-    },
-  };
-
-  const data = creditNote || defaultCreditNote;
+  if (!creditNote) {
+    return null;
+  }
 
   const getStatusBadgeStyle = (status) => {
     const statusLower = status?.toLowerCase();
@@ -92,7 +51,7 @@ export default function ViewCreditNote({ open, onOpenChange, creditNote }) {
       <DialogContent className="max-h-[90vh] w-full max-w-4xl overflow-y-auto p-8 sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Credit Note Details</DialogTitle>
-          <p className="text-muted-foreground text-sm">{data.id}</p>
+          <p className="text-muted-foreground text-sm">{creditNote.id}</p>
         </DialogHeader>
 
         <div className="space-y-8">
@@ -106,36 +65,38 @@ export default function ViewCreditNote({ open, onOpenChange, creditNote }) {
                   <span className="text-muted-foreground text-sm">
                     Credit Note ID:
                   </span>
-                  <span className="text-sm">{data.id}</span>
+                  <span className="text-sm">{creditNote.id}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground text-sm">
                     Issue Date:
                   </span>
-                  <span className="text-sm">{data.issueDate}</span>
+                  <span className="text-sm">{creditNote.issueDate}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground text-sm">
                     Original Invoice:
                   </span>
-                  <span className="text-sm">{data.originalInvoice}</span>
+                  <span className="text-sm">{creditNote.originalInvoice}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground text-sm">Type:</span>
-                  <span className="text-sm">{data.type}</span>
+                  <span className="text-sm">{creditNote.type}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground text-sm">Status:</span>
-                  <Badge className={getStatusBadgeStyle(data.status)}>
-                    {data.status}
+                  <Badge className={getStatusBadgeStyle(creditNote.status)}>
+                    {creditNote.status}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground text-sm">
                     Refund Status:
                   </span>
-                  <Badge className={getStatusBadgeStyle(data.refundStatus)}>
-                    {data.refundStatus}
+                  <Badge
+                    className={getStatusBadgeStyle(creditNote.refundStatus)}
+                  >
+                    {creditNote.refundStatus}
                   </Badge>
                 </div>
               </div>
@@ -147,11 +108,11 @@ export default function ViewCreditNote({ open, onOpenChange, creditNote }) {
               <div className="space-y-3">
                 <div>
                   <span className="text-sm font-medium">Reason:</span>
-                  <p className="mt-1 text-sm">{data.reason}</p>
+                  <p className="mt-1 text-sm">{creditNote.reason}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium">Description:</span>
-                  <p className="mt-1 text-sm">{data.description}</p>
+                  <p className="mt-1 text-sm">{creditNote.description}</p>
                 </div>
               </div>
             </div>
@@ -167,15 +128,15 @@ export default function ViewCreditNote({ open, onOpenChange, creditNote }) {
                   <span className="text-muted-foreground text-sm">
                     Customer:
                   </span>
-                  <span className="text-sm">{data.customer.id}</span>
+                  <span className="text-sm">{creditNote.customer.id}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground text-sm">Email:</span>
-                  <span className="text-sm">{data.customer.email}</span>
+                  <span className="text-sm">{creditNote.customer.email}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground text-sm">Phone:</span>
-                  <span className="text-sm">{data.customer.phone}</span>
+                  <span className="text-sm">{creditNote.customer.phone}</span>
                 </div>
               </div>
             </div>
@@ -184,7 +145,7 @@ export default function ViewCreditNote({ open, onOpenChange, creditNote }) {
             <div className="space-y-4">
               <h3 className="text-sm font-semibold">Items</h3>
               <div className="space-y-3">
-                {data.items.map((item, index) => (
+                {creditNote.items.map((item, index) => (
                   <div key={index} className="flex items-start justify-between">
                     <div className="flex-1">
                       <p className="text-sm font-medium">{item.name}</p>
@@ -211,30 +172,30 @@ export default function ViewCreditNote({ open, onOpenChange, creditNote }) {
                   <div className="flex justify-between">
                     <span className="text-sm font-medium">Subtotal</span>
                     <span className="text-sm font-semibold">
-                      {formatCurrency(data.amounts.subtotal)}
+                      {formatCurrency(creditNote.amounts.subtotal)}
                     </span>
                   </div>
 
                   <div className="flex justify-between">
                     <span className="text-sm font-medium">
-                      Vax ({data.amounts.vat}%)
+                      Vax ({creditNote.amounts.vat}%)
                     </span>
                     <span className="text-sm font-semibold">
-                      {data.amounts.vatAmount}%
+                      {creditNote.amounts.vatAmount}%
                     </span>
                   </div>
 
                   <div className="flex justify-between border-t pt-2">
                     <span className="font-medium">Total</span>
                     <span className="font-semibold">
-                      {formatCurrency(data.amounts.total)}
+                      {formatCurrency(creditNote.amounts.total)}
                     </span>
                   </div>
 
                   <div className="flex justify-between">
                     <span className="font-semibold">Total Credit</span>
                     <span className="font-semibold">
-                      {formatCurrency(data.amounts.totalCredit)}
+                      {formatCurrency(creditNote.amounts.totalCredit)}
                     </span>
                   </div>
                 </div>
@@ -251,13 +212,13 @@ export default function ViewCreditNote({ open, onOpenChange, creditNote }) {
               <div>
                 <p className="text-green-700">Approved By</p>
                 <p className="font-medium text-green-800">
-                  {data.approval.approvedBy}
+                  {creditNote.approval.approvedBy || 'N/A'}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-green-700">Approval Date</p>
                 <p className="font-medium text-green-800">
-                  {data.approval.approvalDate}
+                  {creditNote.approval.approvalDate}
                 </p>
               </div>
             </div>

@@ -31,7 +31,7 @@ export default class BillService {
     });
     return response;
   }
-  
+
   static async fetch({ search, page, perPage } = {}) {
     const userStore = useUserStore.getState();
 
@@ -46,7 +46,7 @@ export default class BillService {
 
     const response = await axiosInstance.post(
       url,
-      { businessId: userStore.businessData?._id },
+      { businessId: userStore.activeBusiness?._id },
       {
         headers: {
           Authorization: `Bearer ${userStore.data?.accessToken}`,

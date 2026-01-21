@@ -86,7 +86,7 @@ export default function PaymentForm({
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [openAccountCombobox, setOpenAccountCombobox] = useState(false);
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
 
   // Create schema with dynamic validation based on amountDue
   const paymentFormSchemaWithValidation = paymentFormSchema.refine(
@@ -183,7 +183,7 @@ export default function PaymentForm({
       const paymentPayload = {
         amountDue: amountDue.toString(),
         amountPaid: data.amountPaid.toString(),
-        businessId: businessData?._id,
+        businessId: activeBusiness?._id,
         invoiceId: invoiceId,
         paymentDate: data.paymentDate.toISOString(),
         paymentMethod: data.paymentMethod,

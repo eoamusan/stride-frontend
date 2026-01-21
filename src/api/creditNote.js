@@ -32,7 +32,7 @@ export default class CreditNoteService {
     return response;
   }
 
-  static async fetch({ search, page, perPage }) {
+  static async fetch({ search, page, perPage, customerId }) {
     const userStore = useUserStore.getState({ search, page, perPage });
 
     // Build query parameters
@@ -46,15 +46,15 @@ export default class CreditNoteService {
       ? `credit-note/fetch?${queryString}`
       : 'credit-note/fetch';
 
-    const response = await axiosInstance.post(
-      url,
-      { businessId: userStore.businessData?._id },
-      {
-        headers: {
-          Authorization: `Bearer ${userStore.data?.accessToken}`,
-        },
-      }
-    );
+    const body = {};
+    body.businessId = userStore.activeBusiness?._id;
+    if (customerId) body.customerId = customerId;
+
+    const response = await axiosInstance.post(url, body, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
     return response;
   }
 
@@ -63,7 +63,7 @@ export default class CreditNoteService {
     const response = await axiosInstance.post(
       'credit-note/generate/memo',
       {
-        businessId: userStore.businessData?._id,
+        businessId: userStore.activeBusiness?._id,
       },
       {
         headers: {

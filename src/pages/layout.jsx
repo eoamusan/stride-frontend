@@ -48,6 +48,9 @@ import Bills from './dashboard/accounting/expense-management/bills/page';
 import { authMiddleware } from '@/middleware/auth-middleware';
 import VendorExpenseDetails from './dashboard/accounting/expense-management/vendors/[id]/page';
 import ViewCustomer from './dashboard/accounting/invoicing/customers/[id]/page';
+import ViewCustomerAR from './dashboard/accounting/accounts-receivable/customers/[id]/page';
+import ViewCustomerLedger from './dashboard/accounting/accounts-receivable/customer-ledger/[id]/page';
+import ReportsAR from './dashboard/accounting/accounts-receivable/reports/page';
 import LedgerReportPage from './dashboard/accounting/bookkeeping/ledger-view/report/page';
 import AccountReportPage from './dashboard/accounting/bookkeeping/chart-of-accounts/report/page';
 import FinancialReports from './dashboard/accounting/financial-reports/page';
@@ -68,6 +71,20 @@ import BankingOverview from './dashboard/accounting/banking/overview/page';
 import TransactionMatching from './dashboard/accounting/banking/transaction-matching/page';
 import BankingReconciliation from './dashboard/accounting/banking/reconciliation/page';
 import AuditTrail from './dashboard/accounting/banking/audit-trail/page';
+
+import HumanResourcesLayout from './dashboard/hr/layout';
+import Overview from './dashboard/hr/overview/page';
+import Recruitment from './dashboard/hr/recruitment/page';
+import HROnboarding from './dashboard/hr/onboarding/page';
+import EmployeeDirectory from './dashboard/hr/employee-directory/page';
+import AttendanceAndLeave from './dashboard/hr/attendance-and-leave/page';
+import Performance from './dashboard/hr/perfomance/page';
+import Payroll from './dashboard/hr/payroll/page';
+import LearningAndDevelopment from './dashboard/hr/learning-and-development/page';
+import Engagement from './dashboard/hr/engagement/page';
+import Analytics from './dashboard/hr/analytics/page';
+import DisciplinaryAndExit from './dashboard/hr/disciplinary-and-exit/page';
+import Setup from './dashboard/hr/setup/page';
 
 const router = createBrowserRouter([
   {
@@ -237,7 +254,16 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'customers',
-                        Component: CustomersAR,
+                        children: [
+                          {
+                            index: true,
+                            Component: CustomersAR,
+                          },
+                          {
+                            path: ':id',
+                            Component: ViewCustomerAR,
+                          },
+                        ],
                       },
                       {
                         path: 'payments',
@@ -245,7 +271,16 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'customer-ledger',
-                        Component: CustomerLedgerAR,
+                        children: [
+                          {
+                            index: true,
+                            Component: CustomerLedgerAR,
+                          },
+                          {
+                            path: ':id',
+                            Component: ViewCustomerLedger,
+                          },
+                        ],
                       },
                       {
                         path: 'credit-notes',
@@ -253,7 +288,7 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'reports',
-                        Component: () => <div>No design available yet</div>,
+                        Component: ReportsAR,
                       },
                     ],
                   },
@@ -346,7 +381,7 @@ const router = createBrowserRouter([
                       {
                         path: 'forecasting',
                         Component: ExpenseTransactions,
-                      }
+                      },
                     ],
                   },
                   {
@@ -458,7 +493,60 @@ const router = createBrowserRouter([
                 path: 'team-management',
                 Component: () => <div>Team Management Page</div>,
               },
-              { path: 'hr', Component: () => <div>HR Page</div> },
+              {
+                path: 'hr',
+                Component: HumanResourcesLayout,
+                children: [
+                  {
+                    path: 'overview',
+                    Component: Overview,
+                  },
+                  {
+                    path: 'recruitment',
+                    Component: Recruitment,
+                  },
+                  {
+                    path: 'onboarding',
+                    Component: HROnboarding,
+                  },
+                  {
+                    path: 'employee-directory',
+                    Component: EmployeeDirectory,
+                  },
+                  {
+                    path: 'attendance-leave',
+                    Component: AttendanceAndLeave,
+                  },
+                  {
+                    path: 'performance',
+                    Component: Performance,
+                  },
+                  {
+                    path: 'payroll',
+                    Component: Payroll,
+                  },
+                  {
+                    path: 'learning-and-development',
+                    Component: LearningAndDevelopment,
+                  },
+                  {
+                    path: 'engagement',
+                    Component: Engagement,
+                  },
+                  {
+                    path: 'analytics',
+                    Component: Analytics,
+                  },
+                  {
+                    path: 'disciplinary-and-exit',
+                    Component: DisciplinaryAndExit,
+                  },
+                  {
+                    path: 'setup',
+                    Component: Setup,
+                  },
+                ],
+              },
               {
                 path: 'help-center',
                 Component: () => <div>Help Center Page</div>,

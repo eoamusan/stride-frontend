@@ -369,7 +369,7 @@ export default function ExpenseForm({
 
   const onFormSubmit = async (data) => {
     setIsSubmitting(true);
-    const businessId = useUserStore.getState().businessData?._id;
+    const businessId = useUserStore.getState().activeBusiness?._id;
 
     try {
       // Upload attachments to Cloudinary if any
@@ -1253,7 +1253,7 @@ export default function ExpenseForm({
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                className="h-10 min-w-[130px] text-sm"
+                className="h-10 min-w-32.5 text-sm"
                 disabled={isSubmitting}
               >
                 Cancel
@@ -1261,7 +1261,7 @@ export default function ExpenseForm({
 
               <Button
                 type="submit"
-                className="h-10 min-w-[195px] text-sm"
+                className="h-10 min-w-48.75 text-sm"
                 disabled={isSubmitting || !isFormValid()}
               >
                 {isSubmitting

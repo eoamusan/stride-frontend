@@ -72,7 +72,7 @@ export default function AddAccountForm({
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [accountRelation, setAccountRelation] = useState('parent');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const { businessData } = useUserStore();
+  const { activeBusiness } = useUserStore();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -188,7 +188,7 @@ export default function AddAccountForm({
 
       // Prepare payload according to API requirements
       const payload = {
-        businessId: businessData?._id,
+        businessId: activeBusiness?._id,
         accountType: data.accountType,
         accountName: data.accountName,
         accountCode: data.accountNumber,
@@ -424,7 +424,7 @@ export default function AddAccountForm({
                     onOpenAutoFocus={(e) => e.preventDefault()}
                   >
                     {/* Accounts List */}
-                    <div className="max-h-[250px] overflow-y-auto rounded-lg bg-white">
+                    <div className="max-h-62.5 overflow-y-auto rounded-lg bg-white">
                       {isLoadingAccounts ? (
                         <div className="flex items-center justify-center py-8">
                           <p className="text-sm text-gray-500">
@@ -491,7 +491,7 @@ export default function AddAccountForm({
                     <Textarea
                       {...field}
                       placeholder="write description"
-                      className="min-h-[100px]"
+                      className="min-h-25"
                     />
                   </FormControl>
                   <FormMessage />

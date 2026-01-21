@@ -52,7 +52,7 @@ export default function CreditNotes() {
   const calculateMetrics = () => {
     const totalAmount = creditNoteList.reduce((sum, item) => {
       const lineItemsTotal =
-        item.creditNote?.lineItems?.reduce(
+        item.lineItems?.reduce(
           (itemSum, lineItem) => itemSum + lineItem.amount * lineItem.qty,
           0
         ) || 0;
@@ -60,10 +60,10 @@ export default function CreditNotes() {
     }, 0);
 
     const pendingCredits = creditNoteList
-      .filter((item) => item.creditNote?.sendLater)
+      .filter((item) => item.sendLater)
       .reduce((sum, item) => {
         const lineItemsTotal =
-          item.creditNote?.lineItems?.reduce(
+          item.lineItems?.reduce(
             (itemSum, lineItem) => itemSum + lineItem.amount * lineItem.qty,
             0
           ) || 0;
@@ -71,10 +71,10 @@ export default function CreditNotes() {
       }, 0);
 
     const appliedCredits = creditNoteList
-      .filter((item) => !item.creditNote?.sendLater)
+      .filter((item) => !item.sendLater)
       .reduce((sum, item) => {
         const lineItemsTotal =
-          item.creditNote?.lineItems?.reduce(
+          item.lineItems?.reduce(
             (itemSum, lineItem) => itemSum + lineItem.amount * lineItem.qty,
             0
           ) || 0;
@@ -109,15 +109,15 @@ export default function CreditNotes() {
     if (!creditNotes || !Array.isArray(creditNotes)) return [];
 
     return creditNotes.map((item) => ({
-      id: item.creditNote?.memoNumber || 'N/A',
-      customer: item.customer?.displayName || 'N/A',
-      originalInvoice: item.invoice?.invoiceNo || 'N/A',
-      reason: item.creditNote?.messageOnMemo || 'N/A',
-      amount: `$${item.creditNote?.lineItems?.reduce((sum, lineItem) => sum + lineItem.amount * lineItem.qty, 0).toFixed(2) || '0.00'}`,
-      issueDate: item.creditNote?.memoDate
-        ? format(new Date(item.creditNote.memoDate), 'MMM dd, yyyy')
+      id: item.memoNumber || 'N/A',
+      customer: item.customerId?.displayName || 'N/A',
+      originalInvoice: item.invoiceId?.invoiceNo || '-',
+      reason: item.messageOnMemo || 'N/A',
+      amount: `$${item.lineItems?.reduce((sum, lineItem) => sum + lineItem.amount * lineItem.qty, 0).toFixed(2) || '0.00'}`,
+      issueDate: item.memoDate
+        ? format(new Date(item.memoDate), 'MMM dd, yyyy')
         : 'N/A',
-      status: item.creditNote?.status?.toLowerCase(),
+      status: item.status?.toLowerCase(),
     }));
   };
 
@@ -126,30 +126,29 @@ export default function CreditNotes() {
     if (!item) return null;
 
     const totalAmount =
-      item.creditNote?.lineItems?.reduce(
+      item.lineItems?.reduce(
         (sum, lineItem) => sum + lineItem.amount * lineItem.qty,
         0
       ) || 0;
 
     return {
-      id: item.creditNote?.memoNumber || 'N/A',
-      issueDate: item.creditNote?.memoDate
-        ? format(new Date(item.creditNote.memoDate), 'MMM dd, yyyy')
+      id: item.memoNumber || 'N/A',
+      issueDate: item.memoDate
+        ? format(new Date(item.memoDate), 'MMM dd, yyyy')
         : 'N/A',
-      originalInvoice: item.invoice?.invoiceNo || 'N/A',
-      type: item.creditNote?.memoNumber || 'N/A',
-      status: item.creditNote?.sendLater ? 'Pending' : 'Approved',
-      refundStatus: item.creditNote?.sendLater ? 'Pending' : 'Approved',
-      reason: item.creditNote?.messageOnMemo || 'N/A',
-      description:
-        item.creditNote?.messageOnStatement || 'No description provided',
+      originalInvoice: item.invoiceId?.invoiceNo || '-',
+      type: item.memoNumber || 'N/A',
+      status: item.sendLater ? 'Pending' : 'Approved',
+      refundStatus: item.sendLater ? 'Pending' : 'Approved',
+      reason: item.messageOnMemo || 'N/A',
+      description: item.messageOnStatement || 'No description provided',
       customer: {
-        id: item.customer?.displayName || 'N/A',
-        email: item.customer?.email || 'N/A',
-        phone: item.customer?.phoneNumber || 'N/A',
+        id: item.customerId?.displayName || 'N/A',
+        email: item.customerId?.email || 'N/A',
+        phone: item.customerId?.phoneNumber || 'N/A',
       },
       items:
-        item.creditNote?.lineItems?.map((lineItem) => ({
+        item.lineItems?.map((lineItem) => ({
           name: lineItem.service || 'N/A',
           qty: lineItem.qty || 0,
           unitPrice: lineItem.amount || 0,
@@ -164,8 +163,8 @@ export default function CreditNotes() {
       },
       approval: {
         approvedBy: 'System',
-        approvalDate: item.creditNote?.memoDate
-          ? format(new Date(item.creditNote.memoDate), 'MMM dd, yyyy')
+        approvalDate: item.memoDate
+          ? format(new Date(item.memoDate), 'MMM dd, yyyy')
           : 'N/A',
       },
     };
@@ -176,7 +175,7 @@ export default function CreditNotes() {
 
     // Find the full credit note data from the list
     const creditNoteData = creditNoteList.find(
-      (item) => item.creditNote?.memoNumber === creditNote.id
+      (item) => item.memoNumber === creditNote.id
     );
 
     // Handle different actions here

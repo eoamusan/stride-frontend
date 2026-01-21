@@ -159,7 +159,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
   const [openAccountCombobox, setOpenAccountCombobox] = useState({});
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [paymentGateways, setPaymentGateways] = useState([]);
-  const { businessData, getBusinessData, data: userData } = useUserStore();
+  const { activeBusiness, getBusinessData, data: userData } = useUserStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -489,7 +489,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
     try {
       // Get current business settings
       const currentBankAccounts =
-        businessData?.businessInvoiceSettings?.bankAccounts || [];
+        activeBusiness?.businessInvoiceSettings?.bankAccounts || [];
 
       // Add the new bank to existing banks
       const updatedBankAccounts = [...currentBankAccounts, newBankData];
@@ -560,7 +560,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
 
       // Format data according to the new structure
       const formattedData = {
-        accountId: businessData?.accountId,
+        accountId: activeBusiness?.accountId,
         businessId: businessId,
         invoice: {
           type: invoiceType,
@@ -575,7 +575,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
         },
         products: {
           products: productsWithCalculatedTotals,
-          banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
+          banks: activeBusiness?.businessInvoiceSettings?.bankAccounts || [],
           paymentGateways: paymentGateways,
           terms: data.terms || '',
           notes: data.internal_notes || '',
@@ -658,7 +658,7 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
       ...formValues,
       products: {
         products: formValues.products || [],
-        banks: businessData?.businessInvoiceSettings?.bankAccounts || [],
+        banks: activeBusiness?.businessInvoiceSettings?.bankAccounts || [],
         paymentGateways: paymentGateways || [],
       },
     };
@@ -718,8 +718,8 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
         <InvoiceTemplateSettings
           onBack={handleTemplateBack}
           onSave={handleTemplateSave}
-          initialTemplate={businessData?.businessInvoiceSettings?.template}
-          initialColor={businessData?.businessInvoiceSettings?.brandColor}
+          initialTemplate={activeBusiness?.businessInvoiceSettings?.template}
+          initialColor={activeBusiness?.businessInvoiceSettings?.brandColor}
         />
       ) : (
         <>
@@ -768,21 +768,21 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
 
           {/* Company Info with Logo */}
           <div className="mb-6 flex flex-col items-start gap-4">
-            {businessData?.businessInvoiceSettings?.logoUrl ? (
+            {activeBusiness?.businessInvoiceSettings?.logoUrl ? (
               <div className="flex h-24 items-center justify-center">
                 <img
-                  src={businessData.businessInvoiceSettings.logoUrl}
-                  alt={businessData?.businessName || 'Company Logo'}
+                  src={activeBusiness.businessInvoiceSettings.logoUrl}
+                  alt={activeBusiness?.businessName || 'Company Logo'}
                   className="h-24 w-auto object-contain"
                 />
               </div>
             ) : (
               <div className="text-sm font-bold">
-                <p>{businessData?.businessName || 'Business Name'}</p>
+                <p>{activeBusiness?.businessName || 'Business Name'}</p>
               </div>
             )}
             <div className="text-sm font-medium">
-              <p>{businessData?.businessLocation || 'Business Location'}</p>
+              <p>{activeBusiness?.businessLocation || 'Business Location'}</p>
               {userData?.account?.email && <p>{userData.account.email}</p>}
               {userData?.account?.phoneNumber && (
                 <p>{userData.account.phoneNumber}</p>
@@ -1512,14 +1512,15 @@ export default function CreateInvoice({ businessId, onBack, invoiceType }) {
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-6">
                   <div className="flex flex-col gap-2">
-                    {businessData?.businessInvoiceSettings?.bankAccounts
+                    {activeBusiness?.businessInvoiceSettings?.bankAccounts
                       ?.length > 0 ? (
                       (() => {
                         const activeBank =
-                          businessData.businessInvoiceSettings.bankAccounts.find(
+                          activeBusiness.businessInvoiceSettings.bankAccounts.find(
                             (bank) => bank.isActive
                           ) ||
-                          businessData.businessInvoiceSettings.bankAccounts[0];
+                          activeBusiness.businessInvoiceSettings
+                            .bankAccounts[0];
 
                         return (
                           <div className="mb-2 space-y-1 border-b pb-2 last:mb-0 last:border-b-0 last:pb-0">

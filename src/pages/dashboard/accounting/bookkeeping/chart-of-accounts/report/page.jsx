@@ -33,7 +33,7 @@ if (pdfFonts.pdfMake) {
 export default function AccountReportPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const businessData = useUserStore((state) => state.businessData);
+  const activeBusiness = useUserStore((state) => state.activeBusiness);
 
   // Get data from navigation state
   const { accountIds = [], startDate, endDate } = location.state || {};
@@ -199,10 +199,10 @@ export default function AccountReportPage() {
     try {
       // Convert logo to base64 if it exists
       let logoBase64 = null;
-      if (businessData?.businessInvoiceSettings?.logoUrl) {
+      if (activeBusiness?.businessInvoiceSettings?.logoUrl) {
         try {
           logoBase64 = await getBase64ImageFromURL(
-            businessData.businessInvoiceSettings.logoUrl
+            activeBusiness.businessInvoiceSettings.logoUrl
           );
         } catch (error) {
           console.error('Error converting logo to base64:', error);
@@ -223,7 +223,7 @@ export default function AccountReportPage() {
             ]
           : [
               {
-                text: businessData?.businessName || 'Business Name',
+                text: activeBusiness?.businessName || 'Business Name',
                 style: 'businessName',
                 alignment: 'center',
                 margin: [0, 0, 0, 15],
@@ -747,15 +747,15 @@ export default function AccountReportPage() {
       >
         {/* Report Header */}
         <div className="mb-6 text-center">
-          {businessData?.businessInvoiceSettings?.logoUrl ? (
+          {activeBusiness?.businessInvoiceSettings?.logoUrl ? (
             <img
-              src={businessData.businessInvoiceSettings.logoUrl}
-              alt={businessData?.businessName || 'Business Logo'}
+              src={activeBusiness.businessInvoiceSettings.logoUrl}
+              alt={activeBusiness?.businessName || 'Business Logo'}
               className="mx-auto mb-4 h-16 object-contain"
             />
           ) : (
             <div className="mx-auto mb-4 text-lg font-bold">
-              {businessData?.businessName || 'Business Name'}
+              {activeBusiness?.businessName || 'Business Name'}
             </div>
           )}
           <h1 className="mb-2 text-xl font-bold">Account Report</h1>

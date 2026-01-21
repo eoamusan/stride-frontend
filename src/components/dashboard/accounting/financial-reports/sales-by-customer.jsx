@@ -211,6 +211,14 @@ export default function SalesByCustomer({ data, invoiceData }) {
     totalCount: invoiceData?.totalDocs || 0,
   };
 
+  // Y-axis formatter for thousands
+  const formatYAxis = (value) => {
+    if (value >= 1000) {
+      return `$${value / 1000000}m`;
+    }
+    return `$${value}`;
+  };
+
   return (
     <div className="my-10">
       <div>
@@ -223,6 +231,7 @@ export default function SalesByCustomer({ data, invoiceData }) {
           chartData={invoiceStatusData}
           numberOfBars={3}
           showLegend={true}
+          yAxisFormatter={formatYAxis}
           className="w-full md:w-3/5"
         />
         <SimpleAreaMetricCard

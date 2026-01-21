@@ -10,7 +10,7 @@ import emptyStateImg from '@/assets/images/empty-chart-state.png';
 import { useUserStore } from '@/stores/user-store';
 
 export default function TrialBalance() {
-  const businessData = useUserStore((state) => state.businessData);
+  const activeBusiness = useUserStore((state) => state.activeBusiness);
   const [reportPeriod, setReportPeriod] = useState('empty');
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
@@ -157,7 +157,7 @@ export default function TrialBalance() {
             {/* Trial balance container */}
             <div className="mb-4 border-b pb-4 text-center">
               <h2 className="text-2xl font-normal text-[#434343]">
-                {businessData?.businessName || 'Your Business Name'}
+                {activeBusiness?.businessName || 'Your Business Name'}
               </h2>
               <h3 className="mt-2 text-base font-semibold text-[#434343]">
                 Trial Balance
