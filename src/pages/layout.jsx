@@ -59,17 +59,44 @@ import BudgetingAnalytics from './dashboard/accounting/budgeting/reports/page';
 
 import HumanResourcesLayout from './dashboard/hr/layout';
 import Overview from './dashboard/hr/overview/page';
-import Recruitment from './dashboard/hr/recruitment/page';
-import HROnboarding from './dashboard/hr/onboarding/page';
+import HrValidation from './dashboard/hr/onboarding/hr-validation/page';
 import EmployeeDirectory from './dashboard/hr/employee-directory/page';
-import AttendanceAndLeave from './dashboard/hr/attendance-and-leave/page';
-import Performance from './dashboard/hr/perfomance/page';
 import Payroll from './dashboard/hr/payroll/page';
-import LearningAndDevelopment from './dashboard/hr/learning-and-development/page';
+import LearningAndDevelopment from './dashboard/hr/learning-development/page';
 import Engagement from './dashboard/hr/engagement/page';
 import Analytics from './dashboard/hr/analytics/page';
 import DisciplinaryAndExit from './dashboard/hr/disciplinary-and-exit/page';
 import Setup from './dashboard/hr/setup/page';
+
+import Recruitment from './dashboard/hr/recruitment/page';
+import JobPosting from './dashboard/hr/recruitment/job-posting/page';
+import ApplicantScreening from './dashboard/hr/recruitment/applicant-screening/page';
+import InterviewAndSchedules from './dashboard/hr/recruitment/interview-schedules/page';
+import OfferStage from './dashboard/hr/recruitment/offer-stage/page';
+
+import HROnboarding from './dashboard/hr/onboarding/page';
+import AssetManagement from './dashboard/hr/onboarding/asset-management/page';
+import HRServiceDesk from './dashboard/hr/employee-directory/hr-service-desk/page';
+import Attendance from './dashboard/hr/attendance-leave/page';
+import Leave from './dashboard/hr/attendance-leave/Leave/page';
+
+import CycleSetup from './dashboard/hr/perfomance/page';
+import KPI_OKR_Setup from './dashboard/hr/perfomance/KPI-OKR-setup/page';
+import ReviewTemplates from './dashboard/hr/perfomance/review-templates/page';
+import ReviewRelease from './dashboard/hr/perfomance/review-release/page';
+import ScoreCards from './dashboard/hr/perfomance/score-cards/page';
+
+import RunPayroll from './dashboard/hr/payroll/run-payroll/page';
+import Review from './dashboard/hr/payroll/review/page';
+import Payslips from './dashboard/hr/payroll/payslips/page';
+import Compliance from './dashboard/hr/payroll/compliance/page';
+import { Train } from 'lucide-react';
+import TrainingAssignments from './dashboard/hr/learning-development/training-assignments/page';
+import TrainingApproval from './dashboard/hr/learning-development/training-approvals/page';
+import Certificates from './dashboard/hr/learning-development/certificates/page';
+import CompletionTracking from './dashboard/hr/learning-development/completion-tracking/page';
+import SuggestionsBox from './dashboard/hr/engagement/suggestions-box/page';
+import RecognitionWall from './dashboard/hr/engagement/recognition-wall/page';
 
 const router = createBrowserRouter([
   {
@@ -418,35 +445,145 @@ const router = createBrowserRouter([
                   },
                   {
                     path: 'recruitment',
-                    Component: Recruitment,
+                    children: [
+                      { index: true, Component: Recruitment },
+                      {
+                        path: 'job-postings',
+                        Component: JobPosting,
+                      },
+                      {
+                        path: 'applicant-screening',
+                        Component: ApplicantScreening,
+                      },
+                      {
+                        path: 'interview-schedules',
+                        Component: InterviewAndSchedules,
+                      },
+                      {
+                        path: 'offer-stage',
+                        Component: OfferStage,
+                      },
+                    ],
                   },
                   {
                     path: 'onboarding',
-                    Component: HROnboarding,
+                    children: [
+                      { index: true, Component: HROnboarding },
+                      {
+                        path: 'hr-validation',
+                        Component: HrValidation,
+                      },
+                      {
+                        path: 'asset-management',
+                        Component: AssetManagement,
+                      },
+                    ],
                   },
                   {
                     path: 'employee-directory',
-                    Component: EmployeeDirectory,
+                    children: [
+                      { index: true, Component: EmployeeDirectory },
+                      {
+                        path: 'hr-service-desk',
+                        Component: HRServiceDesk,
+                      },
+                    ],
                   },
                   {
                     path: 'attendance-leave',
-                    Component: AttendanceAndLeave,
+                    children: [
+                      { index: true, Component: Attendance },
+                      { path: 'leave', Component: Leave },
+                    ],
                   },
                   {
                     path: 'performance',
-                    Component: Performance,
+                    children: [
+                      {
+                        index: true,
+                        Component: CycleSetup,
+                      },
+                      {
+                        path: 'kpi-okr-setup',
+                        Component: KPI_OKR_Setup,
+                      },
+                      {
+                        path: 'review-templates',
+                        Component: ReviewTemplates,
+                      },
+                      {
+                        path: 'review-release',
+                        Component: ReviewRelease,
+                      },
+                      {
+                        path: 'score-cards',
+                        Component: ScoreCards,
+                      },
+                    ],
                   },
                   {
                     path: 'payroll',
-                    Component: Payroll,
+                    children: [
+                      {
+                        index: true,
+                        Component: Payroll,
+                      },
+                      {
+                        path: 'run-payroll',
+                        Component: RunPayroll,
+                      },
+                      {
+                        path: 'review',
+                        Component: Review,
+                      },
+                      {
+                        path: 'payslips',
+                        Component: Payslips,
+                      },
+                      {
+                        path: 'compliance',
+                        Component: Compliance,
+                      },
+                    ],
                   },
                   {
                     path: 'learning-and-development',
-                    Component: LearningAndDevelopment,
+                    children: [
+                      {
+                        index: true,
+                        Component: LearningAndDevelopment,
+                      },
+                      {
+                        path: 'training-assignments',
+                        Component: TrainingAssignments,
+                      },
+                      {
+                        path: 'training-approvals',
+                        Component: TrainingApproval,
+                      },
+                      {
+                        path: 'completion-tracking',
+                        Component: CompletionTracking,
+                      },
+                      {
+                        path: 'certificates',
+                        Component: Certificates,
+                      },
+                    ],
                   },
                   {
                     path: 'engagement',
-                    Component: Engagement,
+                    children: [
+                      { index: true, Component: Engagement },
+                      {
+                        path: 'suggestions-box',
+                        Component: SuggestionsBox,
+                      },
+                      {
+                        path: 'recognition-wall',
+                        Component: RecognitionWall,
+                      },
+                    ],
                   },
                   {
                     path: 'analytics',
