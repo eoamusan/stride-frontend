@@ -6,62 +6,54 @@ import { DownloadIcon, HousePlus, Landmark, PlusCircleIcon, SettingsIcon } from 
 import { AppDialog } from '@/components/core/app-dialog';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import BankForm from '@/components/dashboard/accounting/banking/overview/bank-form';
+import ReconciliationForm from '@/components/dashboard/accounting/banking/reconciliation/reconciliation-form';
 
 // Mock data
 const sampleData = [
   {
-    id: 'TXN-1001',
-    date: '2024-01-15',
-    bankTransaction: 'Payment to Supplier A',
-    amount: 1500,
-    ledgerMatch: 'Invoice INV-1001',
-    confidence: 'High',
-    status: 'Matched',
+    id: 'REC-1001',
+    account: '*****12345',
+    period: '2024-01',
+    bankBalance: 5000,
+    ledgerBalance: 4800,
+    difference: 200,
+    status: 'Pending',
   },
   {
-    id: 'TXN-1002',
-    date: '2024-01-20',
-    bankTransaction: 'Payment from Client B',
-    amount: 2500,
-    ledgerMatch: 'Invoice INV-1002',
-    confidence: 'Medium',
-    status: 'Matched',
-  },
-  {
-    id: 'TXN-1003',
-    date: '2024-01-22',
-    bankTransaction: 'Unrecognized Transaction',
-    amount: 500,
-    ledgerMatch: 'N/A',
-    confidence: 'Medium',
-    status: 'Unmatched',
+    id: 'REC-1002',
+    account: '*****67890',
+    period: '2024-01',
+    bankBalance: 10000,
+    ledgerBalance: 10000,
+    difference: 0,
+    status: 'Reconciled',
   },
 ]
 
-export default function TransactionMatching() {
+export default function BankingReconciliation() {
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
-  const [ openBankForm, setOpenBankForm ] = useState(false)
+  const [ openReconciliationForm, setOpenReconciliationForm ] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const [assets] = useState([...sampleData])
 
   const assetMetrics = useMemo(() => {
     return [
       {
-        title: 'Total Transactions',
-        value: 2000,
+        title: 'Overall Progress',
+        value: 20,
       },
       {
-        title: 'Matched Transactions',
+        title: 'Reconciled',
         value: 3000,
       },
       {
-        title: 'Unmatched',
+        title: 'Pending',
         value: 23,
       },
       {
-        title: 'Auto Suggestions',
-        value: 1000,
+        title: 'Overdue',
+        value: 2,
       },
     ]
   })
@@ -89,24 +81,24 @@ export default function TransactionMatching() {
   // Table columns configuration
   const tableColumns = [
     {
-      key: 'date',
-      label: 'Date',
+      key: 'account',
+      label: 'Account',
     },
     {
-      key: 'bankTransaction',
-      label: 'Bank Transaction',
+      key: 'period',
+      label: 'Period',
     },
     {
-      key: 'amount',
-      label: 'Amount',
+      key: 'bankBalance',
+      label: 'Bank Balance',
     },
     {
-      key: 'ledgerMatch',
-      label: 'Ledger Match',
+      key: 'ledgerBalance',
+      label: 'Ledger Balance',
     },
     {
-      key: 'confidence',
-      label: 'Confidence',
+      key: 'difference',
+      label: 'Difference',
     },
     {
       key: 'status',
@@ -137,8 +129,8 @@ export default function TransactionMatching() {
     }
   };
 
-  const handleOnCreateBank = useCallback((data) => {
-    console.log('Bank created:', data)
+  const handleOnCreateReconciliation = useCallback((data) => {
+    console.log('Reconciliation created:', data)
   }, [])
 
   return (
@@ -147,7 +139,7 @@ export default function TransactionMatching() {
         <div>
           <div className="flex flex-wrap items-center justify-between gap-6">
             <hgroup>
-              <h1 className="text-2xl font-bold">Transaction Matching</h1>
+              <h1 className="text-2xl font-bold">Reconciliation</h1>
               <p className="text-sm text-[#7D7D7D]">
                 Automatically Reconcile and Verify Your Financial Transactions
               </p>
@@ -155,11 +147,11 @@ export default function TransactionMatching() {
 
             <div className="flex space-x-4">
               <Button
-                onClick={() => setOpenBankForm(true)}
+                onClick={() => setOpenReconciliationForm(true)}
                 className={'h-10 rounded-2xl text-sm'}
               >
                 <PlusCircleIcon className="size-4" />
-                Connect Bank
+                Reconcile
               </Button>
               <Button size={'icon'} className={'size-10'} variant={'outline'}>
                 <DownloadIcon size={16} />
@@ -177,7 +169,7 @@ export default function TransactionMatching() {
           <>
             <div className="relative mt-10">
               <AccountingTable
-                title="Transaction Matching"
+                title="Reconciliation summary"
                 description="Automatically Reconcile and Verify Your Financial Transactions"
                 data={assets}
                 columns={tableColumns}
@@ -194,19 +186,18 @@ export default function TransactionMatching() {
             </div>
           </>
           <AppDialog 
-            title="Connect Bank Account"
-            description="Connect your bank account via secure API or upload a CSV statement "
+            title="Reconcile"
             headerIcon={<Landmark />}
-            open={openBankForm} 
-            onOpenChange={setOpenBankForm}
+            open={openReconciliationForm} 
+            onOpenChange={setOpenReconciliationForm}
             className='sm:max-w-163'
           >
-            <BankForm onCreateBank={handleOnCreateBank} />
+            <ReconciliationForm onCreateReconciliation={handleOnCreateReconciliation} onBack={() => setOpenReconciliationForm(false)} />
           </AppDialog>
 
           <SuccessModal
-            title={'Category Added'}
-            description={"You've successfully added a category."}
+            title={'Reconciliation Added'}
+            description={"You've successfully added a reconciliation."}
             open={isSuccessModalOpen}
             onOpenChange={setIsSuccessModalOpen}
             backText={'Back'}

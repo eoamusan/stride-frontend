@@ -1,8 +1,7 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import AccountingTable from '@/components/dashboard/accounting/table';
-import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, HousePlus, Landmark, PlusCircleIcon, SettingsIcon } from 'lucide-react';
+import { DownloadIcon, HousePlus, Landmark, PlusCircleIcon, SettingsIcon, UploadIcon } from 'lucide-react';
 import { AppDialog } from '@/components/core/app-dialog';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import BankForm from '@/components/dashboard/accounting/banking/overview/bank-form';
@@ -10,61 +9,33 @@ import BankForm from '@/components/dashboard/accounting/banking/overview/bank-fo
 // Mock data
 const sampleData = [
   {
-    id: 'TXN-1001',
-    date: '2024-01-15',
-    bankTransaction: 'Payment to Supplier A',
-    amount: 1500,
-    ledgerMatch: 'Invoice INV-1001',
-    confidence: 'High',
-    status: 'Matched',
+    id: 1,
+    date: '2024-10-01 10:15:30',
+    user: 'John Doe',
+    action: 'Reconciled Transaction',
+    details: 'Reconciled $500 payment from Client A',
+    account: 'Business Checking *****1234',
+    changes: 'Status changed to Reconciled',
+    status: 'Success',
   },
   {
-    id: 'TXN-1002',
-    date: '2024-01-20',
-    bankTransaction: 'Payment from Client B',
-    amount: 2500,
-    ledgerMatch: 'Invoice INV-1002',
-    confidence: 'Medium',
-    status: 'Matched',
-  },
-  {
-    id: 'TXN-1003',
-    date: '2024-01-22',
-    bankTransaction: 'Unrecognized Transaction',
-    amount: 500,
-    ledgerMatch: 'N/A',
-    confidence: 'Medium',
-    status: 'Unmatched',
-  },
+    id: 2,
+    date: '2024-10-02 14:22:10',
+    user: 'Jane Smith',
+    action: 'Edited Bank Account',
+    details: 'Updated account nickname to "Main Business Account"',
+    account: 'Business Savings *****5678',
+    changes: 'Nickname updated',
+    status: 'Success',
+  }
 ]
 
-export default function TransactionMatching() {
+export default function AuditTrail() {
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
   const [ openBankForm, setOpenBankForm ] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const [assets] = useState([...sampleData])
-
-  const assetMetrics = useMemo(() => {
-    return [
-      {
-        title: 'Total Transactions',
-        value: 2000,
-      },
-      {
-        title: 'Matched Transactions',
-        value: 3000,
-      },
-      {
-        title: 'Unmatched',
-        value: 23,
-      },
-      {
-        title: 'Auto Suggestions',
-        value: 1000,
-      },
-    ]
-  })
 
   // Handle table item selection
   const handleSelectItem = (itemId, checked) => {
@@ -90,23 +61,27 @@ export default function TransactionMatching() {
   const tableColumns = [
     {
       key: 'date',
-      label: 'Date',
+      label: 'Timestamp',
     },
     {
-      key: 'bankTransaction',
-      label: 'Bank Transaction',
+      key: 'user',
+      label: 'User',
     },
     {
-      key: 'amount',
-      label: 'Amount',
+      key: 'action',
+      label: 'Action',
     },
     {
-      key: 'ledgerMatch',
-      label: 'Ledger Match',
+      key: 'details',
+      label: 'Details',
     },
     {
-      key: 'confidence',
-      label: 'Confidence',
+      key: 'account',
+      label: 'Account',
+    },
+    {
+      key: 'changes',
+      label: 'Changes',
     },
     {
       key: 'status',
@@ -147,13 +122,20 @@ export default function TransactionMatching() {
         <div>
           <div className="flex flex-wrap items-center justify-between gap-6">
             <hgroup>
-              <h1 className="text-2xl font-bold">Transaction Matching</h1>
+              <h1 className="text-2xl font-bold">Audit Trail</h1>
               <p className="text-sm text-[#7D7D7D]">
                 Automatically Reconcile and Verify Your Financial Transactions
               </p>
             </hgroup>
 
             <div className="flex space-x-4">
+              <Button
+                className={'h-10 rounded-2xl text-sm'}
+                variant="outline"
+              >
+                <UploadIcon className="size-4" />
+                Upload Statement
+              </Button>
               <Button
                 onClick={() => setOpenBankForm(true)}
                 className={'h-10 rounded-2xl text-sm'}
@@ -169,16 +151,12 @@ export default function TransactionMatching() {
               </Button>
             </div>
           </div>
-
-          <div className="mt-10">
-            <Metrics metrics={assetMetrics} />
-          </div>
         </div>
           <>
             <div className="relative mt-10">
               <AccountingTable
-                title="Transaction Matching"
-                description="Automatically Reconcile and Verify Your Financial Transactions"
+                title="Audit Trail"
+                description="Complete history of all reconciliation activities and changes"
                 data={assets}
                 columns={tableColumns}
                 searchFields={[]}

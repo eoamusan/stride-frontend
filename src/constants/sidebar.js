@@ -310,8 +310,8 @@ const bankingAndReconciliationItems = [
     link: '/dashboard/accounting/banking-reconciliation/transaction-matching',
   },
   {
-    title: 'Bank Rules',
-    link: '/dashboard/accounting/banking-reconciliation/bank-rules',
+    title: 'Reconciliation',
+    link: '/dashboard/accounting/banking-reconciliation/reconciliation',
   },
   {
     title: 'Audit Trail',
