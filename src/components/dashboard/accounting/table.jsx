@@ -41,6 +41,7 @@ import emptyTableImg from '@/assets/icons/empty-table.svg';
 
 export default function AccountingTable({
   title,
+  description,
   data = [],
   columns = [],
   searchFields = [],
@@ -61,8 +62,9 @@ export default function AccountingTable({
   handleSelectItem,
   showDataSize = false,
   isProductTable = false,
-  itemComponent,
+  itemComponent = null,
   isLoading = false,
+  setShowDetails,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeProductView, setActiveProductView] = useState('grid');
@@ -219,7 +221,10 @@ export default function AccountingTable({
           </>
         ) : (
           <>
-            <h2 className="text-xl font-bold">{title}</h2>
+            <div>
+              <h2 className="text-xl font-bold">{title}</h2>
+            { description && <span className='text-[#7D7D7D] text-sm'>{description}</span> }
+            </div>
 
             <div className="flex items-center gap-3">
               {isProductTable && (
@@ -268,6 +273,7 @@ export default function AccountingTable({
               }}
               handleDropdownAction={handleDropdownAction}
               data={item}
+              setShowDetails={setShowDetails}
             />
           ))}
         </div>

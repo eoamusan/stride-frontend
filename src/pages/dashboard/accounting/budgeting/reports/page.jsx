@@ -25,25 +25,25 @@ export default function BudgetingAnalytics() {
   const [selectedColor, setSelectedColor] = useState('#3B82F6');
 
   const sampleChartData = [
-  { date: '2024-01-01', revenue: 10000, expenses: 5000 },
-  { date: '2024-02-01', revenue: 9700, expenses: 97000 },
-  { date: '2024-03-01', revenue: 1600, expenses: 15000 },
-  { date: '2024-04-01', revenue: 24200, expenses: 10000 },
-  { date: '2024-05-01', revenue: 37300, expenses: 40000 },
-  { date: '2024-06-01', revenue: 30100, expenses: 35000 },
-  { date: '2024-07-01', revenue: 245, expenses: 180 },
-];
+    { date: '2024-01-01', revenue: 10000, expenses: 5000 },
+    { date: '2024-02-01', revenue: 9700, expenses: 97000 },
+    { date: '2024-03-01', revenue: 1600, expenses: 15000 },
+    { date: '2024-04-01', revenue: 24200, expenses: 10000 },
+    { date: '2024-05-01', revenue: 37300, expenses: 40000 },
+    { date: '2024-06-01', revenue: 30100, expenses: 35000 },
+    { date: '2024-07-01', revenue: 245, expenses: 180 },
+  ];
 
-const sampleChartConfig = {
-  revenue: {
-    label: 'Actual',
-    color: '#6FD195',
-  },
-  expenses: {
-    label: 'Budget',
-    color: '#7086FD',
-  },
-};
+  const sampleChartConfig = {
+    revenue: {
+      label: 'Actual',
+      color: '#6FD195',
+    },
+    expenses: {
+      label: 'Budget',
+      color: '#7086FD',
+    },
+  };
 
 useEffect(() => {
   setTimeout(() => {

@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 export default function PieMetricCard({
   className,
   title,
+  description,
   chartConfig,
   chartData,
   emptyState = false,
@@ -19,7 +20,10 @@ export default function PieMetricCard({
   return (
     <Card className={cn('w-full p-6', className)}>
       {/* Header */}
-      <h3 className="text-lg font-semibold">{title}</h3>
+      <div>
+        <h3 className="text-lg font-semibold">{title}</h3>
+        {description && <span className='text-[#7D7D7D] text-sm'>{description}</span>}
+      </div>
 
       {/* Chart Container */}
       <div className="h-full w-full">

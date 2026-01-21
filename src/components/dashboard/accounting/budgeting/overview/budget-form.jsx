@@ -191,7 +191,6 @@ export default function BudgetForm({ onCreateBudget }) {
             )}
           />
 
-
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium">Available setup option</span>
             <button type="button" className="flex flex-col items-center text-center text-[8pt] max-w-42 p-2 rounded-md border border-primary cursor-pointer" onClick={() => setOpenCustomBudgetForm(true)}>
@@ -217,22 +216,20 @@ export default function BudgetForm({ onCreateBudget }) {
             </div>
           </div>
           
-
-          
           {/* Footer Buttons */}
           <div className="flex justify-end space-x-4 pt-10 pb-5">
             <Button
               type="button"
               variant="outline"
               onClick={handleCancel}
-              className="h-10 min-w-[130px] text-sm"
+              className="h-10 px-10 text-sm rounded-3xl"
             >
               Cancel
             </Button>
 
             <Button
               type="submit"
-              className="h-10 min-w-[195px] text-sm"
+              className="h-10 px-10 text-sm rounded-3xl"
               disabled={!isValid}
             >
               Next

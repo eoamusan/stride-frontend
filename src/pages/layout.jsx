@@ -56,6 +56,21 @@ import AccountReportPage from './dashboard/accounting/bookkeeping/chart-of-accou
 import FinancialReports from './dashboard/accounting/financial-reports/page';
 import Budgeting from './dashboard/accounting/budgeting/page';
 import BudgetingAnalytics from './dashboard/accounting/budgeting/reports/page';
+import FixedAssetMgtOverview from './dashboard/accounting/fixed-asset-management/overview/page';
+import FixedAssetMgtAssets from './dashboard/accounting/fixed-asset-management/assets/page';
+import FixedAssetMgtCategories from './dashboard/accounting/fixed-asset-management/categories/page';
+import FixedAssetMgtMaintenance from './dashboard/accounting/fixed-asset-management/maintenance/page';
+import FixedAssetMgtAudits from './dashboard/accounting/fixed-asset-management/audits/page';
+import FixedAssetMgtAssetAssignment from './dashboard/accounting/fixed-asset-management/assets-assignment/page';
+import FixedAssetMgtAssetRetrieval from './dashboard/accounting/fixed-asset-management/assets-retrievals/page';
+import FixedAssetMgtReport from './dashboard/accounting/fixed-asset-management/reports/page';
+import TaxOverview from './dashboard/accounting/tax-management/overview/page';
+import BusinessTax from './dashboard/accounting/tax-management/business-tax/page';
+import SalesTax from './dashboard/accounting/tax-management/sales-tax/page';
+import BankingOverview from './dashboard/accounting/banking/overview/page';
+import TransactionMatching from './dashboard/accounting/banking/transaction-matching/page';
+import BankingReconciliation from './dashboard/accounting/banking/reconciliation/page';
+import AuditTrail from './dashboard/accounting/banking/audit-trail/page';
 
 import HumanResourcesLayout from './dashboard/hr/layout';
 import Overview from './dashboard/hr/overview/page';
@@ -370,17 +385,87 @@ const router = createBrowserRouter([
                     ],
                   },
                   {
+                    path: 'fixed-asset-management',
+                    children: [
+                      {
+                        index: true,
+                        Component: FixedAssetMgtOverview,
+                      },
+                      {
+                        path: 'assets',
+                        Component: FixedAssetMgtAssets,
+                      },
+                      {
+                        path: 'categories',
+                        Component: FixedAssetMgtCategories,
+                      },
+                      {
+                        path: 'maintenance',
+                        Component: FixedAssetMgtMaintenance,
+                      },
+                      {
+                        path: 'audits',
+                        Component: FixedAssetMgtAudits,
+                      },
+                      {
+                        path: 'assets-assignment',
+                        Component: FixedAssetMgtAssetAssignment,
+                      },
+                      {
+                        path: 'assets-retrievals',
+                        Component: FixedAssetMgtAssetRetrieval,
+                      },
+                      {
+                        path: 'reports',
+                        Component: FixedAssetMgtReport,
+                      }
+                    ],
+                  },
+                  {
+                    path: 'tax-management',
+                    children: [
+                      {
+                        index: true,
+                        Component: TaxOverview,
+                      },
+                      {
+                        path: 'sales-tax',
+                        Component: SalesTax,
+                      },
+                      {
+                        path: 'business-tax',
+                        Component: BusinessTax,
+                      }
+                    ],
+                  },
+                  {
+                    path: 'banking-reconciliation',
+                    children: [
+                      {
+                        index: true,
+                        Component: BankingOverview,
+                      },
+                      {
+                        path: 'transaction-matching',
+                        Component: TransactionMatching,
+                      },
+                      {
+                        path: 'reconciliation',
+                        Component: BankingReconciliation,
+                      },
+                      {
+                        path: 'audit-trail',
+                        Component: AuditTrail,
+                      }
+                    ],
+                  },
+                  {
                     path: 'asset-depreciation',
                     Component: () => <div>Asset & Depreciation Management</div>,
                   },
                   {
                     path: 'sales-income',
                     Component: () => <div>Sales & Income</div>,
-                  },
-                  { path: 'tax', Component: () => <div>Tax Management</div> },
-                  {
-                    path: 'banking-reconciliation',
-                    Component: () => <div>Banking & Reconciliation</div>,
                   },
                   {
                     path: 'remunerations',

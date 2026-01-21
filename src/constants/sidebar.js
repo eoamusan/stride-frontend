@@ -324,6 +324,75 @@ const hrItems = [
   },
 ];
 
+const fixedAssetManagementItems = [
+  {
+    title: 'Overview',
+    link: '/dashboard/accounting/fixed-asset-management',
+  },
+  {
+    title: 'Assets',
+    link: '/dashboard/accounting/fixed-asset-management/assets',
+  },
+  {
+    title: 'Categories',
+    link: '/dashboard/accounting/fixed-asset-management/categories',
+  },
+  {
+    title: 'Maintenance',
+    link: '/dashboard/accounting/fixed-asset-management/maintenance',
+  },
+  {
+    title: 'Audits',
+    link: '/dashboard/accounting/fixed-asset-management/audits',
+  },
+  {
+    title: 'Assets Assignment',
+    link: '/dashboard/accounting/fixed-asset-management/assets-assignment',
+  },
+  {
+    title: 'Assets Retrieval',
+    link: '/dashboard/accounting/fixed-asset-management/assets-retrievals',
+  },
+  {
+    title: 'Reports',
+    link: '/dashboard/accounting/fixed-asset-management/reports',
+  }
+];
+
+const taxManagementItems = [
+  {
+    title: 'Overview',
+    link: '/dashboard/accounting/tax-management',
+  },
+  {
+    title: 'Sales Tax',
+    link: '/dashboard/accounting/tax-management/sales-tax',
+  },
+  {
+    title: 'Business Tax',
+    link: '/dashboard/accounting/tax-management/business-tax',
+  },
+];
+
+const bankingAndReconciliationItems = [
+  {
+    title: 'Overview',
+    link: '/dashboard/accounting/banking-reconciliation',
+  },
+  {
+    title: 'Transaction Matching',
+    link: '/dashboard/accounting/banking-reconciliation/transaction-matching',
+  },
+  {
+    title: 'Reconciliation',
+    link: '/dashboard/accounting/banking-reconciliation/reconciliation',
+  },
+  {
+    title: 'Audit Trail',
+    link: '/dashboard/accounting/banking-reconciliation/audit-trail',
+  }
+];
+
 const sidebarItems = [
   {
     title: 'Dashboard',
@@ -397,9 +466,9 @@ const accountingTopItems = {
   accountsReceivable: accountsReceivableItems,
   accountsPayable: accountsPayableItems,
   inventoryManagement: inventoryManagementItems,
-  fixedAssetManagement: [],
-  taxManagement: [],
-  bankingReconciliation: [],
+  fixedAssetManagement: fixedAssetManagementItems,
+  taxManagement: taxManagementItems,
+  bankingReconciliation: bankingAndReconciliationItems,
 };
 
 const hrTopItems = {
