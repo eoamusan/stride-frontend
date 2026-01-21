@@ -3883,7 +3883,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"motion-utils@npm:^12.27.2":
+"motion-utils@npm:^12.24.10":
   version: 12.27.2
   resolution: "motion-utils@npm:12.27.2"
   checksum: 10c0/b04ed72b4d66565d3a2791577060e0a9662fbe6a23672ffa722950ec357fe464064091118f5283860878f2447392c3ba6520a6d69559bf4b20fe8fe7b3d7b95b
