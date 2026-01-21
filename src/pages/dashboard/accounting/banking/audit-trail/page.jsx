@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, HousePlus, Landmark, PlusCircleIcon, SettingsIcon, UploadIcon } from 'lucide-react';
+import { DownloadIcon, Landmark, PlusCircleIcon, SettingsIcon, UploadIcon } from 'lucide-react';
 import { AppDialog } from '@/components/core/app-dialog';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import BankForm from '@/components/dashboard/accounting/banking/overview/bank-form';
@@ -82,6 +82,9 @@ export default function AuditTrail() {
     {
       key: 'changes',
       label: 'Changes',
+      render: (value) => {
+        return <span>{value}</span>
+      }
     },
     {
       key: 'status',
