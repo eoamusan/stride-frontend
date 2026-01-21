@@ -29,7 +29,7 @@ export default function Overview() {
   ];
 
   return (
-    <div className="my-10">
+    <div className="my-5">
       <hgroup>
         <h1 className="text-2xl font-bold">Account Overview</h1>
         <p className="text-sm text-[#7D7D7D]">
