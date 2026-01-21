@@ -429,7 +429,7 @@ const payrollItems = [
   },
 ];
 
-const learningAndDevelopementItems = [
+const learningAndDevelopmentItems = [
   {
     title: 'Course Catalogs',
     link: '/dashboard/hr/learning-and-development',
@@ -464,6 +464,44 @@ const engagementItems = [
   {
     title: 'Recognition Wall',
     link: '/dashboard/hr/engagement/recognition-wall',
+  },
+];
+
+const analyticsItems = [
+  {
+    title: 'Analytics',
+    link: '/dashboard/hr/analytics',
+  },
+  {
+    title: 'Head Count',
+    link: '/dashboard/hr/analytics/headcount',
+  },
+  { title: 'Attrition', link: '/dashboard/hr/analytics/attrition' },
+  { title: 'Diversity', link: '/dashboard/hr/analytics/diversity' },
+];
+
+const disciplinaryAndExitItems = [
+  {
+    title: 'Disciplinary',
+    link: '/dashboard/hr/disciplinary-and-exit',
+  },
+  { title: 'Exit Request', link: '/dashboard/hr/disciplinary-and-exit/exit' },
+];
+
+const setupItems = [
+  { title: 'Company Profile', link: '/dashboard/hr/setup' },
+  {
+    title: 'Organizational Structure',
+    link: '/dashboard/hr/setup/organization-structure',
+  },
+  { title: 'RBAC', link: '/dashboard/hr/setup/RBAC' },
+  {
+    title: 'Salary Framework',
+    link: '/dashboard/hr/setup/salary-framework',
+  },
+  {
+    title: 'Global Setting',
+    link: '/dashboard/hr/setup/global-settings',
   },
 ];
 
@@ -553,11 +591,11 @@ const hrTopItems = {
   attendanceLeave: attendanceLeaveItems,
   performance: performanceItems,
   payroll: payrollItems,
-  learningAndDevelopement: learningAndDevelopementItems,
+  learningAndDevelopement: learningAndDevelopmentItems,
   engagement: engagementItems,
-  analytics: [],
-  disciplinaryAndExit: [],
-  setup: [],
+  analytics: analyticsItems,
+  disciplinaryAndExit: disciplinaryAndExitItems,
+  setup: setupItems,
 };
 
 export { sidebarItems, accountingTopItems, hrTopItems };

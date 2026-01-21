@@ -57,6 +57,7 @@ import FinancialReports from './dashboard/accounting/financial-reports/page';
 import Budgeting from './dashboard/accounting/budgeting/page';
 import BudgetingAnalytics from './dashboard/accounting/budgeting/reports/page';
 
+// Hr imports start here
 import HumanResourcesLayout from './dashboard/hr/layout';
 import Overview from './dashboard/hr/overview/page';
 import HrValidation from './dashboard/hr/onboarding/hr-validation/page';
@@ -65,7 +66,6 @@ import Payroll from './dashboard/hr/payroll/page';
 import LearningAndDevelopment from './dashboard/hr/learning-development/page';
 import Engagement from './dashboard/hr/engagement/page';
 import Analytics from './dashboard/hr/analytics/page';
-import DisciplinaryAndExit from './dashboard/hr/disciplinary-and-exit/page';
 import Setup from './dashboard/hr/setup/page';
 
 import Recruitment from './dashboard/hr/recruitment/page';
@@ -90,13 +90,27 @@ import RunPayroll from './dashboard/hr/payroll/run-payroll/page';
 import Review from './dashboard/hr/payroll/review/page';
 import Payslips from './dashboard/hr/payroll/payslips/page';
 import Compliance from './dashboard/hr/payroll/compliance/page';
-import { Train } from 'lucide-react';
+
 import TrainingAssignments from './dashboard/hr/learning-development/training-assignments/page';
 import TrainingApproval from './dashboard/hr/learning-development/training-approvals/page';
 import Certificates from './dashboard/hr/learning-development/certificates/page';
 import CompletionTracking from './dashboard/hr/learning-development/completion-tracking/page';
+
 import SuggestionsBox from './dashboard/hr/engagement/suggestions-box/page';
 import RecognitionWall from './dashboard/hr/engagement/recognition-wall/page';
+
+import HeadCount from './dashboard/hr/analytics/headcount/page';
+import Attribution from './dashboard/hr/analytics/attrition/page';
+import Diversity from './dashboard/hr/analytics/diversity/page';
+
+import Disciplinary from './dashboard/hr/disciplinary/page';
+import ExitRequest from './dashboard/hr/disciplinary/exit/page';
+
+import OrganizationStructure from './dashboard/hr/setup/organization-structure/page';
+import RBAC from './dashboard/hr/setup/RBAC/page';
+import SalaryFramework from './dashboard/hr/setup/salary-framework/page';
+import GlobalSetting from './dashboard/hr/setup/global-setting/page';
+// Hr imports ends here
 
 const router = createBrowserRouter([
   {
@@ -587,15 +601,59 @@ const router = createBrowserRouter([
                   },
                   {
                     path: 'analytics',
-                    Component: Analytics,
+                    children: [
+                      { index: true, Component: Analytics },
+                      {
+                        path: 'headcount',
+                        Component: HeadCount,
+                      },
+                      {
+                        path: 'attrition',
+                        Component: Attribution,
+                      },
+                      {
+                        path: 'diversity',
+                        Component: Diversity,
+                      },
+                    ],
                   },
                   {
                     path: 'disciplinary-and-exit',
-                    Component: DisciplinaryAndExit,
+                    children: [
+                      {
+                        index: true,
+                        Component: Disciplinary,
+                      },
+                      {
+                        path: 'exit',
+                        Component: ExitRequest,
+                      },
+                    ],
                   },
                   {
                     path: 'setup',
-                    Component: Setup,
+                    children: [
+                      {
+                        index: true,
+                        Component: Setup,
+                      },
+                      {
+                        path: 'organization-structure',
+                        Component: OrganizationStructure,
+                      },
+                      {
+                        path: 'RBAC',
+                        Component: RBAC,
+                      },
+                      {
+                        path: 'salary-framework',
+                        Component: SalaryFramework,
+                      },
+                      {
+                        path: 'global-settings',
+                        Component: GlobalSetting,
+                      },
+                    ],
                   },
                 ],
               },
