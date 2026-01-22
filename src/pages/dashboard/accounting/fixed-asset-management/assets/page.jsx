@@ -8,6 +8,7 @@ import AssetCard from '@/components/dashboard/accounting/fixed-asset-management/
 import AssetForm from '@/components/dashboard/accounting/fixed-asset-management/assets/asset-form';
 import { AppDialog } from '@/components/core/app-dialog';
 import AssetDetails from '@/components/dashboard/accounting/fixed-asset-management/assets/asset-details';
+import YoutubeVideoGuideButton from '@/components/dashboard/accounting/shared/youtube-video-guide-button';
 
 // Mock data
 const sampleData = [
@@ -196,6 +197,7 @@ export default function FixedAssetMgtAssets() {
             </hgroup>
 
             <div className="flex space-x-4">
+              <YoutubeVideoGuideButton url="" />
               <Button
                 onClick={() => setOpenAssetForm(true)}
                 className={'h-10 rounded-2xl text-sm'}

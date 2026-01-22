@@ -12,6 +12,7 @@ import PieMetricCard from '@/components/dashboard/pie-metric-card';
 import AssetCard from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-card';
 import AssetForm from '@/components/dashboard/accounting/fixed-asset-management/assets/asset-form';
 import { AppDialog } from '@/components/core/app-dialog';
+import YoutubeVideoGuideButton from '@/components/dashboard/accounting/shared/youtube-video-guide-button';
 
 // Mock data
 const sampleData = [
@@ -240,6 +241,7 @@ export default function FixedAssetMgtOverview() {
         </hgroup>
 
         <div className="flex space-x-4">
+          <YoutubeVideoGuideButton url="" />
           <Button
             onClick={() => setOpenAssetForm(true)}
             className={'h-10 rounded-2xl text-sm'}

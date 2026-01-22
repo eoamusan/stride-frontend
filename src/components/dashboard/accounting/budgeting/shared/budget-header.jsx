@@ -6,6 +6,7 @@ import { AppDialog } from '@/components/core/app-dialog';
 import { PiggyBank } from 'lucide-react';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import Metrics from '../../invoicing/plain-metrics';
+import YoutubeVideoGuideButton from '../../shared/youtube-video-guide-button';
 
 const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
 
@@ -58,6 +59,7 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
         </hgroup>
 
         <div className="flex space-x-4">
+          <YoutubeVideoGuideButton url="" />
           <Button
             onClick={() => setOpenBudgetForm(true)}
             className={'h-10 rounded-2xl text-sm'}
