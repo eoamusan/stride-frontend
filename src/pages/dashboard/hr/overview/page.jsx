@@ -1,6 +1,6 @@
 import { ChartPieDonutText } from '@/components/dashboard/hr/breakdown-chart';
 import MetricCard from '@/components/dashboard/hr/metric-card';
-import { Calendar01 } from '@/components/dashboard/hr/overview/calender';
+import CalendarWidget from '@/components/dashboard/hr/overview/calender';
 import QuickActionsCard from '@/components/dashboard/hr/overview/quickaction-card';
 
 export default function Overview() {
@@ -78,7 +78,7 @@ export default function Overview() {
           <MetricCard
             key={metric.title}
             {...metric}
-            emptyState={true}
+            emptyState={false}
             emojis={metric.emojis}
           />
         ))}
@@ -88,11 +88,11 @@ export default function Overview() {
         <section className="flex flex-col gap-8 md:col-span-2 md:flex-row">
           <article className="md:w-6/10">
             {/* Staff breakdown chart */}
-            <ChartPieDonutText {...StaffBreakdown} emptyState={true} />
+            <ChartPieDonutText {...StaffBreakdown} emptyState={false} />
           </article>
           <article className="md:w-4/10">
             {/* Employee Status chart */}
-            <ChartPieDonutText {...EmployeeStatus} emptyState={true} />
+            <ChartPieDonutText {...EmployeeStatus} emptyState={false} />
           </article>
         </section>
         {/* Quick Action */}
@@ -100,8 +100,8 @@ export default function Overview() {
           <QuickActionsCard />
         </section>
         {/* Calendar and Upcoming event*/}
-        <section className="row-span-2">
-          <Calendar01 />
+        <section className="shadow-2 rounded-2xl border-2 bg-white md:col-span-1 md:row-span-2">
+          <CalendarWidget />
         </section>
       </main>
     </div>
