@@ -392,6 +392,7 @@ const bankingAndReconciliationItems = [
     link: '/dashboard/accounting/banking-reconciliation/audit-trail',
   },
 ];
+
 const recruitmentItems = [
   {
     title: 'Job Requisitions',
@@ -451,6 +452,7 @@ const attendanceLeaveItems = [
     link: '/dashboard/hr/attendance-leave/leave',
   },
 ];
+
 const performanceItems = [
   {
     title: 'Performance',
