@@ -1,11 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import {
-  ArrowLeftIcon,
-  Edit3Icon,
-  Check,
-  ChevronsUpDown,
-} from 'lucide-react';
+import { ArrowLeftIcon, Edit3Icon, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,8 +37,8 @@ export default function ProfilePage() {
   const [countryOpen, setCountryOpen] = useState(false);
 
   const [formData, setFormData] = useState({
-    fullName:
-      `${userStore.data?.account?.firstName || ''} ${userStore.data?.account?.lastName || ''}`.trim(),
+    firstName: userStore.data?.account?.firstName || '',
+    lastName: userStore.data?.account?.lastName || '',
     email: userStore.data?.account?.email || '',
     address: userStore.data?.account?.address || '',
     businessCity: userStore.activeBusiness?.city || '',
@@ -158,18 +153,34 @@ export default function ProfilePage() {
         {/* Form */}
         <div className="py-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Full Name */}
+            {/* First Name */}
             <div>
               <Label
-                htmlFor="fullName"
+                htmlFor="firstName"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Full Name
+                First Name
               </Label>
               <Input
-                id="fullName"
-                value={formData.fullName}
-                onChange={(e) => handleInputChange('fullName', e.target.value)}
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                className="h-10 w-full"
+              />
+            </div>
+
+            {/* Last Name */}
+            <div>
+              <Label
+                htmlFor="lastName"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                Last Name
+              </Label>
+              <Input
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => handleInputChange('lastName', e.target.value)}
                 className="h-10 w-full"
               />
             </div>
