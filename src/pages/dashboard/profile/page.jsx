@@ -27,6 +27,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUserStore } from '@/stores/user-store';
 import { cn } from '@/lib/utils';
+import ProfileService from '@/api/profile';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -46,6 +48,7 @@ export default function ProfilePage() {
     country: userStore.activeBusiness?.country,
     phoneNumber: userStore.data?.account?.phoneNumber || '',
     currency: userStore.activeBusiness?.currency || 'NGN',
+    profilePhotoUrl: userStore.data?.account?.profilePhotoUrl || '',
   });
 
   // Fetch countries on component mount
@@ -64,6 +67,19 @@ export default function ProfilePage() {
     fetchCountries();
   }, []);
 
+  // Fetch profile data on mount
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const response = await ProfileService.fetch();
+        console.log('Profile data:', response.data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    }
+    fetchProfile();
+  }, []);
+
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -71,23 +87,53 @@ export default function ProfilePage() {
     }));
   };
 
-  const handleSaveChanges = () => {
-    // TODO: Implement save functionality
-    console.log('Saving changes:', formData);
+  const handleSaveChanges = async () => {
+    try {
+      const accountId = userStore.data?.account?._id;
+      if (!accountId) {
+        console.error('No account ID found');
+        return;
+      }
+
+      const response = await ProfileService.update({
+        // id: accountId,
+        data: formData,
+      });
+      console.log('Profile updated:', response.data);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Show preview immediately
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarImage(reader.result);
       };
       reader.readAsDataURL(file);
+
+      // Upload to Cloudinary
+      try {
+        const result = await uploadToCloudinary(file, {
+          folder: 'profiles/avatars',
+          tags: ['avatar', userStore.data?.account?._id],
+        });
+        console.log('Avatar uploaded to Cloudinary:', result.url);
+        // Update formData with the Cloudinary URL
+        setFormData((prev) => ({
+          ...prev,
+          profilePhotoUrl: result.url,
+        }));
+      } catch (error) {
+        console.error('Error uploading avatar:', error);
+      }
     }
   };
 
@@ -199,6 +245,7 @@ export default function ProfilePage() {
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 className="h-10 w-full"
+                readOnly
               />
             </div>
 
