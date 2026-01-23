@@ -25,7 +25,6 @@ export default function DashboardLayout() {
       </div>
       <div
         className="flex flex-1 overflow-hidden bg-[#F5F6FA]"
-        style={{ overscrollBehavior: 'none' }}
       >
         <div
           className="fixed top-16 bottom-0 left-0 z-30 bg-white pt-6 max-lg:hidden"
@@ -51,10 +50,7 @@ export default function DashboardLayout() {
                 <Chats />
               </div>
             ) : (
-              <div
-                className="relative h-full overflow-hidden px-4"
-                style={{ overscrollBehavior: 'none' }}
-              >
+              <div className="relative h-full px-4">
                 <Outlet />
               </div>
             )}

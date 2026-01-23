@@ -247,12 +247,18 @@ export default function Header({ onMobileMenuToggle }) {
                 <span className="flex-1">Add New Business</span>
                 <ChevronRightIcon className="h-4 w-4" />
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex cursor-pointer items-center gap-2">
+              <DropdownMenuItem
+                className="flex cursor-pointer items-center gap-2"
+                onClick={() => navigate('/dashboard/profile')}
+              >
                 <UserIcon className="h-4 w-4" />
                 <span className="flex-1">My Profile</span>
                 <ChevronRightIcon className="h-4 w-4" />
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex cursor-pointer items-center gap-2">
+              <DropdownMenuItem
+                className="flex cursor-pointer items-center gap-2"
+                onClick={() => navigate('/dashboard/settings')}
+              >
                 <SettingsIcon className="h-4 w-4" />
                 <span className="flex-1">Settings</span>
                 <ChevronRightIcon className="h-4 w-4" />

@@ -85,6 +85,8 @@ import Engagement from './dashboard/hr/engagement/page';
 import Analytics from './dashboard/hr/analytics/page';
 import DisciplinaryAndExit from './dashboard/hr/disciplinary-and-exit/page';
 import Setup from './dashboard/hr/setup/page';
+import ProfilePage from './dashboard/profile/page';
+import SettingsPage from './dashboard/settings/page';
 
 const router = createBrowserRouter([
   {
@@ -110,6 +112,8 @@ const router = createBrowserRouter([
                 Component: Home,
               },
               // Main dashboard routes
+              { path: 'profile', Component: ProfilePage },
+              { path: 'settings', Component: SettingsPage },
               { path: 'projects', Component: () => <div>Projects Page</div> },
               { path: 'tasks', Component: () => <div>Tasks Page</div> },
               { path: 'contacts', Component: () => <div>Contacts Page</div> },
@@ -418,7 +422,7 @@ const router = createBrowserRouter([
                       {
                         path: 'reports',
                         Component: FixedAssetMgtReport,
-                      }
+                      },
                     ],
                   },
                   {
@@ -435,7 +439,7 @@ const router = createBrowserRouter([
                       {
                         path: 'business-tax',
                         Component: BusinessTax,
-                      }
+                      },
                     ],
                   },
                   {
@@ -456,7 +460,7 @@ const router = createBrowserRouter([
                       {
                         path: 'audit-trail',
                         Component: AuditTrail,
-                      }
+                      },
                     ],
                   },
                   {
