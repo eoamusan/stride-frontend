@@ -154,7 +154,7 @@ export default function SettingsPage() {
         <Button onClick={() => navigate('/dashboard')} variant={'ghost'}>
           <ArrowLeftIcon className="size-4" />
           <span>Back</span>
-        </Button>
+        </Button> 
 
         {/* Tab Content */}
         <div className="py-6">

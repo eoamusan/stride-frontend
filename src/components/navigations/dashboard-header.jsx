@@ -114,25 +114,22 @@ export default function Header({ onMobileMenuToggle }) {
           </Button>
 
           {/* Mobile Breadcrumb */}
-          <div className="flex items-center gap-1 text-[9px] text-[#434343] md:text-xs">
-            <p className="flex items-center gap-0.5">
-              <span className="max-w-25 truncate">Grace b osun branch</span>
-              <SchoolIcon size={12} color="#434343" />
-            </p>
-            <ChevronLeftIcon size={14} className="rotate-180" />
-            <p className="flex items-center gap-0.5">
-              <span className="max-w-20 truncate">Grace bank</span>
-              <LandmarkIcon size={12} color="#434343" />
+          <div className="flex w-fit items-center justify-between gap-1 text-xs text-[#434343]">
+            <p className="flex items-center justify-center gap-0.5">
+              <span>{userStore.activeBusiness?.businessName || ''}</span>
+              <span>
+                <LandmarkIcon size={12} color="#434343" />
+              </span>
             </p>
           </div>
         </div>
 
         {/* Right side - Search + Notification + Avatar */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="size-9"
             onClick={() => setShowMobileSearch(!showMobileSearch)}
           >
             <SearchIcon className="h-4 w-4" />
@@ -140,7 +137,7 @@ export default function Header({ onMobileMenuToggle }) {
 
           {/* Notification Button */}
           <div className="relative">
-            <Button variant="ghost" size="icon" className="h-7 w-7">
+            <Button variant="ghost" size="icon" className="size-9">
               <BellIcon className="h-4 w-4" />
             </Button>
             <Badge
@@ -150,10 +147,94 @@ export default function Header({ onMobileMenuToggle }) {
           </div>
 
           {/* User Avatar */}
-          <Avatar className="h-7 w-7">
-            <AvatarImage src="" />
-            <AvatarFallback>{getUserInitials()}</AvatarFallback>
-          </Avatar>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex w-fit items-center justify-center gap-2 p-2 hover:bg-gray-50"
+              >
+                <Avatar className={'size-9'}>
+                  <AvatarImage src={userStore?.profile?.profilePhotoUrl} />
+                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {/* Business Section */}
+              {userStore?.allBusinesses &&
+                userStore.allBusinesses.length > 0 && (
+                  <div className="px-2 py-2">
+                    <DropdownMenuLabel className="mb-2 text-xs font-semibold text-gray-500">
+                      Businesses
+                    </DropdownMenuLabel>
+                    {userStore.allBusinesses.map((business, index) => (
+                      <DropdownMenuItem
+                        key={business._id || business.id}
+                        className="flex cursor-pointer items-center gap-2 py-1"
+                        onClick={() =>
+                          handleBusinessSwitch(
+                            business._id || business.id,
+                            business.businessName
+                          )
+                        }
+                        disabled={switchingBusiness || business.switchActive}
+                      >
+                        <div
+                          className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white ${getBusinessColor(index)}`}
+                        >
+                          {getBusinessInitials(business.businessName)}
+                        </div>
+                        <span className="flex-1 truncate text-sm">
+                          {business.businessName}
+                        </span>
+                        {business.switchActive && (
+                          <CheckIcon className="text-primary h-4 w-4" />
+                        )}
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                )}
+
+              <DropdownMenuSeparator />
+
+              {/* Action Items */}
+              <DropdownMenuItem
+                className="flex cursor-pointer items-center gap-2"
+                onClick={() => setShowAddBusinessModal(true)}
+              >
+                <UserPlusIcon className="h-4 w-4" />
+                <span className="flex-1">Add New Business</span>
+                <ChevronRightIcon className="h-4 w-4" />
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="flex cursor-pointer items-center gap-2"
+                onClick={() => navigate('/dashboard/profile')}
+              >
+                <UserIcon className="h-4 w-4" />
+                <span className="flex-1">My Profile</span>
+                <ChevronRightIcon className="h-4 w-4" />
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="flex cursor-pointer items-center gap-2"
+                onClick={() => navigate('/dashboard/settings')}
+              >
+                <SettingsIcon className="h-4 w-4" />
+                <span className="flex-1">Settings</span>
+                <ChevronRightIcon className="h-4 w-4" />
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              {/* Logout */}
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="flex cursor-pointer items-center gap-2 text-red-600"
+              >
+                <LogOutIcon className="h-4 w-4" />
+                <span>Log Out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -186,7 +267,7 @@ export default function Header({ onMobileMenuToggle }) {
                 className="flex w-fit items-center justify-center gap-2 p-2 hover:bg-gray-50"
               >
                 <Avatar className={'h-9 w-9'}>
-                  <AvatarImage src={''} />
+                  <AvatarImage src={userStore?.profile?.profilePhotoUrl} />
                   <AvatarFallback>{getUserInitials()}</AvatarFallback>
                 </Avatar>
                 <div className="text-left">

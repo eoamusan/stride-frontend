@@ -29,6 +29,7 @@ import { useUserStore } from '@/stores/user-store';
 import { cn } from '@/lib/utils';
 import ProfileService from '@/api/profile';
 import { uploadToCloudinary } from '@/lib/cloudinary';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -37,18 +38,21 @@ export default function ProfilePage() {
   const [avatarImage, setAvatarImage] = useState('');
   const [countries, setCountries] = useState([]);
   const [countryOpen, setCountryOpen] = useState(false);
+  const [profileId, setProfileId] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    firstName: userStore.data?.account?.firstName || '',
-    lastName: userStore.data?.account?.lastName || '',
-    email: userStore.data?.account?.email || '',
-    address: userStore.data?.account?.address || '',
-    businessCity: userStore.activeBusiness?.city || '',
-    state: userStore.activeBusiness?.state || 'Lagos',
-    country: userStore.activeBusiness?.country,
-    phoneNumber: userStore.data?.account?.phoneNumber || '',
-    currency: userStore.activeBusiness?.currency || 'NGN',
-    profilePhotoUrl: userStore.data?.account?.profilePhotoUrl || '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    address: '',
+    businessCity: '',
+    state: '',
+    country: '',
+    phoneNumber: '',
+    currency: '',
+    profilePhotoUrl: '',
   });
 
   // Fetch countries on component mount
@@ -72,7 +76,31 @@ export default function ProfilePage() {
     async function fetchProfile() {
       try {
         const response = await ProfileService.fetch();
-        console.log('Profile data:', response.data);
+
+        const profileData = response.data?.data;
+        if (profileData) {
+          // Store the profile ID for updates
+          setProfileId(profileData._id);
+
+          // Populate form with profile data
+          setFormData({
+            firstName: profileData.accountId?.firstName || '',
+            lastName: profileData.accountId?.lastName || '',
+            email: profileData.accountId?.email || '',
+            address: profileData.address || '',
+            businessCity: profileData.businessCity || '',
+            state: profileData.state || '',
+            country: profileData.country || '',
+            phoneNumber: profileData.phoneNumber || '',
+            currency: profileData.currency || '',
+            profilePhotoUrl: profileData.profilePhotoUrl || '',
+          });
+
+          // Set avatar image if exists
+          if (profileData.profilePhotoUrl) {
+            setAvatarImage(profileData.profilePhotoUrl);
+          }
+        }
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
@@ -89,19 +117,24 @@ export default function ProfilePage() {
 
   const handleSaveChanges = async () => {
     try {
-      const accountId = userStore.data?.account?._id;
-      if (!accountId) {
-        console.error('No account ID found');
+      if (!profileId) {
+        console.error('No profile ID found');
         return;
       }
 
+      setIsLoading(true);
       const response = await ProfileService.update({
-        // id: accountId,
+        id: profileId,
         data: formData,
       });
+      await userStore.getUserProfile();
       console.log('Profile updated:', response.data);
+
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error updating profile:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -448,12 +481,21 @@ export default function ProfilePage() {
             <Button
               onClick={handleSaveChanges}
               className="h-10 w-full max-w-74.5 rounded-xl"
+              disabled={isLoading}
             >
-              Save Changes
+              {isLoading ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>
       </div>
+
+      <SuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        title="Profile Updated"
+        description="Your profile has been successfully updated."
+        backText={'Back'}
+      />
     </div>
   );
 }
