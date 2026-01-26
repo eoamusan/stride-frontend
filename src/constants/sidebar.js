@@ -356,7 +356,7 @@ const fixedAssetManagementItems = [
   {
     title: 'Reports',
     link: '/dashboard/accounting/fixed-asset-management/reports',
-  }
+  },
 ];
 
 const taxManagementItems = [
@@ -390,7 +390,189 @@ const bankingAndReconciliationItems = [
   {
     title: 'Audit Trail',
     link: '/dashboard/accounting/banking-reconciliation/audit-trail',
-  }
+  },
+];
+
+const recruitmentItems = [
+  {
+    title: 'Job Requisitions',
+    link: '/dashboard/hr/recruitment',
+  },
+  {
+    title: 'Job Posting',
+    link: '/dashboard/hr/recruitment/job-postings',
+  },
+  {
+    title: 'Applicant Screening',
+    link: '/dashboard/hr/recruitment/applicant-screening',
+  },
+  {
+    title: 'Interview & Schedules',
+    link: '/dashboard/hr/recruitment/interview-schedules',
+  },
+  {
+    title: 'Offer Stage',
+    link: '/dashboard/hr/recruitment/offer-stage',
+  },
+];
+
+const onboardingItems = [
+  {
+    title: 'Onboarding Overview',
+    link: '/dashboard/hr/onboarding',
+  },
+  {
+    title: 'Hr Validation',
+    link: '/dashboard/hr/onboarding/hr-validation',
+  },
+  {
+    title: 'Asset Management',
+    link: '/dashboard/hr/onboarding/asset-management',
+  },
+];
+
+const employeeDirectoryItems = [
+  {
+    title: 'Employee Directory',
+    link: '/dashboard/hr/employee-directory',
+  },
+  {
+    title: 'HR Service Desk',
+    link: '/dashboard/hr/employee-directory/hr-service-desk',
+  },
+];
+
+const attendanceLeaveItems = [
+  {
+    title: 'Attendance',
+    link: '/dashboard/hr/attendance-leave',
+  },
+  {
+    title: 'Leave',
+    link: '/dashboard/hr/attendance-leave/leave',
+  },
+];
+
+const performanceItems = [
+  {
+    title: 'Performance',
+    link: '/dashboard/hr/performance',
+  },
+  {
+    title: 'KPI & OKR Setup',
+    link: '/dashboard/hr/performance/kpi-okr-setup',
+  },
+  {
+    title: 'Review Release',
+    link: '/dashboard/hr/performance/review-release',
+  },
+  {
+    title: 'Review Templates',
+    link: '/dashboard/hr/performance/review-templates',
+  },
+  {
+    title: 'Score Cards',
+    link: '/dashboard/hr/performance/score-cards',
+  },
+];
+
+const payrollItems = [
+  {
+    title: 'Payroll',
+    link: '/dashboard/hr/payroll',
+  },
+  {
+    title: 'Run Payroll',
+    link: '/dashboard/hr/payroll/run-payroll',
+  },
+  {
+    title: 'Review',
+    link: '/dashboard/hr/payroll/review',
+  },
+  {
+    title: 'Payslips',
+    link: '/dashboard/hr/payroll/payslips',
+  },
+  {
+    title: 'Compliance',
+    link: '/dashboard/hr/payroll/compliance',
+  },
+];
+
+const learningAndDevelopmentItems = [
+  {
+    title: 'Course Catalogs',
+    link: '/dashboard/hr/learning-and-development',
+  },
+  {
+    title: 'Training Assignments',
+    link: '/dashboard/hr/learning-and-development/training-assignments',
+  },
+  {
+    title: 'Training Approvals',
+    link: '/dashboard/hr/learning-and-development/training-approvals',
+  },
+  {
+    title: 'Completion Tracking',
+    link: '/dashboard/hr/learning-and-development/completion-tracking',
+  },
+  {
+    title: 'Certificates',
+    link: '/dashboard/hr/learning-and-development/certificates',
+  },
+];
+
+const engagementItems = [
+  {
+    title: 'Celebration Hub',
+    link: '/dashboard/hr/engagement',
+  },
+  {
+    title: 'Suggestions Box',
+    link: '/dashboard/hr/engagement/suggestions-box',
+  },
+  {
+    title: 'Recognition Wall',
+    link: '/dashboard/hr/engagement/recognition-wall',
+  },
+];
+
+const analyticsItems = [
+  {
+    title: 'Analytics',
+    link: '/dashboard/hr/analytics',
+  },
+  {
+    title: 'Head Count',
+    link: '/dashboard/hr/analytics/headcount',
+  },
+  { title: 'Attrition', link: '/dashboard/hr/analytics/attrition' },
+  { title: 'Diversity', link: '/dashboard/hr/analytics/diversity' },
+];
+
+const disciplinaryAndExitItems = [
+  {
+    title: 'Disciplinary',
+    link: '/dashboard/hr/disciplinary-and-exit',
+  },
+  { title: 'Exit Request', link: '/dashboard/hr/disciplinary-and-exit/exit' },
+];
+
+const setupItems = [
+  { title: 'Company Profile', link: '/dashboard/hr/setup' },
+  {
+    title: 'Organizational Structure',
+    link: '/dashboard/hr/setup/organization-structure',
+  },
+  { title: 'RBAC', link: '/dashboard/hr/setup/RBAC' },
+  {
+    title: 'Salary Framework',
+    link: '/dashboard/hr/setup/salary-framework',
+  },
+  {
+    title: 'Global Setting',
+    link: '/dashboard/hr/setup/global-settings',
+  },
 ];
 
 const sidebarItems = [
@@ -473,17 +655,17 @@ const accountingTopItems = {
 
 const hrTopItems = {
   overview: hrItems,
-  recruitment: [],
-  onboarding: [],
-  employeeDirectory: [],
-  attendanceLeave: [],
-  performance: [],
-  payroll: [],
-  learningAndDevelopement: [],
-  engagement: [],
-  analytics: [],
-  disciplinaryAndExit: [],
-  setup: [],
+  recruitment: recruitmentItems,
+  onboarding: onboardingItems,
+  employeeDirectory: employeeDirectoryItems,
+  attendanceLeave: attendanceLeaveItems,
+  performance: performanceItems,
+  payroll: payrollItems,
+  learningAndDevelopement: learningAndDevelopmentItems,
+  engagement: engagementItems,
+  analytics: analyticsItems,
+  disciplinaryAndExit: disciplinaryAndExitItems,
+  setup: setupItems,
 };
 
 export { sidebarItems, accountingTopItems, hrTopItems };
