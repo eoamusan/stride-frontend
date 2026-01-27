@@ -65,4 +65,14 @@ export default class BusinessService {
     );
     return response;
   }
+
+  static async update({ id, data}) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.patch(`business/${id}`, data, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
+    return response;
+  }
 }

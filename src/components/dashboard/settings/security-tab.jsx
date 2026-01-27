@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,19 +11,18 @@ export default function SecurityTab({
   onSecurityChange,
   onSave,
   onCancel,
+  onMFAToggle,
+  showOTPModal,
+  setShowOTPModal,
+  onOTPSubmit,
+  isSubmitting,
 }) {
-  const [showOTPModal, setShowOTPModal] = useState(false);
+  const isPasswordFormValid =
+    security.currentPassword &&
+    security.newPassword &&
+    security.confirmPassword &&
+    security.newPassword === security.confirmPassword;
 
-  const handleSaveClick = () => {
-    setShowOTPModal(true);
-  };
-
-  const handleOTPSubmit = (otpValue) => {
-    console.log('OTP submitted:', otpValue);
-    // Call the actual save function
-    onSave?.();
-    setShowOTPModal(false);
-  };
   return (
     <div>
       <div className="mb-6">
@@ -34,9 +32,7 @@ export default function SecurityTab({
         <div className="flex items-center gap-3">
           <Switch
             checked={security.twoFactorAuth}
-            onCheckedChange={() =>
-              onSecurityChange('twoFactorAuth', !security.twoFactorAuth)
-            }
+            onCheckedChange={onMFAToggle}
           />
           <span className="text-base text-gray-600">
             Enable two factor authentication
@@ -164,14 +160,16 @@ export default function SecurityTab({
             variant="outline"
             onClick={onCancel}
             className={'h-10 rounded-xl'}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
           <Button
-            onClick={handleSaveClick}
+            onClick={onSave}
             className="h-10 w-full max-w-74.5 rounded-xl"
+            disabled={!isPasswordFormValid || isSubmitting}
           >
-            Save Changes
+            {isSubmitting ? 'Processing...' : 'Save Changes'}
           </Button>
         </div>
       </div>
@@ -180,7 +178,7 @@ export default function SecurityTab({
       <OTPModal
         open={showOTPModal}
         onOpenChange={setShowOTPModal}
-        onSubmit={handleOTPSubmit}
+        onSubmit={onOTPSubmit}
       />
     </div>
   );

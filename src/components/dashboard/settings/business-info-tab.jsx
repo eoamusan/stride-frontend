@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UploadIcon, Check, ChevronsUpDown } from 'lucide-react';
+import { UploadIcon, Check, ChevronsUpDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,14 +24,18 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { uploadToCloudinary } from '@/lib/cloudinary';
+import toast from 'react-hot-toast';
 
 export default function BusinessInfoTab({
   businessInfo,
   onBusinessInfoChange,
   onSave,
+  isSaving = false,
 }) {
   const [countries, setCountries] = useState([]);
   const [countryOpen, setCountryOpen] = useState(false);
+  const [isUploadingStamp, setIsUploadingStamp] = useState(false);
 
   const businessTypes = [
     'Limited Liability',
@@ -64,6 +68,41 @@ export default function BusinessInfoTab({
     }
     fetchCountries();
   }, []);
+
+  const handleStampUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    setIsUploadingStamp(true);
+    try {
+      const result = await uploadToCloudinary(file, {
+        folder: 'stride/company-stamps',
+      });
+      onBusinessInfoChange('companyStamp', result.url);
+      toast.success('Company stamp uploaded successfully');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload company stamp');
+    } finally {
+      setIsUploadingStamp(false);
+    }
+  };
+
+  const handleRemoveStamp = () => {
+    onBusinessInfoChange('companyStamp', '');
+  };
 
   return (
     <div>
@@ -280,21 +319,62 @@ export default function BusinessInfoTab({
           <Label className="mb-2 block text-sm font-medium">
             Upload Company stamp
           </Label>
-          <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
-            <UploadIcon className="text-primary mb-3 size-8" />
-            <p className="text-sm text-gray-900">
-              Click or drag file to this area to upload
-            </p>
-            <p className="text-xs text-gray-500">
-              Support for a single or bulk upload.
-            </p>
-          </div>
+          {businessInfo.companyStamp ? (
+            <div className="relative h-40 rounded-lg border-2 border-gray-300 bg-gray-50 p-4">
+              <button
+                type="button"
+                onClick={handleRemoveStamp}
+                className="absolute top-2 right-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <img
+                src={businessInfo.companyStamp}
+                alt="Company stamp"
+                className="h-full w-full object-contain"
+              />
+            </div>
+          ) : (
+            <label
+              htmlFor="company-stamp-upload"
+              className="flex h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100"
+            >
+              <input
+                id="company-stamp-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleStampUpload}
+                disabled={isUploadingStamp}
+                className="hidden"
+              />
+              {isUploadingStamp ? (
+                <div className="flex flex-col items-center">
+                  <div className="border-t-primary mb-3 h-8 w-8 animate-spin rounded-full border-4 border-gray-300"></div>
+                  <p className="text-sm text-gray-600">Uploading...</p>
+                </div>
+              ) : (
+                <>
+                  <UploadIcon className="text-primary mb-3 size-8" />
+                  <p className="text-sm text-gray-900">
+                    Click or drag file to this area to upload
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Support for single image upload (Max 5MB)
+                  </p>
+                </>
+              )}
+            </label>
+          )}
         </div>
       </div>
 
       <div className="mt-12 flex justify-end">
-        <Button onClick={onSave} className="h-10 w-full max-w-74.5 rounded-xl">
-          Save Changes
+        <Button
+          onClick={onSave}
+          className="h-10 w-full max-w-74.5 rounded-xl"
+          disabled={isSaving || isUploadingStamp}
+        >
+          {isSaving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
     </div>

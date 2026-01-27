@@ -46,7 +46,6 @@ export default function ProfilePage() {
     firstName: '',
     lastName: '',
     email: '',
-    address: '',
     businessCity: '',
     state: '',
     country: '',
@@ -87,7 +86,6 @@ export default function ProfilePage() {
             firstName: profileData.accountId?.firstName || '',
             lastName: profileData.accountId?.lastName || '',
             email: profileData.accountId?.email || '',
-            address: profileData.address || '',
             businessCity: profileData.businessCity || '',
             state: profileData.state || '',
             country: profileData.country || '',
@@ -279,22 +277,6 @@ export default function ProfilePage() {
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 className="h-10 w-full"
                 readOnly
-              />
-            </div>
-
-            {/* Address */}
-            <div>
-              <Label
-                htmlFor="address"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Address
-              </Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                className="h-10 w-full"
               />
             </div>
 
