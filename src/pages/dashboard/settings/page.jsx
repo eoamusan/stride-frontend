@@ -16,7 +16,8 @@ import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { activeBusiness, profile, getUserProfile } = useUserStore();
+  const { activeBusiness, profile, getUserProfile, getBusinessData } =
+    useUserStore();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeTab = searchParams.get('tab') || 'business-info';
@@ -121,7 +122,7 @@ export default function SettingsPage() {
       businessType: activeBusiness?.businessInfo?.type || '',
       legalBusinessName: activeBusiness?.businessName || '',
       legalBusinessAddress: activeBusiness?.businessLocation || '',
-      tin: activeBusiness?.businessInfo?.tin || '',
+      tin: activeBusiness?.businessInvoiceSettings?.tin || '',
       industry: activeBusiness?.industry || '',
       country: activeBusiness?.businessInfo?.country || '',
       website: activeBusiness?.businessInfo?.website || '',
@@ -156,6 +157,7 @@ export default function SettingsPage() {
       toast.success('Business information updated successfully');
       // Optionally refresh the user profile to get updated data
       await getUserProfile?.();
+      await getBusinessData();
     } catch (error) {
       toast.error('Failed to update business information');
       console.error('Business info update error:', error);
