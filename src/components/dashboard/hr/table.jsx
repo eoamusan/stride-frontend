@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -40,6 +41,8 @@ export function TableActions({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
 
+  const navigate = useNavigate();
+
   // Filter data based on search term and status filter
   const filteredData = jobRequests.filter((request) => {
     // Status filter
@@ -53,7 +56,7 @@ export function TableActions({
     if (!searchTerm) return true;
 
     return (
-      request.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.requestedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.status.toLowerCase().includes(searchTerm.toLowerCase())
@@ -289,7 +292,7 @@ export function TableActions({
           {currentData.map((request) => (
             <TableRow key={request.id}>
               <TableCell className="py-4 font-medium">
-                {request.jobTitle}
+                {request.title}
               </TableCell>
               <TableCell className="py-4 font-medium">
                 {request.department}
@@ -329,7 +332,15 @@ export function TableActions({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/hr/recruitment/detail/${request.id}`
+                        )
+                      }
+                    >
+                      View
+                    </DropdownMenuItem>
                     <DropdownMenuItem>Approve</DropdownMenuItem>
                     <DropdownMenuItem>Reject</DropdownMenuItem>
                   </DropdownMenuContent>
