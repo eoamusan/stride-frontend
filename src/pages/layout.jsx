@@ -127,6 +127,7 @@ import OrganizationStructure from './dashboard/hr/setup/organization-structure/p
 import RBAC from './dashboard/hr/setup/RBAC/page';
 import SalaryFramework from './dashboard/hr/setup/salary-framework/page';
 import GlobalSetting from './dashboard/hr/setup/global-setting/page';
+import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -549,7 +550,14 @@ const router = createBrowserRouter([
                   {
                     path: 'recruitment',
                     children: [
-                      { index: true, Component: Recruitment },
+                      {
+                        index: true,
+                        Component: Recruitment,
+                      },
+                      {
+                        path: 'detail/:id',
+                        Component: RecruitmentDetails,
+                      },
                       {
                         path: 'job-postings',
                         Component: JobPosting,
