@@ -30,77 +30,57 @@ export default function RecruitmentDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="mx-auto max-w-7xl">
-        {/* Header with back button */}
-        <div className="mb-6 flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={() => navigate('/dashboard/hr/recruitment')}
-          >
-            <ArrowLeftIcon className="h-5 w-5" />
-          </Button>
-          <span className="text-sm font-medium text-gray-600">
-            Requisition Details
-          </span>
-        </div>
-
+    <div className="min-h-screen overflow-scroll bg-gray-100 p-6">
+      <div className="mx-auto max-w-full">
         {/* Main Content */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <main className="grid gap-6 lg:grid-cols-3">
+          {/* Header with back button and title */}
+          <nav className="flex items-center gap-4 lg:col-span-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={() => navigate('/dashboard/hr/recruitment')}
+            >
+              <ArrowLeftIcon className="h-5 w-5" />
+            </Button>
+            <p className="text-2xl font-bold text-gray-900">
+              Requisition Details
+            </p>
+          </nav>
+
+          {/* Job Header Card */}
+          <div className="flex items-center gap-4 lg:col-span-3">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-purple-200 md:h-30 md:w-30">
+              <BriefcaseIcon className="h-12 w-12 text-purple-600" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold">{jobRequest.title}</h1>
+              <p className="mt-1 text-sm text-gray-600">{jobRequest.id}</p>
+              <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
+                <CalendarIcon className="h-4 w-4" />
+                <span>
+                  Created {jobRequest.dateCreated}, {jobRequest.createdTime}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge
+                className={`${jobRequest.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : jobRequest.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+              >
+                {jobRequest.status === 'Pending'
+                  ? 'Pending Approval'
+                  : jobRequest.status}
+              </Badge>
+              <Button variant="outline" size="icon" className="rounded-lg">
+                <DownloadIcon className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+
           {/* Left Column - Job Overview */}
           <div className="lg:col-span-2">
             <div className="rounded-xl bg-white p-8">
-              {/* Job Header Card */}
-              <div className="mb-8 flex items-start gap-4 border-b border-gray-200 pb-6">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-purple-200">
-                  <BriefcaseIcon className="h-12 w-12 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    {jobRequest.title}
-                  </h1>
-                  <p className="mt-1 text-sm text-gray-600">{jobRequest.id}</p>
-                  <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
-                    <CalendarIcon className="h-4 w-4" />
-                    <span>
-                      Created {jobRequest.dateCreated}, {jobRequest.createdTime}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    className={`${jobRequest.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : jobRequest.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-                  >
-                    {jobRequest.status === 'Pending'
-                      ? 'Pending Approval'
-                      : jobRequest.status}
-                  </Badge>
-                  <Button variant="outline" size="icon" className="rounded-lg">
-                    <DownloadIcon className="h-5 w-5" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-lg"
-                      >
-                        <MoreHorizontalIcon className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Edit Requisition</DropdownMenuItem>
-                      <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
               {/* Job Overview Section */}
               <div>
                 <h2 className="mb-6 text-lg font-semibold text-gray-900">
@@ -275,7 +255,7 @@ export default function RecruitmentDetails() {
               </p>
             </div>
           </div>
-        </div>
+        </main>
 
         {/* Action Buttons */}
         <div className="mt-8 flex gap-3">
