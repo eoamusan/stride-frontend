@@ -213,7 +213,7 @@ export default function AddAccountForm({
 
       // Show success modal if provided
       if (showSuccessModal) {
-        showSuccessModal();
+        showSuccessModal(response);
       }
     } catch (error) {
       console.error('Error creating account:', error);

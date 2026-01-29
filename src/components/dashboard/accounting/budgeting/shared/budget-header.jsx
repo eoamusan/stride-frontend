@@ -4,40 +4,64 @@ import { useEffect, useMemo, useState } from 'react';
 import BudgetForm from '@/components/dashboard/accounting/budgeting/overview/budget-form';
 import { AppDialog } from '@/components/core/app-dialog';
 import { PiggyBank } from 'lucide-react';
-import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import Metrics from '../../invoicing/plain-metrics';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import YoutubeVideoGuideButton from '../../shared/youtube-video-guide-button';
+import useBudgetAnalytics from '@/hooks/budgeting/useBudgetAnalytics';
 
-const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
+const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm, prepareCustomBudgetForm }) => {
+
+  const [selectedValue, setSelectedValue] = useState('revenue');
+  const { data: analyticsData, loading: loadingAnalytics } = useBudgetAnalytics();
+
+  const handleOnChange = (value) => {
+    setSelectedValue(value);
+  }
 
   const budgetMetrics = useMemo(() => {
+    const isRevenue = selectedValue === 'revenue';
+    const { totalBudget, actualSpend, variance } = analyticsData || {};
+
+    const totalRevenueOrExpenseBudget = isRevenue ? totalBudget?.totalInvoiceBudget : totalBudget?.totalExpenseBudget
+    const totalActualRevenueOrExpense = isRevenue ? actualSpend?.totalActualInvoice : actualSpend?.totalActualExpense
+    const varianceAmount = isRevenue ? variance?.invoiceVariance : variance?.expenseVariance
+
+    
+    const accuracy = (1 - (totalActualRevenueOrExpense - totalRevenueOrExpenseBudget)/100) * 100;
+    const formattedAccuracy = accuracy.toFixed(2) + '%';
+
     return [
       {
-        title: 'Total Budget',
-        value: 2000,
+        title: isRevenue ? 'Total Budget' : 'Total Expense Budget',
+        value: totalRevenueOrExpenseBudget,
       },
       {
-        title: 'Actual Spend',
-        value: 3000,
+        title: isRevenue ? 'Actual Spend' : 'Actual Expense Spend',
+        value: totalActualRevenueOrExpense,
       },
       {
         title: 'Variance',
-        value: 1500,
+        value: varianceAmount,
       },
       {
         title: 'Forecast Accuracy',
-        value: 1000,
+        value: formattedAccuracy,
       },
     ]
-  })
+  }, [analyticsData, selectedValue]);
 
   const [openBudgetForm, setOpenBudgetForm] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
-  const handleOnCreateBudget = () => {
+  const handlePrepareCustomBudgetForm = (budgetPayload) => {
     setOpenBudgetForm(false)
-    setTriggerBudgetForm(false)
-    setIsSuccessModalOpen(true)
+    prepareCustomBudgetForm(budgetPayload)
   }
 
   useEffect(() => {
@@ -75,8 +99,25 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
           </Button>
         </div>
       </div>
+
+      <div className='flex mt-4'>
+          <div className='w-1/5'>
+            <Select onValueChange={handleOnChange} value={selectedValue}>
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue placeholder="Select Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="revenue">Revenue</SelectItem>
+                  <SelectItem value="expense">Expense</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
       <div className="mt-10">
-        <Metrics metrics={budgetMetrics} />
+        <Metrics metrics={budgetMetrics} loading={loadingAnalytics} />
       </div>
 
       <AppDialog 
@@ -84,21 +125,10 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
         headerIcon={<PiggyBank />} 
         open={openBudgetForm} 
         onOpenChange={setOpenBudgetForm}
-        className='sm:max-w-163'
+        className='sm:max-w-130'
       >
-        <BudgetForm onCreateBudget={handleOnCreateBudget} />
+        <BudgetForm prepareCustomBudgetForm={handlePrepareCustomBudgetForm} onCancel={() => setOpenBudgetForm(false)} />
       </AppDialog>
-
-      <SuccessModal
-        title={'Budget Created'}
-        description={"You've successfully created a budget."}
-        open={isSuccessModalOpen}
-        onOpenChange={setIsSuccessModalOpen}
-        backText={'Back'}
-        handleBack={() => {
-          setIsSuccessModalOpen(false);
-        }} 
-      />
     </>
   );
 };

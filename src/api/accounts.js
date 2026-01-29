@@ -121,4 +121,30 @@ export default class AccountService {
     );
     return response;
   }
+
+  static async fetchBudgetTransactions(data) {
+    const userStore = useUserStore.getState();
+
+    // Build params object with only defined values
+    const { startDate, endDate } = data;
+    const params = {};
+    if (startDate !== undefined) params.startDate = startDate;
+    if (endDate !== undefined) params.endDate = endDate;
+
+    const payload = {};
+    payload.businessId = userStore.activeBusiness?._id;
+    payload.budget = true;
+
+    const response = await axiosInstance.post(
+      'accounting/account/transaction',
+      payload,
+      {
+        params,
+        headers: {
+          Authorization: `Bearer ${userStore.data?.accessToken}`,
+        },
+      }
+    );
+    return response;
+  }
 }

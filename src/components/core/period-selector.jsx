@@ -38,8 +38,7 @@ import { cn } from '@/lib/utils';
 
 export default function PeriodSelector({ onPeriodChange, value, onChange }) {
   const [datePeriod, setDatePeriod] = useState(value?.datePeriod || 'today');
-  const [fromDate, setFromDate] = useState(value?.fromDate);
-  const [toDate, setToDate] = useState(value?.toDate);
+  const [date, setDate] = useState({from: value?.from, to: value?.to});
 
   const getDateRangeForPeriod = (period) => {
     const today = new Date();
@@ -129,22 +128,18 @@ export default function PeriodSelector({ onPeriodChange, value, onChange }) {
         const { fromDate: newFromDate, toDate: newToDate } =
           getDateRangeForPeriod(datePeriod);
         if (newFromDate) {
-          setFromDate(newFromDate);
-        }
-        if (newToDate) {
-          setToDate(newToDate);
+          setDate({ from: newFromDate, to: newToDate });
         }
       } else if (datePeriod === 'empty') {
         // Clear date fields when empty is selected
-        setFromDate(null);
-        setToDate(null);
+        setDate({ from: undefined, to: undefined});
       }
   }, [datePeriod, onPeriodChange]);
 
 
   useEffect(() => {
-    onChange?.({ datePeriod, fromDate, toDate })
-  }, [datePeriod, fromDate, toDate, onChange])
+    onChange?.({ datePeriod, from: date.from, to: date.to })
+  }, [datePeriod, date, onChange])
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-2">
@@ -169,68 +164,46 @@ export default function PeriodSelector({ onPeriodChange, value, onChange }) {
         </Select>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 w-full col-span-2'>
-        {/* From Date */}
+      <div className='grid grid-cols-1 gap-2 w-full col-span-2'>
         <div className="flex flex-col w-full">
-          <label className="text-sm font-medium">From</label>
+          {/* <label className="text-sm font-medium">Range</label> */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
                   'h-10 w-full justify-start text-left text-sm font-normal',
-                  !fromDate && 'text-muted-foreground',
+                  !date?.from && 'text-muted-foreground',
+                  !date?.to && 'text-muted-foreground',
                   datePeriod !== 'custom-dates' &&
                     'cursor-not-allowed opacity-50'
                 )}
                 disabled={datePeriod !== 'custom-dates'}
               >
-                {fromDate ? format(fromDate, 'PPP') : <span>Date</span>}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={fromDate}
-                onSelect={setFromDate}
-                disabled={(date) =>
-                  date > new Date() || date < new Date('1900-01-01')
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* To Date */}
-        <div className="flex w-full flex-col">
-          <label className="text-sm font-medium">To</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  'h-10 justify-start text-left text-sm font-normal',
-                  !toDate && 'text-muted-foreground',
-                  datePeriod !== 'custom-dates' &&
-                    'cursor-not-allowed opacity-50'
+                <CalendarIcon className="h-4 w-4 opacity-50" />
+                {date?.from ? (
+                  date.to ? (
+                    <>
+                      {format(date.from, "LLL dd, y")} -{" "}
+                      {format(date.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(date.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pick a date</span>
                 )}
-                disabled={datePeriod !== 'custom-dates'}
-              >
-                {toDate ? format(toDate, 'PPP') : <span>Date</span>}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
-                mode="single"
-                selected={toDate}
-                onSelect={setToDate}
+                mode="range"
+                selected={date}
+                onSelect={setDate}
                 disabled={(date) =>
                   date > new Date() || date < new Date('1900-01-01')
                 }
-                initialFocus
+                nuberOfMonths={2}
               />
             </PopoverContent>
           </Popover>

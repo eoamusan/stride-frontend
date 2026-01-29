@@ -67,7 +67,7 @@ export default function AccountingTable({
   setShowDetails,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeProductView, setActiveProductView] = useState('grid');
+  const [activeProductView, setActiveProductView] = useState('list');
 
   const getStatusBadge = (status) => {
     const defaultStyles = 'bg-gray-100 text-gray-800 hover:bg-gray-100';
@@ -396,7 +396,7 @@ export default function AccountingTable({
         {showDataSize && (
           <p className="text-sm font-medium text-zinc-600">
             Showing{' '}
-            {`${paginationData.page * paginationData.pageSize - paginationData.pageSize + 1}-${paginationData.page * paginationData.pageSize} of ${paginationData.totalCount}`}
+            {`${paginationData.page * paginationData.pageSize - paginationData.pageSize + 1}-${(paginationData.totalCount < paginationData.page * paginationData.pageSize ? paginationData.totalCount : paginationData.page * paginationData.pageSize)} of ${paginationData.totalCount}`}
           </p>
         )}
 

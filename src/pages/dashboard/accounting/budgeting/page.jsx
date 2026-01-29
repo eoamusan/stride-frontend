@@ -1,69 +1,25 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import AccountingTable from '@/components/dashboard/accounting/table';
-import EmptyBudget from '@/components/dashboard/accounting/budgeting/overview/empty-state';
-import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import BudgetCard from '@/components/dashboard/accounting/budgeting/overview/budget-card';
 import BudgetHeader from '@/components/dashboard/accounting/budgeting/shared/budget-header';
-import { cn } from '@/lib/utils';
-
-// Mock data
-const sampleData = [
-  {
-    id: 'Q1 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 90,
-  },
-  {
-    id: 'Q2 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 23,
-  },
-  {
-    id: 'Q3 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 51,
-  },
-  {
-    id: 'Q4 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 67,
-  }
-]
+import useBudgeting from '@/hooks/budgeting/useBudgeting';
+import { useSearchParams } from 'react-router';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import CustomBudgetForm from '@/components/dashboard/accounting/budgeting/overview/custom-budget-form';
 
 export default function Budgeting() {
+
+  const [searchParams, ] = useSearchParams()
   
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
   const [ openBudgetForm, setOpenBudgetForm ] = useState(false)
-  const [budgets] = useState([...sampleData])
+  const [showCustomBudgetForm, setShowCustomBudgetForm] = useState(false)
+  const [customBudgetFormValues, setCustomBudgetFormValues] = useState(null)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState({visible: false, isCreate: true});
+  
+
+  const { budgets, loading, paginationData, fetchBudgets } = useBudgeting();
 
   // Handle table item selection
   const handleSelectItem = (itemId, checked) => {
@@ -97,8 +53,12 @@ export default function Budgeting() {
       className: 'font-medium',
     },
     {
-      key: 'type',
-      label: 'Type',
+      key: 'format',
+      label: 'Format',
+    },
+    {
+      key: 'scope',
+      label: 'Scope',
     },
     {
       key: 'date',
@@ -116,61 +76,94 @@ export default function Budgeting() {
 
   // Dropdown actions for each row
   const dropdownActions = [
-    { key: 'run-budget', label: 'Run Budget vs. Actuals report' },
-    { key: 'run-overview', label: 'Run Budget Overview report' },
+    { key: 'edit-budget', label: 'View Budget' },
+    // { key: 'run-budget', label: 'Run Budget vs. Actuals report' },
+    // { key: 'run-overview', label: 'Run Budget Overview report' },
     { key: 'archive', label: 'Archive' },
     { key: 'duplicate', label: 'Duplicate' },
     { key: 'delete', label: 'Delete' },
   ];
 
-  // Pagination data
-  const paginationData = {
-    page: 1,
-    totalPages: 6,
-    pageSize: 12,
-    totalCount: 64,
-  };
-
+  const [, setSearchParams] = useSearchParams() 
   const handleRowAction = (action, item) => {
     console.log(`Action ${action} on item:`, item);
 
     // Implement row action logic here
     switch (action) {
-      case 'view':
+      case 'edit-budget':
+        setSearchParams(prev => {
+          const params = new URLSearchParams(prev);
+          const budgetName = item.budgetName;
+          params.set("budget", budgetName);
+          return params;
+        });
+        setCustomBudgetFormValues(item);
+        setShowCustomBudgetForm(true);
         break;
     }
   };
 
-  const handleSetOpenBudgetForm = useCallback((value) => {
-    setOpenBudgetForm(value)
-  }, [])
+  const handlePrepareBudgetForm = useCallback((payload) => {
+    console.log("Preparing custom budget form with payload: ", payload);
+    setOpenBudgetForm(false)
+    setShowCustomBudgetForm(true)
+    setCustomBudgetFormValues(payload)
+  }, []);
+
+  const handleOnCreateBudget = useCallback(() => {
+    setIsSuccessModalOpen({visible: true, isCreate: true})
+    fetchBudgets()
+  }, [fetchBudgets]);
+
+  const handleOnUpdateBudget = useCallback(() => {
+    setIsSuccessModalOpen({visible: true, isCreate: false})
+    fetchBudgets()
+  }, [fetchBudgets]);
+
+  useEffect(() => {
+    if (!searchParams.get("budget")) {
+      setShowCustomBudgetForm(false);
+      setCustomBudgetFormValues(null);
+    }
+  }, [searchParams]);
+
 
   return (
     <div className='my-4 min-h-screen'>
-    <div className={cn(!budgets.length && 'hidden')}>
-      <BudgetHeader triggerBudgetForm={openBudgetForm} setTriggerBudgetForm={handleSetOpenBudgetForm} />
-    </div>
-    { !budgets.length ? <EmptyBudget onClick={() => handleSetOpenBudgetForm(true)} /> : 
-      <>
-        <div className="relative mt-10">
-          <AccountingTable
-            title="Budgets"
-            data={budgets}
-            columns={tableColumns}
-            searchFields={[]}
-            searchPlaceholder="Search......"
-            dropdownActions={dropdownActions}
-            paginationData={paginationData}
-            selectedItems={selectedItems}
-            handleSelectItem={handleSelectItem}
-            handleSelectAll={handleSelectAll}
-            onRowAction={handleRowAction}
-            isProductTable
-            showDataSize
-            itemComponent={BudgetCard}
-          />
-        </div>
-      </>}
+    { showCustomBudgetForm ? <CustomBudgetForm formValues={customBudgetFormValues} onCreateBudget={() => handleOnCreateBudget()} onUpdateBudget={() => handleOnUpdateBudget()} /> :
+    <>
+      <BudgetHeader triggerBudgetForm={openBudgetForm} budgetCreated={fetchBudgets} prepareCustomBudgetForm={handlePrepareBudgetForm}  />
+      <div className="relative mt-10">
+        <AccountingTable
+          title="Budgets"
+          data={budgets}
+          columns={tableColumns}
+          searchFields={[]}
+          searchPlaceholder="Search......"
+          dropdownActions={dropdownActions}
+          paginationData={paginationData}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectItem}
+          handleSelectAll={handleSelectAll}
+          onRowAction={handleRowAction}
+          isProductTable
+          showDataSize
+          isLoading={loading}
+          itemComponent={BudgetCard}
+        />
+      </div>
+    </>
+    }
+      <SuccessModal
+        title={isSuccessModalOpen.isCreate ? 'Budget Created' : 'Budget Updated'}
+        description={isSuccessModalOpen.isCreate ? "You've successfully created a budget." : "You've successfully updated the budget."}
+        open={isSuccessModalOpen.visible}
+        onOpenChange={() => setIsSuccessModalOpen({visible: false, isCreate: true})}
+        backText={'Back'}
+        handleBack={() => {
+          setIsSuccessModalOpen(false);
+        }} 
+      />
     </div>
   );
 }
