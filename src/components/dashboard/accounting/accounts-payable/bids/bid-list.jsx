@@ -137,6 +137,7 @@ export default function BidList({
       title="Bids History"
       data={bidsData}
       columns={columns}
+      gridCols={2}
       searchFields={['title', 'description', 'category']}
       searchPlaceholder={searchPlaceholder}
       statusStyles={statusStyles}

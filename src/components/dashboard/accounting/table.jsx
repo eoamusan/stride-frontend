@@ -65,9 +65,23 @@ export default function AccountingTable({
   itemComponent = null,
   isLoading = false,
   setShowDetails,
+  gridCols = 3,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeProductView, setActiveProductView] = useState('grid');
+
+  // Generate grid column classes based on gridCols prop
+  const getGridColsClass = () => {
+    const colsMap = {
+      1: 'grid-cols-1 sm:grid-cols-1 lg:grid-cols-1',
+      2: 'grid-cols-1 sm:grid-cols-1 lg:grid-cols-2',
+      3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+      4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+      5: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5',
+      6: 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-6',
+    };
+    return colsMap[gridCols] || colsMap[3];
+  };
 
   const getStatusBadge = (status) => {
     const defaultStyles = 'bg-gray-100 text-gray-800 hover:bg-gray-100';
@@ -223,7 +237,9 @@ export default function AccountingTable({
           <>
             <div>
               <h2 className="text-xl font-bold">{title}</h2>
-            { description && <span className='text-[#7D7D7D] text-sm'>{description}</span> }
+              {description && (
+                <span className="text-sm text-[#7D7D7D]">{description}</span>
+              )}
             </div>
 
             <div className="flex items-center gap-3">
@@ -262,7 +278,7 @@ export default function AccountingTable({
 
       {/* Table */}
       {isProductTable && activeProductView === 'grid' ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={`grid gap-6 ${getGridColsClass()}`}>
           {filteredData.map((item, i) => (
             <ProductCard
               key={i}
@@ -382,7 +398,7 @@ export default function AccountingTable({
                     <img
                       src={emptyTableImg}
                       alt="Empty Table"
-                      className="mx-auto block w-[220px]"
+                      className="mx-auto block w-55"
                     />
                   </TableCell>
                 </TableRow>
