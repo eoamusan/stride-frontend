@@ -2,39 +2,53 @@ import MetricCard from '@/components/dashboard/hr/metric-card';
 import youtubeIcon from '@/assets/icons/youtube-red.png';
 import { Button } from '@/components/ui/button';
 import { TableActions } from '@/components/dashboard/hr/table';
+import { dummyRequisitionRequests } from './job-requests';
+
+const sampleChartData = [
+  { month: 'Jan', month1: 600 },
+  { month: 'Feb', month2: 800 },
+  { month: 'Mar', month3: 1000 },
+];
+
+const metricsData = [
+  {
+    title: 'Total Requisitions',
+    value: 150,
+    percentage: 5,
+    chartData: sampleChartData,
+  },
+  {
+    title: 'Pendings',
+    value: 20,
+    percentage: -2,
+    chartData: sampleChartData,
+    isPositive: false,
+  },
+  {
+    title: 'Approved Requisitions',
+    value: 70,
+    percentage: 5,
+    chartData: sampleChartData,
+  },
+  {
+    title: 'Total Open Positions',
+    value: 50,
+    percentage: 2,
+    chartData: sampleChartData,
+  },
+];
+
+const tableHeaders = [
+  { key: 'jobTitle', label: 'Job Title', className: '' },
+  { key: 'department', label: 'Department', className: '' },
+  { key: 'requestedBy', label: 'Requested By', className: '' },
+  { key: 'openings', label: 'Openings', className: '' },
+  { key: 'status', label: 'Status', className: '' },
+  { key: 'dateCreated', label: 'Date Created', className: '' },
+  { key: 'actions', label: 'Actions', className: 'text-right' },
+];
+
 export default function Recruitment() {
-  const sampleChartData = [
-    { month: 'Jan', month1: 600 },
-    { month: 'Feb', month2: 800 },
-    { month: 'Mar', month3: 1000 },
-  ];
-  const metricsData = [
-    {
-      title: 'Total Requisitions',
-      value: 150,
-      percentage: 5,
-      chartData: sampleChartData,
-    },
-    {
-      title: 'Pending Approvals',
-      value: 20,
-      percentage: -2,
-      chartData: sampleChartData,
-      isPositive: false,
-    },
-    {
-      title: 'Approved Requisitions',
-      value: 70,
-      percentage: 5,
-      chartData: sampleChartData,
-    },
-    {
-      title: 'Total Open Positions',
-      value: 50,
-      percentage: 2,
-      chartData: sampleChartData,
-    },
-  ];
   return (
     <div className="my-5">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -66,7 +80,11 @@ export default function Recruitment() {
       </div>
 
       <div className="mt-6 rounded-lg bg-white p-6 shadow-md">
-        <TableActions />
+        <TableActions
+          jobRequests={dummyRequisitionRequests}
+          tableHeaders={tableHeaders}
+          title="Job Requisitions"
+        />
       </div>
     </div>
   );
