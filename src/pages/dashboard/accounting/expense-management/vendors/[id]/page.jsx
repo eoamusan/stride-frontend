@@ -727,13 +727,13 @@ export default function VendorExpenseDetails() {
 
       <div className="mt-10 mb-4 flex justify-end gap-4">
         <Button
-          className={'h-10 w-[106px] text-sm'}
+          className={'h-10 w-26.5 text-sm'}
           variant={'outline'}
           onClick={handleGoBack}
         >
           Back
         </Button>
-        <Button className={'h-10 w-[130px] text-sm'}>
+        <Button className={'h-10 w-32.5 text-sm'}>
           <PencilLineIcon /> Edit Vendor
         </Button>
       </div>

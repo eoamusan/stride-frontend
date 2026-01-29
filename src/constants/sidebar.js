@@ -174,10 +174,10 @@ const accountsPayableItems = [
     title: 'Vendor Invoices',
     link: '/dashboard/accounting/accounts-payable/vendor-invoices',
   },
-  {
-    title: 'Vendors',
-    link: '/dashboard/accounting/accounts-payable/vendors',
-  },
+  // {
+  //   title: 'Vendors',
+  //   link: '/dashboard/accounting/accounts-payable/vendors',
+  // },
   {
     title: 'Bids',
     link: '/dashboard/accounting/accounts-payable/bids',

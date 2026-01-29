@@ -7,7 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Building2, Receipt } from 'lucide-react';
+import { Building2, Receipt, Eye } from 'lucide-react';
+import pdfIcon from '@/assets/icons/pdf-icon.svg';
 
 export default function ViewBills({
   open,
@@ -105,7 +106,7 @@ export default function ViewBills({
                     Payment Information:
                   </h3>
 
-                  <div className="space-y-4">
+                  <div className="space-y-1">
                     <div className="flex justify-between py-2">
                       <span className="text-sm text-[#434343]">
                         Invoice Reference:
@@ -122,6 +123,38 @@ export default function ViewBills({
                       <span className="font-semibold text-[#434343]">
                         {billData.paymentMethod}
                       </span>
+                    </div>
+
+                    <div className="flex flex-col justify-between py-2">
+                      <span className="text-base font-medium text-[#434343]">
+                        Attachment
+                      </span>
+                      <div className="mt-2">
+                        {billData.attachment ? (
+                          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-2">
+                            <img src={pdfIcon} alt="PDF" className="size-5" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-700">
+                                Invoice {billData.billNumber}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {billData.billDate}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() =>
+                                window.open(billData.attachment, '_blank')
+                              }
+                              className="hover:bg-secondary flex cursor-pointer items-center gap-1 rounded-md p-2"
+                              title="View attachment"
+                            >
+                              <Eye className="size-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No attachment</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -174,20 +207,20 @@ export default function ViewBills({
                 <Button
                   variant="outline"
                   onClick={handleClose}
-                  className="h-10 min-w-[140px] text-sm"
+                  className="h-10 min-w-35 text-sm"
                 >
                   Close
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleEdit}
-                  className="h-10 min-w-[140px] text-sm"
+                  className="h-10 min-w-35 text-sm"
                 >
                   Edit Bill
                 </Button>
                 <Button
                   onClick={handleExport}
-                  className="h-10 min-w-[140px] text-sm"
+                  className="h-10 min-w-35 text-sm"
                 >
                   Export
                 </Button>

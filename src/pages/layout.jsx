@@ -35,6 +35,7 @@ import VendorInvoices from './dashboard/accounting/accounts-payable/vendor-invoi
 import PaymentScheduling from './dashboard/accounting/accounts-payable/payment-scheduling/page';
 import Vendors from './dashboard/accounting/accounts-payable/vendors/page';
 import Bids from './dashboard/accounting/accounts-payable/bids/page';
+import BidDetails from './dashboard/accounting/accounts-payable/bids/[id]/page';
 import ApprovalWorkflow from './dashboard/accounting/accounts-payable/approval-workflow/page';
 import ReportsAP from './dashboard/accounting/accounts-payable/reports/page';
 import Sales from './dashboard/accounting/inventory-management/sales/page';
@@ -365,6 +366,10 @@ const router = createBrowserRouter([
                       {
                         path: 'bids',
                         Component: Bids,
+                      },
+                      {
+                        path: 'bids/:id',
+                        Component: BidDetails,
                       },
                       {
                         path: 'payment-scheduling',
