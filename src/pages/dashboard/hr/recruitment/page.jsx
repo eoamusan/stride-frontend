@@ -39,7 +39,7 @@ const metricsData = [
 ];
 
 const tableHeaders = [
-  { key: 'jobTitle', label: 'Job Title', className: '' },
+  { key: 'title', label: 'Title', className: '' },
   { key: 'department', label: 'Department', className: '' },
   { key: 'requestedBy', label: 'Requested By', className: '' },
   { key: 'openings', label: 'Openings', className: '' },
@@ -48,6 +48,15 @@ const tableHeaders = [
   { key: 'actions', label: 'Actions', className: 'text-right' },
 ];
 
+const tableData = dummyRequisitionRequests.map((item) => ({
+  id: item.id,
+  title: item.title,
+  department: item.department,
+  requestedBy: item.requestedBy,
+  openings: item.openings,
+  status: item.status,
+  dateCreated: item.dateCreated,
+}));
 export default function Recruitment() {
   return (
     <div className="my-5">
@@ -81,9 +90,10 @@ export default function Recruitment() {
 
       <div className="mt-6 rounded-lg bg-white p-6 shadow-md">
         <TableActions
-          jobRequests={dummyRequisitionRequests}
+          tableData={tableData}
           tableHeaders={tableHeaders}
           title="Job Requisitions"
+          path="/dashboard/hr/recruitment/detail"
         />
       </div>
     </div>

@@ -41,12 +41,19 @@ export default function JobPosting() {
   const tableHeaders = [
     { key: 'jobTitle', label: 'Job Title', className: '' },
     { key: 'department', label: 'Department', className: '' },
-    { key: 'requestedBy', label: 'Requested By', className: '' },
-    { key: 'openings', label: 'Openings', className: '' },
+    { key: 'application', label: 'Applications', className: '' },
+    { key: 'datePosted', label: 'Date Posted', className: '' },
     { key: 'status', label: 'Status', className: '' },
-    { key: 'dateCreated', label: 'Date Created', className: '' },
-    { key: 'actions', label: 'Actions', className: 'text-right' },
   ];
+
+  const tableData = dummyJobRequests.map((item) => ({
+    id: item.id,
+    title: item.title,
+    department: item.department,
+    application: item.application,
+    postedDate: item.postedDate,
+    status: item.status,
+  }));
 
   return (
     <div className="my-5">
@@ -80,9 +87,10 @@ export default function JobPosting() {
 
       <div className="mt-6 rounded-lg bg-white p-6 shadow-md">
         <TableActions
-          jobRequests={dummyJobRequests}
+          tableData={tableData}
           tableHeaders={tableHeaders}
-          title="Job Requisitions"
+          title="Job Posting"
+          path="/dashboard/hr/recruitment/job-postings/detail"
         />
       </div>
     </div>
