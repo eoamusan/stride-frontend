@@ -31,11 +31,12 @@ import { FilterIcon, MoreHorizontalIcon, SearchIcon } from 'lucide-react';
 // Dummy data for table headers
 
 export function TableActions({
-  jobRequests,
+  tableData,
   tableHeaders,
   title,
   description,
   pageSize = 3,
+  path,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +45,7 @@ export function TableActions({
   const navigate = useNavigate();
 
   // Filter data based on search term and status filter
-  const filteredData = jobRequests.filter((request) => {
+  const filteredData = tableData.filter((request) => {
     // Status filter
     if (statusFilter !== 'all') {
       const statusMatch =
@@ -58,7 +59,6 @@ export function TableActions({
     return (
       request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.requestedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.status.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
@@ -287,42 +287,52 @@ export function TableActions({
             ))}
           </TableRow>
         </TableHeader>
-
         <TableBody>
           {currentData.map((request) => (
             <TableRow key={request.id}>
-              <TableCell className="py-4 font-medium">
-                {request.title}
-              </TableCell>
-              <TableCell className="py-4 font-medium">
-                {request.department}
-              </TableCell>
-              <TableCell className="py-4 font-medium">
-                {request.requestedBy}
-              </TableCell>
-              <TableCell className="py-4 font-medium">
-                {request.openings}
-              </TableCell>
-              <TableCell className="py-4 font-medium">
-                <span
-                  className="rounded-full px-3 py-2 text-xs"
-                  style={{
-                    backgroundColor:
-                      (request.status == 'Pending' && '#CE8D001A') ||
-                      (request.status == 'Approved' && '#0596691A') ||
-                      (request.status == 'Rejected' && '#DC26261A'),
-                    color:
-                      (request.status == 'Pending' && '#CE8D00') ||
-                      (request.status == 'Approved' && '#059669') ||
-                      (request.status == 'Rejected' && '#DC2626'),
-                  }}
-                >
-                  {request.status}
-                </span>
-              </TableCell>
-              <TableCell className="py-4 font-medium">
-                {request.dateCreated}
-              </TableCell>
+              {/* 1. DYNAMIC DATA COLUMNS */}
+              {Object.entries(request).map(([key, value]) => {
+                // A. Filter out keys you don't want to display (e.g., 'id')
+                if (key === 'id') return null;
+
+                // B. Special Styling for 'status'
+                if (key === 'status') {
+                  const statusColors = {
+                    Pending: { bg: '#CE8D001A', text: '#CE8D00' },
+                    Approved: { bg: '#0596691A', text: '#059669' },
+                    Rejected: { bg: '#DC26261A', text: '#DC2626' },
+                  };
+
+                  // Fallback in case status is unknown
+                  const style = statusColors[value] || {
+                    bg: '#000',
+                    text: '#fff',
+                  };
+
+                  return (
+                    <TableCell key={key} className="py-4 font-medium">
+                      <span
+                        className="rounded-full px-3 py-2 text-xs"
+                        style={{
+                          backgroundColor: style.bg,
+                          color: style.text,
+                        }}
+                      >
+                        {value}
+                      </span>
+                    </TableCell>
+                  );
+                }
+
+                // C. Default Render for all other keys (Title, Department, etc.)
+                return (
+                  <TableCell key={key} className="py-4 font-medium">
+                    {value}
+                  </TableCell>
+                );
+              })}
+
+              {/* 2. STATIC ACTION COLUMN (The Dropdown) */}
               <TableCell className="py-4 text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -333,11 +343,7 @@ export function TableActions({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      onClick={() =>
-                        navigate(
-                          `/dashboard/hr/recruitment/detail/${request.id}`
-                        )
-                      }
+                      onClick={() => navigate(`${path}/${request.id}`)}
                     >
                       View
                     </DropdownMenuItem>
