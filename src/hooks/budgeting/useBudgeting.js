@@ -9,6 +9,7 @@ import * as XLSX from "xlsx";
 //   profitAndLoss: 'Profit & Loss',
 //   balanceSheet: 'Balance Sheet',
 // };
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 export default function useBudgeting() {
   const [loading, setLoading] = useState(false);
@@ -55,6 +56,7 @@ export default function useBudgeting() {
         return await BudgetService.create({ data: payload });
       } catch (error) {
         console.error('Error creating budget:', error);
+        throw error;
       } finally {
         setSubmitting(false);
       }
@@ -81,23 +83,29 @@ export default function useBudgeting() {
     return await AccountService.fetch({accountType})
   }, []);
   
-  const handleDownloadTemplate = async () => {
+  const handleDownloadTemplate = async (formValues) => {
   try {
     setDownloadingBudgetTemplate(true);
 
-    const [expenseRes, revenueRes] = await Promise.all([
-      fetchAccount('expenses'),
-      fetchAccount('income')
-    ]);
+    const period = formValues.period.split("_")[1];
+    const startDate = new Date(`${period}-01-01`);
+    const endDate = new Date(`${period}-12-31`);
+    const res = await fetchBudgetTransactions({
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+        });
 
-    const expenseAccountsData = expenseRes.data.data.accounts || [];
-    const revenueAccountsData = revenueRes.data.data.accounts || [];
+    console.log(res.data.data, 'budget transactions response')
 
-    const accountsData = [...expenseAccountsData, ...revenueAccountsData];
+    // const expenseAccountsData = expenseRes.data.data.accounts || [];
+    // const revenueAccountsData = revenueRes.data.data.accounts || [];
+
+    const accountsData = res.data.data || [];
 
     // Group by accountType
     const grouped = accountsData.reduce((acc, item) => {
-      const key = item.accountType;
+      const key = item.accountingAccountId.accountType;
+      console.log(key, 'account type key')
       acc[key] ??= [];
       acc[key].push(item);
       return acc;
@@ -106,8 +114,13 @@ export default function useBudgeting() {
     const wsData = [];
     const sectionTotals = {}; // Track TOTAL row per section
 
+    console.log(formValues, 'formValues for template download')
     // Column headers
-    wsData.push(["Item", "Actual", "Budget"]);
+    const fiscalYear = formValues.period.split("_")[1] || new Date().getFullYear();
+    const months = MONTHS.map(month => {
+      return `${month} ${fiscalYear}`
+    })
+    wsData.push(["Item", ...months, "Total"]);
 
     Object.entries(grouped).forEach(([accountType, accounts]) => {
       // Section header
@@ -116,7 +129,13 @@ export default function useBudgeting() {
       const startRow = wsData.length + 1; // Excel rows are 1-based
 
       accounts.forEach(item => {
-        wsData.push([item.accountName, 0, 0]);
+        wsData.push([
+          item.accountingAccountId.accountName,
+          ...Array(12).fill(0),
+          // add function to sum inputed amounts for this row,  ignore wsData.push([accountType.toUpperCase()]);
+          { f: `SUM(B${wsData.length + 1}:M${wsData.length + 1})` }
+        ],
+        );
       });
 
       const endRow = wsData.length;
@@ -125,7 +144,8 @@ export default function useBudgeting() {
       wsData.push([
         "TOTAL",
         { f: `SUM(B${startRow}:B${endRow})` },
-        { f: `SUM(C${startRow}:C${endRow})` }
+        ...Array(12).fill(0).map((_, idx) => ({ f: `SUM(${String.fromCharCode(67 + idx)}${startRow}:${String.fromCharCode(67 + idx)}${endRow})` })),
+        // { f: `SUM(C${wsData.length + 1}:N${wsData.length + 1})` }
       ]);
 
       // Store TOTAL row index
@@ -134,6 +154,8 @@ export default function useBudgeting() {
       // Spacer row
       wsData.push([]);
     });
+
+    console.log(wsData, 'final wsData')
 
     // Remove trailing spacer
     if (wsData[wsData.length - 1]?.length === 0) {
@@ -148,7 +170,9 @@ export default function useBudgeting() {
     wsData.push([
       "GROSS PROFIT",
       { f: `B${incomeTotalRow} - B${expenseTotalRow}` },
-      { f: `C${incomeTotalRow} - C${expenseTotalRow}` }
+      ...Array(12).fill(0).map((_, idx) => ({ f: `${String.fromCharCode(67 + idx)}${incomeTotalRow} - ${String.fromCharCode(67 + idx)}${expenseTotalRow}` })),
+      // funcion to sum the gross profit for the year usinng the array above take not of the space row
+      // { f: `SUM(C${wsData.length + 1}:N${wsData.length + 1})` }
     ]);
 
     // Create worksheet
@@ -158,7 +182,7 @@ export default function useBudgeting() {
     ws["!freeze"] = { xSplit: 0, ySplit: 1 };
 
     // Header note
-    ws["A1"].c = [{ t: "Do not insert rows. Edit actual and budget values only." }];
+    ws["A1"].c = [{ t: "Insert between rows to preserve formula." }];
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "BudgetTemplate");

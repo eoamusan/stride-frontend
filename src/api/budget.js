@@ -59,4 +59,14 @@ export default class BudgetService {
     });
     return response;
   }
+
+  static async delete({ id }) {
+    const userStore = useUserStore.getState();
+    const response = await axiosInstance.delete(`budget/${id}`, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
+    return response;
+  }
 }

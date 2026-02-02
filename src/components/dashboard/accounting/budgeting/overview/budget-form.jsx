@@ -23,7 +23,6 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@/components/ui/radio-group"
-import PeriodSelector from "@/components/core/period-selector";
 import { CircleDashed } from 'lucide-react';
 import useBudgeting from "@/hooks/budgeting/useBudgeting";
 import { excelBudgetRowSchema, formSchema } from "@/schemas/budget.schema";
@@ -76,6 +75,7 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
       periodEndDate: periodEndDate,
       format: values?.budgetFormat,
       businessId: userStore.activeBusiness?._id,
+      excelData: excelImportData,
     };
 
     try {
@@ -104,75 +104,117 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
   }
 
   const normalizeRow = (row) => ({
-    Actual: Number(row.Actual),
-    Budget: Number(row.Budget),
-    Category: String(row.Category).trim(),
-    Item: String(row.Item).trim(),
+    budgets: row.budgets,
+    category: String(row.category).trim(),
+    item: String(row.item).trim(),
   });
 
   
-  // const validateHeaders = (rows) => {
-  //   const headers = Object.keys(rows[0] ?? {});
-  //   return REQUIRED_HEADERS.filter(h => !headers.includes(h));
-  // };
-
-  const validateExcelData = (rows) => {
-    const valid = [];
+  // validate excel data
+  const validateExcelData = (data) => {
     const errors = [];
-
-    rows?.forEach((row, index) => {
-      const normalized = normalizeRow(row);
-      const result = excelBudgetRowSchema.safeParse(normalized);
-
-      if (result.success) {
-        valid.push(result.data);
-      } else {
+    data.forEach((row, index) => {
+      const normalizedRow = normalizeRow(row);
+      const result = excelBudgetRowSchema.safeParse(normalizedRow);
+      if (!result.success) {
+        const fieldErrors = {};
+        result.error.errors.forEach((err) => {
+          const fieldName = err.path[0];
+          if (!fieldErrors[fieldName]) {
+            fieldErrors[fieldName] = [];
+          }
+          fieldErrors[fieldName].push(err.message);
+        });
         errors.push({
-          row: index + 2, // Excel row number
-          issues: result.error.flatten().fieldErrors,
+          row: index + 2, // +2 to account for header row and 0-based index
+          issues: fieldErrors,
         });
       }
     });
 
+    const valid = errors.length === 0;
+
     return { valid, errors };
   };
 
+  // const formatExcelData = (data) => {
+  //   console.log(JSON.stringify(data, null, 2), 'formatting excel data')
+  //   const result = [];
+  //   let currentCategory = null;
+  //   for (const row of data) {
+  //     const label = row.Item?.toUpperCase();
+
+  //     // Detect section headers
+  //     if (label === "EXPENSES") {
+  //       currentCategory = "expenses";
+  //       continue;
+  //     }
+
+  //     if (label === "INCOME") {
+  //       currentCategory = "income";
+  //       continue;
+  //     }
+
+  //     // Skip totals
+  //     if (label === "TOTAL" || label === "GROSS PROFIT") {
+  //       continue;
+  //     }
+
+  //     // console.log(row, 'processing row')
+  //     // const rr = {...row}
+  //     // delete rr.Category;
+  //     // delete rr.Item;
+  //     // delete rr.Budget;
+  //     // const dd = Object.values(rr);
+  //     // dd.pop()
+  //     result.push({
+  //       item: row.Item,
+  //       category: currentCategory,
+  //       // Budget should the the January to December items from the excel
+  //       budgets: [],
+  //     });
+  //   }
+
+  //   console.log(result, 'formatted excel data')
+  //   return result;
+  // }
+
   const formatExcelData = (data) => {
+    let currentCategory = "";
     const result = [];
-    let currentCategory = null;
-    for (const row of data) {
-      const label = row.Item?.toUpperCase();
 
-      // Detect section headers
-      if (label === "EXPENSES") {
-        currentCategory = "expenses";
-        continue;
+    data.forEach((row) => {
+      const itemName = row.Item.trim();
+
+      // 1. Detect if the row is a Category Header
+      if (itemName === "INCOME" || itemName === "EXPENSES") {
+        currentCategory = itemName;
+        return; // Skip to next row
       }
 
-      if (label === "INCOME") {
-        currentCategory = "income";
-        continue;
+      // 2. Skip "TOTAL" or "GROSS PROFIT" rows
+      if (itemName === "TOTAL" || itemName === "GROSS PROFIT") {
+        return;
       }
 
-      // Skip totals
-      if (label === "TOTAL" || label === "GRAND TOTAL") {
-        continue;
-      }
+      // 3. Extract the 12 month values into the budgets array
+      // We filter out 'Item' and 'Total' keys to get just the months
+      const budgets = Object.keys(row)
+        .filter(key => key !== "Item" && key !== "Total")
+        .map(key => row[key] === "" ? 0 : row[key]);
 
-      // Skip invalid rows
-      if (!currentCategory || typeof row.Actual !== "number") {
-        continue;
-      }
-
+      // 4. Push the formatted object
       result.push({
-        Item: row.Item,
-        Category: currentCategory,
-        Actual: row.Actual,
-        Budget: row.Budget
+        item: itemName,
+        category: currentCategory,
+        budgets: budgets
       });
-    }
+    });
+
+    console.log(result, 'formatted excel data')
+
     return result;
-  }
+  };
 
   const getFiscalYearsOptions = () => {
     const currentYear = new Date().getFullYear();
@@ -193,7 +235,6 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
 
       const reader = new FileReader();
       reader.onload = (evt) => {
-        console.log('File content:', evt);
         const binaryStr = evt.target.result;
         const workbook = XLSX.read(binaryStr, { type: "binary" });
 
@@ -218,10 +259,8 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
         setExcelErrors(validateExcelData(formattedExcelData).errors)
 
         const errors = validateExcelData(formattedExcelData).errors
-        if (errors) {
+        if (errors.length) {
           setExcelErrors(errors)
-
-          console.log('Excel validation errors:', errors);
           Object.entries(errors[0]?.issues ?? {}).forEach(([key, messages]) => {
             const content = (
               <ul className="list-disc pl-4">
@@ -235,11 +274,10 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
 
             toast.error(content);
           });
-
-
           return;
         }
 
+        console.log(formattedExcelData, 'final formattedExcelData')
         setExcelImportData(formattedExcelData)
        
         // const missingHeaders = validateHeaders(formattedExcelData);
@@ -376,7 +414,7 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
                   <div className="flex items-center space-x-2">
                     <button
                       type="button"
-                      onClick={handleDownloadTemplate}
+                      onClick={() => handleDownloadTemplate(form.getValues())}
                       className="text-xs underline text-primary font-medium bg-transparent p-0 cursor-pointer"
                     >
                       Download Template

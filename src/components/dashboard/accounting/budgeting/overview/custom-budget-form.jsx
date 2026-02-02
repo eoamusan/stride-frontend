@@ -1,21 +1,21 @@
-import AccountService from "@/api/accounts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import useBudgeting from "@/hooks/budgeting/useBudgeting";
 import { cn } from "@/lib/utils";
-import { CalendarCog, Check, Pencil, PlusCircleIcon } from "lucide-react";
+import { CalendarCog, Check, DownloadIcon, Pencil, PlusCircleIcon } from "lucide-react";
 import { useRef } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import SuccessModal from "../../success-modal";
 import AddAccountForm from "../../bookkeeping/add-account";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const QUARTERS = ["Q1","Q2","Q3","Q4"];
 const YEARS = ["Year"];
-const COL_WIDTH = "150px";
+const COL_WIDTH = "160px";
 
 export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateBudget }) {
   const { submitting,fetchBudgetTransactions, updateBudget,submitBudget } = useBudgeting();
@@ -26,7 +26,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
   const [budgetName, setBudgetName] = useState("");
   const [fiscalYear, setFiscalYear] = useState();
   const [editingName, setEditingName] = useState(false);
-  const [budgetScope, setBudgetScope] = useState("monthly");
+  const [budgetScope, setBudgetScope] = useState(formValues?.scope || "monthly");
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const [selectedInputIdx, setSelectedInputIdx] = useState(null);
   const [openAddForm, setOpenAddForm] = useState(false);
@@ -35,6 +35,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(false);
   const [budgetAccounts, setBudgetAccounts] = useState([]);
+  const [missingAccounts, setMissingAccounts] = useState([]);
 
   const budgetInputRefs = useRef({});
 
@@ -81,8 +82,8 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
     setFiscalYear(year);
   }, [searchParams, formValues]);
 
+  // New account added from AddAccountForm
   useEffect(() => {
-    console.log(accountData, 'accountsData')
     if (!accountData) return;
     const newData = {
       accountingAccountId: accountData,
@@ -111,7 +112,37 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
           endDate: endDate.toISOString(),
         });
 
-        setBudgetAccounts(res.data.data || []);
+
+        const undefinedAccounts = []
+        if (formValues?.excelData && formValues.excelData.length > 0) {
+          formValues.excelData.forEach(x => {
+            const account = res.data.data.find(acct => acct.accountingAccountId.accountName === x.item);
+            if (!account) {
+              const newData = {
+                accountingAccountId: {
+                  accountCode: null,
+                  accountName: x.item,
+                  accountType: x.category.toLowerCase(),
+                  businessId: formValues.businessId,
+                  createdAt: null,
+                  description: null,
+                },
+                totalAmount: 0,
+                transactions: [],
+                type: 'product',
+              }
+              undefinedAccounts.push(newData);
+            }
+          });
+        }
+
+        console.log(res.data.data, undefinedAccounts, 'undefinedAccounts')
+
+        const rr = [...res.data.data, ...undefinedAccounts]
+
+        console.log(rr, 'final budget accounts with undefined accounts')
+
+        setBudgetAccounts(rr);
 
         
       } catch (err) {
@@ -124,23 +155,38 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
     fetchAccounts();
   }, [fetchBudgetTransactions, formValues, range, fiscalYear]);
 
-  useEffect(() => {
-    console.log(budgetAccounts, 'budgetAccounts')
-    const grouped = budgetAccounts?.reduce((acc, account) => {
-        acc[account.accountingAccountId.accountType] ??= [];
-        acc[account.accountingAccountId.accountType].push(account);
-        return acc;
-      }, {});
 
+  const groupedAccountsByType = useMemo(() => {
+    return budgetAccounts.reduce((acc, account) => {
+      const type = account.accountingAccountId.accountType;
+      acc[type] ??= [];
+      acc[type].push(account);
+      return acc;
+    }, {});
+  }, [budgetAccounts]);
+
+  useEffect(() => {
+    if (budgetAccounts.length === 0 || !formValues) return;
+      console.log(budgetAccounts, 'setting initial values for budget form');
       let initialValues = {}
+      // New budget form
       if (!formValues.id) {
-        initialValues = budgetAccounts?.reduce((acc, account) => {
-          acc[account.accountingAccountId._id] = range.reduce((mAcc, _, idx) => {
-            mAcc[idx] = "";
-            return mAcc;
+        if (formValues.excelData && formValues.excelData.length > 0) {
+          formValues.excelData.forEach(x => {
+            const account = budgetAccounts.find(acct => acct.accountingAccountId.accountName === x.item);
+            if (account) {
+              initialValues[account.accountingAccountId._id] = x.budgets
+            }
+          })
+        } else {
+          initialValues = budgetAccounts?.reduce((acc, account) => {
+            acc[account.accountingAccountId._id] = range.reduce((mAcc, _, idx) => {
+              mAcc[idx] = "";
+              return mAcc;
+            }, {});
+            return acc;
           }, {});
-          return acc;
-        }, {});
+        }
       } else {
         initialValues = budgetAccounts?.reduce((acc, account) => {
           const foundAcct = formValues.accounts.find(acct => acct.accountId._id === account.accountingAccountId._id);
@@ -151,12 +197,18 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
           return acc;
         }, {});
       }
+      const checkedAccounts = {}
+      Object.entries(initialValues).forEach(([accountId]) => {
+        // only check the accounts that exist in the formValues.accounts
+        if (formValues.accounts?.find(acct => acct.accountId._id === accountId)) {
+          checkedAccounts[accountId] = true;
+        }
+      })
+      setCheckedAccounts(checkedAccounts);
 
-      console.log(initialValues, 'initialValues')
-
-      setAccountsByType(grouped);
+      setAccountsByType(groupedAccountsByType);
       setValues(initialValues);
-  }, [budgetAccounts, formValues, range, budgetScope]);
+  }, [budgetAccounts, formValues, range, groupedAccountsByType, budgetScope]);
 
   const handleCancel = () => {
     navigate("/dashboard/accounting/budgeting");
@@ -229,17 +281,23 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
   const handleSubmitBudget = async() => {
     const payload = {
       budgetName,
-      ...formValues,
+      type: formValues?.type,
+      format: formValues?.format,
+      periodStartDate: formValues?.periodStartDate,
+      periodEndDate: formValues?.periodEndDate,
+      businessId: formValues?.businessId,
       scope: budgetScope,
-      accounts: Object.entries(values).map(([accountId, budgets]) => ({
-        accountId,
-        budgets: Object.values(budgets),
-      })),
+      accounts: Object.entries(values)
+        .filter(([accountId]) => checkedAccounts[accountId])
+        .map(([accountId, budgets]) => ({
+          accountId,
+          budgets: Object.values(budgets),
+        })),
     };
 
     try {
       if (formValues?._id) {
-        await updateBudget({ data: payload, id: payload._id });
+        await updateBudget({ data: payload, id: formValues._id });
         onUpdateBudget()
       } else {
         await submitBudget(payload);
@@ -251,6 +309,21 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
       console.error("Error submitting budget:", error);
     }
   };
+
+  const [checkedAccounts, setCheckedAccounts] = useState({});
+  const handleCheckboxChange = (accountId) => {
+    setCheckedAccounts((prev) => ({
+      ...prev,
+      [accountId]: !prev[accountId],
+    }));
+  }
+
+  const [accountDefaultValues, setAccountDefaultValues] = useState({});
+  const addMissingAccount = (account) => {
+    console.log("Adding missing account: ", account);
+    setAccountDefaultValues({ accountType: account.accountingAccountId.accountType, accountName: account.accountingAccountId.accountName })
+    setOpenAddForm(true);
+  }
 
   return (
     <>
@@ -282,14 +355,18 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
 
         <div className="flex gap-2 items-center">
-          <Button variant="outline">
+          <Button size={'icon'} variant="outline">
             <CalendarCog />
+          </Button>
+          <Button variant={'outline'}>
+            <DownloadIcon />
           </Button>
           <ToggleGroup
             type="single"
             value={budgetScope}
             onValueChange={setBudgetScope}
             variant="outline"
+            disabled={formValues?._id ? true : false}
           >
             <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
             <ToggleGroupItem value="quarterly">Quarterly</ToggleGroupItem>
@@ -298,13 +375,24 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
         </div>
       </div>
 
+      {
+        budgetAccounts.length > 0 && budgetAccounts.some(acct => !acct.accountingAccountId.accountCode) && (
+          <div className="p-4 bg-yellow-100 text-yellow-800 border border-yellow-300 my-4">
+            <strong>Warning:</strong> Some accounts from the imported Excel data were not found in your accounting accounts.
+            <br/>
+            Kindly add them before creating budgets.
+          </div>
+        )
+      }
       {/* Grid table */}
       <div className="bg-white mt-4">
         <div className="overflow-x-auto border rounded">
 
           {/* Header row */}
           <div className="grid text-sm" style={gridTemplate}>
-            <div className="p-2 border-r border-b border-r-gray-200" />
+            <div className="p-2 border-r border-b border-r-gray-200 sticky left-0 bg-white">
+              Category
+            </div>
             <div className="p-2 border-r border-b text-right">
               Actual <span className="font-semibold">({fiscalYear - 1})</span>
             </div>
@@ -334,10 +422,26 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
               <div key={type}>
                 <div className="grid text-sm" style={gridTemplate}>
                   <div
-                    className="p-2 font-medium capitalize bg-gray-100 border-b"
+                    className="p-2 font-medium capitalize border-b bg-gray-100"
                     style={{ gridColumn: `span ${range.length + 3}` }}
                   >
-                    {type}
+                    <div className="flex gap-2 items-center ">
+                      <div className="flex gap-2 items-center sticky left-0">
+                        {/* implement check all by type */}
+                        <Checkbox
+                          checked={accounts.every(account => checkedAccounts[account.accountingAccountId._id])}
+                          onCheckedChange={(checked) => {
+                            const updated = { ...checkedAccounts };
+                            accounts.forEach(account => {
+                              updated[account.accountingAccountId._id] = checked;
+                            });
+                            setCheckedAccounts(updated);
+                          }}
+                        />
+                        {type}
+                      </div>
+                    </div>
+                    
                   </div>
                 </div>
 
@@ -345,11 +449,17 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
                   <>
                   <div
                     key={account.id}
-                    className="grid text-sm [&>*:nth-child(even)]:bg-gray-100"
+                    className={cn("grid text-sm [&>*:nth-child(even)]:bg-gray-100", !account.accountingAccountId.accountCode && "bg-red-400/10 text-red-400 rounded")}
                     style={gridTemplate}
                   >
-                    <div className="p-2 border-r border-b">
-                      {account.accountingAccountId.accountName}
+                    <div className="p-2 border-r border-b sticky left-0 bg-white">
+                      <div className="flex gap-2 items-center">
+                        <Checkbox checked={checkedAccounts[account.accountingAccountId._id]} onCheckedChange={() => handleCheckboxChange(account.accountingAccountId._id)} />
+                        {account.accountingAccountId.accountName}
+                        { !account.accountingAccountId.accountCode && <Button variant="ghost" size="icon" className="size-6 p-0" onClick={() => addMissingAccount(account)}>
+                          <PlusCircleIcon className="size-4" />
+                        </Button>}
+                      </div>
                     </div>
                   
                     <div className="p-2 border-r border-b text-right font-medium">
@@ -383,10 +493,10 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
                 ))}
               </div>
               <div
-                className="grid text-sm [&>*:nth-child(even)]:bg-gray-100"
+                className="grid text-sm [&>*:nth-child(even)]:bg-gray-100 bg-white"
                 style={gridTemplate}
               >
-                <div className="p-2 border-r border-b font-semibold">
+                <div className="p-2 border-r border-b font-semibold sticky left-0 bg-white">
                   Total
                 </div>
               
@@ -412,7 +522,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
             className="grid text-sm [&>*:nth-child(even)]:bg-gray-100"
             style={gridTemplate}
           >
-            <div className="p-2 border-r border-b font-semibold">
+            <div className="p-2 border-r border-b font-semibold sticky left-0 bg-white">
               Gross Profit
             </div>
           
@@ -439,7 +549,10 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
       {/* Actions */}
       <div className="flex justify-between gap-2 mt-4">
         <div>
-          <Button variant="outline" onClick={() => setOpenAddForm(true)}>
+          <Button variant="outline" onClick={() => {
+            setAccountDefaultValues({})
+            setOpenAddForm(true)
+          }}>
             <PlusCircleIcon className="size-4" />
             Add Account
           </Button>
@@ -449,7 +562,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
             Cancel
           </Button>
           <Button disabled={!budgetName || submitting} onClick={handleSubmitBudget} isLoading={submitting}>
-            {formValues?.id ? 'Update Budget' : 'Create Budget'}
+            {formValues?._id ? 'Update Budget' : 'Create Budget'}
           </Button>
         </div>
       </div>
@@ -464,6 +577,8 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
       />
 
       <AddAccountForm
+        type={accountDefaultValues.accountType}
+        accountName={accountDefaultValues.accountName}
         isOpen={openAddForm}
         onClose={setOpenAddForm}
         showSuccessModal={async (response) => {
@@ -471,6 +586,15 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
           try {
             const responseData = response.data?.data;
             const account = responseData;
+            // find if account exists in budgetAccounts by accountingAccountId.accountName
+            let exists = budgetAccounts.find(acct => acct.accountingAccountId.accountName === account.accountName);
+            // if exists, append
+            if (exists) {
+              exists.accountingAccountId = {...exists.accountingAccountId, ...responseData};
+              setBudgetAccounts(prev => prev.map(acct => acct.accountingAccountId.accountName === exists.accountingAccountId.accountName ? exists : acct));
+              return;
+            }
+
             setAccountData(account);
           } catch (error) {
             console.error('Error refreshing accounts:', error);

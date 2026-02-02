@@ -39,11 +39,11 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm, prepareCustomB
 
     return [
       {
-        title: isRevenue ? 'Total Budget' : 'Total Expense Budget',
+        title: isRevenue ? 'Total Revenue' : 'Total Expense Budget',
         value: totalRevenueOrExpenseBudget,
       },
       {
-        title: isRevenue ? 'Actual Spend' : 'Actual Expense Spend',
+        title: isRevenue ? 'Actual Revenue' : 'Actual Expense',
         value: totalActualRevenueOrExpense,
       },
       {

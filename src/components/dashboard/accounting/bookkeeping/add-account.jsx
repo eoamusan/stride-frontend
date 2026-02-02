@@ -61,6 +61,7 @@ const formSchema = z.object({
 export default function AddAccountForm({
   isOpen = false,
   type,
+  accountName,
   onClose,
   formData = null,
   showSuccessModal,
@@ -78,7 +79,7 @@ export default function AddAccountForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       accountType: type || '',
-      accountName: '',
+      accountName: accountName || '',
       accountNumber: '',
       description: '',
       accountRelation: 'parent',
@@ -90,20 +91,23 @@ export default function AddAccountForm({
     if (formData) {
       form.reset({
         accountType: formData.accountType || type || '',
-        accountName: formData.accountName || '',
+        accountName: formData.accountName || accountName || '',
         accountNumber: formData.accountNumber || '',
         description: formData.description || '',
         accountRelation: formData.accountRelation || '',
       });
     }
-  }, [formData, form, type]);
+  }, [formData, form, accountName, type]);
 
   // Set accountType when type prop is provided
   useEffect(() => {
     if (type) {
       form.setValue('accountType', type);
     }
-  }, [type, form]);
+    if (accountName) {
+      form.setValue('accountName', accountName);
+    }
+  }, [type, form, accountName]);
 
   // Call generateCode when accountType is selected or when type prop changes
   useEffect(() => {
@@ -297,6 +301,8 @@ export default function AddAccountForm({
                       {...field}
                       placeholder="Enter service"
                       className="h-10"
+                      disabled={!!accountName}
+                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />

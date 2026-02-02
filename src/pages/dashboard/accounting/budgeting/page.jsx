@@ -6,6 +6,10 @@ import useBudgeting from '@/hooks/budgeting/useBudgeting';
 import { useSearchParams } from 'react-router';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import CustomBudgetForm from '@/components/dashboard/accounting/budgeting/overview/custom-budget-form';
+import { Bug } from 'lucide-react';
+import BudgetService from '@/api/budget';
+import { ControlledAlertDialog } from '@/components/dashboard/accounting/shared/alert-dialog';
+import { set } from 'zod';
 
 export default function Budgeting() {
 
@@ -17,6 +21,7 @@ export default function Budgeting() {
   const [showCustomBudgetForm, setShowCustomBudgetForm] = useState(false)
   const [customBudgetFormValues, setCustomBudgetFormValues] = useState(null)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState({visible: false, isCreate: true});
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
   
 
   const { budgets, loading, paginationData, fetchBudgets } = useBudgeting();
@@ -65,6 +70,10 @@ export default function Budgeting() {
       label: 'Date',
     },
     {
+      key: 'status',
+      label: 'Status',
+    },
+    {
       key: 'lastModifiedBy',
       label: 'Last Modified By',
     },
@@ -77,7 +86,8 @@ export default function Budgeting() {
   // Dropdown actions for each row
   const dropdownActions = [
     { key: 'edit-budget', label: 'View Budget' },
-    // { key: 'run-budget', label: 'Run Budget vs. Actuals report' },
+    { key: 'run-budget', label: 'View Budget vs. Actuals report' },
+    { key: 'download-budget', label: 'Download Budget' },
     // { key: 'run-overview', label: 'Run Budget Overview report' },
     { key: 'archive', label: 'Archive' },
     { key: 'duplicate', label: 'Duplicate' },
@@ -100,8 +110,50 @@ export default function Budgeting() {
         setCustomBudgetFormValues(item);
         setShowCustomBudgetForm(true);
         break;
+      case 'duplicate':
+        { setSearchParams(prev => {
+          const params = new URLSearchParams(prev);
+          const budgetName = item.budgetName + ' Copy';
+          params.set("budget", budgetName);
+          return params;
+        });
+        const copyItem = { ...item };
+        delete copyItem.id; // Remove id to create a new budget
+        delete copyItem._id;
+        setCustomBudgetFormValues(copyItem);
+        setShowCustomBudgetForm(true);
+        break; }
+      case 'archive':
+        BudgetService.update({ data: { status: 'ARCHIVED' }, id: item._id }).then(() => {
+          fetchBudgets();
+        });
+        break;
+      case 'delete':
+        setSelectedItems([item._id]);
+        setOpenAlertDialog(true);
+        break;
     }
   };
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (selectedItems.length === 0) return;
+
+    const deleteBudgets = async () => {
+      try {
+        for (const id of selectedItems) {
+          await BudgetService.delete({ id });
+        }
+        fetchBudgets();
+        setSelectedItems([]);
+      } catch (error) {
+        console.error('Error deleting budgets:', error);
+      } finally {
+        setOpenAlertDialog(false);
+      }
+    };
+
+    deleteBudgets();
+  }, [selectedItems, fetchBudgets]);
 
   const handlePrepareBudgetForm = useCallback((payload) => {
     console.log("Preparing custom budget form with payload: ", payload);
@@ -146,10 +198,16 @@ export default function Budgeting() {
           handleSelectItem={handleSelectItem}
           handleSelectAll={handleSelectAll}
           onRowAction={handleRowAction}
-          isProductTable
+          statusStyles={{
+            ACTIVE: 'bg-green-100 text-green-800',
+            ARCHIVED: 'bg-yellow-100 text-yellow-800',
+            CLOSED: 'bg-red-100 text-red-800',
+            DRAFT: 'bg-gray-100 text-gray-800',
+          }}
+          // isProductTable
           showDataSize
           isLoading={loading}
-          itemComponent={BudgetCard}
+          // itemComponent={BudgetCard}
         />
       </div>
     </>
@@ -164,6 +222,11 @@ export default function Budgeting() {
           setIsSuccessModalOpen(false);
         }} 
       />
+
+      <ControlledAlertDialog isOpen={openAlertDialog} setIsOpen={() => {
+        setOpenAlertDialog(false);
+        setSelectedItems([]);
+      }} title="Are you sure you want to delete this budget?" description="You will not be able to revert this action." onConfirm={handleDeleteConfirm} />
     </div>
   );
 }

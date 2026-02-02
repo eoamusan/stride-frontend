@@ -7,19 +7,14 @@ export const formSchema = z.object({
 })
 
 export const excelBudgetRowSchema = z.object({
-  Actual: z
-    .number({ invalid_type_error: "Actual must be a number" })
-    .nonnegative("Actual must be ≥ 0"),
 
-  Budget: z
-    .number({ invalid_type_error: "Budget must be a number" })
-    .nonnegative("Budget must be ≥ 0"),
+  budgets: z.array(z.number()).length(12),
 
-  Category: z
+  category: z
     .string()
     .min(1, "Category is required"),
 
-  Item: z
+  item: z
     .string()
     .min(1, "Item is required"),
 });
