@@ -136,7 +136,7 @@ export function ChartPieDonutText({
             {chartData.map((item) => (
               <div key={item.label} className="flex items-center gap-2">
                 <span
-                  className="h-2.5 w-2.5 rounded-full"
+                  className={newClass ? 'h-2 w-2 rounded-full' : 'h-4.5 w-2'}
                   style={{ backgroundColor: item.color }}
                 />
                 <span className="text-muted-foreground text-sm font-medium">

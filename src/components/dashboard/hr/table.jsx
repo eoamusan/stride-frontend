@@ -274,7 +274,7 @@ export function TableActions({
         </div>
       </div>
 
-      <Table className="table-auto border-spacing-2">
+      <Table className="border-separate border-spacing-y-2">
         <TableHeader>
           <TableRow className="border-none">
             {tableHeaders.map((header) => (
@@ -289,7 +289,10 @@ export function TableActions({
         </TableHeader>
         <TableBody>
           {currentData.map((request) => (
-            <TableRow key={request.id}>
+            <TableRow
+              key={request.id}
+              className="hover:bg-muted/50 border-transparent [&_td]:border-y [&_td:first-child]:rounded-l-3xl [&_td:first-child]:border-l [&_td:last-child]:rounded-r-3xl [&_td:last-child]:border-r"
+            >
               {/* 1. DYNAMIC DATA COLUMNS */}
               {Object.entries(request).map(([key, value]) => {
                 // A. Filter out keys you don't want to display (e.g., 'id')
@@ -326,7 +329,7 @@ export function TableActions({
 
                 // C. Default Render for all other keys (Title, Department, etc.)
                 return (
-                  <TableCell key={key} className="py-4 font-medium">
+                  <TableCell key={key} className="px-6 py-4 font-medium">
                     {value}
                   </TableCell>
                 );

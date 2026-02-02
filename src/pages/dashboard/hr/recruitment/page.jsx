@@ -3,11 +3,13 @@ import youtubeIcon from '@/assets/icons/youtube-red.png';
 import { Button } from '@/components/ui/button';
 import { TableActions } from '@/components/dashboard/hr/table';
 import { dummyRequisitionRequests } from './job-requests';
+import { Plus } from 'lucide-react';
 
 const sampleChartData = [
   { month: 'Jan', month1: 600 },
   { month: 'Feb', month2: 800 },
   { month: 'Mar', month3: 1000 },
+  { month: 'April', month4: 1200 },
 ];
 
 const metricsData = [
@@ -68,6 +70,7 @@ export default function Recruitment() {
 
         <div className="flex space-x-4">
           <Button className={'h-10 rounded-2xl px-6 text-sm'}>
+            <Plus />
             Create New Requisition
           </Button>
           <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
