@@ -8,6 +8,7 @@ export default function JobPosting() {
     { month: 'Jan', month1: 600 },
     { month: 'Feb', month2: 800 },
     { month: 'Mar', month3: 1000 },
+    { month: 'Apr', month4: 1200 },
   ];
 
   const metricsData = [

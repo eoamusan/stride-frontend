@@ -43,18 +43,20 @@ export default function RecruitmentDetails() {
           </nav>
 
           {/* Job Header Card */}
-          <div className="flex items-center gap-4 lg:col-span-3">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-purple-200 md:h-30 md:w-30">
-              <BriefcaseIcon className="h-12 w-12 text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-xl font-semibold">{jobRequest.title}</h1>
-              <p className="mt-1 text-sm text-gray-600">{jobRequest.id}</p>
-              <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
-                <CalendarIcon className="h-4 w-4" />
-                <span>
-                  Created {jobRequest.dateCreated}, {jobRequest.createdTime}
-                </span>
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row lg:col-span-3">
+            <div className="flex items-center gap-4">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-purple-200 md:h-30 md:w-30">
+                <BriefcaseIcon className="h-12 w-12 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <h1 className="text-xl font-semibold">{jobRequest.title}</h1>
+                <p className="mt-1 text-sm text-gray-600">{jobRequest.id}</p>
+                <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
+                  <CalendarIcon className="h-4 w-4" />
+                  <span>
+                    Created {jobRequest.dateCreated}, {jobRequest.createdTime}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
