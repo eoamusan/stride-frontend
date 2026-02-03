@@ -12,8 +12,6 @@ import {
   Dialog,
   DialogContent,
   DialogTrigger,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 
 const sampleChartData = [
