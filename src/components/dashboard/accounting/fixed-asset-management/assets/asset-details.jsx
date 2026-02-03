@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/accordion"
 import ImageCarousel from "../../shared/image-carousel";
 import temporaryImg from '@/assets/images/customer-ledger-temp.png';
+import { useEffect } from "react";
+import AssetService from "@/api/asset";
 
 function MaintenanceHistory() {
   return <div>
@@ -185,7 +187,7 @@ function InsuranceDetails() {
   </>
 }
 
-export default function AssetDetails({ setShowDetails }) {
+export default function AssetDetails({ setShowDetails, selectedItem }) {
 
   const assetData = [
     {
@@ -306,6 +308,17 @@ export default function AssetDetails({ setShowDetails }) {
       }
     }
   ]
+
+  const fetchAssetDetails = async (itemId) => {
+    // Fetch asset details logic here
+    const response = await AssetService.get({id: itemId})
+    console.log('Asset Details: ', response.data);
+  }
+
+  useEffect(() => {
+    console.log('Selected Item: ', selectedItem._id);
+    fetchAssetDetails(selectedItem._id);
+  }, [selectedItem]);
 
 
   return (

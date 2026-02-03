@@ -5,10 +5,8 @@ import LocationForm from "./location-form";
 import StatusConditionForm from "./status-condition-form";
 import InsuranceForm from "./insurance-form";
 import FileUploadForm from "./file-upload-form";
-import { useState } from "react";
-import SuccessModal from "../../success-modal";
 
-export default function AssetForm() {
+export default function AssetForm({onCreateAsset}) {
   const steps = [
     {
       id: 1,
@@ -42,26 +40,15 @@ export default function AssetForm() {
     },
   ]
 
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+  
 
   const handleFormSubmit = (data) => {
-    console.log("Final form data:", data)
-    setIsSuccessModalOpen(true);
+    onCreateAsset(data);
   }
 
   return (
     <>
       <MultiStepForm steps={steps} onSubmit={handleFormSubmit} />
-      <SuccessModal
-        title={'Asset Saved'}
-        description={"You've successfully created an Asset."}
-        open={isSuccessModalOpen}
-        onOpenChange={setIsSuccessModalOpen}
-        backText={'Back'}
-        handleBack={() => {
-          setIsSuccessModalOpen(false);
-        }} 
-      />
     </>
   )
 }

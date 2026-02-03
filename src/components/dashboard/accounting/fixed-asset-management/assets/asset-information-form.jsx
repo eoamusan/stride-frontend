@@ -1,3 +1,4 @@
+import AssetService from "@/api/asset";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,14 +20,17 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import z from "zod";
 
 export default function AssetInformationForm({ onBack, onNext, formValues }) {
+  console.log("formValues in asset information form", formValues)
   const formSchema = z.object({
       assetName: z.string().min(1, "Asset name is required"),
       assetType: z.string({ message: 'Select an asset type'}),
-      serialNumber: z.string().min(1, "Serial number is required"),
+      serialNo: z.string().min(1, "Serial number is required"),
       category: z.string({ message: 'Select a category'}),
       subCategory: z.string({ message: 'Select a sub-category'}),
       description: z.string().min(1, "Description is required"),
@@ -37,7 +41,7 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
     defaultValues: {
       assetName: formValues.assetName || '',
       assetType: formValues.assetType || '',
-      serialNumber: formValues.serialNumber || '',
+      serialNo: formValues.serialNo || '',
       category: formValues.category || '',
       subCategory: formValues.subCategory || '',
       description: formValues.description || ''
@@ -47,10 +51,24 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
   const { handleSubmit, control, formState } = form;
 
   const { isValid } = formState
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleNext = (values) => {
+  const handleNext = async (values) => {
     if (!isValid) return
-    onNext(values)
+    // save form data and go to next step
+    try {
+      setIsLoading(true)
+      const res = await AssetService.create({ data: values })
+      const item = res.data?.data
+      toast.success("Asset Information saved successfully")
+      onNext({...values, item })
+    } catch (error) {
+      console.log(error)
+      toast.error(error.response?.data?.message || "Failed to save Asset Information")
+      return
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -98,7 +116,7 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
 
           <FormField
             control={control}
-            name="serialNumber"
+            name="serialNo"
             render={({ field }) => (
               <FormItem className="flex flex-col gap-3 items-baseline">
                 <FormLabel className="whitespace-nowrap min-w-25">Serial No</FormLabel>
@@ -179,7 +197,8 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
             <Button
               type="submit"
               className="h-10 px-10 text-sm rounded-3xl"
-              disabled={!isValid}
+              disabled={!isValid || isLoading}
+              isLoading={isLoading}
             >
               Next
             </Button>

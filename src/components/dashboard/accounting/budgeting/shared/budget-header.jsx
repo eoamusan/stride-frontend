@@ -91,12 +91,12 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm, prepareCustomB
             <PlusCircleIcon className="size-4" />
             Create Budget
           </Button>
-          <Button size={'icon'} className={'size-10'} variant={'outline'}>
+          {/* <Button size={'icon'} className={'size-10'} variant={'outline'}>
             <DownloadIcon size={16} />
           </Button>
           <Button size={'icon'} className={'size-10'} variant={'outline'}>
             <SettingsIcon size={16} />
-          </Button>
+          </Button> */}
         </div>
       </div>
 

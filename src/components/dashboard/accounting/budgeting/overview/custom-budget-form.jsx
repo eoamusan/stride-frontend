@@ -11,6 +11,17 @@ import { useNavigate, useSearchParams } from "react-router";
 import SuccessModal from "../../success-modal";
 import AddAccountForm from "../../bookkeeping/add-account";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AppDialog } from "@/components/core/app-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Label } from "@/components/ui/label";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const QUARTERS = ["Q1","Q2","Q3","Q4"];
@@ -27,6 +38,8 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
   const [fiscalYear, setFiscalYear] = useState();
   const [editingName, setEditingName] = useState(false);
   const [budgetScope, setBudgetScope] = useState(formValues?.scope || "monthly");
+  const [selectedStartMonth, setSelectedStartMonth] = useState(MONTHS[0]);
+  const [selectedEndMonth, setSelectedEndMonth] = useState(MONTHS[MONTHS.length - 1]);
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const [selectedInputIdx, setSelectedInputIdx] = useState(null);
   const [openAddForm, setOpenAddForm] = useState(false);
@@ -35,14 +48,15 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(false);
   const [budgetAccounts, setBudgetAccounts] = useState([]);
-  const [missingAccounts, setMissingAccounts] = useState([]);
+  const [openCustomRangeForm, setOpenCustomRangeForm] = useState(false);
 
   const budgetInputRefs = useRef({});
 
   const range = useMemo(() => {
-    if (budgetScope === "monthly") return MONTHS;
-    if (budgetScope === "quarterly") return QUARTERS;
-    return YEARS;
+    if (budgetScope === "monthly") { return MONTHS; }
+    if (budgetScope === "quarterly") { return QUARTERS; }
+    if (budgetScope === "yearly") { return YEARS; }
+    return MONTHS.slice(MONTHS.indexOf(selectedStartMonth), MONTHS.indexOf(selectedEndMonth) + 1);
   }, [budgetScope]);
 
   const currency = useMemo(
@@ -112,11 +126,13 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
           endDate: endDate.toISOString(),
         });
 
+        const {accounts} = res.data.data || [];
+
 
         const undefinedAccounts = []
         if (formValues?.excelData && formValues.excelData.length > 0) {
           formValues.excelData.forEach(x => {
-            const account = res.data.data.find(acct => acct.accountingAccountId.accountName === x.item);
+            const account = accounts.find(acct => acct.account.accountName === x.item);
             if (!account) {
               const newData = {
                 accountingAccountId: {
@@ -136,11 +152,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
           });
         }
 
-        console.log(res.data.data, undefinedAccounts, 'undefinedAccounts')
-
-        const rr = [...res.data.data, ...undefinedAccounts]
-
-        console.log(rr, 'final budget accounts with undefined accounts')
+        const rr = [...accounts, ...undefinedAccounts]
 
         setBudgetAccounts(rr);
 
@@ -158,7 +170,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
   const groupedAccountsByType = useMemo(() => {
     return budgetAccounts.reduce((acc, account) => {
-      const type = account.accountingAccountId.accountType;
+      const type = account.account.accountType;
       acc[type] ??= [];
       acc[type].push(account);
       return acc;
@@ -167,20 +179,19 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
   useEffect(() => {
     if (budgetAccounts.length === 0 || !formValues) return;
-      console.log(budgetAccounts, 'setting initial values for budget form');
       let initialValues = {}
       // New budget form
       if (!formValues.id) {
         if (formValues.excelData && formValues.excelData.length > 0) {
           formValues.excelData.forEach(x => {
-            const account = budgetAccounts.find(acct => acct.accountingAccountId.accountName === x.item);
+            const account = budgetAccounts.find(acct => acct.accountName === x.item);
             if (account) {
-              initialValues[account.accountingAccountId._id] = x.budgets
+              initialValues[account._id] = x.budgets
             }
           })
         } else {
           initialValues = budgetAccounts?.reduce((acc, account) => {
-            acc[account.accountingAccountId._id] = range.reduce((mAcc, _, idx) => {
+            acc[account.account._id] = range.reduce((mAcc, _, idx) => {
               mAcc[idx] = "";
               return mAcc;
             }, {});
@@ -189,8 +200,8 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
         }
       } else {
         initialValues = budgetAccounts?.reduce((acc, account) => {
-          const foundAcct = formValues.accounts.find(acct => acct.accountId._id === account.accountingAccountId._id);
-          acc[account.accountingAccountId._id] = range.reduce((mAcc, _, idx) => {
+          const foundAcct = formValues.accounts.find(acct => acct.accountId._id === account.account._id);
+          acc[account.account._id] = range.reduce((mAcc, _, idx) => {
             mAcc[idx] = foundAcct ? foundAcct.budgets[idx] : "";
             return mAcc;
           }, {});
@@ -241,7 +252,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
   const getTotalForAccountTypeAtIndex = (accounts, idx) => {
     return accounts.reduce((acc, account) => {
-      const accountValues = values[account.accountingAccountId._id];
+      const accountValues = values[account.account._id];
       if (accountValues && accountValues[idx]) {
         acc += Number(accountValues[idx]);
       }
@@ -256,7 +267,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
   }
 
   const computeTotalForAccountRow = (account) => {
-    const accountValues = values[account.accountingAccountId._id];
+    const accountValues = values[account.account._id];
     if (!accountValues) return 0;
 
     return Object.values(accountValues).reduce((acc, val) => acc + (Number(val) || 0), 0);
@@ -320,9 +331,20 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
   const [accountDefaultValues, setAccountDefaultValues] = useState({});
   const addMissingAccount = (account) => {
-    console.log("Adding missing account: ", account);
-    setAccountDefaultValues({ accountType: account.accountingAccountId.accountType, accountName: account.accountingAccountId.accountName })
+    setAccountDefaultValues({ accountType: account.account.accountType, accountName: account.account.accountName })
     setOpenAddForm(true);
+  }
+
+  const handleStartMonthChange = (month) => {
+    setSelectedStartMonth(month);
+  }
+  const handleEndMonthChange = (month) => {
+    setSelectedEndMonth(month);
+  }
+
+  const handleApplyCustomRange = () => {
+    setBudgetScope(`${selectedStartMonth}-${selectedEndMonth}`);
+    setOpenCustomRangeForm(false);
   }
 
   return (
@@ -355,7 +377,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
 
         <div className="flex gap-2 items-center">
-          <Button size={'icon'} variant="outline">
+          <Button size={'icon'} variant="outline" onClick={() => setOpenCustomRangeForm(true)}>
             <CalendarCog />
           </Button>
           <Button variant={'outline'}>
@@ -376,7 +398,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
       </div>
 
       {
-        budgetAccounts.length > 0 && budgetAccounts.some(acct => !acct.accountingAccountId.accountCode) && (
+        budgetAccounts.length > 0 && budgetAccounts.some(acct => !acct.account.accountCode) && (
           <div className="p-4 bg-yellow-100 text-yellow-800 border border-yellow-300 my-4">
             <strong>Warning:</strong> Some accounts from the imported Excel data were not found in your accounting accounts.
             <br/>
@@ -429,11 +451,11 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
                       <div className="flex gap-2 items-center sticky left-0">
                         {/* implement check all by type */}
                         <Checkbox
-                          checked={accounts.every(account => checkedAccounts[account.accountingAccountId._id])}
+                          checked={accounts.every(account => checkedAccounts[account.account._id])}
                           onCheckedChange={(checked) => {
                             const updated = { ...checkedAccounts };
                             accounts.forEach(account => {
-                              updated[account.accountingAccountId._id] = checked;
+                              updated[account.account._id] = checked;
                             });
                             setCheckedAccounts(updated);
                           }}
@@ -449,37 +471,37 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
                   <>
                   <div
                     key={account.id}
-                    className={cn("grid text-sm [&>*:nth-child(even)]:bg-gray-100", !account.accountingAccountId.accountCode && "bg-red-400/10 text-red-400 rounded")}
+                    className={cn("grid text-sm [&>*:nth-child(even)]:bg-gray-100", !account.account.accountCode && "bg-red-400/10 text-red-400 rounded")}
                     style={gridTemplate}
                   >
                     <div className="p-2 border-r border-b sticky left-0 bg-white">
                       <div className="flex gap-2 items-center">
-                        <Checkbox checked={checkedAccounts[account.accountingAccountId._id]} onCheckedChange={() => handleCheckboxChange(account.accountingAccountId._id)} />
-                        {account.accountingAccountId.accountName}
-                        { !account.accountingAccountId.accountCode && <Button variant="ghost" size="icon" className="size-6 p-0" onClick={() => addMissingAccount(account)}>
+                        <Checkbox checked={checkedAccounts[account.account._id]} onCheckedChange={() => handleCheckboxChange(account.account._id)} />
+                        {account.account.accountName}
+                        { !account.account.accountCode && <Button variant="ghost" size="icon" className="size-6 p-0" onClick={() => addMissingAccount(account)}>
                           <PlusCircleIcon className="size-4" />
                         </Button>}
                       </div>
                     </div>
                   
                     <div className="p-2 border-r border-b text-right font-medium">
-                      {currency.format(Number(account.totalAmount) || 0)}
+                      {currency.format(Number(account.groups.reduce((acc, group) => acc + group.totalAmount, 0)) || 0)}
                     </div>
 
                     {range.map((_, idx) => (
                       // set input to auto focus when clicked
-                      <div key={idx} className="p-2 border-r border-b flex justify-end" onClick={() => handleSetSelectedAccountId(account.accountingAccountId._id, idx)}>
-                        { selectedAccountId === account.accountingAccountId._id ? (
+                      <div key={idx} className="p-2 border-r border-b flex justify-end" onClick={() => handleSetSelectedAccountId(account.account._id, idx)}>
+                        { selectedAccountId === account.account._id ? (
                           <Input
                             type="number"
                             placeholder="0.00"
-                            value={values[account.accountingAccountId._id]?.[idx] ?? ""}
-                            onChange={(e) => updateValue(account.accountingAccountId._id, idx, e.target.value)}
+                            value={values[account.account._id]?.[idx] ?? ""}
+                            onChange={(e) => updateValue(account.account._id, idx, e.target.value)}
                             className="w-full text-right bg-white"
                             formatNumber
                             ref={(el) => (budgetInputRefs.current[idx] = el)}
                           />) :
-                        <span>{currency.format(Number(values[account.accountingAccountId._id]?.[idx]) || 0)}</span>
+                        <span>{currency.format(Number(values[account.account._id]?.[idx]) || 0)}</span>
                       }
                       </div>
                     ))}
@@ -587,11 +609,11 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
             const responseData = response.data?.data;
             const account = responseData;
             // find if account exists in budgetAccounts by accountingAccountId.accountName
-            let exists = budgetAccounts.find(acct => acct.accountingAccountId.accountName === account.accountName);
+            let exists = budgetAccounts.find(acct => acct.account.accountName === account.accountName);
             // if exists, append
             if (exists) {
               exists.accountingAccountId = {...exists.accountingAccountId, ...responseData};
-              setBudgetAccounts(prev => prev.map(acct => acct.accountingAccountId.accountName === exists.accountingAccountId.accountName ? exists : acct));
+              setBudgetAccounts(prev => prev.map(acct => acct.account.accountName === exists.account.accountName ? exists : acct));
               return;
             }
 
@@ -601,6 +623,55 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
           }
         }}
       />
+
+      <AppDialog 
+        title="Custom Period Budget"
+        headerIcon={<CalendarCog />} 
+        open={openCustomRangeForm} 
+        onOpenChange={setOpenCustomRangeForm}
+        className='sm:max-w-130'
+      >
+        <div className="flex gap-2">
+          <div className="flex flex-col gap-2 w-full">
+            <Label>Start Month</Label>
+            <Select onValueChange={handleStartMonthChange} value={selectedStartMonth}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Select Month</SelectLabel>
+                  { MONTHS.map((month) => (
+                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                  )) }
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2 w-full">
+            <Label>End Month</Label>
+            <Select onValueChange={handleEndMonthChange} value={selectedEndMonth}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Month" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                  <SelectLabel>Select Month</SelectLabel>
+                  { MONTHS.slice(MONTHS.indexOf(selectedStartMonth)).map((month) => (
+                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                  )) }
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>&nbsp;</Label>
+            <Button onClick={handleApplyCustomRange}>Apply</Button>
+          </div>
+        </div>
+      </AppDialog>
     </>
   );
 }

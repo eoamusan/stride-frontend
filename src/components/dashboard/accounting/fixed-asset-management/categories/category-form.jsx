@@ -1,3 +1,4 @@
+import AssetCategoryService from "@/api/category";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,7 +20,9 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import z from "zod";
 
 export default function CategoryForm({ onCreateCategory, onCancel }) {
@@ -28,7 +31,8 @@ export default function CategoryForm({ onCreateCategory, onCancel }) {
       depreciationMethod: z.string({ message: 'Select a depreciation method'}),
       salvageValue: z.coerce.number().min(0, "Salvage value is required"),
       usefulLifeYears: z.coerce.number().min(1, "Useful life in years is required"),
-      residualValuePercentage: z.coerce.number().min(0, "Residual value percentage is required"),
+      depreciationRate: z.coerce.number().min(0, "Depreciation rate is required"),
+      // residualValuePercentage: z.coerce.number().min(0, "Residual value percentage is required"),
       description: z.string().min(1, "Description is required"),
     })
 
@@ -38,7 +42,9 @@ export default function CategoryForm({ onCreateCategory, onCancel }) {
       categoryName: '',
       depreciationMethod: '',
       usefulLifeYears: '',
-      residualValuePercentage: '',
+      depreciationRate: '',
+      salvageValue: '',
+      // residualValuePercentage: '',
       description: ''
     },
     mode: "onChange"
@@ -47,10 +53,26 @@ export default function CategoryForm({ onCreateCategory, onCancel }) {
 
   const { isValid } = formState
 
-  const onSubmit = (values) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const onSubmit = async (values) => {
     if (!isValid) return
     console.log('Category Data:', values)
-    onCreateCategory(values)
+    try {
+      setIsSubmitting(true);
+      values.usefulLifeYears = String(values.usefulLifeYears);
+      values.salvageValue = String(values.salvageValue);
+      values.depreciationRate = String(values.depreciationRate);
+      await AssetCategoryService.create({ data: values });
+      form.reset();
+      onCreateCategory(values)
+    } catch (error) {
+      console.error('Error creating category:', error);
+      toast.error(error.response?.data?.message || 'Failed to create category. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+    
   }
 
   return (
@@ -105,7 +127,7 @@ export default function CategoryForm({ onCreateCategory, onCancel }) {
                 <FormItem className="flex flex-col gap-3 items-baseline">
                   <FormLabel className="whitespace-nowrap min-w-25">Useful Life Years</FormLabel>
                   <FormControl className="flex w-full">
-                    <Input type="number" placeholder="Enter no" onChange={field.onChange} value={field.value} />
+                    <Input type="number" placeholder="Enter number of years" onChange={field.onChange} value={field.value} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -119,7 +141,7 @@ export default function CategoryForm({ onCreateCategory, onCancel }) {
                 <FormItem className="flex flex-col gap-3 items-baseline">
                   <FormLabel className="whitespace-nowrap min-w-25">Salvage Value (NGN)</FormLabel>
                   <FormControl className="flex w-full">
-                    <Input type="number" placeholder="Enter no" onChange={field.onChange} value={field.value} />
+                    <Input type="number" formatNumber placeholder="Enter salvage value" onChange={field.onChange} value={field.value} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -133,7 +155,7 @@ export default function CategoryForm({ onCreateCategory, onCancel }) {
               name="depreciationRate"
               render={({ field }) => (
                 <FormItem className="flex flex-col gap-3 items-baseline">
-                  <FormLabel className="whitespace-nowrap min-w-25">Depreciation Rate(%)</FormLabel>
+                  <FormLabel className="whitespace-nowrap min-w-25">Depreciation Rate (%)</FormLabel>
                   <FormControl className="flex w-full">
                     <Input type="number" placeholder="Enter percentage" onChange={field.onChange} value={field.value} />
                   </FormControl>
@@ -158,13 +180,14 @@ export default function CategoryForm({ onCreateCategory, onCancel }) {
           />
 
           <div className="flex gap-2 justify-end mt-4">
-            <Button variant="secondary" onClick={onCancel} disabled className="h-10 px-10 text-sm rounded-3xl">
+            <Button variant="secondary" onClick={onCancel} disabled={isSubmitting} className="h-10 px-10 text-sm rounded-3xl">
               Back
             </Button>
             <Button
               type="submit"
               className="h-10 px-10 text-sm rounded-3xl"
-              disabled={!isValid}
+              disabled={!isValid || isSubmitting}
+              isLoading={isSubmitting}
             >
               Add Category
             </Button>

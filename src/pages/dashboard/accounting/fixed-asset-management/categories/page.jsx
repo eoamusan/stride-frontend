@@ -158,8 +158,8 @@ export default function FixedAssetMgtCategories() {
     }
   };
 
-  const handleOnCreateCategory = useCallback((data) => {
-    console.log('Category created:', data)
+  const handleOnCreateCategory = useCallback(() => {
+    setOpenCategoryForm(false)
     setIsSuccessModalOpen(true)
   }, [])
 
@@ -186,9 +186,9 @@ export default function FixedAssetMgtCategories() {
               <Button size={'icon'} className={'size-10'} variant={'outline'}>
                 <DownloadIcon size={16} />
               </Button>
-              <Button size={'icon'} className={'size-10'} variant={'outline'}>
+              {/* <Button size={'icon'} className={'size-10'} variant={'outline'}>
                 <SettingsIcon size={16} />
-              </Button>
+              </Button> */}
             </div>
           </div>
 
