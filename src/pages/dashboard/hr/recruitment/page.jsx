@@ -8,11 +8,7 @@ import { Plus } from 'lucide-react';
 import ManpowerRequisitionForm from './form/requisition-form';
 
 // 2. Import Dialog components (Adjust path if necessary)
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 const sampleChartData = [
   { month: 'Jan', month1: 600 },
@@ -69,6 +65,11 @@ const tableData = dummyRequisitionRequests.map((item) => ({
   dateCreated: item.dateCreated,
 }));
 
+const tableActions = [
+  { title: 'Approve', action: 'approve' },
+  { title: 'Reject', action: 'reject' },
+];
+
 export default function Recruitment() {
   // 3. State is optional if using DialogTrigger, but good for control
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -121,6 +122,7 @@ export default function Recruitment() {
           tableHeaders={tableHeaders}
           title="Job Requisitions"
           path="/dashboard/hr/recruitment/detail"
+          tableActions={tableActions}
         />
       </div>
     </div>

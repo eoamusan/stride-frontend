@@ -99,9 +99,6 @@ export default function JobPostingForm() {
               </p>
             </div>
           </div>
-          <button type="button" className="text-gray-400 hover:text-gray-600">
-            <X size={20} />
-          </button>
         </div>
 
         {/* Scrollable Form Content */}

@@ -58,7 +58,7 @@ export const dummyJobRequests = [
       {
         name: 'Bob Smith',
         date: 'Nov 16, 2025',
-        status: 'New',
+        status: 'View',
       },
       {
         name: 'Charlie Brown',
@@ -124,12 +124,12 @@ export const dummyJobRequests = [
       {
         name: 'David Wilson',
         date: 'Nov 13, 2025',
-        status: 'Hired',
+        status: 'Approved',
       },
       {
         name: 'Eva Green',
         date: 'Nov 14, 2025',
-        status: 'Offer Sent',
+        status: 'Shortlisted',
       },
     ],
   },

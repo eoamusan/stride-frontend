@@ -43,6 +43,13 @@ export default function ApplicantScreening() {
     { key: 'status', label: 'Status', className: '' },
   ];
 
+  const tableActions = [
+    { title: 'Approve', action: 'approve' },
+    { title: 'Reject', action: 'reject' },
+    { title: 'Shortlist', action: 'shortlist' },
+    { title: 'Interview', action: 'interview' },
+  ];
+
   const tableData = dummyJobRequests.flatMap((job) =>
     (job.applicants || []).map((applicant, index) => ({
       id: `${job.id}#${index}`,
@@ -82,6 +89,7 @@ export default function ApplicantScreening() {
           title="Applicants"
           path="/dashboard/hr/recruitment/applicant-screening/detail/"
           pageSize={9}
+          tableActions={tableActions}
         />
       </div>
     </div>

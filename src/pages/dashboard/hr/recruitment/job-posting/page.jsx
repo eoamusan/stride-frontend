@@ -50,6 +50,10 @@ export default function JobPosting() {
     { key: 'datePosted', label: 'Date Posted', className: '' },
     { key: 'status', label: 'Status', className: '' },
   ];
+  const tableActions = [
+    { title: 'Approve', action: 'approve' },
+    { title: 'Reject', action: 'reject' },
+  ];
 
   const tableData = dummyJobRequests.map((item) => ({
     id: item.id,
@@ -108,6 +112,7 @@ export default function JobPosting() {
           tableHeaders={tableHeaders}
           title="Job Posting"
           path="/dashboard/hr/recruitment/job-postings/detail"
+          tableActions={tableActions}
         />
       </div>
     </div>
