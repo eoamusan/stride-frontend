@@ -129,6 +129,7 @@ import RBAC from './dashboard/hr/setup/RBAC/page';
 import SalaryFramework from './dashboard/hr/setup/salary-framework/page';
 import GlobalSetting from './dashboard/hr/setup/global-setting/page';
 import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
+import JobDetails from './dashboard/hr/recruitment/job-posting/[id]/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -565,11 +566,29 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'job-postings',
-                        Component: JobPosting,
+                        children: [
+                          {
+                            index: true,
+                            Component: JobPosting,
+                          },
+                          {
+                            path: 'detail/:id',
+                            Component: JobDetails,
+                          },
+                        ],
                       },
                       {
                         path: 'applicant-screening',
-                        Component: ApplicantScreening,
+                        children: [
+                          {
+                            index: true,
+                            Component: ApplicantScreening,
+                          },
+                          {
+                            path: 'detail/:id',
+                            Component: JobDetails,
+                          },
+                        ],
                       },
                       {
                         path: 'interview-schedules',

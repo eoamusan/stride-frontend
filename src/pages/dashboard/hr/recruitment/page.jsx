@@ -1,13 +1,24 @@
+import React, { useState } from 'react'; // 1. Import useState
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import youtubeIcon from '@/assets/icons/youtube-red.png';
 import { Button } from '@/components/ui/button';
 import { TableActions } from '@/components/dashboard/hr/table';
 import { dummyRequisitionRequests } from './job-requests';
+import { Plus } from 'lucide-react';
+import ManpowerRequisitionForm from './form/requisition-form';
+
+// 2. Import Dialog components (Adjust path if necessary)
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 const sampleChartData = [
   { month: 'Jan', month1: 600 },
   { month: 'Feb', month2: 800 },
   { month: 'Mar', month3: 1000 },
+  { month: 'April', month4: 1200 },
 ];
 
 const metricsData = [
@@ -39,7 +50,7 @@ const metricsData = [
 ];
 
 const tableHeaders = [
-  { key: 'jobTitle', label: 'Job Title', className: '' },
+  { key: 'title', label: 'Title', className: '' },
   { key: 'department', label: 'Department', className: '' },
   { key: 'requestedBy', label: 'Requested By', className: '' },
   { key: 'openings', label: 'Openings', className: '' },
@@ -48,7 +59,20 @@ const tableHeaders = [
   { key: 'actions', label: 'Actions', className: 'text-right' },
 ];
 
+const tableData = dummyRequisitionRequests.map((item) => ({
+  id: item.id,
+  title: item.title,
+  department: item.department,
+  requestedBy: item.requestedBy,
+  openings: item.openings,
+  status: item.status,
+  dateCreated: item.dateCreated,
+}));
+
 export default function Recruitment() {
+  // 3. State is optional if using DialogTrigger, but good for control
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="my-5">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -58,9 +82,21 @@ export default function Recruitment() {
         </hgroup>
 
         <div className="flex space-x-4">
-          <Button className={'h-10 rounded-2xl px-6 text-sm'}>
-            Create New Requisition
-          </Button>
+          {/* 4. Wrap the Button in the Dialog Component */}
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger asChild>
+              <Button className={'h-10 rounded-2xl px-6 text-sm'}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create New Requisition
+              </Button>
+            </DialogTrigger>
+
+            {/* 5. The Content of the Modal */}
+            <DialogContent className="max-h-[90vh] w-9/10 max-w-6xl overflow-y-auto rounded-2xl">
+              <ManpowerRequisitionForm />
+            </DialogContent>
+          </Dialog>
+
           <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
             <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
             See video guide
@@ -81,9 +117,10 @@ export default function Recruitment() {
 
       <div className="mt-6 rounded-lg bg-white p-6 shadow-md">
         <TableActions
-          jobRequests={dummyRequisitionRequests}
+          tableData={tableData}
           tableHeaders={tableHeaders}
           title="Job Requisitions"
+          path="/dashboard/hr/recruitment/detail"
         />
       </div>
     </div>
