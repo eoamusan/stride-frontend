@@ -1,5 +1,21 @@
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../ui/pagination';
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '../ui/table';
+import React from 'react';
+import { cn } from '@/lib/utils';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '../ui/pagination';
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/table';
 import { useTableStore } from '@/stores/table-store';
 
 const CustomTable = (props) => {
@@ -123,13 +139,16 @@ const CustomTable = (props) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <Table className="table-auto border-spacing-2">
+      <Table
+        className="table-auto border-separate"
+        style={{ borderSpacing: '0 0.75rem' }}
+      >
         <TableHeader>
           <TableRow className="border-none">
             {tableHeaders.map((header) => (
               <TableHead
                 key={header.key}
-                className={`py-4 text-[#7D7D7D] ${header.className}`}
+                className={`text-[#7D7D7D] ${header.className}`}
               >
                 {header.label}
               </TableHead>
@@ -137,7 +156,38 @@ const CustomTable = (props) => {
           </TableRow>
         </TableHeader>
 
-        <TableBody>{children}</TableBody>
+        <TableBody>
+          {React.Children.map(children, (child, rowIndex) => {
+            if (!React.isValidElement(child)) return child;
+
+            const cells = React.Children.toArray(child.props.children);
+
+            return React.cloneElement(child, {
+              className: cn(
+                'hover:bg-muted/50 data-[state=selected]:bg-muted bg-transparent transition-colors',
+                child.props.className
+              ),
+              style: Object.assign(
+                {},
+                child.props.style || {},
+                rowIndex >= 0 ? { position: 'relative', top: '-0.75rem' } : {}
+              ),
+              children: cells.map((cell, i) => {
+                if (!React.isValidElement(cell)) return cell;
+
+                return React.cloneElement(cell, {
+                  className: cn(
+                    'border-t border-b border-[#E8E8E8] bg-white p-2 align-middle whitespace-nowrap',
+                    i === 0 && 'rounded-l-2xl border-l border-[#E8E8E8]',
+                    i === cells.length - 1 &&
+                      'rounded-r-2xl border-r border-[#E8E8E8]',
+                    cell.props.className
+                  ),
+                });
+              }),
+            });
+          })}
+        </TableBody>
       </Table>
 
       <div className="mt-4 flex items-center justify-between">
@@ -164,10 +214,10 @@ const CustomTable = (props) => {
       </div>
 
       <Pagination>
-        <PaginationContent className="mt-6 w-full justify-between">
+        <PaginationContent className="w-full justify-between">
           <PaginationItem>
             <PaginationPrevious
-              className="cursor-pointer border"
+              className="cursor-pointer border text-sm"
               onClick={() =>
                 currentPage > 1 && handlePageChange(currentPage - 1)
               }
@@ -178,7 +228,7 @@ const CustomTable = (props) => {
 
           <PaginationItem>
             <PaginationNext
-              className="cursor-pointer border"
+              className="cursor-pointer border text-sm"
               onClick={() =>
                 currentPage < totalPages && handlePageChange(currentPage + 1)
               }

@@ -18,12 +18,28 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { MoreHorizontalIcon } from 'lucide-react';
+import PlusIcon from '@/assets/icons/plus.svg';
+import CustomModal from '@/components/customs/modal';
+import AddComponent from './form/addComponent';
+import { useModalStore } from '@/stores/modal-store';
 
 export default function Payroll() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   const currentPage = useTableStore((s) => s.currentPage);
   const setCurrentPage = useTableStore((state) => state.setCurrentPage);
+
+  // Modal store helpers
+  const handleOpenModal = useModalStore((s) => s.handleOpen);
+  const handleCloseModal = useModalStore((s) => s.handleClose);
+  const isAddComponentOpen = useModalStore(
+    (s) => s.modals?.addComponent?.open ?? false
+  );
+
+  const handleAddComponentOpenChange = (isOpen) => {
+    if (isOpen) handleOpenModal('addComponent');
+    else handleCloseModal('addComponent');
+  };
 
   const handleStatusFilterChange = (status) => {
     setStatusFilter(status);
@@ -80,7 +96,12 @@ export default function Payroll() {
       <Header
         title="Payroll Configuration"
         description="Define salary components and structure"
-      ></Header>
+      >
+        <Button onClick={() => handleOpenModal('addComponent')} className="rounded-xl md:py-6">
+          <img src={PlusIcon} alt="Add Component" className="mr-1 h-4" /> Add
+          Component
+        </Button>
+      </Header>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {metricsData.map((metric) => (
@@ -95,10 +116,7 @@ export default function Payroll() {
 
       <Card className="mt-2 w-full border-0 shadow-none">
         <CardContent>
-          <div className='flex flex-col gap-4'>
-
-          </div>
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-center justify-between">
             <h2 className="font-bold">Salary Component</h2>
 
             <div className="flex items-center gap-3">
@@ -157,6 +175,7 @@ export default function Payroll() {
                 <TableCell className="py-4 font-medium">
                   {row.componentName}
                 </TableCell>
+
                 <TableCell className="py-4 font-medium">
                   {row.amountType}
                 </TableCell>
@@ -180,12 +199,15 @@ export default function Payroll() {
                 </TableCell>
 
                 <TableCell className="py-4 font-medium">
-                  <Badge variant={typeToBadgeVariant(row.type)} className="px-6 py-2">
+                  <Badge
+                    variant={typeToBadgeVariant(row.type)}
+                    className="px-6 py-2"
+                  >
                     {row.type}
                   </Badge>
                 </TableCell>
 
-                <TableCell className="py-4 text-right">
+                <TableCell className="py-4 text-right md:w-5">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="size-8">
@@ -213,6 +235,21 @@ export default function Payroll() {
           </CustomTable>
         </CardContent>
       </Card>
+
+      <CustomModal
+        title="Add Salary Component"
+        open={isAddComponentOpen}
+        handleClose={handleAddComponentOpenChange}
+      >
+        <AddComponent
+          open={isAddComponentOpen}
+          onOpenChange={handleAddComponentOpenChange}
+          onSave={(row) => {
+            // Add the new row
+            setRows((prev) => [...prev, row]);
+          }}
+        />
+      </CustomModal>
     </div>
   );
 }
