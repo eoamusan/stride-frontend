@@ -5,7 +5,7 @@ import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import BillService from '@/api/bills';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -27,26 +27,26 @@ export default function Bills() {
   });
 
   // Fetch bills
-  useEffect(() => {
-    const fetchBills = async () => {
-      try {
-        const res = await BillService.fetch({ page: currentPage, perPage: 10 });
-        console.log('Bills data:', res.data);
-        const billsData = res.data?.data?.bill || [];
-        setBills(billsData);
-        setPaginationData({
-          page: res.data?.data?.page || 1,
-          totalPages: res.data?.data?.totalPages || 1,
-          totalDocs: res.data?.data?.totalDocs || 0,
-          limit: res.data?.data?.limit || 10,
-        });
-      } catch (error) {
-        console.error('Error fetching bills:', error);
-      }
-    };
-
-    fetchBills();
+  const fetchBills = useCallback(async () => {
+    try {
+      const res = await BillService.fetch({ page: currentPage, perPage: 20 });
+      console.log('Bills data:', res.data);
+      const billsData = res.data?.data?.bill || [];
+      setBills(billsData);
+      setPaginationData({
+        page: res.data?.data?.page || 1,
+        totalPages: res.data?.data?.totalPages || 1,
+        totalDocs: res.data?.data?.totalDocs || 0,
+        limit: res.data?.data?.limit || 20,
+      });
+    } catch (error) {
+      console.error('Error fetching bills:', error);
+    }
   }, [currentPage]);
+
+  useEffect(() => {
+    fetchBills();
+  }, [currentPage, fetchBills, openSuccessModal]);
 
   // Transform bills data for table
   const transformedBills = useMemo(() => {
@@ -63,6 +63,7 @@ export default function Bills() {
         vendor: vendorName || 'N/A',
         vendorInitials: vendorInitials || 'NA',
         billNumber: bill.billNo,
+        attachment: bill.attachment || '',
         source: bill.source,
         billNo: bill.billNo,
         billDate: bill.billDate ? format(new Date(bill.billDate), 'PP') : 'N/A',
@@ -152,6 +153,7 @@ export default function Bills() {
             dueDate: fullBillData.bill.dueDate,
             category: fullBillData.bill.category,
             billAmount: fullBillData.bill.billAmount,
+            attachment: fullBillData.bill.attachment || '',
           });
         }
         setOpenAddBill(true);
@@ -290,7 +292,10 @@ export default function Bills() {
           setOpenAddBill(open);
           if (!open) setEditData({});
         }}
-        onSuccess={() => setOpenSuccessModal(true)}
+        onSuccess={() => {
+          setOpenSuccessModal(true);
+          fetchBills(); // Refresh the table
+        }}
         initialData={editData}
       />
       <SuccessModal
@@ -323,6 +328,7 @@ export default function Bills() {
                 status: 'Pending',
                 invoiceReference: 'N/A',
                 paymentMethod: 'N/A',
+                attachment: viewData.bill.attachment || '',
                 billDate: viewData.bill.billDate
                   ? format(new Date(viewData.bill.billDate), 'PP')
                   : 'N/A',

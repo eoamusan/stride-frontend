@@ -1,6 +1,5 @@
 import { redirect } from 'react-router';
 import { useUserStore } from '@/stores/user-store';
-import BusinessService from '@/api/business';
 
 export async function authMiddleware() {
   const userStore = useUserStore.getState();
@@ -15,7 +14,7 @@ export async function authMiddleware() {
 
   try {
     // Try to fetch business data with existing token
-    await BusinessService.fetch();
+    await userStore.getBusinessData();
     return null;
   } catch (error) {
     // Check if error is 401 unauthorized

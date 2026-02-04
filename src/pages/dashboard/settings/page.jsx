@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { ArrowLeftIcon, ChevronLeftIcon } from 'lucide-react';
 // import { useUserStore } from '@/stores/user-store';
@@ -8,11 +8,17 @@ import SecurityTab from '@/components/dashboard/settings/security-tab';
 import BillingTab from '@/components/dashboard/settings/billing-tab';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
+import { useUserStore } from '@/stores/user-store';
+import PreferenceService from '@/api/preference';
+import SecurityService from '@/api/security';
+import BusinessService from '@/api/business';
+import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const { activeBusiness, profile, getUserProfile, getBusinessData } =
+    useUserStore();
   const [searchParams, setSearchParams] = useSearchParams();
-  //   const userStore = useUserStore();
 
   const activeTab = searchParams.get('tab') || 'business-info';
 
@@ -20,33 +26,33 @@ export default function SettingsPage() {
     setSearchParams({ tab });
   };
 
-  // Business Info State
+  // Business Info State - populated from activeBusiness
   const [businessInfo, setBusinessInfo] = useState({
-    businessType: 'Limited Liability',
-    legalBusinessName: 'JJ Solutions',
-    legalBusinessAddress: 'Bode Thomas Surulere Lagos Nigeria',
-    tin: '234676',
-    industry: 'Tech',
+    businessType: '',
+    legalBusinessName: '',
+    legalBusinessAddress: '',
+    tin: '',
+    industry: '',
     country: '',
-    website: 'www.jjsolutions.com',
+    website: '',
+    companyStamp: '',
   });
 
-  // Preferences State
   const [preferences, setPreferences] = useState({
-    mobilePushNotifications: false,
-    inAppPushNotifications: true,
-    activityInWorkspace: false,
-    alwaysSendEmail: false,
-    lowStockAlert: true,
-    unpaidCredit: true,
-    userActivity: true,
-    productExpiry: true,
-    reportViewReminder: true,
+    mobilePushNotification: false,
+    inAppPushNotification: false,
+    actionMail: false,
+    alwaysSendMail: false,
+    activityEmail: false,
+    unpaidSalesEmail: false,
+    userActivityEmail: false,
+    productExpiryEmail: false,
+    viewReportReminderEmail: false,
   });
 
   // Security State
   const [security, setSecurity] = useState({
-    twoFactorAuth: true,
+    twoFactorAuth: profile?.accountId?.mfaEnabled || false,
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -54,6 +60,10 @@ export default function SettingsPage() {
     showNewPassword: false,
     showConfirmPassword: false,
   });
+
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [isSubmittingSecurity, setIsSubmittingSecurity] = useState(false);
+  const [isSavingBusinessInfo, setIsSavingBusinessInfo] = useState(false);
 
   // Billing State
   const [billingData] = useState({
@@ -89,21 +99,166 @@ export default function SettingsPage() {
 
   const [selectedBillingItems, setSelectedBillingItems] = useState([]);
 
+  useEffect(() => {
+    if (!activeBusiness || !profile) return;
+
+    setPreferences({
+      mobilePushNotification:
+        activeBusiness?.preference?.mobilePushNotification || false,
+      inAppPushNotification:
+        activeBusiness?.preference?.inAppPushNotification || false,
+      actionMail: activeBusiness?.preference?.actionMail || false,
+      alwaysSendMail: activeBusiness?.preference?.alwaysSendMail || false,
+      activityEmail: activeBusiness?.preference?.activityEmail || false,
+      unpaidSalesEmail: activeBusiness?.preference?.unpaidSalesEmail || false,
+      userActivityEmail: activeBusiness?.preference?.userActivityEmail || false,
+      productExpiryEmail:
+        activeBusiness?.preference?.productExpiryEmail || false,
+      viewReportReminderEmail:
+        activeBusiness?.preference?.viewReportReminderEmail || false,
+    });
+
+    setBusinessInfo({
+      businessType: activeBusiness?.businessInfo?.type || '',
+      legalBusinessName: activeBusiness?.businessName || '',
+      legalBusinessAddress: activeBusiness?.businessLocation || '',
+      tin: activeBusiness?.businessInvoiceSettings?.tin || '',
+      industry: activeBusiness?.industry || '',
+      country: activeBusiness?.businessInfo?.country || '',
+      website: activeBusiness?.businessInfo?.website || '',
+      companyStamp: activeBusiness?.businessInfo?.companyStamp || '',
+    });
+
+    setSecurity((prev) => ({
+      ...prev,
+      twoFactorAuth: profile?.accountId?.mfaEnabled || false,
+    }));
+  }, [activeBusiness, profile]);
   const handleBusinessInfoChange = (field, value) => {
     setBusinessInfo((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePreferenceToggle = (field) => {
+  const handleSaveBusinessInfo = async () => {
+    setIsSavingBusinessInfo(true);
+    try {
+      await BusinessService.update({
+        id: activeBusiness._id,
+        data: {
+          type: businessInfo.businessType,
+          businessName: businessInfo.legalBusinessName,
+          address: businessInfo.legalBusinessAddress,
+          tin: businessInfo.tin,
+          industry: businessInfo.industry,
+          country: businessInfo.country,
+          website: businessInfo.website,
+          companyStamp: businessInfo.companyStamp,
+        },
+      });
+      toast.success('Business information updated successfully');
+      // Optionally refresh the user profile to get updated data
+      await getUserProfile?.();
+      await getBusinessData();
+    } catch (error) {
+      toast.error('Failed to update business information');
+      console.error('Business info update error:', error);
+    } finally {
+      setIsSavingBusinessInfo(false);
+    }
+  };
+
+  const changePreference = async (field, value) => {
+    await PreferenceService.update({
+      id: activeBusiness.preference._id,
+      data: {
+        [field]: value,
+      },
+    });
+    toast.success('Preference updated successfully');
+  };
+
+  const handlePreferenceToggle = async (field) => {
     setPreferences((prev) => ({ ...prev, [field]: !prev[field] }));
+    await changePreference(field, !preferences[field]).catch(() => {
+      setPreferences((prev) => ({ ...prev, [field]: !prev[field] }));
+    });
   };
 
   const handleSecurityChange = (field, value) => {
     setSecurity((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveChanges = () => {
-    console.log('Saving changes for', activeTab);
-    // TODO: Implement save functionality
+  const handleMFAToggle = async () => {
+    const newMFAStatus = !security.twoFactorAuth;
+    setSecurity((prev) => ({ ...prev, twoFactorAuth: newMFAStatus }));
+
+    try {
+      await SecurityService.mfa({ mfaEnabled: newMFAStatus });
+      toast.success(
+        `Two-factor authentication ${newMFAStatus ? 'enabled' : 'disabled'} successfully`
+      );
+
+      await getUserProfile();
+    } catch (error) {
+      // Revert on error
+      setSecurity((prev) => ({ ...prev, twoFactorAuth: !newMFAStatus }));
+      toast.error('Failed to update two-factor authentication');
+      console.error('MFA toggle error:', error);
+    }
+  };
+
+  const handleStartPasswordChange = async () => {
+    // Validate passwords
+    if (
+      !security.currentPassword ||
+      !security.newPassword ||
+      !security.confirmPassword
+    ) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+
+    if (security.newPassword !== security.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    setIsSubmittingSecurity(true);
+    try {
+      await SecurityService.startSecurity();
+      toast.success('OTP sent to your email');
+      setShowOTPModal(true);
+    } catch (error) {
+      toast.error('Failed to send OTP');
+      console.error('Start security error:', error);
+    } finally {
+      setIsSubmittingSecurity(false);
+    }
+  };
+
+  const handleOTPSubmit = async (otpValue) => {
+    setIsSubmittingSecurity(true);
+    try {
+      await SecurityService.completeSecurity({
+        data: {
+          mfaEnabled: security.twoFactorAuth,
+          currentPassword: security.currentPassword,
+          newPassword: security.newPassword,
+          confirmNewPassword: security.confirmPassword,
+          accountId: profile?.accountId?._id,
+          otp: otpValue,
+        },
+      });
+      toast.success('Password changed successfully');
+      setShowOTPModal(false);
+      handleCancelPassword();
+    } catch (error) {
+      toast.error(
+        'Failed to change password. Please check your OTP and try again.'
+      );
+      console.error('Complete security error:', error);
+    } finally {
+      setIsSubmittingSecurity(false);
+    }
   };
 
   const handleCancelPassword = () => {
@@ -162,7 +317,8 @@ export default function SettingsPage() {
             <BusinessInfoTab
               businessInfo={businessInfo}
               onBusinessInfoChange={handleBusinessInfoChange}
-              onSave={handleSaveChanges}
+              onSave={handleSaveBusinessInfo}
+              isSaving={isSavingBusinessInfo}
             />
           )}
 
@@ -170,6 +326,7 @@ export default function SettingsPage() {
             <PreferencesTab
               preferences={preferences}
               onPreferenceToggle={handlePreferenceToggle}
+              onChangePreference={changePreference}
             />
           )}
 
@@ -177,8 +334,13 @@ export default function SettingsPage() {
             <SecurityTab
               security={security}
               onSecurityChange={handleSecurityChange}
-              onSave={handleSaveChanges}
+              onSave={handleStartPasswordChange}
               onCancel={handleCancelPassword}
+              onMFAToggle={handleMFAToggle}
+              showOTPModal={showOTPModal}
+              setShowOTPModal={setShowOTPModal}
+              onOTPSubmit={handleOTPSubmit}
+              isSubmitting={isSubmittingSecurity}
             />
           )}
 

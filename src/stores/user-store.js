@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import AuthService from '@/api/auth';
 import BusinessService from '@/api/business';
+import ProfileService from '@/api/profile';
 
 export const useUserStore = create(
   persist(
@@ -10,6 +11,7 @@ export const useUserStore = create(
       isLoading: false,
       message: null,
       activeBusiness: null,
+      profile: null,
       allBusinesses: [],
 
       async register(data) {
@@ -85,6 +87,17 @@ export const useUserStore = create(
         }
       },
 
+      async getUserProfile() {
+        try {
+          const { data: res } = await ProfileService.fetch();
+          set({ profile: res.data });
+          return res.data;
+        } catch (err) {
+          console.error('Error fetching user profile:', err);
+          throw err;
+        }
+      },
+
       async getBusinessData() {
         try {
           const { data: res } = await BusinessService.fetch();
@@ -152,6 +165,7 @@ export const useUserStore = create(
       name: 'user-storage',
       partialize: (state) => ({
         data: state.data ? state.data : null,
+        profile: state.profile ? state.profile : null,
         activeBusiness: state.activeBusiness ? state.activeBusiness : null,
         allBusinesses: state.allBusinesses ? state.allBusinesses : [],
       }),

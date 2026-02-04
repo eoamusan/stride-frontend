@@ -15,9 +15,9 @@ export default function PreferencesTab({ preferences, onPreferenceToggle }) {
             </p>
           </div>
           <Switch
-            checked={preferences.mobilePushNotifications}
+            checked={preferences.mobilePushNotification}
             onCheckedChange={() =>
-              onPreferenceToggle('mobilePushNotifications')
+              onPreferenceToggle('mobilePushNotification')
             }
           />
         </div>
@@ -31,8 +31,8 @@ export default function PreferencesTab({ preferences, onPreferenceToggle }) {
             </p>
           </div>
           <Switch
-            checked={preferences.inAppPushNotifications}
-            onCheckedChange={() => onPreferenceToggle('inAppPushNotifications')}
+            checked={preferences.inAppPushNotification}
+            onCheckedChange={() => onPreferenceToggle('inAppPushNotification')}
           />
         </div>
 
@@ -49,8 +49,8 @@ export default function PreferencesTab({ preferences, onPreferenceToggle }) {
             </p>
           </div>
           <Switch
-            checked={preferences.activityInWorkspace}
-            onCheckedChange={() => onPreferenceToggle('activityInWorkspace')}
+            checked={preferences.actionMail}
+            onCheckedChange={() => onPreferenceToggle('actionMail')}
           />
         </div>
 
@@ -65,8 +65,8 @@ export default function PreferencesTab({ preferences, onPreferenceToggle }) {
             </p>
           </div>
           <Switch
-            checked={preferences.alwaysSendEmail}
-            onCheckedChange={() => onPreferenceToggle('alwaysSendEmail')}
+            checked={preferences.alwaysSendMail}
+            onCheckedChange={() => onPreferenceToggle('alwaysSendMail')}
           />
         </div>
 
@@ -83,8 +83,8 @@ export default function PreferencesTab({ preferences, onPreferenceToggle }) {
             </p>
           </div>
           <Switch
-            checked={preferences.lowStockAlert}
-            onCheckedChange={() => onPreferenceToggle('lowStockAlert')}
+            checked={preferences.activityEmail}
+            onCheckedChange={() => onPreferenceToggle('activityEmail')}
           />
         </div>
 
@@ -100,8 +100,8 @@ export default function PreferencesTab({ preferences, onPreferenceToggle }) {
             </p>
           </div>
           <Switch
-            checked={preferences.unpaidCredit}
-            onCheckedChange={() => onPreferenceToggle('unpaidCredit')}
+            checked={preferences.unpaidSalesEmail}
+            onCheckedChange={() => onPreferenceToggle('unpaidSalesEmail')}
           />
         </div>
 
@@ -118,8 +118,8 @@ export default function PreferencesTab({ preferences, onPreferenceToggle }) {
             </p>
           </div>
           <Switch
-            checked={preferences.userActivity}
-            onCheckedChange={() => onPreferenceToggle('userActivity')}
+            checked={preferences.userActivityEmail}
+            onCheckedChange={() => onPreferenceToggle('userActivityEmail')}
           />
         </div>
 
@@ -135,8 +135,8 @@ export default function PreferencesTab({ preferences, onPreferenceToggle }) {
             </p>
           </div>
           <Switch
-            checked={preferences.productExpiry}
-            onCheckedChange={() => onPreferenceToggle('productExpiry')}
+            checked={preferences.productExpiryEmail}
+            onCheckedChange={() => onPreferenceToggle('productExpiryEmail')}
           />
         </div>
 
@@ -152,8 +152,8 @@ export default function PreferencesTab({ preferences, onPreferenceToggle }) {
             </p>
           </div>
           <Switch
-            checked={preferences.reportViewReminder}
-            onCheckedChange={() => onPreferenceToggle('reportViewReminder')}
+            checked={preferences.viewReportReminderEmail}
+            onCheckedChange={() => onPreferenceToggle('viewReportReminderEmail')}
           />
         </div>
       </div>

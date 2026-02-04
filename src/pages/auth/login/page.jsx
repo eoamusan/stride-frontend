@@ -58,7 +58,7 @@ export default function Login() {
     },
   });
   const navigate = useNavigate();
-  const { login, isLoading, getBusinessData } = useUserStore();
+  const { login, isLoading, getBusinessData, getUserProfile } = useUserStore();
 
   const onSubmit = async (data) => {
     try {
@@ -69,6 +69,7 @@ export default function Login() {
         icon: '🎉',
       });
       await getBusinessData();
+      await getUserProfile();
 
       if (res.account?.onboardingCompleted) {
         navigate('/dashboard');
@@ -94,13 +95,13 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-16">
-      <div className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
+      <div className="mx-auto flex w-full max-w-180 flex-col items-center justify-center gap-4 rounded-xl py-10 max-md:px-[5%] md:border md:shadow-xl">
         <header>
-          <Link to="/" className="mx-auto block w-[131px]">
+          <Link to="/" className="mx-auto block w-32.75">
             <img
               src={strideLogo}
               alt="Oneda"
-              className="mx-auto block w-[131px]"
+              className="mx-auto block w-32.75"
             />
           </Link>
           <hgroup className="mt-6 text-center">
@@ -108,7 +109,7 @@ export default function Login() {
             <p className="mt-2 text-sm">Sign in to your account</p>
           </hgroup>
         </header>
-        <main className="w-full max-w-[420px]">
+        <main className="w-full max-w-105">
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
