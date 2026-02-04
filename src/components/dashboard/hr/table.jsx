@@ -37,6 +37,7 @@ export function TableActions({
   description,
   pageSize = 3,
   path,
+  tableActions = [],
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,7 +60,8 @@ export function TableActions({
     return (
       request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.status?.toLowerCase().includes(searchTerm.toLowerCase())
+      request.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.applicantName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -208,7 +210,7 @@ export function TableActions({
               }}
             />
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -305,6 +307,9 @@ export function TableActions({
                     Pending: { bg: '#CE8D001A', text: '#CE8D00' },
                     Approved: { bg: '#0596691A', text: '#059669' },
                     Rejected: { bg: '#DC26261A', text: '#DC2626' },
+                    Review: { bg: '#F39C121A', text: '#F39C12' },
+                    Interviewing: { bg: '#3300C91A', text: '#3300C9' },
+                    Shortlisted: { bg: '#3498DB1A', text: '#3498DB' },
                   };
 
                   // Fallback in case status is unknown
@@ -351,8 +356,14 @@ export function TableActions({
                     >
                       View
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Approve</DropdownMenuItem>
-                    <DropdownMenuItem>Reject</DropdownMenuItem>
+                    {tableActions.map((action) => (
+                      <DropdownMenuItem
+                        key={action.title}
+                        onClick={() => action.action(request)}
+                      >
+                        {action.title}
+                      </DropdownMenuItem>
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
