@@ -574,7 +574,16 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'applicant-screening',
-                        Component: ApplicantScreening,
+                        children: [
+                          {
+                            index: true,
+                            Component: ApplicantScreening,
+                          },
+                          {
+                            path: 'detail/:id',
+                            Component: JobDetails,
+                          },
+                        ],
                       },
                       {
                         path: 'interview-schedules',

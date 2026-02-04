@@ -16,6 +16,7 @@ export const dummyJobRequests = [
     type: 'Full-time',
     salary: '$120,000 - $160,000',
     deadline: 'Dec 15, 2025',
+    careerLevel: 'Senior Management',
     description:
       'We are looking for an experienced Senior Software Engineer to join our growing team. You will work on scalable backend systems and collaborate with cross-functional teams.',
     requirements: [
@@ -31,6 +32,39 @@ export const dummyJobRequests = [
       'Participate in architecture decisions',
       'Collaborate with product and design teams',
       'Maintain code quality and security standards',
+    ],
+    activityLog: [
+      {
+        type: 'created',
+        title: 'Job Request Created',
+        user: 'Nathaniel Desire',
+        date: 'Nov 14, 2025',
+        time: '09:00 AM',
+      },
+      {
+        type: 'submitted',
+        title: 'Submitted for Approval',
+        user: 'Nathaniel Desire',
+        date: 'Nov 14, 2025',
+        time: '09:15 AM',
+      },
+    ],
+    applicants: [
+      {
+        name: 'Alice Freeman',
+        date: 'Nov 15, 2025',
+        status: 'Interviewing',
+      },
+      {
+        name: 'Bob Smith',
+        date: 'Nov 16, 2025',
+        status: 'New',
+      },
+      {
+        name: 'Charlie Brown',
+        date: 'Nov 17, 2025',
+        status: 'Rejected',
+      },
     ],
   },
   {
@@ -63,6 +97,41 @@ export const dummyJobRequests = [
       'Define product requirements and specifications',
       'Monitor product metrics and KPIs',
     ],
+    activityLog: [
+      {
+        type: 'created',
+        title: 'Job Request Created',
+        user: 'Sarah Johnson',
+        date: 'Nov 12, 2025',
+        time: '10:00 AM',
+      },
+      {
+        type: 'submitted',
+        title: 'Submitted for Approval',
+        user: 'Sarah Johnson',
+        date: 'Nov 12, 2025',
+        time: '10:15 AM',
+      },
+      {
+        type: 'approved',
+        title: 'Approved',
+        user: 'HR Director',
+        date: 'Nov 13, 2025',
+        time: '02:00 PM',
+      },
+    ],
+    applicants: [
+      {
+        name: 'David Wilson',
+        date: 'Nov 13, 2025',
+        status: 'Hired',
+      },
+      {
+        name: 'Eva Green',
+        date: 'Nov 14, 2025',
+        status: 'Offer Sent',
+      },
+    ],
   },
   {
     id: 'JOB-2025-003',
@@ -93,6 +162,36 @@ export const dummyJobRequests = [
       'Create wireframes and prototypes',
       'Collaborate with product and engineering',
       'Maintain design consistency',
+    ],
+    activityLog: [
+      {
+        type: 'created',
+        title: 'Job Request Created',
+        user: 'Michael Chen',
+        date: 'Nov 10, 2025',
+        time: '11:00 AM',
+      },
+      {
+        type: 'submitted',
+        title: 'Submitted for Approval',
+        user: 'Michael Chen',
+        date: 'Nov 10, 2025',
+        time: '11:15 AM',
+      },
+      {
+        type: 'rejected',
+        title: 'Rejected',
+        user: 'HR Director',
+        date: 'Nov 11, 2025',
+        time: '09:00 AM',
+      },
+    ],
+    applicants: [
+      {
+        name: 'Frank White',
+        date: 'Nov 11, 2025',
+        status: 'Rejected',
+      },
     ],
   },
   {

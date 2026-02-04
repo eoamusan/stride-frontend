@@ -57,9 +57,9 @@ export function TableActions({
     if (!searchTerm) return true;
 
     return (
-      request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.status.toLowerCase().includes(searchTerm.toLowerCase())
+      request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.status?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -346,7 +346,7 @@ export function TableActions({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      onClick={() => navigate(`${path}/${request.id}`)}
+                      onClick={() => navigate(`${path}/${request?.id}`)}
                     >
                       View
                     </DropdownMenuItem>
