@@ -51,7 +51,6 @@ export default function JobDetails() {
       chartData: sampleChartData,
     },
   ];
-
   const jobHeader = [
     { key: 'applicantName', label: 'Applicant Name', className: '' },
     { key: 'applicationDate', label: 'Application Date', className: '' },
@@ -272,7 +271,7 @@ export default function JobDetails() {
               tableData={job.applicants}
               tableHeaders={jobHeader}
               title="Applicants"
-              path="/dashboard/hr/recruitment/applicant-screening/"
+              path="/dashboard/hr/recruitment/applicant-screening/detail/"
             />
           </div>
         </main>
