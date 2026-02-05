@@ -51,8 +51,8 @@ export default function ApplicantScreening() {
   ];
 
   const tableData = dummyJobRequests.flatMap((job) =>
-    (job.applicants || []).map((applicant, index) => ({
-      id: `${job.id}#${index}`,
+    (job.applicants || []).map((applicant) => ({
+      id: `${job.id}`,
       applicantName: applicant.name,
       applicantDate: applicant.date,
       roleApplied: job.title,
