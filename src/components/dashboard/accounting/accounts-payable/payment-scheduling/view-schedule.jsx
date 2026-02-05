@@ -158,17 +158,17 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
           <Button
             variant="outline"
             onClick={() => onOpenChange?.(false)}
-            className="h-10 min-w-[147px] rounded-2xl text-sm"
+            className="h-10 min-w-36.75 rounded-2xl text-sm"
           >
             Close
           </Button>
           <Button
             variant="outline"
-            className="h-10 min-w-[147px] rounded-2xl text-sm"
+            className="h-10 min-w-36.75 rounded-2xl text-sm"
           >
             Execute Now
           </Button>
-          <Button className="h-10 min-w-[147px] rounded-2xl text-sm">
+          <Button className="h-10 min-w-36.75 rounded-2xl text-sm">
             View Invoice
           </Button>
         </div>

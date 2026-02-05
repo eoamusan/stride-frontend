@@ -66,6 +66,7 @@ export default function AccountingTable({
   isLoading = false,
   setShowDetails,
   gridCols = 3,
+  actionBtns = null,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeProductView, setActiveProductView] = useState('grid');
@@ -222,15 +223,21 @@ export default function AccountingTable({
           <>
             <div />
             <div className="flex items-center gap-2">
-              <Button size={'icon'} variant={'outline'}>
-                <Trash2Icon />
-              </Button>
-              <Button size={'icon'} variant={'outline'}>
-                <BanIcon />
-              </Button>
-              <Button size={'icon'} variant={'outline'}>
-                <UploadIcon />
-              </Button>
+              {actionBtns !== null ? (
+                actionBtns
+              ) : (
+                <>
+                  <Button size={'icon'} variant={'outline'}>
+                    <Trash2Icon />
+                  </Button>
+                  <Button size={'icon'} variant={'outline'}>
+                    <BanIcon />
+                  </Button>
+                  <Button size={'icon'} variant={'outline'}>
+                    <UploadIcon />
+                  </Button>
+                </>
+              )}
             </div>
           </>
         ) : (

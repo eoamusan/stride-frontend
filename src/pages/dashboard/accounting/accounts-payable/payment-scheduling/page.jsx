@@ -4,79 +4,19 @@ import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { PlusCircleIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import PaymentScheduleService from '@/api/paymentSchedule';
+import BillService from '@/api/bills';
+import { format } from 'date-fns';
 
-// Payment queue data from the image
-const paymentQueueData = [
-  {
-    id: 1,
-    img: 'https://placehold.co/28/FF6B35/FFFFFF?text=J%26S',
-    vendor: 'JI Solutions',
-    invoiceId: 'INV-2024-001',
-    amount: '$15,400.00',
-    category: 'Office supplies',
-    dueDate: '1/10/2024',
-    overdueDays: '574 days overdue',
-    status: 'Pending',
-  },
-  {
-    id: 2,
-    img: 'https://placehold.co/28/FF6B35/FFFFFF?text=J%26S',
-    vendor: 'JI Solutions',
-    invoiceId: 'INV-2024-001',
-    amount: '$15,400.00',
-    category: 'Office supplies',
-    dueDate: '1/10/2024',
-    overdueDays: '574 days overdue',
-    status: 'Pending',
-  },
-  {
-    id: 3,
-    img: 'https://placehold.co/28/2D9CDB/FFFFFF?text=AC',
-    vendor: 'Acme Corp',
-    invoiceId: 'INV-2024-002',
-    amount: '$8,200.00',
-    category: 'Consulting',
-    dueDate: '2/15/2024',
-    overdueDays: '540 days overdue',
-    status: 'Pending',
-  },
-  {
-    id: 4,
-    img: 'https://placehold.co/28/27AE60/FFFFFF?text=GL',
-    vendor: 'GreenLeaf',
-    invoiceId: 'INV-2024-003',
-    amount: '$2,500.00',
-    category: 'Maintenance',
-    dueDate: '3/01/2024',
-    overdueDays: '0 days overdue',
-    status: 'Paid',
-  },
-  {
-    id: 5,
-    img: 'https://placehold.co/28/EB5757/FFFFFF?text=TS',
-    vendor: 'Tech Solutions',
-    invoiceId: 'INV-2024-004',
-    amount: '$12,000.00',
-    category: 'IT Services',
-    dueDate: '3/20/2024',
-    overdueDays: '507 days overdue',
-    status: 'Overdue',
-  },
-];
-
-// Table columns configuration
+// Table columns configuration - keeping exact same columns
 const paymentColumns = [
   {
     key: 'img',
     label: 'Img',
-    render: (value) => (
-      <div className="flex h-6 w-6 items-center justify-center rounded">
-        <img
-          src={value}
-          alt="Vendor"
-          className="h-6 w-6 rounded object-cover"
-        />
+    render: (value, item) => (
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-medium">
+        {item.vendorInitials}
       </div>
     ),
   },
@@ -99,32 +39,142 @@ const paymentColumns = [
 
 const statusStyles = {
   Pending: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
+  PENDING: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
   Paid: 'bg-green-100 text-green-800 hover:bg-green-100',
+  PAID: 'bg-green-100 text-green-800 hover:bg-green-100',
   Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
+  PAST_DUE: 'bg-red-100 text-red-800 hover:bg-red-100',
+  'Past Due': 'bg-red-100 text-red-800 hover:bg-red-100',
 };
-
-const paginationData = {
-  page: 1,
-  totalPages: 10,
-  pageSize: 50,
-  totalCount: 500,
-};
-
-const vendorInvoicesData = [
-  { title: 'Total Invoices', value: '214215' },
-  { title: 'Total Amount', value: '$15,400.00' },
-  { title: 'Due This Week', value: '264' },
-  { title: 'Overdue', value: '64' },
-];
 
 export default function PaymentScheduling() {
   const [openScheduleForm, setOpenScheduleForm] = useState(false);
   const [selectPaymentInvoices, setSelectPaymentInvoices] = useState([]);
   const [openViewSchedule, setOpenViewSchedule] = useState(false);
+  const [bills, setBills] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationData, setPaginationData] = useState({
+    page: 1,
+    totalPages: 1,
+    totalDocs: 0,
+    limit: 20,
+  });
+
+  // Fetch bills data
+  const fetchBills = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await BillService.fetch({ page: currentPage, perPage: 20 });
+      const billsData = res.data?.data?.bills || [];
+      setBills(billsData);
+      setPaginationData({
+        page: res.data?.data?.page || 1,
+        totalPages: res.data?.data?.totalPages || 1,
+        totalDocs: res.data?.data?.totalDocs || 0,
+        limit: res.data?.data?.limit || 20,
+      });
+    } catch (error) {
+      console.error('Error fetching bills:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage]);
+
+  useEffect(() => {
+    fetchBills();
+    const sample = async () => {
+      const res = await PaymentScheduleService.fetch({ page: 1, perPage: 10 });
+      console.log('Payment Schedule Sample Data:', res.data);
+    }
+
+    sample()
+  }, [currentPage, fetchBills]);
+
+  // Calculate overdue days
+  const calculateOverdueDays = (dueDate) => {
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diffTime = today - due;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 0) {
+      return '0 days overdue';
+    }
+    return `${diffDays} days overdue`;
+  };
+
+  // Transform bills data for table - keeping exact same structure
+  const transformedBills = useMemo(() => {
+    return bills.map((bill) => {
+      const vendor = bill.vendorId;
+      const vendorName =
+        `${vendor?.firstName || ''} ${vendor?.lastName || ''}`.trim();
+      const vendorInitials =
+        `${vendor?.firstName?.[0] || ''}${vendor?.lastName?.[0] || ''}`.toUpperCase();
+
+      const statusMap = {
+        PAST_DUE: 'Overdue',
+        PAID: 'Paid',
+        PENDING: 'Pending',
+      };
+
+      return {
+        id: bill._id || bill.id,
+        img: '', // Keeping for column compatibility
+        vendorInitials: vendorInitials || 'NA',
+        vendor: vendorName || 'N/A',
+        invoiceId: bill.billNo,
+        amount: `$${Number(bill.billAmount).toLocaleString('en-US')}`,
+        category:
+          bill.category?.charAt(0).toUpperCase() + bill.category?.slice(1) ||
+          'N/A',
+        dueDate: bill.dueDate
+          ? format(new Date(bill.dueDate), 'M/d/yyyy')
+          : 'N/A',
+        overdueDays: bill.dueDate
+          ? calculateOverdueDays(bill.dueDate)
+          : '0 days overdue',
+        status: statusMap[bill.status] || 'Pending',
+      };
+    });
+  }, [bills]);
+
+  // Calculate metrics from bills
+  const billMetrics = useMemo(() => {
+    const totalBills = paginationData.totalDocs;
+    const totalAmount = bills.reduce((sum, bill) => {
+      return sum + (Number(bill.billAmount) || 0);
+    }, 0);
+
+    const overdueBills = bills.filter(
+      (bill) => bill.status === 'PAST_DUE'
+    ).length;
+
+    // Calculate due this week
+    const today = new Date();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const dueThisWeek = bills.filter((bill) => {
+      if (!bill.dueDate) return false;
+      const dueDate = new Date(bill.dueDate);
+      return dueDate >= today && dueDate <= nextWeek;
+    }).length;
+
+    return [
+      { title: 'Total Invoices', value: totalBills.toString() },
+      {
+        title: 'Total Amount',
+        value: totalAmount,
+        symbol: '$',
+      },
+      { title: 'Due This Week', value: dueThisWeek },
+      { title: 'Overdue', value: overdueBills.toString() },
+    ];
+  }, [bills, paginationData]);
 
   const handleSelectAllTableItems = (checked) => {
     if (checked) {
-      setSelectPaymentInvoices(paymentQueueData.map((item) => item.id));
+      setSelectPaymentInvoices(transformedBills.map((item) => item.id));
     } else {
       setSelectPaymentInvoices([]);
     }
@@ -140,9 +190,9 @@ export default function PaymentScheduling() {
     }
   };
 
-  const clearAllTableSelections = () => {
-    setSelectPaymentInvoices([]);
-  };
+  // const clearAllTableSelections = () => {
+  //   setSelectPaymentInvoices([]);
+  // };
 
   // Handle row actions
   const handleRowAction = (action, item) => {
@@ -156,7 +206,8 @@ export default function PaymentScheduling() {
         setOpenViewSchedule(true);
         break;
       case 'schedule':
-        console.log('Schedule payment for:', item.id);
+        setSelectPaymentInvoices([item.id]);
+        setOpenScheduleForm(true);
         break;
       default:
         console.log('Unknown action:', action);
@@ -174,35 +225,41 @@ export default function PaymentScheduling() {
         </hgroup>
 
         <div className="flex items-center space-x-4">
-          <p className="text-sm font-medium text-[#434343]">
-            {selectPaymentInvoices.length || '0'} Invoices selected
-          </p>
           <Button
             className={'h-10 rounded-2xl text-sm'}
-            onClick={() => setOpenScheduleForm(true)}
-            disabled={selectPaymentInvoices.length === 0}
+            onClick={() => {
+              setSelectPaymentInvoices([]);
+              setOpenScheduleForm(true);
+            }}
           >
             <PlusCircleIcon className="size-4" />
-            Schedule Payment ({selectPaymentInvoices.length})
+            Schedule Payment
           </Button>
         </div>
       </div>
 
       <div className="mt-10">
-        <Metrics metrics={vendorInvoicesData} />
+        <Metrics metrics={billMetrics} />
 
         <AccountingTable
           className="mt-10"
-          title={`Payment Queue (${paymentQueueData.length} invoices)`}
-          data={paymentQueueData}
+          title={`Payment Queue (${paginationData.totalDocs} invoices)`}
+          isLoading={isLoading}
+          data={transformedBills}
           columns={paymentColumns}
           searchFields={['vendor', 'invoiceId', 'amount', 'category']}
           searchPlaceholder="Search vendor, amount or invoice ......"
           statusStyles={statusStyles}
-          paginationData={paginationData}
+          paginationData={{
+            page: paginationData.page,
+            totalPages: paginationData.totalPages,
+            pageSize: paginationData.limit,
+            totalCount: paginationData.totalDocs,
+          }}
+          onPageChange={setCurrentPage}
           dropdownActions={[
-            { key: 'edit', label: 'Edit' },
             { key: 'view', label: 'View' },
+            { key: 'edit', label: 'Edit' },
             { key: 'schedule', label: 'Schedule Payment' },
           ]}
           selectedItems={selectPaymentInvoices}
@@ -215,10 +272,7 @@ export default function PaymentScheduling() {
       <PaymentScheduleForm
         open={openScheduleForm}
         onOpenChange={setOpenScheduleForm}
-        allInvoices={paymentQueueData}
-        selectedInvoices={selectPaymentInvoices}
-        handleSelectInvoice={handleSelectTableItem}
-        clearSelections={clearAllTableSelections}
+        preSelectedInvoiceId={selectPaymentInvoices[0]}
       />
 
       <ViewScheduleModal
