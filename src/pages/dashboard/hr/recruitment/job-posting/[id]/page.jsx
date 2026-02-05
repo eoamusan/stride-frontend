@@ -17,6 +17,7 @@ export default function JobDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const job = dummyJobRequests.find((job) => job.id === id);
+  console.log(job);
   const sampleChartData = [
     { month: 'Jan', month1: 600 },
     { month: 'Feb', month2: 800 },
@@ -71,6 +72,13 @@ export default function JobDetails() {
     );
   }
 
+  const tableData = (job.applicants || []).map((applicant) => ({
+    id: applicant.id,
+    applicantName: applicant.name,
+    applicationDate: applicant.date,
+    status: applicant.status,
+  }));
+
   return (
     <div className="min-h-screen overflow-scroll bg-gray-100 p-6">
       <div className="mx-auto max-w-full">
@@ -96,20 +104,20 @@ export default function JobDetails() {
                 <BriefcaseIcon className="h-12 w-12 text-white" />
               </div>
               <div className="flex-1">
-                <h1 className="text-xl font-semibold">{job.title}</h1>
-                <p className="mt-1 text-sm text-gray-600">{job.id}</p>
+                <h1 className="text-xl font-semibold">{job?.title}</h1>
+                <p className="mt-1 text-sm text-gray-600">{job?.id}</p>
                 <div className="items-centergap-2 mt-2 flex flex-col gap-2 text-sm text-gray-600 md:gap-3 xl:flex-row xl:items-center">
                   <div className="flex items-center gap-1">
                     <CalendarIcon className="h-4 w-4" />
-                    <span>{job.department} Dept</span>
+                    <span>{job?.department} Dept</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <CalendarIcon className="h-4 w-4" />
-                    <span>Posted {job.postedDate}</span>
+                    <span>Posted {job?.postedDate}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <CalendarIcon className="h-4 w-4" />
-                    <span>{job.location}</span>
+                    <span>{job?.location}</span>
                   </div>
                 </div>
               </div>
@@ -268,7 +276,7 @@ export default function JobDetails() {
 
           <div className="rounded-lg bg-white p-6 shadow-md md:col-span-3 xl:col-span-2">
             <TableActions
-              tableData={job.applicants}
+              tableData={tableData}
               tableHeaders={jobHeader}
               title="Applicants"
               path="/dashboard/hr/recruitment/applicant-screening/detail/"

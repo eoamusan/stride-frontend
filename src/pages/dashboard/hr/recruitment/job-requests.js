@@ -119,11 +119,13 @@ export const dummyJobRequests = [
         name: 'Charlie Brown',
         date: 'Nov 17, 2025',
         status: 'Rejected',
-        personalInfo: {
-          phone: '+1 (555) 010-3322',
-          email: 'charlie.brown@example.com',
-          location: 'New York, NY',
-        },
+        personalInfo: [
+          {
+            phone: '+1 (555) 010-3322',
+            email: 'charlie.brown@example.com',
+            location: 'New York, NY',
+          },
+        ],
         jobExperience: [],
         qualifications: [],
         links: [],
