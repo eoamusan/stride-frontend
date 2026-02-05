@@ -130,7 +130,7 @@ import SalaryFramework from './dashboard/hr/setup/salary-framework/page';
 import GlobalSetting from './dashboard/hr/setup/global-setting/page';
 import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
 import JobDetails from './dashboard/hr/recruitment/job-posting/[id]/page';
-import ApplicantDetails from './dashboard/hr/recruitment/applicant-screening/[id]/page';
+import ApplicantDetails from './dashboard/hr/recruitment/applicant-screening/[applicantID]/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -586,7 +586,7 @@ const router = createBrowserRouter([
                             Component: ApplicantScreening,
                           },
                           {
-                            path: 'detail/:id',
+                            path: 'applicant/:applicantID',
                             Component: ApplicantDetails,
                           },
                         ],

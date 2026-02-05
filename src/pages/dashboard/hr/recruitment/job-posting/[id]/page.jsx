@@ -279,7 +279,7 @@ export default function JobDetails() {
               tableData={tableData}
               tableHeaders={jobHeader}
               title="Applicants"
-              path="/dashboard/hr/recruitment/applicant-screening/detail/"
+              path="/dashboard/hr/recruitment/applicant-screening/applicant"
             />
           </div>
         </main>

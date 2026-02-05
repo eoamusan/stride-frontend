@@ -53,6 +53,7 @@ export default function ApplicantScreening() {
   const tableData = dummyJobRequests.flatMap((job) =>
     (job.applicants || []).map((applicant) => ({
       id: `${job.id}`,
+      applicantID: applicant.id,
       applicantName: applicant.name,
       applicantDate: applicant.date,
       roleApplied: job.title,
@@ -87,9 +88,10 @@ export default function ApplicantScreening() {
           tableData={tableData}
           tableHeaders={tableHeaders}
           title="Applicants"
-          path="/dashboard/hr/recruitment/applicant-screening/detail/"
+          path={`/dashboard/hr/recruitment/applicant-screening/applicant/`}
           pageSize={9}
           tableActions={tableActions}
+          applicantID={true}
         />
       </div>
     </div>

@@ -38,6 +38,7 @@ export function TableActions({
   pageSize = 3,
   path,
   tableActions = [],
+  applicantID,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -299,7 +300,7 @@ export function TableActions({
               {/* 1. DYNAMIC DATA COLUMNS */}
               {Object.entries(request).map(([key, value]) => {
                 // A. Filter out keys you don't want to display (e.g., 'id')
-                if (key === 'id') return null;
+                if (key === 'id' || key === 'applicantID') return null;
 
                 // B. Special Styling for 'status'
                 if (key === 'status') {
@@ -352,7 +353,11 @@ export function TableActions({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      onClick={() => navigate(`${path}/${request?.id}`)}
+                      onClick={() =>
+                        navigate(
+                          `${path}/${applicantID ? request?.applicantID : request?.id}`
+                        )
+                      }
                     >
                       View
                     </DropdownMenuItem>
