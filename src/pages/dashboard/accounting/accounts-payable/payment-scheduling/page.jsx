@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { PlusCircleIcon } from 'lucide-react';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import PaymentScheduleService from '@/api/paymentSchedule';
-import BillService from '@/api/bills';
 import { format } from 'date-fns';
 
 // Table columns configuration - keeping exact same columns
@@ -39,19 +38,15 @@ const paymentColumns = [
 
 const statusStyles = {
   Pending: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
-  PENDING: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
-  Paid: 'bg-green-100 text-green-800 hover:bg-green-100',
-  PAID: 'bg-green-100 text-green-800 hover:bg-green-100',
   Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
-  PAST_DUE: 'bg-red-100 text-red-800 hover:bg-red-100',
-  'Past Due': 'bg-red-100 text-red-800 hover:bg-red-100',
 };
 
 export default function PaymentScheduling() {
   const [openScheduleForm, setOpenScheduleForm] = useState(false);
   const [selectPaymentInvoices, setSelectPaymentInvoices] = useState([]);
   const [openViewSchedule, setOpenViewSchedule] = useState(false);
-  const [bills, setBills] = useState([]);
+  const [selectedPaymentSchedule, setSelectedPaymentSchedule] = useState(null);
+  const [schedulePayments, setSchedulePayments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [paginationData, setPaginationData] = useState({
@@ -61,13 +56,16 @@ export default function PaymentScheduling() {
     limit: 20,
   });
 
-  // Fetch bills data
-  const fetchBills = useCallback(async () => {
+  // Fetch payment schedules data
+  const fetchPaymentSchedules = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await BillService.fetch({ page: currentPage, perPage: 20 });
-      const billsData = res.data?.data?.bills || [];
-      setBills(billsData);
+      const res = await PaymentScheduleService.fetch({
+        page: currentPage,
+        perPage: 20,
+      });
+      const paymentsData = res.data?.data?.schedulePayments || [];
+      setSchedulePayments(paymentsData);
       setPaginationData({
         page: res.data?.data?.page || 1,
         totalPages: res.data?.data?.totalPages || 1,
@@ -75,106 +73,116 @@ export default function PaymentScheduling() {
         limit: res.data?.data?.limit || 20,
       });
     } catch (error) {
-      console.error('Error fetching bills:', error);
+      console.error('Error fetching payment schedules:', error);
     } finally {
       setIsLoading(false);
     }
   }, [currentPage]);
 
   useEffect(() => {
-    fetchBills();
-    const sample = async () => {
-      const res = await PaymentScheduleService.fetch({ page: 1, perPage: 10 });
-      console.log('Payment Schedule Sample Data:', res.data);
-    }
+    fetchPaymentSchedules();
+  }, [currentPage, fetchPaymentSchedules]);
 
-    sample()
-  }, [currentPage, fetchBills]);
-
-  // Calculate overdue days
-  const calculateOverdueDays = (dueDate) => {
+  // Calculate scheduled status text
+  const getScheduledStatusText = (scheduledDate) => {
     const today = new Date();
-    const due = new Date(dueDate);
-    const diffTime = today - due;
+    const scheduled = new Date(scheduledDate);
+    const diffTime = scheduled - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays <= 0) {
-      return '0 days overdue';
+    if (diffDays < 0) {
+      return `${Math.abs(diffDays)} days overdue`;
+    } else if (diffDays === 0) {
+      return 'Due today';
+    } else if (diffDays === 1) {
+      return 'Due tomorrow';
+    } else {
+      return `Due in ${diffDays} days`;
     }
-    return `${diffDays} days overdue`;
   };
 
-  // Transform bills data for table - keeping exact same structure
-  const transformedBills = useMemo(() => {
-    return bills.map((bill) => {
-      const vendor = bill.vendorId;
+  // Transform payment schedules data for table
+  const transformedPayments = useMemo(() => {
+    const today = new Date();
+
+    return schedulePayments.map((payment) => {
+      const vendor = payment.vendorId;
       const vendorName =
         `${vendor?.firstName || ''} ${vendor?.lastName || ''}`.trim();
       const vendorInitials =
         `${vendor?.firstName?.[0] || ''}${vendor?.lastName?.[0] || ''}`.toUpperCase();
 
-      const statusMap = {
-        PAST_DUE: 'Overdue',
-        PAID: 'Paid',
-        PENDING: 'Pending',
-      };
+      // Determine if payment is overdue
+      let displayStatus = 'Pending';
+      if (payment.scheduledDate && payment.status === 'PENDING') {
+        const scheduledDate = new Date(payment.scheduledDate);
+        if (scheduledDate < today) {
+          displayStatus = 'Overdue';
+        }
+      }
+
+      // Get invoice number from invoiceId if it exists (when populated)
+      const invoiceNumber = payment.invoiceId?.billNo || 'N/A';
 
       return {
-        id: bill._id || bill.id,
+        id: payment._id || payment.id,
         img: '', // Keeping for column compatibility
         vendorInitials: vendorInitials || 'NA',
         vendor: vendorName || 'N/A',
-        invoiceId: bill.billNo,
-        amount: `$${Number(bill.billAmount).toLocaleString('en-US')}`,
+        invoiceId: invoiceNumber,
+        amount: `$${Number(payment.amount).toLocaleString('en-US')}`,
         category:
-          bill.category?.charAt(0).toUpperCase() + bill.category?.slice(1) ||
-          'N/A',
-        dueDate: bill.dueDate
-          ? format(new Date(bill.dueDate), 'M/d/yyyy')
+          payment.paymentMethod?.charAt(0).toUpperCase() +
+            payment.paymentMethod?.slice(1) || 'N/A',
+        dueDate: payment.scheduledDate
+          ? format(new Date(payment.scheduledDate), 'M/d/yyyy')
           : 'N/A',
-        overdueDays: bill.dueDate
-          ? calculateOverdueDays(bill.dueDate)
-          : '0 days overdue',
-        status: statusMap[bill.status] || 'Pending',
+        overdueDays: payment.scheduledDate
+          ? getScheduledStatusText(payment.scheduledDate)
+          : '',
+        status: displayStatus,
       };
     });
-  }, [bills]);
+  }, [schedulePayments]);
 
-  // Calculate metrics from bills
-  const billMetrics = useMemo(() => {
-    const totalBills = paginationData.totalDocs;
-    const totalAmount = bills.reduce((sum, bill) => {
-      return sum + (Number(bill.billAmount) || 0);
+  // Calculate metrics from payment schedules
+  const paymentMetrics = useMemo(() => {
+    const totalPayments = paginationData.totalDocs;
+    const totalAmount = schedulePayments.reduce((sum, payment) => {
+      return sum + (Number(payment.amount) || 0);
     }, 0);
 
-    const overdueBills = bills.filter(
-      (bill) => bill.status === 'PAST_DUE'
-    ).length;
+    // Calculate overdue payments (scheduled date has passed but status is still PENDING)
+    const today = new Date();
+    const overduePayments = schedulePayments.filter((payment) => {
+      if (!payment.scheduledDate || payment.status !== 'PENDING') return false;
+      const scheduledDate = new Date(payment.scheduledDate);
+      return scheduledDate < today;
+    }).length;
 
     // Calculate due this week
-    const today = new Date();
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const dueThisWeek = bills.filter((bill) => {
-      if (!bill.dueDate) return false;
-      const dueDate = new Date(bill.dueDate);
-      return dueDate >= today && dueDate <= nextWeek;
+    const dueThisWeek = schedulePayments.filter((payment) => {
+      if (!payment.scheduledDate) return false;
+      const scheduledDate = new Date(payment.scheduledDate);
+      return scheduledDate >= today && scheduledDate <= nextWeek;
     }).length;
 
     return [
-      { title: 'Total Invoices', value: totalBills.toString() },
+      { title: 'Total Scheduled', value: totalPayments.toString() },
       {
         title: 'Total Amount',
         value: totalAmount,
         symbol: '$',
       },
-      { title: 'Due This Week', value: dueThisWeek },
-      { title: 'Overdue', value: overdueBills.toString() },
+      { title: 'Due This Week', value: dueThisWeek.toString() },
+      { title: 'Overdue', value: overduePayments.toString() },
     ];
-  }, [bills, paginationData]);
+  }, [schedulePayments, paginationData]);
 
   const handleSelectAllTableItems = (checked) => {
     if (checked) {
-      setSelectPaymentInvoices(transformedBills.map((item) => item.id));
+      setSelectPaymentInvoices(transformedPayments.map((item) => item.id));
     } else {
       setSelectPaymentInvoices([]);
     }
@@ -199,16 +207,19 @@ export default function PaymentScheduling() {
     console.log(`Action: ${action}`, item);
     switch (action) {
       case 'edit':
-        console.log('Edit invoice:', item.id);
+        console.log('Edit payment schedule:', item.id);
+        // TODO: Implement edit functionality
         break;
       case 'view':
-        console.log('View invoice:', item.id);
-        setOpenViewSchedule(true);
-        break;
-      case 'schedule':
-        setSelectPaymentInvoices([item.id]);
-        setOpenScheduleForm(true);
-        break;
+        // Find the full payment data from schedulePayments
+        { const paymentData = schedulePayments.find(
+          (payment) => (payment._id || payment.id) === item.id
+        );
+        if (paymentData) {
+          setSelectedPaymentSchedule(paymentData);
+          setOpenViewSchedule(true);
+        }
+        break; }
       default:
         console.log('Unknown action:', action);
     }
@@ -239,13 +250,13 @@ export default function PaymentScheduling() {
       </div>
 
       <div className="mt-10">
-        <Metrics metrics={billMetrics} />
+        <Metrics metrics={paymentMetrics} />
 
         <AccountingTable
           className="mt-10"
-          title={`Payment Queue (${paginationData.totalDocs} invoices)`}
+          title={`Payment Queue (${paginationData.totalDocs} scheduled)`}
           isLoading={isLoading}
-          data={transformedBills}
+          data={transformedPayments}
           columns={paymentColumns}
           searchFields={['vendor', 'invoiceId', 'amount', 'category']}
           searchPlaceholder="Search vendor, amount or invoice ......"
@@ -260,7 +271,6 @@ export default function PaymentScheduling() {
           dropdownActions={[
             { key: 'view', label: 'View' },
             { key: 'edit', label: 'Edit' },
-            { key: 'schedule', label: 'Schedule Payment' },
           ]}
           selectedItems={selectPaymentInvoices}
           handleSelectAll={handleSelectAllTableItems}
@@ -272,13 +282,18 @@ export default function PaymentScheduling() {
       <PaymentScheduleForm
         open={openScheduleForm}
         onOpenChange={setOpenScheduleForm}
-        preSelectedInvoiceId={selectPaymentInvoices[0]}
+        onSuccess={fetchPaymentSchedules}
       />
 
       <ViewScheduleModal
         open={openViewSchedule}
-        onOpenChange={setOpenViewSchedule}
-        // paymentData={}
+        onOpenChange={(isOpen) => {
+          setOpenViewSchedule(isOpen);
+          if (!isOpen) {
+            setSelectedPaymentSchedule(null);
+          }
+        }}
+        paymentData={selectedPaymentSchedule}
       />
     </div>
   );

@@ -75,11 +75,7 @@ const paymentScheduleSchema = z.object({
   notes: z.string().optional(),
 });
 
-export default function SchedulePaymentForm({
-  open,
-  onOpenChange,
-  preSelectedInvoiceId,
-}) {
+export default function SchedulePaymentForm({ open, onOpenChange, onSuccess }) {
   const [paymentType, setPaymentType] = useState('invoice');
   const [showSelectInvoices, setShowSelectInvoices] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState();
@@ -173,30 +169,6 @@ export default function SchedulePaymentForm({
     }
   }, [open, fetchBills, fetchVendors]);
 
-  // Auto-select invoice if preSelectedInvoiceId is provided
-  useEffect(() => {
-    if (preSelectedInvoiceId && allInvoices.length > 0) {
-      const invoice = allInvoices.find(
-        (inv) => inv.id === preSelectedInvoiceId
-      );
-      if (invoice) {
-        // Update form fields
-        form.setValue('invoiceId', invoice.id);
-        form.setValue('amount', invoice.rawAmount);
-
-        // Find and set vendor by ID
-        const vendorId = invoice.rawVendor?._id || invoice.rawVendor?.id;
-        if (vendorId) {
-          form.setValue('vendor', vendorId);
-        }
-
-        // Update selected invoice state
-        setSelectedInvoice(invoice);
-        setSelectedInvoices([invoice.id]);
-      }
-    }
-  }, [preSelectedInvoiceId, allInvoices, form]);
-
   const handleCancel = () => {
     reset();
     setSelectedInvoice(null);
@@ -233,6 +205,7 @@ export default function SchedulePaymentForm({
       setSelectedInvoice(null);
       setSelectedInvoices([]);
       onOpenChange?.(false);
+      onSuccess?.(); // Refresh the payment schedules list
     } catch (error) {
       console.error('Error scheduling payment:', error);
       toast.error(
