@@ -205,10 +205,16 @@ export default function ProfilePage() {
 
           <div className="relative">
             <Avatar className="size-40 rounded-xl">
-              <AvatarImage src={avatarImage} />
-              <AvatarFallback className="rounded-xl text-3xl">
-                {getUserInitials()}
-              </AvatarFallback>
+              {avatarImage ? (
+                <div
+                  className="h-full w-full rounded-xl bg-cover bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url(${avatarImage})` }}
+                />
+              ) : (
+                <AvatarFallback className="rounded-xl text-3xl">
+                  {getUserInitials()}
+                </AvatarFallback>
+              )}
             </Avatar>
             <Button
               type="button"

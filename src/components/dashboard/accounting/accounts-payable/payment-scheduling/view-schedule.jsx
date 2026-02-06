@@ -16,7 +16,7 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
   const vendor = paymentData.vendorId;
   const vendorName =
     `${vendor?.firstName || ''} ${vendor?.lastName || ''}`.trim() || 'N/A';
-  const invoiceReference = paymentData.invoiceId?.billNo || 'Manual Payment';
+  const invoiceReference = paymentData.bill?.billNo || '';
   const formattedAmount = `$${Number(paymentData.amount).toLocaleString('en-US')}`;
   const scheduledDate = paymentData.scheduledDate
     ? format(new Date(paymentData.scheduledDate), 'M/d/yyyy')
@@ -38,7 +38,7 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
     statusDisplay = 'Overdue';
     statusColor = 'bg-red-100 text-red-800';
   } else if (paymentData.status === 'PENDING') {
-    statusDisplay = 'Scheduled';
+    statusDisplay = 'Pending';
     statusColor = 'bg-blue-100 text-blue-800';
   }
 
@@ -108,9 +108,7 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-2">
                   <span className="text-zinc-600">Payment ID:</span>
-                  <span className="font-medium">
-                    {paymentData._id || paymentData.id}
-                  </span>
+                  <span className="font-medium">{'N/A'}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-2">
@@ -228,14 +226,14 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
               Execute Now
             </Button>
           )}
-          {paymentData.invoiceId && (
+          {paymentData.bill && (
             <Button
               className="h-10 min-w-36.75 rounded-2xl text-sm"
               onClick={() => {
                 // TODO: Implement view invoice functionality
                 console.log(
                   'View invoice:',
-                  paymentData.invoiceId._id || paymentData.invoiceId
+                  paymentData.bill?._id || paymentData.invoiceId
                 );
               }}
             >

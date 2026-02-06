@@ -46,6 +46,7 @@ export default function PaymentScheduling() {
   const [selectPaymentInvoices, setSelectPaymentInvoices] = useState([]);
   const [openViewSchedule, setOpenViewSchedule] = useState(false);
   const [selectedPaymentSchedule, setSelectedPaymentSchedule] = useState(null);
+  const [editingPayment, setEditingPayment] = useState(null);
   const [schedulePayments, setSchedulePayments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -107,6 +108,7 @@ export default function PaymentScheduling() {
 
     return schedulePayments.map((payment) => {
       const vendor = payment.vendorId;
+      const bill = payment.bill;
       const vendorName =
         `${vendor?.firstName || ''} ${vendor?.lastName || ''}`.trim();
       const vendorInitials =
@@ -122,7 +124,7 @@ export default function PaymentScheduling() {
       }
 
       // Get invoice number from invoiceId if it exists (when populated)
-      const invoiceNumber = payment.invoiceId?.billNo || 'N/A';
+      const invoiceNumber = bill?.billNo || 'N/A';
 
       return {
         id: payment._id || payment.id,
@@ -131,9 +133,7 @@ export default function PaymentScheduling() {
         vendor: vendorName || 'N/A',
         invoiceId: invoiceNumber,
         amount: `$${Number(payment.amount).toLocaleString('en-US')}`,
-        category:
-          payment.paymentMethod?.charAt(0).toUpperCase() +
-            payment.paymentMethod?.slice(1) || 'N/A',
+        category: bill?.source || 'N/A',
         dueDate: payment.scheduledDate
           ? format(new Date(payment.scheduledDate), 'M/d/yyyy')
           : 'N/A',
@@ -206,20 +206,28 @@ export default function PaymentScheduling() {
   const handleRowAction = (action, item) => {
     console.log(`Action: ${action}`, item);
     switch (action) {
-      case 'edit':
-        console.log('Edit payment schedule:', item.id);
-        // TODO: Implement edit functionality
+      case 'edit': // Find the full payment data from schedulePayments
+      {
+        const paymentToEdit = schedulePayments.find(
+          (payment) => (payment._id || payment.id) === item.id
+        );
+        if (paymentToEdit) {
+          setEditingPayment(paymentToEdit);
+          setOpenScheduleForm(true);
+        }
         break;
-      case 'view':
-        // Find the full payment data from schedulePayments
-        { const paymentData = schedulePayments.find(
+      }
+      case 'view': // Find the full payment data from schedulePayments
+      {
+        const paymentData = schedulePayments.find(
           (payment) => (payment._id || payment.id) === item.id
         );
         if (paymentData) {
           setSelectedPaymentSchedule(paymentData);
           setOpenViewSchedule(true);
         }
-        break; }
+        break;
+      }
       default:
         console.log('Unknown action:', action);
     }
@@ -240,6 +248,7 @@ export default function PaymentScheduling() {
             className={'h-10 rounded-2xl text-sm'}
             onClick={() => {
               setSelectPaymentInvoices([]);
+              setEditingPayment(null);
               setOpenScheduleForm(true);
             }}
           >
@@ -281,8 +290,14 @@ export default function PaymentScheduling() {
 
       <PaymentScheduleForm
         open={openScheduleForm}
-        onOpenChange={setOpenScheduleForm}
+        onOpenChange={(isOpen) => {
+          setOpenScheduleForm(isOpen);
+          if (!isOpen) {
+            setEditingPayment(null);
+          }
+        }}
         onSuccess={fetchPaymentSchedules}
+        editData={editingPayment}
       />
 
       <ViewScheduleModal

@@ -154,8 +154,16 @@ export default function Header({ onMobileMenuToggle }) {
                 className="flex w-fit items-center justify-center gap-2 p-2 hover:bg-gray-50"
               >
                 <Avatar className={'size-9'}>
-                  <AvatarImage src={userStore?.profile?.profilePhotoUrl} />
-                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  {userStore?.profile?.profilePhotoUrl ? (
+                    <div
+                      className="h-full w-full rounded-full bg-cover bg-center bg-no-repeat"
+                      style={{
+                        backgroundImage: `url(${userStore?.profile?.profilePhotoUrl})`,
+                      }}
+                    />
+                  ) : (
+                    <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  )}
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -267,8 +275,16 @@ export default function Header({ onMobileMenuToggle }) {
                 className="flex w-fit items-center justify-center gap-2 p-2 hover:bg-gray-50"
               >
                 <Avatar className={'h-9 w-9'}>
-                  <AvatarImage src={userStore?.profile?.profilePhotoUrl} />
-                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  {userStore?.profile?.profilePhotoUrl ? (
+                    <div
+                      className="h-full w-full rounded-full bg-cover bg-center bg-no-repeat"
+                      style={{
+                        backgroundImage: `url(${userStore?.profile?.profilePhotoUrl})`,
+                      }}
+                    />
+                  ) : (
+                    <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  )}
                 </Avatar>
                 <div className="text-left">
                   <p className="text-sm font-medium">

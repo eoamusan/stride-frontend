@@ -75,7 +75,12 @@ const paymentScheduleSchema = z.object({
   notes: z.string().optional(),
 });
 
-export default function SchedulePaymentForm({ open, onOpenChange, onSuccess }) {
+export default function SchedulePaymentForm({
+  open,
+  onOpenChange,
+  onSuccess,
+  editData,
+}) {
   const [paymentType, setPaymentType] = useState('invoice');
   const [showSelectInvoices, setShowSelectInvoices] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState();
@@ -169,6 +174,38 @@ export default function SchedulePaymentForm({ open, onOpenChange, onSuccess }) {
     }
   }, [open, fetchBills, fetchVendors]);
 
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (editData && open) {
+      // Determine payment type
+      const paymentTypeValue = editData.bill ? 'invoice' : 'manual';
+      setPaymentType(paymentTypeValue);
+
+      // Set form values
+      form.setValue('paymentType', paymentTypeValue);
+      form.setValue('amount', editData.amount);
+      form.setValue('vendor', editData.vendorId?._id || editData.vendorId);
+      form.setValue('paymentMethod', editData.paymentMethod);
+      form.setValue('priority', editData.priority);
+      form.setValue('notes', editData.notes || '');
+      form.setValue('paymentDescription', editData.description || '');
+
+      // Set scheduled date
+      if (editData.scheduledDate) {
+        form.setValue('scheduledDate', new Date(editData.scheduledDate));
+      }
+
+      // Set invoice ID if it exists
+      if (editData.invoiceId) {
+        form.setValue('invoiceId', editData.invoiceId);
+      }
+    } else if (!editData && open) {
+      // Reset form when creating new
+      reset();
+      setPaymentType('invoice');
+    }
+  }, [editData, open, form, reset]);
+
   const handleCancel = () => {
     reset();
     setSelectedInvoice(null);
@@ -198,18 +235,29 @@ export default function SchedulePaymentForm({ open, onOpenChange, onSuccess }) {
         description: data.paymentDescription || undefined,
       };
 
-      await PaymentScheduleService.create({ data: payload });
+      if (editData) {
+        // Update existing payment schedule
+        await PaymentScheduleService.update({
+          id: editData._id || editData.id,
+          data: payload,
+        });
+        toast.success('Payment schedule updated successfully');
+      } else {
+        // Create new payment schedule
+        await PaymentScheduleService.create({ data: payload });
+        toast.success('Payment scheduled successfully');
+      }
 
-      toast.success('Payment scheduled successfully');
       reset();
       setSelectedInvoice(null);
       setSelectedInvoices([]);
       onOpenChange?.(false);
       onSuccess?.(); // Refresh the payment schedules list
     } catch (error) {
-      console.error('Error scheduling payment:', error);
+      console.error('Error saving payment schedule:', error);
       toast.error(
-        error.response?.data?.message || 'Failed to schedule payment'
+        error.response?.data?.message ||
+          `Failed to ${editData ? 'update' : 'schedule'} payment`
       );
     } finally {
       setIsSubmitting(false);
@@ -271,7 +319,7 @@ export default function SchedulePaymentForm({ open, onOpenChange, onSuccess }) {
             <CreditCardIcon className="size-4" />
           </div>
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-            Schedule payment
+            {editData ? 'Edit Payment Schedule' : 'Schedule payment'}
           </DialogTitle>
         </div>
 
@@ -704,7 +752,13 @@ export default function SchedulePaymentForm({ open, onOpenChange, onSuccess }) {
                 className="h-10 min-w-39"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Scheduling...' : 'Schedule Payment'}
+                {isSubmitting
+                  ? editData
+                    ? 'Updating...'
+                    : 'Scheduling...'
+                  : editData
+                    ? 'Update Payment'
+                    : 'Schedule Payment'}
               </Button>
             </div>
           </form>
