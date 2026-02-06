@@ -29,13 +29,11 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm, prepareCustomB
     const isRevenue = selectedValue === 'revenue';
     const { totalBudget, actualSpend, variance } = analyticsData || {};
 
-    const totalRevenueOrExpenseBudget = isRevenue ? totalBudget?.totalInvoiceBudget : totalBudget?.totalExpenseBudget
+    console.log('Analytics Data:', analyticsData);
+
+    const totalRevenueOrExpenseBudget = isRevenue ? totalBudget?.totalActualInvoice : totalBudget?.totalActualExpense
     const totalActualRevenueOrExpense = isRevenue ? actualSpend?.totalActualInvoice : actualSpend?.totalActualExpense
     const varianceAmount = isRevenue ? variance?.invoiceVariance : variance?.expenseVariance
-
-    
-    const accuracy = (1 - (totalActualRevenueOrExpense - totalRevenueOrExpenseBudget)/100) * 100;
-    const formattedAccuracy = accuracy.toFixed(2) + '%';
 
     return [
       {
@@ -47,12 +45,12 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm, prepareCustomB
         value: totalActualRevenueOrExpense,
       },
       {
-        title: 'Variance',
+        title: isRevenue ? 'Revenue Variance' : 'Expense Variance',
         value: varianceAmount,
       },
       {
         title: 'Forecast Accuracy',
-        value: formattedAccuracy,
+        value: '100%', // Placeholder value, replace with actual calculation if available
       },
     ]
   }, [analyticsData, selectedValue]);

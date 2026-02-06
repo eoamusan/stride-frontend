@@ -100,11 +100,12 @@ export default function useBudgeting() {
     // const expenseAccountsData = expenseRes.data.data.accounts || [];
     // const revenueAccountsData = revenueRes.data.data.accounts || [];
 
-    const accountsData = res.data.data || [];
+    const accountsData = res.data.data.accounts || [];
 
     // Group by accountType
+    console.log(accountsData, 'accountsData for template download')
     const grouped = accountsData.reduce((acc, item) => {
-      const key = item.accountingAccountId.accountType;
+      const key = item.account.accountType;
       console.log(key, 'account type key')
       acc[key] ??= [];
       acc[key].push(item);
@@ -130,7 +131,7 @@ export default function useBudgeting() {
 
       accounts.forEach(item => {
         wsData.push([
-          item.accountingAccountId.accountName,
+          item.account.accountName,
           ...Array(12).fill(0),
           // add function to sum inputed amounts for this row,  ignore wsData.push([accountType.toUpperCase()]);
           { f: `SUM(B${wsData.length + 1}:M${wsData.length + 1})` }

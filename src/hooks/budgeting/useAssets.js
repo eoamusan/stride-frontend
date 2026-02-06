@@ -1,5 +1,5 @@
 import AssetService from "@/api/asset";
-import { formatDate, formatTime, getPaginationData } from "@/lib/utils";
+import { formatDate, getPaginationData } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function useAssets() {
@@ -11,15 +11,15 @@ export default function useAssets() {
 
     const formatResponse = (data) => {
       return data.map((item) => ({
-        ...item,
-        updatedAt: formatDate(item.updatedAt),
+        ...item.asset,
+        updatedAt: formatDate(item.asset.updatedAt),
       }));
     }
 
     setLoadingAssets(true);
     try {
       const response = await AssetService.fetch()
-      setAssets(formatResponse(response.data.data.assets) || []);
+      setAssets(formatResponse(response.data.data) || []);
       setPaginationData(getPaginationData(response.data.data));
     } catch (error) {
       console.error('Error fetching assets:', error);

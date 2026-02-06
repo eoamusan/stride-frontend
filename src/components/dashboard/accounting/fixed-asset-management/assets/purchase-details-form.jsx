@@ -1,4 +1,5 @@
 import AssetService from "@/api/asset";
+import { Combobox } from "@/components/core/combo-box";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -148,11 +149,21 @@ export default function PurchaseDetailsForm({ onBack, onNext, formValues }) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectLabel>Profiles</SelectLabel>
-                          <SelectItem value="profile1">Profile 1</SelectItem>
+                          <SelectLabel>Vendors</SelectLabel>
+                          <SelectItem value="Jendol Superstores">Jendol Superstores</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
+                    {/* <Combobox
+                        items={categories}
+                        value={field.value}
+                        onChange={(v) => form.setValue('category', v)}
+                        getValue={(item) => item._id}
+                        getLabel={(item) => item.categoryName}
+                        getSubLabel={(item) => item.code}
+                        onAddItem={() => setOpenCategoryForm(true)}
+                        addItemLabel='Add New Category'
+                      />  */}
                 </FormControl>
                 <FormMessage />
               </FormItem>

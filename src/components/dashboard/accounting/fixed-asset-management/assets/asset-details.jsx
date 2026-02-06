@@ -20,8 +20,9 @@ import {
 } from "@/components/ui/accordion"
 import ImageCarousel from "../../shared/image-carousel";
 import temporaryImg from '@/assets/images/customer-ledger-temp.png';
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AssetService from "@/api/asset";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function MaintenanceHistory() {
   return <div>
@@ -189,28 +190,31 @@ function InsuranceDetails() {
 
 export default function AssetDetails({ setShowDetails, selectedItem }) {
 
-  const assetData = [
-    {
-      label: 'Asset Name',
-      value: 'Office Van'
-    },
-    {
-      label: 'Category',
-      value: 'Office Van'
-    },
-    {
-      label: 'Sub Category',
-      value: 'Office Van'
-    },
-    {
-      label: 'Serial Number',
-      value: 'MBP2024001'
-    },
-    {
-      label: 'Description',
-      value: 'Keep this for over 3 years'
-    },
-    {
+  const [assetInfo, setAssetInfo] = useState({})
+
+  const assetData = useMemo(() => {
+    return [
+      {
+        label: 'Asset Name',
+        value: assetInfo?.asset?.assetName
+      },
+      {
+        label: 'Category',
+        value: assetInfo?.asset?.category
+      },
+      {
+        label: 'Sub Category',
+        value: assetInfo?.asset?.subCategory
+      },
+      {
+        label: 'Serial Number',
+        value: assetInfo?.asset?.serialNo
+      },
+      {
+        label: 'Description',
+        value: assetInfo?.asset?.description
+      },
+      {
       label: 'Depreciation Status',
       type: 'component',
       value: () => {
@@ -223,33 +227,30 @@ export default function AssetDetails({ setShowDetails, selectedItem }) {
           </div>
         )
       }
-    },
-  ]
+    }
+    ]
+  }, [assetInfo])
 
   const purchaseData = [
     {
       label: 'Purchase Price',
-      value: 'Office Van'
+      value: assetInfo?.purchaseDetails?.purchasePrice
     },
     {
       label: 'Supplier',
-      value: 'JJ Solutions'
+      value: assetInfo?.purchaseDetails?.supplier
     },
     {
       label: 'Purchase No',
-      value: 'PO123456'
+      value: assetInfo?.purchaseDetails?.pon
     },
     {
       label: 'Warranty Start Date',
-      value: '01-01-2024'
-    },
-    {
-      label: 'Serial Number',
-      value: 'MBP2024001'
+      value: assetInfo?.purchaseDetails?.warrantyStartDate
     },
     {
       label: 'Warranty End Date',
-      value: '22-08-2026'
+      value: assetInfo?.purchaseDetails?.warrantyEndDate
     },
     {
       label: 'Status',
@@ -312,7 +313,8 @@ export default function AssetDetails({ setShowDetails, selectedItem }) {
   const fetchAssetDetails = async (itemId) => {
     // Fetch asset details logic here
     const response = await AssetService.get({id: itemId})
-    console.log('Asset Details: ', response.data);
+    console.log('Asset Details: ', response.data.data);
+    setAssetInfo(response.data.data)
   }
 
   useEffect(() => {

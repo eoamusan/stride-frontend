@@ -56,6 +56,10 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
     if (budgetScope === "monthly") { return MONTHS; }
     if (budgetScope === "quarterly") { return QUARTERS; }
     if (budgetScope === "yearly") { return YEARS; }
+    if (budgetScope.includes('-')) {
+      const [startMonth, endMonth] = budgetScope.split('-');
+      return MONTHS.slice(MONTHS.indexOf(startMonth), MONTHS.indexOf(endMonth) + 1);
+    }
     return MONTHS.slice(MONTHS.indexOf(selectedStartMonth), MONTHS.indexOf(selectedEndMonth) + 1);
   }, [budgetScope]);
 
@@ -100,10 +104,14 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
   useEffect(() => {
     if (!accountData) return;
     const newData = {
-      accountingAccountId: accountData,
-      totalAmount: 0,
-      transactions: [],
-      type: 'product',
+      account: accountData,
+      groups: [
+        {
+          totalAmount: 0,
+          transactions: [],
+          type: 'product',
+        }
+      ],
     }
     setBudgetAccounts([...budgetAccounts, newData]);
     setAccountData(null);
@@ -135,7 +143,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
             const account = accounts.find(acct => acct.account.accountName === x.item);
             if (!account) {
               const newData = {
-                accountingAccountId: {
+                account: {
                   accountCode: null,
                   accountName: x.item,
                   accountType: x.category.toLowerCase(),
@@ -143,9 +151,13 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
                   createdAt: null,
                   description: null,
                 },
-                totalAmount: 0,
-                transactions: [],
-                type: 'product',
+                groups: [
+                  {
+                    totalAmount: 0,
+                    transactions: [],
+                    type: 'product',
+                  }
+                ],
               }
               undefinedAccounts.push(newData);
             }
@@ -169,6 +181,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
 
   const groupedAccountsByType = useMemo(() => {
+    console.log(budgetAccounts, 'budgetAccounts for grouping by type')
     return budgetAccounts.reduce((acc, account) => {
       const type = account.account.accountType;
       acc[type] ??= [];
@@ -608,11 +621,11 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
           try {
             const responseData = response.data?.data;
             const account = responseData;
-            // find if account exists in budgetAccounts by accountingAccountId.accountName
+            // find if account exists in budgetAccounts by account.accountName
             let exists = budgetAccounts.find(acct => acct.account.accountName === account.accountName);
             // if exists, append
             if (exists) {
-              exists.accountingAccountId = {...exists.accountingAccountId, ...responseData};
+              exists.account = {...exists.account, ...responseData};
               setBudgetAccounts(prev => prev.map(acct => acct.account.accountName === exists.account.accountName ? exists : acct));
               return;
             }

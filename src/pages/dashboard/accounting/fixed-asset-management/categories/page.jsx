@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import { Button } from '@/components/ui/button';
@@ -6,65 +6,16 @@ import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-re
 import { AppDialog } from '@/components/core/app-dialog';
 import CategoryForm from '@/components/dashboard/accounting/fixed-asset-management/categories/category-form';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
-
-// Mock data
-const sampleData = [
-  {
-    id: 'Q1 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 90,
-  },
-  {
-    id: 'Q2 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 23,
-  },
-  {
-    id: 'Q3 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 51,
-  },
-  {
-    id: 'Q4 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 67,
-  }
-]
+import useCategories from '@/hooks/fixxed-asset-management/useCategories';
+import toast from 'react-hot-toast';
 
 export default function FixedAssetMgtCategories() {
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
   const [ openCategoryForm, setOpenCategoryForm ] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
-  const [assets] = useState([...sampleData])
+  const { categories, fetchCategories, paginationData, loadingCategories } = useCategories()
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
   const assetMetrics = useMemo(() => {
     return [
@@ -101,7 +52,7 @@ export default function FixedAssetMgtCategories() {
   // Handle select all functionality
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedItems(assets.map((item) => item.id));
+      setSelectedItems(categories.map((item) => item.id));
     } else {
       setSelectedItems([]);
     }
@@ -110,11 +61,11 @@ export default function FixedAssetMgtCategories() {
   // Table columns configuration
   const tableColumns = [
     {
-      key: 'type',
+      key: 'categoryName',
       label: 'Category',
     },
     {
-      key: 'date',
+      key: 'depreciationMethod',
       label: 'Depreciation Method',
     },
     {
@@ -122,31 +73,24 @@ export default function FixedAssetMgtCategories() {
       label: 'Asset Count',
     },
     {
-      key: 'timeModified',
+      key: 'usefulLifeYears',
       label: 'Useful Life',
     },
     {
-      key: 'timeModified',
+      key: 'salvageValue',
       label: 'Salvage Value',
     },
-    {
-      key: 'timeModified',
-      label: 'Status',
-    },
+    // {
+    //   key: 'timeModified',
+    //   label: 'Status',
+    // },
   ];
 
   // Dropdown actions for each row
   const dropdownActions = [
     { key: 'view', label: 'View' },
+    { key: 'edit', label: 'Edit' },
   ];
-
-  // Pagination data
-  const paginationData = {
-    page: 1,
-    totalPages: 6,
-    pageSize: 12,
-    totalCount: 64,
-  };
 
   const handleRowAction = (action, item) => {
     console.log(`Action ${action} on item:`, item);
@@ -155,6 +99,12 @@ export default function FixedAssetMgtCategories() {
     switch (action) {
       case 'view':
         break;
+      case 'edit':
+        setSelectedCategory(item)
+        setOpenCategoryForm(true)
+        break;
+      default:
+        break;
     }
   };
 
@@ -162,6 +112,10 @@ export default function FixedAssetMgtCategories() {
     setOpenCategoryForm(false)
     setIsSuccessModalOpen(true)
   }, [])
+
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
 
   return (
     <div className='my-4 min-h-screen'>
@@ -200,7 +154,7 @@ export default function FixedAssetMgtCategories() {
             <div className="relative mt-10">
               <AccountingTable
                 title="Categories"
-                data={assets}
+                data={categories}
                 columns={tableColumns}
                 searchFields={[]}
                 searchPlaceholder="Search......"
@@ -211,17 +165,27 @@ export default function FixedAssetMgtCategories() {
                 handleSelectAll={handleSelectAll}
                 onRowAction={handleRowAction}
                 showDataSize
+                isLoading={loadingCategories}
               />
             </div>
           </>
           <AppDialog 
-            title="Add New Category"
+            title={ selectedCategory ? "Edit Category" : "Add New Category" }
             headerIcon={<HousePlus />}
             open={openCategoryForm} 
             onOpenChange={setOpenCategoryForm}
             className='sm:max-w-163'
           >
-            <CategoryForm onCreateCategory={handleOnCreateCategory} onCancel={() => setOpenCategoryForm(false)} />
+            <CategoryForm 
+              formValues={selectedCategory} 
+              onCreateCategory={handleOnCreateCategory} 
+              onUpdateCategory={() => {
+                toast.success('Category updated successfully')
+                setOpenCategoryForm(false)
+                fetchCategories()
+                setSelectedCategory(null)
+              }} 
+              onCancel={() => setOpenCategoryForm(false)} />
           </AppDialog>
 
           <SuccessModal
