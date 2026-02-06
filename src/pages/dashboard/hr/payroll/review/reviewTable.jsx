@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 
-import { useTableStore } from '@/stores/table-store';
+import { MoreHorizontalIcon } from 'lucide-react';
 
+import { useTableStore } from '@/stores/table-store';
 import FilterIcon from '@/assets/icons/filter.svg';
 import { CustomTable, SearchInput } from '@/components/customs';
 import {
@@ -14,7 +15,6 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontalIcon } from 'lucide-react';
 
 const ReviewTable = ({ onAction, isFrozen = false }) => {
   const [statusFilter, setStatusFilter] = useState('all');
