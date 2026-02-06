@@ -29,7 +29,6 @@ export default function Payroll() {
   const currentPage = useTableStore((s) => s.currentPage);
   const setCurrentPage = useTableStore((state) => state.setCurrentPage);
 
-  // Modal store helpers
   const handleOpenModal = useModalStore((s) => s.handleOpen);
   const handleCloseModal = useModalStore((s) => s.handleClose);
   const isAddComponentOpen = useModalStore(
@@ -43,10 +42,9 @@ export default function Payroll() {
 
   const handleStatusFilterChange = (status) => {
     setStatusFilter(status);
-    setCurrentPage(1); // Reset to first page when filtering
+    setCurrentPage(1); 
   };
 
-  // table rows state (editable per-row for demo)
   const [rows, setRows] = useState(tableData);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -96,6 +94,7 @@ export default function Payroll() {
       <Header
         title="Payroll Configuration"
         description="Define salary components and structure"
+        hasYoutubeButton
       >
         <Button onClick={() => handleOpenModal('addComponent')} className="rounded-xl md:py-6">
           <img src={PlusIcon} alt="Add Component" className="mr-1 h-4" /> Add

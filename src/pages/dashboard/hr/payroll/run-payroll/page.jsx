@@ -54,12 +54,12 @@ export default function RunPayroll() {
     <div className="my-5 flex flex-col gap-4">
       <Header
         title="Run Payroll"
-        description="Execute Payroll Process"
+        description="Setup and process payroll for your organization."
       ></Header>
 
       <Stepper currentStep={currentStep} steps={steps} />
 
-      <Card className="mt-2 w-full border-0 px-[98px] py-16 shadow-none">
+      <Card className="mt-2 w-full border-0 shadow-none md:px-[98px] md:py-16">
         <CardContent>{getCurrentStep()}</CardContent>
       </Card>
     </div>
