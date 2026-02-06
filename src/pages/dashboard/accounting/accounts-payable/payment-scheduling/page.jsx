@@ -116,8 +116,8 @@ export default function PaymentScheduling() {
 
       // Determine if payment is overdue
       let displayStatus = 'Pending';
-      if (payment.scheduledDate && payment.status === 'PENDING') {
-        const scheduledDate = new Date(payment.scheduledDate);
+      if (bill.dueDate && payment.status === 'PENDING') {
+        const scheduledDate = new Date(bill.dueDate);
         if (scheduledDate < today) {
           displayStatus = 'Overdue';
         }
@@ -134,11 +134,11 @@ export default function PaymentScheduling() {
         invoiceId: invoiceNumber,
         amount: `$${Number(payment.amount).toLocaleString('en-US')}`,
         category: bill?.source || 'N/A',
-        dueDate: payment.scheduledDate
-          ? format(new Date(payment.scheduledDate), 'M/d/yyyy')
+        dueDate: bill.dueDate
+          ? format(new Date(bill.dueDate), 'M/d/yyyy')
           : 'N/A',
-        overdueDays: payment.scheduledDate
-          ? getScheduledStatusText(payment.scheduledDate)
+        overdueDays: bill.dueDate
+          ? getScheduledStatusText(bill.dueDate)
           : '',
         status: displayStatus,
       };
