@@ -11,22 +11,22 @@ import {
 } from './inputs';
 import PreviewForm from './preview-form';
 
-export default function ManpowerRequisitionForm({ onSuccess }) {
+export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
   const [isPreview, setIsPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { createRequisition } = useJobRequisitionStore();
+  const { createRequisition, updateRequisition } = useJobRequisitionStore();
   const [formData, setFormData] = useState({
-    jobTitle: '',
-    department: '',
-    employmentType: '',
-    detailedReason: '',
-    grade: '',
-    minBudget: '',
-    maxBudget: '',
-    noOfOpenings: 1,
-    reason: '',
-    startDate: '',
-    urgency: '',
+    jobTitle: initialData?.jobTitle || '',
+    department: initialData?.department || '',
+    employmentType: initialData?.employmentType || '',
+    detailedReason: initialData?.detailedReason || '',
+    grade: initialData?.grade || '',
+    minBudget: initialData?.minBudget || '',
+    maxBudget: initialData?.maxBudget || '',
+    noOfOpenings: initialData?.noOfOpenings || initialData?.openings || 1,
+    reason: initialData?.reason || '',
+    startDate: initialData?.startDate || '',
+    urgency: initialData?.urgency ? (initialData.urgency === true ? 'High' : 'Low') : '',
   });
 
   const handleInputChange = (e) => {
@@ -66,8 +66,17 @@ export default function ManpowerRequisitionForm({ onSuccess }) {
         startDate: formData.startDate,
       };
 
-      await createRequisition({ data: payload });
-      toast.success('Requisition created successfully');
+      if (initialData?._id || initialData?.id) {
+        await updateRequisition({ 
+          id: initialData._id || initialData.id, 
+          data: payload 
+        });
+        toast.success('Requisition updated successfully');
+      } else {
+        await createRequisition({ data: payload });
+        toast.success('Requisition created successfully');
+      }
+      
       setFormData({
         jobTitle: '',
         department: '',
@@ -84,9 +93,9 @@ export default function ManpowerRequisitionForm({ onSuccess }) {
       setIsPreview(false);
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error('Error creating requisition:', error);
+      console.error('Error saving requisition:', error);
       toast.error(
-        error.response?.data?.message || 'Failed to create requisition'
+        error.response?.data?.message || 'Failed to save requisition'
       );
     } finally {
       setIsSubmitting(false);
@@ -107,13 +116,13 @@ export default function ManpowerRequisitionForm({ onSuccess }) {
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-gray-100">
+    <div className="flex h-full w-full items-center justify-center">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-2xl space-y-6 bg-white"
+        className="w-full max-w-2xl space-y-6"
       >
         <h2 className="mb-6 text-center text-2xl font-bold text-gray-900">
-          Man-Power Requisition Form
+          {initialData ? 'Edit Man-Power Requisition Form' : 'Man-Power Requisition Form'}
         </h2>
 
         {/* Job Title */}
@@ -266,7 +275,7 @@ export default function ManpowerRequisitionForm({ onSuccess }) {
           type="submit"
           className="mt-4 w-full rounded-xl bg-[#3b07bb] py-3 font-medium text-white shadow-sm transition-colors hover:bg-[#2f0596]"
         >
-          Preview Requisition
+          {initialData ? 'Update Requisition' : 'Preview Requisition'}
         </button>
       </form>
     </div>

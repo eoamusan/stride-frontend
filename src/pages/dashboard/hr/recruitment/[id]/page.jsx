@@ -1,15 +1,18 @@
-import { useEffect, useMemo } from 'react';
+import { useState,useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeftIcon,
   Banknote,
+  Briefcase,
   BriefcaseIcon,
   Building,
+  Calendar,
   CalendarIcon,
   CheckCircleIcon,
   Clock,
   DownloadIcon,
+  Edit,
   FileQuestion,
   NotebookPen,
   User,
@@ -20,12 +23,21 @@ import RecruitmentNotFound from '../NotFound';
 import Fields from '@/components/dashboard/hr/overview/fields';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
 import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import ManpowerRequisitionForm from '../form/requisition-form';
 
 export default function RecruitmentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { requisitions, fetchRequisitions, isLoading } =
     useJobRequisitionStore();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (requisitions.length === 0) {
@@ -94,10 +106,10 @@ export default function RecruitmentDetails() {
         </nav>
 
         {/* Job Header Card */}
-        <div className="flex flex-col items-center justify-between gap-4 md:flex-row lg:col-span-3">
-          <header className="flex items-center gap-4 md:w-156">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#B190B6] md:h-30 md:w-30">
-              <BriefcaseIcon className="h-12 w-12 text-white" />
+        <div className="flex items-end md:items-center justify-between gap-4 flex-row lg:col-span-3">
+          <header className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 md:w-156 w-full">
+            <div className="flex h-24 md:h-34 w-24 md:w-34 items-center justify-center rounded-full bg-[#B190B6]">
+              <Briefcase className="h-14 w-14 md:h-24 md:w-24 text-white" />
             </div>
             <hgroup className="flex-1">
               <h1 className="text-xl font-semibold">{jobRequest.jobTitle}</h1>
@@ -105,7 +117,7 @@ export default function RecruitmentDetails() {
                 {jobRequest._id || jobRequest.id}
               </p>
               <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
-                <CalendarIcon className="h-4 w-4" />
+                <Calendar className="h-6 w-6" />
                 <span>
                   Created {formatDate(jobRequest.createdAt)},{' '}
                   {formatTime(jobRequest.createdAt)}
@@ -114,22 +126,45 @@ export default function RecruitmentDetails() {
             </hgroup>
           </header>
 
-          <div className="flex w-full flex-col items-end gap-2">
+          <div className="flex flex-col md:items-end gap-2 md:gap-8">
             <Badge
-              className={`${jobRequest.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : jobRequest.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+              className={`px-2 py-1 ${jobRequest.status === 'PENDING' ? 'bg-[#CE8D001A] text-[#CE8D00]' : jobRequest.status === 'APPROVED' ? 'bg-[#00B8661A] text-[#00B866]' : 'bg-[#FF3B301A] text-[#FF3B30]'}`}
             >
-              {jobRequest.status === 'Pending'
+              {jobRequest.status === 'PENDING'
                 ? 'Pending Approval'
+                : jobRequest.status === 'APPROVED'
+                ? 'Approved'
+                : jobRequest.status === 'REJECTED'
+                ? 'Rejected'
                 : jobRequest.status}
             </Badge>
             <div className="flex w-full justify-between gap-4 md:justify-end">
-              <Button
-                variant="outline"
-                className="rounded-xl border-green-300 bg-transparent p-6"
-              >
-                <NotebookPen className="h-5 w-5" />
-                Edit
-              </Button>
+              <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="hidden md:inline-flex rounded-xl border-green-300 bg-transparent p-6"
+                  >
+                    <Edit className="h-5 w-5" />
+                    Edit
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[80vh] w-full md:max-w-2xl overflow-y-auto rounded-2xl bg-gray-50">
+                  <DialogTitle className="sr-only">
+                    Edit Man Power Requisition Form
+                  </DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Form to edit Man Power Requisition Form
+                  </DialogDescription>
+                  <ManpowerRequisitionForm
+                    initialData={jobRequest}
+                    onSuccess={() => {
+                      setIsEditModalOpen(false);
+                      fetchRequisitions(1); // Refresh data
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
               <Button
                 variant="outline"
                 className="rounded-xl bg-[#3300C9] p-6 text-white"
@@ -152,32 +187,32 @@ export default function RecruitmentDetails() {
             <Fields
               title={jobRequest.jobTitle}
               header="Job Title"
-              icon={<BriefcaseIcon className="h- w- text-gray-400" />}
+              icon={<BriefcaseIcon className="h-6 w-6 text-gray-400" />}
             />
             <Fields
               title={jobRequest.department}
               header="Department"
-              icon={<Building className="h-4 w-4 text-gray-400" />}
+              icon={<Building className="h-6 w-6 text-gray-400" />}
             />
             <Fields
               title={jobRequest.employmentType}
               header="Employment Type"
-              icon={<BriefcaseIcon className="h-4 w-4 text-gray-400" />}
+              icon={<BriefcaseIcon className="h-6 w-6 text-gray-400" />}
             />
             <Fields
               title={jobRequest.grade}
               header="Cadre Level"
-              icon={<BriefcaseIcon className="h-4 w-4 text-gray-400" />}
+              icon={<BriefcaseIcon className="h-6 w-6 text-gray-400" />}
             />
             <Fields
               title={`${jobRequest.minBudget} - ${jobRequest.maxBudget}`}
               header="Budget Range (Per Annum)"
-              icon={<Banknote className="h-4 w-4 text-gray-400" />}
+              icon={<Banknote className="h-6 w-6 text-gray-400" />}
             />
             <Fields
               title={`${jobRequest.noOfOpenings} Positions`}
               header="Number of Openings"
-              icon={<Users className="h-4 w-4 text-gray-400" />}
+              icon={<Users className="h-6 w-6 text-gray-400" />}
             />
             <Fields
               title={
@@ -188,22 +223,22 @@ export default function RecruitmentDetails() {
                   : jobRequest.urgency
               }
               header="Urgency"
-              icon={<Clock className="h-4 w-4 text-gray-400" />}
+              icon={<Clock className="h-6 w-6 text-gray-400" />}
             />
             <Fields
               title={jobRequest.startDate}
               header="Expected Start Date"
-              icon={<CalendarIcon className="h-4 w-4 text-gray-400" />}
+              icon={<CalendarIcon className="h-6 w-6 text-gray-400" />}
             />
             <Fields
               title={jobRequest.requestedBy || 'N/A'}
               header="Requested By"
-              icon={<User className="h-4 w-4 text-gray-400" />}
+              icon={<User className="h-6 w-6 text-gray-400" />}
             />
             <Fields
               title={jobRequest.reason}
               header="Reason for Hire"
-              icon={<FileQuestion className="h-4 w-4 text-gray-400" />}
+              icon={<FileQuestion className="h-6 w-6 text-gray-400" />}
             />
           </div>
         </section>

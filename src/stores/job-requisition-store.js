@@ -11,10 +11,10 @@ export const useJobRequisitionStore = create((set, get) => ({
     limit: 10,
   },
 
-  fetchRequisitions: async (page = 1) => {
+  fetchRequisitions: async (page = 1, limit = 10) => {
     try {
       set({ isLoading: true });
-      const response = await JobRequisitionService.fetch({ page, perPage: 10 });
+      const response = await JobRequisitionService.fetch({ page, perPage: limit });
       if (response.data && response.data.data) {
         set({
           requisitions: response.data.data.jobRequisitions || [],
@@ -38,10 +38,27 @@ export const useJobRequisitionStore = create((set, get) => ({
       set({ isLoading: true });
       const response = await JobRequisitionService.create(data);
       // Refresh the list after successful creation
-      await get().fetchRequisitions(1);
+      const { pagination } = get();
+      await get().fetchRequisitions(1, pagination.limit);
       return response;
     } catch (error) {
       console.error('Error creating requisition:', error);
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  updateRequisition: async ({ id, data }) => {
+    try {
+      set({ isLoading: true });
+      const response = await JobRequisitionService.update({ id, data });
+      // Refresh the list after successful update
+      const { pagination } = get();
+      await get().fetchRequisitions(pagination.page, pagination.limit);
+      return response;
+    } catch (error) {
+      console.error('Error updating requisition:', error);
       throw error;
     } finally {
       set({ isLoading: false });

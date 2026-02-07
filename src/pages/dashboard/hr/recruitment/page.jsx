@@ -1,13 +1,20 @@
-import { useEffect, useState, useMemo } from 'react'; // 1. Import useState
+import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import youtubeIcon from '@/assets/icons/youtube-red.png';
 import { Button } from '@/components/ui/button';
-import { TableActions } from '@/components/dashboard/hr/table';
-import { Plus } from 'lucide-react';
+import { DataTable } from '@/components/ui/data-table';
+import { FilterIcon, MoreHorizontalIcon, SearchIcon, Plus, EyeIcon, Edit, Check, CheckCircle, XCircle } from 'lucide-react';
 import ManpowerRequisitionForm from './form/requisition-form';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
-
-// 2. Import Dialog components (Adjust path if necessary)
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -16,36 +23,35 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 
-const tableHeaders = [
-  { key: 'title', label: 'Title', className: '' },
-  { key: 'department', label: 'Department', className: '' },
-  { key: 'requestedBy', label: 'Requested By', className: '' },
-  { key: 'openings', label: 'Openings', className: '' },
-  { key: 'status', label: 'Status', className: '' },
-  { key: 'dateCreated', label: 'Date Created', className: '' },
-  { key: 'actions', label: 'Actions', className: 'text-right' },
-];
-
-const tableActions = [
-  { title: 'Approve', action: 'approve' },
-  { title: 'Reject', action: 'reject' },
-];
-
 export default function Recruitment() {
-  // 3. State is optional if using DialogTrigger, but good for control
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { requisitions, isLoading, pagination, fetchRequisitions } =
     useJobRequisitionStore();
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 3;
+
+  const [editingRequisition, setEditingRequisition] = useState(null);
 
   useEffect(() => {
-    // Initial fetch
-    fetchRequisitions(1);
+    // Initial fetch - fetch all for metrics and client-side pagination
+    fetchRequisitions(1, 1000); 
   }, [fetchRequisitions]);
 
   const handleRequisitionCreated = () => {
     setIsModalOpen(false);
-    fetchRequisitions(1);
+    setEditingRequisition(null);
+    fetchRequisitions(1, 1000);
   };
+
+  // ... (metrics logic unchanged)
+
+  // Define actions that were previously passed to TableActions
+
 
   const metricCardsData = useMemo(() => {
     const data = requisitions || [];
@@ -177,24 +183,231 @@ export default function Recruitment() {
     ];
   }, [requisitions, pagination]);
 
-  const tableData = useMemo(() => {
-    return (requisitions || []).map((item) => ({
-      id: item._id || item.id,
-      title: item.title || item.jobTitle,
-      department: item.department,
-      requestedBy: item.requestedBy,
-      openings: item.noOfOpenings,
-      status: toTitleCase(item.status),
-      dateCreated: item.createdAt
-        ? new Date(item.createdAt).toLocaleDateString()
-        : item.dateCreated,
-    }));
-  }, [requisitions]);
-
   function toTitleCase(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   }
+
+  // Define actions that were previously passed to TableActions
+  const handleAction = (action, request) => {
+    if (action === 'edit') {
+      const fullRequisition = requisitions.find(r => (r._id || r.id) === (request.id || request._id));
+      setEditingRequisition(fullRequisition || request);
+      setIsModalOpen(true);
+    }
+    // Implement or mock the action logic here
+    console.log(`Action: ${action}, ID: ${request.id}`);
+  };
+
+  // Filter the data locally for now as the API might support server-side filtering differently
+  // or if we rely on the store's fetched data which is paginated.
+  // Note: If the backend supports filtering, we should pass these filters to fetchRequisitions.
+  // For now, assuming client-side filtering on the current page of data (or if data is all fetched).
+  // However, since we have pagination, client-side filtering only filters the current page which is weird.
+  // Ideally, search/filter should trigger a new fetch.
+  // Given the previous implementation did client-side filtering on `tableData` prop,
+  // I will replicate that logic but apply it to the data passed to DataTable.
+  
+  const rawTableData = (requisitions || []).map((item) => {
+    const getRequesterName = (requester) => {
+      if (!requester) return null;
+      if (typeof requester === 'string') return requester;
+      return requester.name || 
+        (requester.firstName && requester.lastName ? `${requester.firstName} ${requester.lastName}` : null) ||
+        requester.username || 
+        'Unknown';
+    };
+
+    const requestedBy = getRequesterName(item.requestedBy) || getRequesterName(item.user) || 'N/A';
+
+    return {
+      id: item._id || item.id,
+      title: item.title || item.jobTitle,
+      department: item.department,
+      requestedBy: requestedBy,
+      openings: item.noOfOpenings,
+      status: toTitleCase(item.status),
+      applicantID: item.applicantID, // Preserve if needed
+      dateCreated: item.createdAt
+        ? new Date(item.createdAt).toLocaleDateString()
+        : item.dateCreated,
+    };
+  });
+
+  const filteredData = useMemo(() => {
+    return rawTableData.filter((request) => {
+      // Status filter
+      if (statusFilter !== 'all') {
+        const statusMatch =
+          request.status.toLowerCase() === statusFilter.toLowerCase();
+        if (!statusMatch) return false;
+      }
+
+      // Search filter
+      if (!searchTerm) return true;
+
+      return (
+        request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.requestedBy?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  }, [rawTableData, statusFilter, searchTerm]);
+
+  // Define Columns
+  const columns = [
+    { header: 'Title', accessorKey: 'title' },
+    { header: 'Department', accessorKey: 'department' },
+    { header: 'Requested By', accessorKey: 'requestedBy' },
+    { header: 'Openings', accessorKey: 'openings' },
+    {
+      header: 'Status',
+      accessorKey: 'status',
+      cell: (row) => {
+        const statusColors = {
+          Pending: { bg: '#CE8D001A', text: '#CE8D00' },
+          Approved: { bg: '#0596691A', text: '#059669' },
+          Rejected: { bg: '#DC26261A', text: '#DC2626' },
+          Review: { bg: '#F39C121A', text: '#F39C12' },
+          Interviewing: { bg: '#3300C91A', text: '#3300C9' },
+          Shortlisted: { bg: '#3498DB1A', text: '#3498DB' },
+        };
+        const style = statusColors[row.status] || {
+          bg: '#000',
+          text: '#fff',
+        };
+        return (
+          <span
+            className="inline-block w-24 rounded-full py-2 text-center text-xs font-medium overflow-hidden"
+            style={{
+              backgroundColor: style.bg,
+              color: style.text,
+            }}
+          >
+            {row.status}
+          </span>
+        );
+      },
+    },
+    { header: 'Date Created', accessorKey: 'dateCreated' },
+    {
+      header: 'Actions',
+      className: 'text-right',
+      cell: (row) => (
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-8">
+                <MoreHorizontalIcon className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(
+                    `/dashboard/hr/recruitment/detail/${row.applicantID || row.id}`
+                  )
+                }
+              >
+                <EyeIcon/>
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAction('edit', row)}>
+                <Edit/>
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAction('approve', row)}>
+                <CheckCircle />
+                Approve
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAction('reject', row)}>
+                <XCircle />
+                Reject
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ];
+
+  // Action Element (Search and Filter)
+  const actionElement = (
+    <div className="flex items-center gap-3 w-full md:w-auto">
+      <div className="relative w-full">
+        <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+        <Input
+          placeholder="Search requests..."
+          className="w-full md:max-w-80 pl-10"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className={
+              statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
+            }
+          >
+            <FilterIcon className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem
+            onClick={() => setStatusFilter('all')}
+            className={statusFilter === 'all' ? 'bg-blue-50' : ''}
+          >
+            All Statuses
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setStatusFilter('pending')}
+            className={statusFilter === 'pending' ? 'bg-blue-50' : ''}
+          >
+            Pending Approval
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setStatusFilter('approved')}
+            className={statusFilter === 'approved' ? 'bg-blue-50' : ''}
+          >
+            Approved
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setStatusFilter('rejected')}
+            className={statusFilter === 'rejected' ? 'bg-blue-50' : ''}
+          >
+            Rejected
+          </DropdownMenuItem>
+          {(statusFilter !== 'all' || searchTerm) && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setStatusFilter('all');
+                  setSearchTerm('');
+                }}
+                className="text-red-600 hover:text-red-700"
+              >
+                Clear All Filters
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+
+  // Client-side pagination logic
+  const totalItems = filteredData.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const currentTableData = filteredData.slice(startIndex, endIndex);
 
   return (
     <div className="my-5">
@@ -205,28 +418,38 @@ export default function Recruitment() {
         </hgroup>
 
         <div className="flex space-x-4">
-          {/* 4. Wrap the Button in the Dialog Component */}
           <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
             <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
             See video guide
           </Button>
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <Dialog 
+            open={isModalOpen} 
+            onOpenChange={(open) => {
+              setIsModalOpen(open);
+              if (!open) setEditingRequisition(null);
+            }}
+          >
             <DialogTrigger asChild>
-              <Button className={'h-10 rounded-2xl px-6 text-sm'}>
+              <Button 
+                className={'h-10 rounded-2xl px-6 text-sm'}
+                onClick={() => setEditingRequisition(null)}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Create New Requisition
               </Button>
             </DialogTrigger>
 
-            {/* 5. The Content of the Modal */}
-            <DialogContent className="max-h-[90vh] w-9/10 max-w-6xl overflow-y-auto rounded-2xl">
+            <DialogContent className="max-h-[80vh] w-full md:max-w-2xl overflow-y-auto rounded-2xl bg-gray-50">
               <DialogTitle className="sr-only">
-                Create New Requisition
+                {editingRequisition ? 'Edit Man Power Requisition Form' : 'Man Power Requisition Form'}
               </DialogTitle>
               <DialogDescription className="sr-only">
-                Form to create a new manpower requisition
+                Form to {editingRequisition ? 'edit' : 'create'} Man Power Requisition Form
               </DialogDescription>
-              <ManpowerRequisitionForm onSuccess={handleRequisitionCreated} />
+              <ManpowerRequisitionForm 
+                onSuccess={handleRequisitionCreated} 
+                initialData={editingRequisition}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -244,21 +467,17 @@ export default function Recruitment() {
       </div>
 
       <div className="mt-6 rounded-lg bg-white p-6 shadow-md">
-        <TableActions
-          tableData={tableData}
-          tableHeaders={tableHeaders}
+        <DataTable
+          columns={columns}
+          data={currentTableData}
           title="Job Requisitions"
-          path="/dashboard/hr/recruitment/detail"
-          tableActions={tableActions}
+          actionElement={actionElement}
           isLoading={isLoading}
-          paginationData={{
-            page: pagination.page,
-            totalPages: pagination.totalPages,
-            pageSize: pagination.limit,
-            totalCount: pagination.totalDocs,
+          pagination={{
+            page: currentPage,
+            totalPages: totalPages,
           }}
-          onPageChange={(page) => fetchRequisitions(page)}
-          pageSize={10}
+          onPageChange={(page) => setCurrentPage(page)}
         />
       </div>
     </div>
