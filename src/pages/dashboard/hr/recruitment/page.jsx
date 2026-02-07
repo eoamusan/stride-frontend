@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'; // 1. Import useState
+import { useEffect, useState, useMemo } from 'react'; // 1. Import useState
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import youtubeIcon from '@/assets/icons/youtube-red.png';
 import { Button } from '@/components/ui/button';
@@ -206,6 +206,10 @@ export default function Recruitment() {
 
         <div className="flex space-x-4">
           {/* 4. Wrap the Button in the Dialog Component */}
+          <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
+            <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
+            See video guide
+          </Button>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
               <Button className={'h-10 rounded-2xl px-6 text-sm'}>
@@ -225,11 +229,6 @@ export default function Recruitment() {
               <ManpowerRequisitionForm onSuccess={handleRequisitionCreated} />
             </DialogContent>
           </Dialog>
-
-          <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
-            <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
-            See video guide
-          </Button>
         </div>
       </div>
 
