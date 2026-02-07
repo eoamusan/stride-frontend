@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Calendar, CheckCircle, Pencil } from 'lucide-react';
+import { Calendar, CheckCircle, Pencil, Loader2 } from 'lucide-react';
+import { useJobRequisitionStore } from '@/stores/job-requisition-store';
+import toast from 'react-hot-toast';
 import {
   NumberInput,
   RadioInput,
@@ -7,9 +9,12 @@ import {
   TextAreaInput,
   TextInput,
 } from './inputs';
+import PreviewForm from './preview-form';
 
-export default function ManpowerRequisitionForm() {
+export default function ManpowerRequisitionForm({ onSuccess }) {
   const [isPreview, setIsPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createRequisition } = useJobRequisitionStore();
   const [formData, setFormData] = useState({
     jobTitle: '',
     department: '',
@@ -44,126 +49,60 @@ export default function ManpowerRequisitionForm() {
     setIsPreview(true);
   };
 
-  const handleFinalSubmit = () => {
-    console.log('Final Submission:', formData);
-    // Add your submission logic here
+  const handleFinalSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        jobTitle: formData.jobTitle,
+        department: formData.department,
+        employmentType: formData.employmentType,
+        grade: formData.grade,
+        minBudget: formData.minBudget,
+        maxBudget: formData.maxBudget,
+        noOfOpenings: `${formData.noOfOpenings}`,
+        urgency: formData.urgency === 'High' ? true : false,
+        reason: formData.reason,
+        detailedReason: formData.detailedReason.slice(0, 200),
+        startDate: formData.startDate,
+      };
+
+      await createRequisition({ data: payload });
+      toast.success('Requisition created successfully');
+      setFormData({
+        jobTitle: '',
+        department: '',
+        employmentType: '',
+        detailedReason: '',
+        grade: '',
+        minBudget: '',
+        maxBudget: '',
+        noOfOpenings: 1,
+        reason: '',
+        startDate: '',
+        urgency: true,
+      });
+      setIsPreview(false);
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error('Error creating requisition:', error);
+      toast.error(
+        error.response?.data?.message || 'Failed to create requisition'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isPreview) {
     return (
-      <div className="flex items-center justify-center">
-        <div className="w-full">
-          <h2 className="mb-6 text-center text-2xl font-bold text-gray-900">
-            Preview Requisition
-          </h2>
-
-          <div className="overflow-hidden rounded-lg border border-gray-200">
-            <table className="min-w-full divide-y divide-gray-200">
-              <tbody className="divide-y divide-gray-200 bg-white">
-                <tr>
-                  <td className="w-1/3 px-6 py-4 text-sm font-medium text-gray-500">
-                    Job Title
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {formData.jobTitle || '-'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Department
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900 capitalize">
-                    {formData.department || '-'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Employment Type
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {formData.employmentType || '-'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Cadre
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900 capitalize">
-                    {formData.grade || '-'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Budget Range
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {formData.minBudget} - {formData.maxBudget}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Number of Openings
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {formData.noOfOpenings}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Urgency
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {formData.urgency || '-'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Expected Start Date
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {formData.startDate || '-'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Reason for Hire
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {formData.reason || '-'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Detailed Reason
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {formData.detailedReason || '-'}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex gap-4 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsPreview(false)}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50"
-            >
-              <Pencil className="h-4 w-4" />
-              Back to Edit
-            </button>
-            <button
-              type="button"
-              onClick={handleFinalSubmit}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#3b07bb] py-3 font-medium text-white shadow-sm transition-colors hover:bg-[#2f0596]"
-            >
-              <CheckCircle className="h-4 w-4" />
-              Submit Requisition
-            </button>
-          </div>
-        </div>
-      </div>
+      <>
+        <PreviewForm
+          formData={formData}
+          handleFinalSubmit={handleFinalSubmit}
+          isSubmitting={isSubmitting}
+          setIsPreview={setIsPreview}
+        />
+      </>
     );
   }
 
@@ -193,7 +132,7 @@ export default function ManpowerRequisitionForm() {
           value={formData.department}
           onChange={handleInputChange}
           options={[
-            { label: 'Engineering', value: '', disabled: true },
+            { label: 'Select Department', value: '', disabled: true },
             { label: 'Engineering', value: 'engineering' },
             { label: 'Design', value: 'design' },
             { label: 'Marketing', value: 'marketing' },
@@ -319,6 +258,7 @@ export default function ManpowerRequisitionForm() {
           value={formData.detailedReason}
           onChange={handleInputChange}
           textLength={formData.detailedReason.length}
+          maxLength={200}
         />
 
         {/* Submit Button */}

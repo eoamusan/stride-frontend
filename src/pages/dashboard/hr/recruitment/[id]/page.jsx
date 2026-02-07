@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -16,13 +17,34 @@ import {
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import RecruitmentNotFound from '../NotFound';
-import { dummyRequisitionRequests } from '../job-requests';
 import Fields from '@/components/dashboard/hr/overview/fields';
+import { useJobRequisitionStore } from '@/stores/job-requisition-store';
+import { format } from 'date-fns';
 
 export default function RecruitmentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const jobRequest = dummyRequisitionRequests.find((job) => job.id === id);
+  const { requisitions, fetchRequisitions, isLoading } =
+    useJobRequisitionStore();
+
+  useEffect(() => {
+    if (requisitions.length === 0) {
+      fetchRequisitions(1);
+    }
+  }, [fetchRequisitions, requisitions.length]);
+
+  const jobRequest = useMemo(() => {
+    return requisitions.find((job) => job._id === id || job.id === id);
+  }, [requisitions, id]);
+
+  if (isLoading && !jobRequest) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
   if (!jobRequest) {
     return <RecruitmentNotFound />;
   }
@@ -33,6 +55,24 @@ export default function RecruitmentDetails() {
 
   const handleReject = () => {
     console.log('Rejected');
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy');
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const formatTime = (dateString) => {
+    if (!dateString) return '';
+    try {
+      return format(new Date(dateString), 'hh:mm a');
+    } catch (e) {
+      return '';
+    }
   };
 
   return (
@@ -60,12 +100,15 @@ export default function RecruitmentDetails() {
               <BriefcaseIcon className="h-12 w-12 text-white" />
             </div>
             <hgroup className="flex-1">
-              <h1 className="text-xl font-semibold">{jobRequest.title}</h1>
-              <p className="mt-1 text-sm text-gray-600">{jobRequest.id}</p>
+              <h1 className="text-xl font-semibold">{jobRequest.jobTitle}</h1>
+              <p className="mt-1 text-sm text-gray-600">
+                {jobRequest._id || jobRequest.id}
+              </p>
               <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
                 <CalendarIcon className="h-4 w-4" />
                 <span>
-                  Created {jobRequest.dateCreated}, {jobRequest.createdTime}
+                  Created {formatDate(jobRequest.createdAt)},{' '}
+                  {formatTime(jobRequest.createdAt)}
                 </span>
               </div>
             </hgroup>
@@ -107,54 +150,60 @@ export default function RecruitmentDetails() {
           <div className="grid gap-8 sm:grid-cols-2">
             {/* Left Column Fields */}
             <Fields
-              title={jobRequest.title}
+              title={jobRequest.jobTitle}
               header="Job Title"
-              icon={<BriefcaseIcon className="h-6 w-6 text-gray-400" />}
+              icon={<BriefcaseIcon className="h- w- text-gray-400" />}
             />
             <Fields
               title={jobRequest.department}
               header="Department"
-              icon={<Building className="h-6 w-6 text-gray-400" />}
+              icon={<Building className="h-4 w-4 text-gray-400" />}
             />
             <Fields
-              title={jobRequest.type}
+              title={jobRequest.employmentType}
               header="Employment Type"
-              icon={<BriefcaseIcon className="h-6 w-6 text-gray-400" />}
+              icon={<BriefcaseIcon className="h-4 w-4 text-gray-400" />}
             />
             <Fields
-              title={jobRequest.careerLevel}
+              title={jobRequest.grade}
               header="Cadre Level"
-              icon={<BriefcaseIcon className="h-6 w-6 text-gray-400" />}
+              icon={<BriefcaseIcon className="h-4 w-4 text-gray-400" />}
             />
             <Fields
-              title={jobRequest.salary}
+              title={`${jobRequest.minBudget} - ${jobRequest.maxBudget}`}
               header="Budget Range (Per Annum)"
-              icon={<Banknote className="h-6 w-6 text-gray-400" />}
+              icon={<Banknote className="h-4 w-4 text-gray-400" />}
             />
             <Fields
-              title={`${jobRequest.openings} Positions`}
+              title={`${jobRequest.noOfOpenings} Positions`}
               header="Number of Openings"
-              icon={<Users className="h-6 w-6 text-gray-400" />}
+              icon={<Users className="h-4 w-4 text-gray-400" />}
             />
             <Fields
-              title={jobRequest.urgency}
+              title={
+                typeof jobRequest.urgency === 'boolean'
+                  ? jobRequest.urgency
+                    ? 'High'
+                    : 'Low'
+                  : jobRequest.urgency
+              }
               header="Urgency"
-              icon={<Clock className="h-6 w-6 text-gray-400" />}
+              icon={<Clock className="h-4 w-4 text-gray-400" />}
             />
             <Fields
-              title={jobRequest.deadline}
+              title={jobRequest.startDate}
               header="Expected Start Date"
-              icon={<CalendarIcon className="h-6 w-6 text-gray-400" />}
+              icon={<CalendarIcon className="h-4 w-4 text-gray-400" />}
             />
             <Fields
-              title={jobRequest.requestedBy}
+              title={jobRequest.requestedBy || 'N/A'}
               header="Requested By"
-              icon={<User className="h-6 w-6 text-gray-400" />}
+              icon={<User className="h-4 w-4 text-gray-400" />}
             />
             <Fields
-              title={jobRequest.reasonForHire}
+              title={jobRequest.reason}
               header="Reason for Hire"
-              icon={<FileQuestion className="h-6 w-6 text-gray-400" />}
+              icon={<FileQuestion className="h-4 w-4 text-gray-400" />}
             />
           </div>
         </section>
@@ -167,27 +216,51 @@ export default function RecruitmentDetails() {
               Activity Log
             </h2>
             <div className="space-y-4">
-              {jobRequest.activityLog?.map((activity, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="flex-shrink-0 pt-0.5">
-                    {activity.type === 'approved' ||
-                    activity.type === 'created' ||
-                    activity.type === 'submitted' ? (
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <div className="h-5 w-5 rounded-full border-2 border-gray-300"></div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {activity.title}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {activity.user} • {activity.date}, {activity.time}
-                    </p>
-                  </div>
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 pt-0.5">
+                  <CheckCircleIcon className="h-5 w-5 text-green-500" />
                 </div>
-              ))}
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Requisition Created
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    by {jobRequest.user || 'N/A'} •{' '}
+                    {formatDate(jobRequest.createdAt)},
+                    {formatTime(jobRequest.createdAt)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 pt-0.5">
+                  <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Submitted For Approval
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    by {jobRequest.user || 'N/A'} •{' '}
+                    {formatDate(jobRequest.createdAt)},
+                    {formatTime(jobRequest.createdAt)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-5 w-5 rounded-full border-2 border-gray-300"></div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Approved</p>
+                  <p className="text-xs text-gray-500">
+                    by {jobRequest.user || 'N/A'} •{' '}
+                    {formatDate(jobRequest.createdAt)},
+                    {formatTime(jobRequest.createdAt)}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 

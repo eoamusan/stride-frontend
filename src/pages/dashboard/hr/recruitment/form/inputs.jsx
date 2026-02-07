@@ -86,6 +86,7 @@ export function TextAreaInput({
   value,
   onChange,
   textLength,
+  maxLength = 200,
 }) {
   return (
     <div className="space-y-2">
@@ -94,12 +95,14 @@ export function TextAreaInput({
         name={name}
         placeholder={placeholder}
         rows="4"
-        maxLength="200"
+        maxLength={maxLength}
         className="w-full resize-none rounded-lg border border-gray-200 px-4 py-2.5 focus:ring-2 focus:ring-purple-600 focus:outline-none"
         value={value}
         onChange={onChange}
       ></textarea>
-      <div className="text-right text-xs text-gray-400">{textLength}/200</div>
+      <div className="text-right text-xs text-gray-400">
+        {textLength}/{maxLength}
+      </div>
     </div>
   );
 }
