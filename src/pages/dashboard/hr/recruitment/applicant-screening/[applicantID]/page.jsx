@@ -5,31 +5,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { dummyJobRequests } from '../../job-requests';
 import {
   ArrowLeftIcon,
-  BriefcaseIcon,
-  BuildingIcon,
-  CalendarIcon,
-  CheckCircleIcon,
-  DownloadIcon,
-  ExternalLinkIcon,
-  GraduationCapIcon,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  Circle,
+  LinkIcon,
   MailIcon,
   MapPinIcon,
-  NotebookPen,
   PhoneIcon,
-  XCircleIcon,
+  User,
 } from 'lucide-react';
 
 export default function ApplicantDetails() {
   const navigate = useNavigate();
   const { applicantID } = useParams();
-  console.log('Applicant ID from URL:', applicantID);
 
   // Find applicant and associated job
   let applicant = null;
   let jobData = null;
 
   for (const job of dummyJobRequests) {
-    // Compare as strings to avoid type mismatches (e.g. "1" vs 1)
     const foundApplicant = job.applicants?.find(
       (a) => String(a.id) === String(applicantID)
     );
@@ -65,288 +60,344 @@ export default function ApplicantDetails() {
     ? applicant.personalInfo[0]
     : applicant.personalInfo || {};
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'approved':
-      case 'hired':
-        return 'bg-green-100 text-green-700';
-      case 'rejected':
-        return 'bg-red-100 text-red-700';
-      case 'interviewing':
-        return 'bg-purple-100 text-purple-700';
-      case 'shortlisted':
-        return 'bg-blue-100 text-blue-700';
-      default:
-        return 'bg-yellow-100 text-yellow-700';
-    }
+  // Timeline Steps matching the image "Activity Timeline"
+  const timelineSteps = [
+    {
+      label: 'Under Review',
+      status: 'done',
+      date: 'May 12, 2024',
+      time: '10:30 AM',
+    },
+    {
+      label: 'Shortlisted',
+      status: 'done',
+      date: 'May 12, 2024',
+      time: '10:30 AM',
+    },
+    {
+      label: 'Interviewing',
+      status: 'current',
+      date: 'May 12, 2024',
+      time: '10:30 AM',
+    },
+    { label: 'Approved', status: 'pending', date: 'Pending' },
+    { label: 'Offer Sent', status: 'pending', date: 'Pending' },
+    { label: 'Offer Accepted', status: 'pending', date: 'Pending' },
+  ];
+
+  // Helper function to render step icon based on status
+  const StepIcon = ({ status }) => {
+    if (status === 'done')
+      return (
+        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-green-500 bg-green-500 text-white shadow-sm">
+          <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+        </div>
+      );
+    if (status === 'current')
+      return (
+        <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-green-500 bg-white">
+          <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+        </div>
+      );
+    return (
+      <div className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white">
+        <Circle className="h-3.5 w-3.5 fill-gray-100 text-gray-300" />
+      </div>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="mx-auto max-w-full">
-        {/* Main Content */}
-        <main className="grid gap-6 md:gap-8 lg:grid-cols-3">
-          {/* Header with back button and title */}
-          <nav className="flex items-center gap-4 lg:col-span-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full"
-              onClick={() =>
-                navigate('/dashboard/hr/recruitment/applicant-screening')
-              }
-            >
-              <ArrowLeftIcon className="h-5 w-5" />
-            </Button>
-            <p className="text-2xl font-bold text-gray-900">
-              Applicant Details
-            </p>
-          </nav>
+    <div className="mx-auto min-h-screen max-w-full  p-6 font-sans text-gray-900">
+      {/* Main Content */}
+      <div className="space-y-8">
+        {/* Navigation */}
+        <nav className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="-ml-2 h-8 w-8 rounded-full"
+            onClick={() =>
+              navigate('/dashboard/hr/recruitment/applicant-screening')
+            }
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </Button>
+          <span className="text-xl font-bold text-gray-900">
+            Applicant Details
+          </span>
+        </nav>
 
-          {/* Applicant Header Card */}
-          <div className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm md:flex-row lg:col-span-3">
-            <div className="flex w-full items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 text-2xl font-bold text-blue-600 md:h-24 md:w-24">
+        {/* Header Section */}
+        <header className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
+          <div className="flex w-full max-w-4xl items-start gap-6">
+            {/* Large Avatar */}
+            <div className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-purple-100 shadow-sm">
+              <span className="text-3xl font-bold text-purple-600">
                 {applicant.name
                   .split(' ')
                   .map((n) => n[0])
                   .join('')}
-              </div>
-              <div className="flex-1">
-                <h1 className="text-xl font-bold text-gray-900">
-                  {applicant.name}
-                </h1>
-                <p className="text-sm text-gray-500">{applicant.id}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <BriefcaseIcon className="h-4 w-4" />
-                    <span>
-                      Applied for{' '}
-                      <span className="font-medium text-gray-900">
-                        {jobData?.title}
-                      </span>
+              </span>
+            </div>
+
+            {/* Header Info */}
+            <div className="space-y-1 pt-2">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {applicant.name}
+              </h1>
+              <p className="text-sm font-semibold text-gray-600">
+                {jobData?.title || 'Marketing Specialist'}
+              </p>
+              <p className="max-w-3xl pt-2 text-xs leading-relaxed text-gray-500">
+                Detail-oriented {jobData?.title || 'Specialist'} experienced in
+                digital marketing, content strategy, and analytics-driven
+                decision-making. Adept at managing campaigns across social media
+                and online platforms while aligning marketing efforts with
+                overall business objectives.
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex min-w-max flex-col items-end gap-3 pt-2">
+            {/* Review Pill */}
+            <Badge className="rounded-full border-none bg-[#FFF7ED] px-4 py-1.5 text-xs font-medium text-[#EA580C] hover:bg-[#FFF7ED]">
+              Review
+            </Badge>
+            {/* Schedule Button */}
+            <Button className="flex items-center gap-2 rounded-lg bg-[#3300C9] px-6 py-6 text-sm font-semibold text-white shadow-md transition-all hover:bg-[#2a00a8]">
+              <Calendar className="h-4 w-4" />
+              Schedule Interview
+            </Button>
+          </div>
+        </header>
+
+        {/* 2-Column Grid */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          {/* LEFT COLUMN */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* Personal Information */}
+            <Card className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+              <CardHeader className="border-b border-gray-50 px-8 py-6">
+                <CardTitle className="text-base font-bold text-gray-900">
+                  Personal Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 gap-x-12 gap-y-8 p-8 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium tracking-wide text-gray-400 uppercase">
+                    Name
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <User className="h-5 w-5 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {applicant.name}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <CalendarIcon className="h-4 w-4" />
-                    <span>Applied {applicant.date}</span>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium tracking-wide text-gray-400 uppercase">
+                    Phone
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <PhoneIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {personalInfo.phone || '+234 90 5067 8069'}
+                    </span>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="flex w-full flex-col items-end gap-3 md:w-auto">
-              <Badge className={getStatusColor(applicant.status)}>
-                {applicant.status}
-              </Badge>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <NotebookPen className="h-4 w-4" />
-                  Notes
-                </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="bg-[#3300C9] text-white hover:bg-[#3300C9]/90"
-                >
-                  Schedule Interview
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Left Column - Main Info */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Contact Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-center gap-3 rounded-lg border p-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-                    <MailIcon className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Email Address</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {personalInfo.email || 'N/A'}
-                    </p>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium tracking-wide text-gray-400 uppercase">
+                    Email Address
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <MailIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {personalInfo.email || 'olafemijohnson23@gmail.com'}
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 rounded-lg border p-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-                    <PhoneIcon className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Phone Number</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {personalInfo.phone || 'N/A'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 rounded-lg border p-3 sm:col-span-2">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-                    <MapPinIcon className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Location</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {personalInfo.location || 'N/A'}
-                    </p>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium tracking-wide text-gray-400 uppercase">
+                    Location
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <MapPinIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {personalInfo.location || 'Lagos, Nigeria'}
+                    </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Experience */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Experience</CardTitle>
+            {/* Job Experience */}
+            <Card className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+              <CardHeader className="border-b border-gray-50 px-8 py-6">
+                <CardTitle className="text-base font-bold text-gray-900">
+                  Job Experience and Qualifications
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {applicant.jobExperience?.length > 0 ? (
-                  applicant.jobExperience.map((exp, index) => (
-                    <div key={index} className="flex gap-4">
-                      <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-50">
-                        <BuildingIcon className="h-5 w-5 text-blue-600" />
-                      </div>
+              <CardContent className="space-y-10 p-8">
+                {/* Static Content replicating image perfectly */}
+
+                {/* Item 1 - Blue Icon */}
+                <div className="flex gap-5">
+                  <div className="shrink-0 pt-1">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 shadow-sm">
+                      <Briefcase className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-semibold text-gray-900">
-                          {exp.title}
+                        <h3 className="text-sm font-bold text-gray-900">
+                          Marketing Lead
                         </h3>
-                        <p className="text-sm font-medium text-gray-700">
-                          {exp.role}
-                        </p>
-                        <p className="text-xs text-gray-500">{exp.date}</p>
-                        <p className="mt-2 text-sm text-gray-600">
-                          {exp.description}
-                        </p>
+                        <p className="text-xs text-gray-500">Bubbl HQ</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-gray-900" />
+                        <span>January 2020 - March 2024</span>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No experience listed.</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Education */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Education</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {applicant.qualifications?.length > 0 ? (
-                  applicant.qualifications.map((edu, index) => (
-                    <div key={index} className="flex gap-4">
-                      <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-purple-50">
-                        <GraduationCapIcon className="h-5 w-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">
-                          {edu.title}
-                        </h3>
-                        <p className="text-sm font-medium text-gray-700">
-                          {edu.role}
-                        </p>
-                        <p className="text-xs text-gray-500">{edu.date}</p>
-                        <p className="mt-2 text-sm text-gray-600">
-                          {edu.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No education listed.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Sidebar */}
-          <div className="space-y-6 lg:col-span-1">
-            {/* Documents */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Documents</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {applicant.attachment ? (
-                  <div className="flex items-center justify-between rounded-lg border p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600">
-                        <span className="text-xs font-bold">PDF</span>
-                      </div>
-                      <div className="overflow-hidden">
-                        <p className="truncate text-sm font-medium text-gray-900">
-                          {applicant.attachment.name}
-                        </p>
-                        <p className="text-xs text-gray-500">Resume</p>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="icon">
-                      <DownloadIcon className="h-4 w-4 text-gray-500" />
-                    </Button>
+                    <p className="max-w-2xl text-xs leading-relaxed text-gray-500">
+                      Led marketing strategy and execution at Bubbl HQ,
+                      overseeing brand positioning, campaign planning, and
+                      audience growth. Drove engagement through content
+                      strategy, digital campaigns, and data-informed
+                      decision-making while aligning marketing efforts with
+                      business goals.
+                    </p>
                   </div>
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    No documents attached.
-                  </p>
-                )}
+                </div>
+
+                {/* Item 2 - Teal Icon */}
+                <div className="flex gap-5">
+                  <div className="shrink-0 pt-1">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0D9488] shadow-sm">
+                      <Briefcase className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">
+                          Marketing Lead
+                        </h3>
+                        <p className="text-xs text-gray-500">Bubbl HQ</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-gray-900" />
+                        <span>January 2020 - March 2024</span>
+                      </div>
+                    </div>
+                    <p className="max-w-2xl text-xs leading-relaxed text-gray-500">
+                      Led marketing strategy and execution at Bubbl HQ,
+                      overseeing brand positioning, campaign planning, and
+                      audience growth. Drove engagement through content
+                      strategy, digital campaigns, and data-informed
+                      decision-making while aligning marketing efforts with
+                      business goals.
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
             {/* Links */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Links</CardTitle>
+            <Card className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+              <CardHeader className="border-b border-gray-50 px-8 py-6">
+                <CardTitle className="text-base font-bold text-gray-900">
+                  Links
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {applicant.links?.length > 0 ? (
-                  applicant.links.map((link, index) => (
-                    <a
-                      key={index}
-                      href={link.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between rounded-lg border p-3 hover:bg-gray-50"
-                    >
-                      <span className="text-sm font-medium text-gray-700">
-                        {link.title}
-                      </span>
-                      <ExternalLinkIcon className="h-4 w-4 text-gray-400" />
-                    </a>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No links provided.</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-2 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
-                >
-                  <CheckCircleIcon className="h-4 w-4" />
-                  Approve Application
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-2 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
-                >
-                  <XCircleIcon className="h-4 w-4" />
-                  Reject Application
-                </Button>
+              <CardContent className="grid grid-cols-1 gap-x-12 gap-y-8 p-8 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium tracking-wide text-gray-400 uppercase">
+                    LinkedIn Profile
+                  </label>
+                  <a
+                    href="#"
+                    className="flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
+                  >
+                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                    {applicant.name || 'Femilare Oladimeji Johnson'}
+                  </a>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium tracking-wide text-gray-400 uppercase">
+                    Portfolio/Website
+                  </label>
+                  <a
+                    href="#"
+                    className="flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
+                  >
+                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                    {applicant.name || 'Femilare Oladimeji Johnson'}
+                  </a>
+                </div>
               </CardContent>
             </Card>
           </div>
-        </main>
+
+          {/* RIGHT COLUMN */}
+          <div className="space-y-6 lg:col-span-1">
+            {/* Activity Timeline */}
+            <Card className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+              <CardHeader className="border-b border-gray-50 px-8 py-6">
+                <CardTitle className="text-base font-bold text-gray-900">
+                  Activity Timeline
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8">
+                <div className="relative my-2 ml-4 space-y-12 border-l-2 border-dashed border-gray-200 pb-2 pl-10">
+                  {timelineSteps.map((step, idx) => (
+                    <div key={idx} className="relative">
+                      {/* Icon */}
+                      <div className="absolute top-0 -left-[54px] bg-white py-1">
+                        <StepIcon status={step.status} />
+                      </div>
+
+                      {/* Text */}
+                      <div className="flex items-start justify-between gap-4">
+                        <span
+                          className={`text-sm font-medium ${step.status === 'done' ? 'text-gray-900' : 'text-gray-500'}`}
+                        >
+                          {step.label}
+                        </span>
+                        <div className="shrink-0 text-right">
+                          <div className="text-[10px] font-medium text-gray-500">
+                            {step.date}
+                          </div>
+                          {step.time && (
+                            <div className="text-[10px] text-gray-400">
+                              {step.time}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Offer Letter */}
+            <Card className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+              <CardHeader className="border-b border-gray-50 px-8 py-6">
+                <CardTitle className="text-base font-bold text-gray-900">
+                  Offer Letter
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex justify-center p-8 py-10">
+                <div className="w-full rounded-lg border border-gray-100 bg-gray-50 py-3 text-center text-sm text-gray-500">
+                  No offer yet
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
