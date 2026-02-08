@@ -6,7 +6,6 @@ import Header from '@/components/dashboard/hr/header';
 import ExportIcon from '@/assets/icons/export.svg';
 import RefreshIcon from '@/assets/icons/refresh-circle.svg';
 import LockIcon from '@/assets/icons/lock.svg';
-import ApproveIcon from '@/assets/icons/approve.svg';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { Card } from '@/components/ui/card';
 import ReviewTable from './reviewTable';
@@ -14,6 +13,7 @@ import { useModalStore } from '@/stores/modal-store';
 import AlertModal from '@/components/customs/alertModal';
 import PayrollDetail from './payrollDetails/payrollDetails';
 import BlueLockIcon from '@/assets/icons/blue-lock.svg';
+import DocumentIcon from '@/assets/icons/document-text.svg';
 
 export default function Review() {
   const { openModal, closeModal, modals } = useModalStore();
@@ -71,22 +71,35 @@ export default function Review() {
           Export Report
         </CustomButton>
 
-        <CustomButton
-          variant="outline"
-          className="w-full rounded-xl bg-transparent py-6 text-sm text-gray-500 md:w-auto"
+        {!isFrozen && (
+          <CustomButton
+            variant="outline"
+            className="w-full rounded-xl bg-transparent py-6 text-sm text-gray-500 md:w-auto"
 
-          // onClick={() => handleOpenModal('addComponent')}
-        >
-          <img src={RefreshIcon} alt="re-calculate" className="mr-1" />
-          Recalculate
-        </CustomButton>
+            // onClick={() => handleOpenModal('addComponent')}
+          >
+            <img src={RefreshIcon} alt="re-calculate" className="mr-1" />
+            Recalculate
+          </CustomButton>
+        )}
+
+        {isFrozen && (
+          <CustomButton
+            className="w-full rounded-xl py-6 text-sm md:w-auto"
+            disabled={isFrozen}
+            onClick={handleFreezePayroll}
+          >
+            <img src={DocumentIcon} alt="queue payroll" className="mr-1" />
+            Queue Payroll
+          </CustomButton>
+        )}
 
         <CustomButton
           className="w-full rounded-xl py-6 text-sm md:w-auto"
           disabled={isFrozen}
           onClick={handleFreezePayroll}
         >
-          <img src={LockIcon} alt="re-calculate" className="mr-1" />
+          <img src={LockIcon} alt="approve and freeze" className="mr-1" />
           {isFrozen ? 'Approved & Frozen' : 'Approve & Freeze'}
         </CustomButton>
       </Header>

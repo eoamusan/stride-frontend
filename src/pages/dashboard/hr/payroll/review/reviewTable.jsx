@@ -91,7 +91,7 @@ const ReviewTable = ({ onAction, isFrozen = false }) => {
                 <img src={FilterIcon} alt="Filter Icon" />
               </Button>
             </DropdownMenuTrigger>
-
+             
             <DropdownMenuContent align="end">
               {filterData.map((filter) => (
                 <DropdownMenuItem
@@ -102,7 +102,8 @@ const ReviewTable = ({ onAction, isFrozen = false }) => {
                   <span className="flex items-center gap-2">
                     <span
                       className={`h-2 w-2 rounded-full ${filter.color}`}
-                    ></span>
+                    >
+                    </span>
                     {filter.label}
                   </span>
                 </DropdownMenuItem>
