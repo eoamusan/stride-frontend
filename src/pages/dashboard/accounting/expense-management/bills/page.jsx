@@ -5,7 +5,7 @@ import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import AccountingTable from '@/components/dashboard/accounting/table';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, PlusCircleIcon, SettingsIcon } from 'lucide-react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import BillService from '@/api/bills';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -19,6 +19,7 @@ export default function Bills() {
   const [editData, setEditData] = useState({});
   const [viewData, setViewData] = useState(null);
   const [bills, setBills] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [paginationData, setPaginationData] = useState({
     page: 1,
     totalPages: 1,
@@ -27,32 +28,34 @@ export default function Bills() {
   });
 
   // Fetch bills
-  useEffect(() => {
-    const fetchBills = async () => {
-      try {
-        const res = await BillService.fetch({ page: currentPage, perPage: 10 });
-        console.log('Bills data:', res.data);
-        const billsData = res.data?.data?.bill || [];
-        setBills(billsData);
-        setPaginationData({
-          page: res.data?.data?.page || 1,
-          totalPages: res.data?.data?.totalPages || 1,
-          totalDocs: res.data?.data?.totalDocs || 0,
-          limit: res.data?.data?.limit || 10,
-        });
-      } catch (error) {
-        console.error('Error fetching bills:', error);
-      }
-    };
-
-    fetchBills();
+  const fetchBills = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await BillService.fetch({ page: currentPage, perPage: 20 });
+      const billsData = res.data?.data?.bills || [];
+      setBills(billsData);
+      setPaginationData({
+        page: res.data?.data?.page || 1,
+        totalPages: res.data?.data?.totalPages || 1,
+        totalDocs: res.data?.data?.totalDocs || 0,
+        limit: res.data?.data?.limit || 20,
+      });
+    } catch (error) {
+      console.error('Error fetching bills:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [currentPage]);
+
+  useEffect(() => {
+    fetchBills();
+  }, [currentPage, fetchBills, openSuccessModal]);
 
   // Transform bills data for table
   const transformedBills = useMemo(() => {
     return bills.map((item) => {
-      const bill = item.bill;
-      const vendor = item.vendor;
+      const bill = item;
+      const vendor = item.vendorId;
       const vendorName =
         `${vendor?.firstName || ''} ${vendor?.lastName || ''}`.trim();
       const vendorInitials =
@@ -63,6 +66,7 @@ export default function Bills() {
         vendor: vendorName || 'N/A',
         vendorInitials: vendorInitials || 'NA',
         billNumber: bill.billNo,
+        attachment: bill.attachment || '',
         source: bill.source,
         billNo: bill.billNo,
         billDate: bill.billDate ? format(new Date(bill.billDate), 'PP') : 'N/A',
@@ -83,8 +87,15 @@ export default function Bills() {
   const billMetrics = useMemo(() => {
     const totalBills = paginationData.totalDocs;
     const totalSpent = bills.reduce((sum, item) => {
-      return sum + Number(item.bill?.billAmount || 0);
+      return sum + Number(item?.billAmount || 0);
     }, 0);
+
+    const pendingBills = bills.filter(
+      (bill) => bill.status === 'PENDING'
+    ).length;
+    const overdueBills = bills.filter(
+      (bill) => bill.status === 'PAST_DUE'
+    ).length;
 
     return [
       {
@@ -93,15 +104,16 @@ export default function Bills() {
       },
       {
         title: 'Pending',
-        value: totalBills, // All bills are pending by default
+        value: pendingBills,
       },
       {
         title: 'Overdue',
-        value: 0, // No overdue status in response
+        value: overdueBills,
       },
       {
         title: 'Total Spent',
-        value: `$${totalSpent.toLocaleString('en-US')}`,
+        value: totalSpent,
+        symbol: '$',
       },
     ];
   }, [bills, paginationData.totalDocs]);
@@ -130,28 +142,25 @@ export default function Bills() {
     switch (action) {
       case 'view': {
         // Find the full bill data from bills array
-        const fullBillData = bills.find(
-          (b) => (b.bill._id || b.bill.id) === item.id
-        );
+        const fullBillData = bills.find((b) => (b._id || b.id) === item.id);
         setViewData(fullBillData);
         setOpenViewBill(true);
         break;
       }
       case 'edit': {
         // Find the full bill data from bills array for editing
-        const fullBillData = bills.find(
-          (b) => (b.bill._id || b.bill.id) === item.id
-        );
+        const fullBillData = bills.find((b) => (b._id || b.id) === item.id);
         if (fullBillData) {
           setEditData({
-            billId: fullBillData.bill._id || fullBillData.bill.id,
-            vendorId: fullBillData.vendor?._id || fullBillData.vendor?.id,
-            source: fullBillData.bill.source,
-            billDate: fullBillData.bill.billDate,
-            billNo: fullBillData.bill.billNo,
-            dueDate: fullBillData.bill.dueDate,
-            category: fullBillData.bill.category,
-            billAmount: fullBillData.bill.billAmount,
+            billId: fullBillData._id || fullBillData.id,
+            vendorId: fullBillData.vendorId?._id || fullBillData.vendorId?.id,
+            source: fullBillData.source,
+            billDate: fullBillData.billDate,
+            billNo: fullBillData.billNo,
+            dueDate: fullBillData.dueDate,
+            category: fullBillData.category,
+            billAmount: fullBillData.billAmount,
+            attachment: fullBillData.attachment || '',
           });
         }
         setOpenAddBill(true);
@@ -167,14 +176,14 @@ export default function Bills() {
   const handleEditFromView = () => {
     if (viewData) {
       setEditData({
-        billId: viewData.bill._id || viewData.bill.id,
-        vendorId: viewData.vendor?._id || viewData.vendor?.id,
-        source: viewData.bill.source,
-        billDate: viewData.bill.billDate,
-        billNo: viewData.bill.billNo,
-        dueDate: viewData.bill.dueDate,
-        category: viewData.bill.category,
-        billAmount: viewData.bill.billAmount,
+        billId: viewData._id || viewData.id,
+        vendorId: viewData.vendorId?._id || viewData.vendorId?.id,
+        source: viewData.source,
+        billDate: viewData.billDate,
+        billNo: viewData.billNo,
+        dueDate: viewData.dueDate,
+        category: viewData.category,
+        billAmount: viewData.billAmount,
       });
       setOpenViewBill(false);
       setOpenAddBill(true);
@@ -190,7 +199,7 @@ export default function Bills() {
       });
       // Refresh bills list
       const res = await BillService.fetch({ page: currentPage, perPage: 10 });
-      const billsData = res.data?.data?.bill || [];
+      const billsData = res.data?.data?.bills || [];
       setBills(billsData);
       toast.success('Bill marked as paid successfully!');
     } catch (error) {
@@ -263,10 +272,11 @@ export default function Bills() {
           handleSelectAll={handleSelectAll}
           handleSelectItem={handleSelectItem}
           onRowAction={handleRowAction}
+          isLoading={isLoading}
           statusStyles={{
             Pending: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
             Paid: 'bg-green-100 text-green-800 hover:bg-green-100',
-            Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
+            Past_due: 'bg-red-100 text-red-800 hover:bg-red-100',
           }}
           dropdownActions={[
             { key: 'view', label: 'View Details' },
@@ -290,7 +300,10 @@ export default function Bills() {
           setOpenAddBill(open);
           if (!open) setEditData({});
         }}
-        onSuccess={() => setOpenSuccessModal(true)}
+        onSuccess={() => {
+          setOpenSuccessModal(true);
+          fetchBills(); // Refresh the table
+        }}
         initialData={editData}
       />
       <SuccessModal
@@ -312,24 +325,25 @@ export default function Bills() {
         billData={
           viewData
             ? {
-                id: viewData.bill._id || viewData.bill.id,
-                billNumber: viewData.bill.billNo,
+                id: viewData._id || viewData.id,
+                billNumber: viewData.billNo,
                 vendor:
-                  `${viewData.vendor?.firstName || ''} ${viewData.vendor?.lastName || ''}`.trim(),
-                amount: `$${Number(viewData.bill.billAmount).toLocaleString('en-US')}`,
-                dueDate: viewData.bill.dueDate
-                  ? format(new Date(viewData.bill.dueDate), 'PP')
+                  `${viewData.vendorId?.firstName || ''} ${viewData.vendorId?.lastName || ''}`.trim(),
+                amount: `$${Number(viewData.billAmount).toLocaleString('en-US')}`,
+                dueDate: viewData.dueDate
+                  ? format(new Date(viewData.dueDate), 'PP')
                   : 'N/A',
                 status: 'Pending',
                 invoiceReference: 'N/A',
                 paymentMethod: 'N/A',
-                billDate: viewData.bill.billDate
-                  ? format(new Date(viewData.bill.billDate), 'PP')
+                attachment: viewData.attachment || '',
+                billDate: viewData.billDate
+                  ? format(new Date(viewData.billDate), 'PP')
                   : 'N/A',
-                source: viewData.bill.source,
+                source: viewData.source,
                 category:
-                  viewData.bill.category?.charAt(0).toUpperCase() +
-                    viewData.bill.category?.slice(1) || 'N/A',
+                  viewData.category?.charAt(0).toUpperCase() +
+                    viewData.category?.slice(1) || 'N/A',
               }
             : undefined
         }

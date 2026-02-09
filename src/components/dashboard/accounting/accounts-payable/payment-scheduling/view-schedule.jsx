@@ -7,26 +7,40 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CalendarIcon, Building2Icon, CreditCardIcon } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
-  // Default data if none provided -- For test
-  const defaultData = {
-    id: 'Pay-001',
-    vendor: 'JJ Solutions',
-    amount: '$23,000',
-    status: 'Scheduled',
-    scheduledDate: '12/23/2025',
-    paymentId: 'PAY-001',
-    invoiceReference: 'INV-2025-002',
-    paymentMethod: 'Bank Transfer',
-    vendorName: 'JJ Solution',
-    timeline: {
-      status: 'Payment Scheduled',
-      description: 'Created for processing on 12/23/2025',
-    },
-  };
+  if (!paymentData) return null;
 
-  const data = paymentData || defaultData;
+  // Transform API data for display
+  const vendor = paymentData.vendorId;
+  const vendorName =
+    `${vendor?.firstName || ''} ${vendor?.lastName || ''}`.trim() || 'N/A';
+  const invoiceReference = paymentData.bill?.billNo || '';
+  const formattedAmount = `$${Number(paymentData.amount).toLocaleString('en-US')}`;
+  const scheduledDate = paymentData.scheduledDate
+    ? format(new Date(paymentData.scheduledDate), 'M/d/yyyy')
+    : 'N/A';
+  const createdDate = paymentData.createdAt
+    ? format(new Date(paymentData.createdAt), 'MMM d, yyyy h:mm a')
+    : 'N/A';
+  const paymentMethod =
+    paymentData.paymentMethod?.charAt(0).toUpperCase() +
+      paymentData.paymentMethod?.slice(1) || 'N/A';
+
+  // Determine status display
+  const today = new Date();
+  const scheduled = new Date(paymentData.scheduledDate);
+  let statusDisplay = 'Pending';
+  let statusColor = 'bg-orange-100 text-orange-800';
+
+  if (paymentData.status === 'PENDING' && scheduled < today) {
+    statusDisplay = 'Overdue';
+    statusColor = 'bg-red-100 text-red-800';
+  } else if (paymentData.status === 'PENDING') {
+    statusDisplay = 'Pending';
+    statusColor = 'bg-blue-100 text-blue-800';
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -53,33 +67,33 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
                 </div>
                 <div>
                   <h2 className="text-primary text-base font-semibold">
-                    {data.id}
+                    {/* {paymentData._id || paymentData.id} */}
                   </h2>
                   <p className="text-primary text-sm">
-                    Payment to {data.vendor}
+                    Payment to {vendorName}
                   </p>
                 </div>
               </div>
 
               <div>
                 <p className="text-primary text-base font-semibold">Amount</p>
-                <p className="text-primary text-sm">{data.amount}</p>
+                <p className="text-primary text-sm">{formattedAmount}</p>
               </div>
             </div>
 
             <div className="space-y-8 text-right">
               <Badge
                 variant="secondary"
-                className="bg-primary/20 text-primary rounded-xl px-4 py-2 text-sm font-semibold"
+                className={`${statusColor} rounded-xl px-4 py-2 text-sm font-semibold`}
               >
-                {data.status}
+                {statusDisplay}
               </Badge>
 
               <div>
                 <p className="text-primary text-base font-semibold">
                   Scheduled Date
                 </p>
-                <p className="text-primary text-sm">{data.scheduledDate}</p>
+                <p className="text-primary text-sm">{scheduledDate}</p>
               </div>
             </div>
           </div>
@@ -94,17 +108,24 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-2">
                   <span className="text-zinc-600">Payment ID:</span>
-                  <span className="font-medium">{data.paymentId}</span>
+                  <span className="font-medium">{'N/A'}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-2">
                   <span className="text-zinc-600">Invoice Reference:</span>
-                  <span className="font-medium">{data.invoiceReference}</span>
+                  <span className="font-medium">{invoiceReference}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-2">
                   <span className="text-zinc-600">Payment Method:</span>
-                  <span className="font-medium">{data.paymentMethod}</span>
+                  <span className="font-medium">{paymentMethod}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-zinc-600">Priority:</span>
+                  <span className="font-medium capitalize">
+                    {paymentData.priority || 'N/A'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -115,22 +136,29 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-2">
                   <span className="text-zinc-600">Vendor Name:</span>
-                  <span className="font-medium">{data.vendorName}</span>
+                  <span className="font-medium">{vendorName}</span>
                 </div>
+
+                {vendor?.contact?.email && (
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-zinc-600">Email:</span>
+                    <span className="font-medium">{vendor.contact.email}</span>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between py-2">
                   <span className="text-zinc-600">Payment Status:</span>
                   <Badge
                     variant="secondary"
-                    className="bg-primary/20 text-primary rounded-xl px-4 py-2 text-sm font-semibold"
+                    className={`${statusColor} rounded-xl px-4 py-2 text-sm font-semibold`}
                   >
-                    {data.status}
+                    {statusDisplay}
                   </Badge>
                 </div>
 
                 <div className="flex items-center justify-between py-2">
                   <span className="text-zinc-600">Scheduled Date:</span>
-                  <span className="font-medium">{data.scheduledDate}</span>
+                  <span className="font-medium">{scheduledDate}</span>
                 </div>
               </div>
             </div>
@@ -144,13 +172,34 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
                 <CalendarIcon className="text-primary size-4" />
               </div>
               <div>
-                <h4 className="font-medium">{data.timeline.status}</h4>
+                <h4 className="font-medium">Payment {statusDisplay}</h4>
                 <p className="text-sm text-zinc-600">
-                  {data.timeline.description}
+                  Created on {createdDate} for processing on {scheduledDate}
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Notes Section */}
+          {paymentData.notes && (
+            <div className="mt-4">
+              <h3 className="mb-4 text-lg font-semibold">Notes</h3>
+              <div className="rounded-lg bg-gray-50 p-4">
+                <p className="text-sm text-zinc-700">{paymentData.notes}</p>
+              </div>
+            </div>
+          )}
+
+          {paymentData.description && (
+            <div className="mt-4">
+              <h3 className="mb-4 text-lg font-semibold">Description</h3>
+              <div className="rounded-lg bg-gray-50 p-4">
+                <p className="text-sm text-zinc-700">
+                  {paymentData.description}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer Buttons */}
@@ -158,19 +207,39 @@ export default function ViewScheduleModal({ open, onOpenChange, paymentData }) {
           <Button
             variant="outline"
             onClick={() => onOpenChange?.(false)}
-            className="h-10 min-w-[147px] rounded-2xl text-sm"
+            className="h-10 min-w-36.75 rounded-2xl text-sm"
           >
             Close
           </Button>
-          <Button
-            variant="outline"
-            className="h-10 min-w-[147px] rounded-2xl text-sm"
-          >
-            Execute Now
-          </Button>
-          <Button className="h-10 min-w-[147px] rounded-2xl text-sm">
-            View Invoice
-          </Button>
+          {paymentData.status === 'PENDING' && (
+            <Button
+              variant="outline"
+              className="h-10 min-w-36.75 rounded-2xl text-sm"
+              onClick={() => {
+                // TODO: Implement execute now functionality
+                console.log(
+                  'Execute payment:',
+                  paymentData._id || paymentData.id
+                );
+              }}
+            >
+              Execute Now
+            </Button>
+          )}
+          {paymentData.bill && (
+            <Button
+              className="h-10 min-w-36.75 rounded-2xl text-sm"
+              onClick={() => {
+                // TODO: Implement view invoice functionality
+                console.log(
+                  'View invoice:',
+                  paymentData.bill?._id || paymentData.invoiceId
+                );
+              }}
+            >
+              View Invoice
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

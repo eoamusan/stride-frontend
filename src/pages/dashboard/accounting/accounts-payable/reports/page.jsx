@@ -71,7 +71,7 @@ export default function Reports() {
               />
             </PopoverContent>
           </Popover>
-          <Button className={'h-10 min-w-[104px] rounded-2xl text-sm'}>
+          <Button className={'h-10 min-w-26 rounded-2xl text-sm'}>
             Export
           </Button>
         </div>

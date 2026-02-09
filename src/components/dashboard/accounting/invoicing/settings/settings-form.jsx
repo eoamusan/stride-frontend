@@ -891,7 +891,7 @@ export default function SettingsForm({ businessId, initialData }) {
             {/* Upload Signature Section */}
             <div className="w-full max-w-md space-y-4">
               <FormLabel>Or Upload Signature</FormLabel>
-              <div className="border-muted-foreground/25 flex h-[198px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-black/2 p-8">
+              <div className="border-muted-foreground/25 flex h-49.5 flex-col items-center justify-center rounded-lg border-2 border-dashed bg-black/2 p-8">
                 <input
                   type="file"
                   accept="image/*"

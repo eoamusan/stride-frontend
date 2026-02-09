@@ -44,3 +44,36 @@ export const quickActions = [
     href: '#',
   },
 ];
+
+export const HRQuickActions = [
+  {
+    title: 'Add Employee',
+    description: 'Onboard new employee',
+    icon: profileIcon,
+    href: '#',
+  },
+  {
+    title: 'Create MRF',
+    description: 'Create new MRF form',
+    icon: addIcon,
+    href: '#',
+  },
+  {
+    title: 'Post new Job',
+    description: 'Post a new job opening',
+    icon: addIcon,
+    href: '#',
+  },
+  {
+    title: 'Approve Requests',
+    description: 'Review leave requests',
+    icon: receiptIcon,
+    href: '#',
+  },
+  {
+    title: 'Run Payroll',
+    description: 'Edit and review payroll',
+    icon: dollarIcon,
+    href: '#',
+  },
+];

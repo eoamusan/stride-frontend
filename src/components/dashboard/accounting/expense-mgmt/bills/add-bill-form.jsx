@@ -55,6 +55,7 @@ import BillService from '@/api/bills';
 import { useUserStore } from '@/stores/user-store';
 import toast from 'react-hot-toast';
 import AddVendorForm from '@/components/dashboard/accounting/accounts-payable/vendors/vendor-form';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 // Zod schema for form validation
 const billSchema = z.object({
@@ -69,6 +70,7 @@ const billSchema = z.object({
   }),
   category: z.string().min(1, 'Category is required'),
   billAmount: z.string().min(1, 'Bill amount is required'),
+  attachmentUrl: z.string().optional(),
 });
 
 export default function AddBillForm({
@@ -80,6 +82,9 @@ export default function AddBillForm({
   const [openVendorForm, setOpenVendorForm] = useState(false);
   const [vendors, setVendors] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const isEditing = Boolean(
     initialData && (initialData.billNo || initialData.billId)
   );
@@ -112,6 +117,7 @@ export default function AddBillForm({
       dueDate: null,
       category: '',
       billAmount: '',
+      attachmentUrl: '',
     },
   });
 
@@ -128,8 +134,13 @@ export default function AddBillForm({
         dueDate: initialData.dueDate ? new Date(initialData.dueDate) : null,
         category: initialData.category.toLowerCase() || '',
         billAmount: Number(initialData.billAmount) || '',
+        attachmentUrl: initialData.attachmentUrl || '',
       };
       reset(formData);
+      // Set file preview if editing and has attachment
+      if (initialData.attachmentUrl) {
+        setFilePreview(initialData.attachmentUrl);
+      }
     } else {
       // Reset to empty values when no initialData
       reset({
@@ -140,18 +151,64 @@ export default function AddBillForm({
         dueDate: null,
         category: '',
         billAmount: '',
+        attachmentUrl: '',
       });
+      setSelectedFile(null);
+      setFilePreview(null);
     }
   }, [initialData, reset]);
 
   const handleCancel = () => {
     reset();
+    setSelectedFile(null);
+    setFilePreview(null);
     onOpenChange?.(false);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    form.setValue('attachmentUrl', '');
   };
 
   const onFormSubmit = async (data) => {
     setIsSubmitting(true);
     try {
+      let attachmentUrl = data.attachmentUrl || '';
+
+      // Upload file to Cloudinary if a new file is selected
+      if (selectedFile) {
+        setIsUploading(true);
+        try {
+          const uploadResult = await uploadToCloudinary(selectedFile, {
+            folder: 'bills',
+            tags: ['bill-attachment', businessId],
+          });
+          console.log(uploadResult)
+          attachmentUrl = uploadResult.url;
+        } catch (uploadError) {
+          console.error('Error uploading file:', uploadError);
+          toast.error('Failed to upload file. Please try again.');
+          setIsUploading(false);
+          setIsSubmitting(false);
+          return;
+        }
+        setIsUploading(false);
+      }
+
       const payload = {
         vendorId: data.vendorId,
         source: data.source,
@@ -161,6 +218,7 @@ export default function AddBillForm({
         category: data.category,
         billAmount: data.billAmount,
         businessId: businessId,
+        attachment: attachmentUrl,
       };
 
       if (isEditing && initialData?.billId) {
@@ -174,6 +232,8 @@ export default function AddBillForm({
       }
 
       reset();
+      setSelectedFile(null);
+      setFilePreview(null);
       onOpenChange?.(false);
       if (onSuccess) {
         onSuccess();
@@ -522,6 +582,60 @@ export default function AddBillForm({
                     </FormItem>
                   )}
                 />
+
+                {/* Attachment */}
+                <FormField
+                  control={form.control}
+                  name="attachmentUrl"
+                  render={() => (
+                    <FormItem className="">
+                      <FormLabel>Attachment (Optional)</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          {!filePreview ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="file"
+                                accept="image/*,.pdf,.doc,.docx"
+                                onChange={handleFileChange}
+                                className="h-10"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+                              <div className="flex-1">
+                                {selectedFile ? (
+                                  <p className="text-sm text-gray-700">
+                                    {selectedFile.name}
+                                  </p>
+                                ) : (
+                                  <a
+                                    href={filePreview}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary text-sm hover:underline"
+                                  >
+                                    View Attachment
+                                  </a>
+                                )}
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleRemoveFile}
+                                className="h-8 w-8 p-0"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
 
@@ -539,13 +653,15 @@ export default function AddBillForm({
               <Button
                 type="submit"
                 className="h-10 min-w-35 text-sm"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
               >
-                {isSubmitting
-                  ? 'Saving...'
-                  : isEditing
-                    ? 'Update Bill'
-                    : 'Add Bill'}
+                {isUploading
+                  ? 'Uploading...'
+                  : isSubmitting
+                    ? 'Saving...'
+                    : isEditing
+                      ? 'Update Bill'
+                      : 'Add Bill'}
               </Button>
             </div>
           </form>

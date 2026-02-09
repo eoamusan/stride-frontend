@@ -540,7 +540,7 @@ export default function AddVendorForm({
               {currentStep > 1 && (
                 <Button
                   type="button"
-                  className="h-10 min-w-[113px]"
+                  className="h-10 min-w-28.25"
                   variant="outline"
                   onClick={handleBack}
                   disabled={isSubmitting}
@@ -550,7 +550,7 @@ export default function AddVendorForm({
               )}
               <Button
                 type="submit"
-                className="h-10 min-w-[156px]"
+                className="h-10 min-w-39"
                 disabled={isSubmitting}
               >
                 {isSubmitting

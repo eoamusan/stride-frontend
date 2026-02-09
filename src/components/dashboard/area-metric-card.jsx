@@ -41,11 +41,11 @@ export default function AreaMetricCard({
         <ResponsiveContainer
           width="100%"
           height="100%"
-          className={'max-h-[430px]'}
+          className={'max-h-107.5'}
         >
           <ChartContainer
             config={chartConfig}
-            className="relative h-full max-h-[430px] w-full"
+            className="relative h-full max-h-107.5 w-full"
           >
             <AreaChart
               data={chartData}
@@ -118,11 +118,11 @@ export default function AreaMetricCard({
         <ResponsiveContainer
           width="100%"
           height="100%"
-          className={'max-h-[430px]'}
+          className={'max-h-107.5'}
         >
           <ChartContainer
             config={chartConfig}
-            className="h-full max-h-[430px] w-full"
+            className="h-full max-h-107.5 w-full"
           >
             <AreaChart
               data={chartData}

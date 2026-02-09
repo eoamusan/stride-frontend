@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   ArrowLeftIcon,
   MailIcon,
@@ -26,13 +27,71 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import pdfIcon from '@/assets/icons/pdf-icon.svg';
 import placeholderImage from '@/assets/images/vendor-details-placeholder.png';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import VendorService from '@/api/vendor';
+import { format } from 'date-fns';
 
 export default function VendorDetails() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [vendorData, setVendorData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVendorDetails = async () => {
+      if (!id) return;
+
+      setIsLoading(true);
+      try {
+        const response = await VendorService.get({ id });
+        setVendorData(response.data.data);
+      } catch (error) {
+        console.error('Error fetching vendor details:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVendorDetails();
+  }, [id]);
+
   const handleGoBack = () => {
     navigate(-1, { replace: true });
   };
+
+  if (isLoading) {
+    return (
+      <div className="mx-4 my-4 min-h-screen rounded-xl bg-white p-6">
+        <div className="flex items-center justify-center py-12">
+          <p className="text-gray-500">Loading vendor details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!vendorData) {
+    return (
+      <div className="mx-4 my-4 min-h-screen rounded-xl bg-white p-6">
+        <div className="flex items-center justify-center py-12">
+          <p className="text-gray-500">Vendor not found</p>
+        </div>
+      </div>
+    );
+  }
+
+  const fullName =
+    `${vendorData.firstName || ''} ${vendorData.lastName || ''}`.trim();
+  const businessName =
+    vendorData.businessInformation?.businessName ||
+    fullName ||
+    'Unknown Vendor';
+  const category = vendorData.businessInformation?.category || 'N/A';
+  const initials = businessName
+    .split(' ')
+    .map((word) => word.charAt(0))
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 
   return (
     <div className="mx-4 my-4 min-h-screen rounded-xl bg-white p-6">
@@ -42,14 +101,12 @@ export default function VendorDetails() {
           <ArrowLeftIcon />
         </button>
         <header className="flex gap-2">
-          <img
-            src="https://placehold.co/32"
-            alt="Vendor Logo"
-            className="h-8 w-8 rounded-full"
-          />
+          <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-full font-semibold text-white">
+            {initials}
+          </div>
           <div>
-            <h1 className="text-2xl font-semibold">JJ Solutions</h1>
-            <p className="text-sm font-medium text-[#434343]">Marketing</p>
+            <h1 className="text-2xl font-semibold">{businessName}</h1>
+            <p className="text-sm font-medium text-[#434343]">{category}</p>
           </div>
         </header>
       </div>
@@ -68,8 +125,8 @@ export default function VendorDetails() {
                   <h3 className="mb-2 text-sm font-semibold">Email Address</h3>
                   <div className="flex items-center gap-3">
                     <MailIcon size={16} color="#434343" />
-                    <span className="text-sm font-medium">
-                      jjsolutions@gmail.com
+                    <span className="truncate text-sm font-medium">
+                      {vendorData.contact?.email || 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -79,7 +136,9 @@ export default function VendorDetails() {
                   <h3 className="mb-2 text-sm font-semibold">Name</h3>
                   <div className="flex items-center gap-3">
                     <UserIcon size={16} color="#434343" />
-                    <span className="text-sm font-medium">Adeniyi James</span>
+                    <span className="text-sm font-medium">
+                      {fullName || 'N/A'}
+                    </span>
                   </div>
                 </div>
 
@@ -89,8 +148,18 @@ export default function VendorDetails() {
                   <div className="flex items-start gap-3">
                     <MapPinIcon size={16} color="#434343" className="mt-1" />
                     <div className="text-sm font-medium">
-                      <p>2118 Thornridge Cir. Syracuse,</p>
-                      <p>Connecticut 35624</p>
+                      <p>{vendorData.contact?.address || 'N/A'}</p>
+                      {vendorData.contact?.city && (
+                        <p>
+                          {vendorData.contact.city}
+                          {vendorData.contact.state
+                            ? `, ${vendorData.contact.state}`
+                            : ''}
+                        </p>
+                      )}
+                      {vendorData.contact?.zipCode && (
+                        <p>{vendorData.contact.zipCode}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -103,7 +172,9 @@ export default function VendorDetails() {
                   <h3 className="mb-2 font-semibold">Phone Number</h3>
                   <div className="flex items-center gap-3">
                     <PhoneIcon size={16} color="#434343" />
-                    <span className="font-medium">+234706574230</span>
+                    <span className="font-medium">
+                      {vendorData.contact?.phoneNumber1 || 'N/A'}
+                    </span>
                   </div>
                 </div>
 
@@ -112,12 +183,18 @@ export default function VendorDetails() {
                   <h3 className="mb-2 font-semibold">Website</h3>
                   <div className="flex items-center gap-3">
                     <GlobeIcon size={16} color="#8979FF" />
-                    <a
-                      href="#"
-                      className="text-[#8979FF]hover:underline font-medium"
-                    >
-                      www.jjsolutions.com
-                    </a>
+                    {vendorData.contact?.websiteLink ? (
+                      <a
+                        href={vendorData.contact.websiteLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-[#8979FF] hover:underline"
+                      >
+                        {vendorData.contact.websiteLink}
+                      </a>
+                    ) : (
+                      <span className="font-medium">N/A</span>
+                    )}
                   </div>
                 </div>
 
@@ -126,203 +203,25 @@ export default function VendorDetails() {
                   <h3 className="mb-2 font-semibold">Date Added</h3>
                   <div className="flex items-center gap-3">
                     <CalendarIcon size={16} color="#434343" />
-                    <span className="font-medium">22-2-2025</span>
+                    <span className="font-medium">
+                      {vendorData.createdAt
+                        ? format(new Date(vendorData.createdAt), 'MMM dd, yyyy')
+                        : 'N/A'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Added by */}
+                {/* Nationality */}
                 <div>
-                  <h3 className="mb-2 font-semibold">Added by</h3>
+                  <h3 className="mb-2 font-semibold">Nationality</h3>
                   <div className="flex items-center gap-3">
                     <UserIcon size={16} color="#434343" />
-                    <span className="font-medium">John Adeniyi</span>
+                    <span className="font-medium">
+                      {vendorData.nationality || 'N/A'}
+                    </span>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-
-          {/* Financial Summary */}
-          <Card className="mt-6 p-4">
-            <h2 className="text-base font-semibold">Financial Summary</h2>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Left Column */}
-              <div className="space-y-4 text-[#434343]">
-                {/* Total Invoices */}
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold">Total Invoices</h3>
-                  <p className="font-semibold">12</p>
-                </div>
-
-                {/* Last Payment */}
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold">Last Payment</h3>
-                  <p className="text-sm font-medium">Jan-2-2025</p>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-4 text-sm text-[#434343]">
-                {/* Phone Number */}
-                <div>
-                  <h3 className="mb-2 font-semibold">Phone Number</h3>
-                  <p className="font-medium">+234706574230</p>
-                </div>
-
-                {/* Average Invoice */}
-                <div>
-                  <h3 className="mb-2 font-semibold">Average Invoice</h3>
-                  <p className="font-medium">$4,566</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Recent Invoices Table */}
-          <Card className="mt-6 p-4">
-            <h2 className="mb-6 text-base font-semibold">Recent Invoices</h2>
-
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-purple-50">
-                    <TableHead className="text-sm font-medium text-gray-600">
-                      INVOICE
-                    </TableHead>
-                    <TableHead className="text-sm font-medium text-gray-600">
-                      AMOUNT
-                    </TableHead>
-                    <TableHead className="text-sm font-medium text-gray-600">
-                      DATE
-                    </TableHead>
-                    <TableHead className="text-sm font-medium text-gray-600">
-                      Status
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="text-sm font-medium text-[#434343]">
-                      INV-2025-001
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      $2,334
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      Feb -12-2025
-                    </TableCell>
-                    <TableCell>
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                        Active
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-
-                  <TableRow>
-                    <TableCell className="text-sm font-medium text-[#434343]">
-                      INV-2025-001
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      $2,334
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      Feb -12-2025
-                    </TableCell>
-                    <TableCell>
-                      <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">
-                        Pending
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-
-                  <TableRow>
-                    <TableCell className="text-sm font-medium text-[#434343]">
-                      INV-2025-001
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      $2,334
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      Feb -12-2025
-                    </TableCell>
-                    <TableCell>
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                        Active
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-
-                  <TableRow>
-                    <TableCell className="text-sm font-medium text-[#434343]">
-                      INV-2025-001
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      $2,334
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      Feb -12-2025
-                    </TableCell>
-                    <TableCell>
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                        Active
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-
-                  <TableRow>
-                    <TableCell className="text-sm font-medium text-[#434343]">
-                      INV-2025-001
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      $2,334
-                    </TableCell>
-                    <TableCell className="text-sm text-[#434343]">
-                      Feb -12-2025
-                    </TableCell>
-                    <TableCell>
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                        Active
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Add Proper Pagination Here! */}
-            <div className="mt-6 flex items-center justify-between">
-              <Button variant="outline" size="sm" className="px-3">
-                <ArrowLeftIcon className="h-4 w-4" />
-              </Button>
-
-              <div className="flex items-center gap-1">
-                <Button variant="default" size="sm" className="h-8 w-8 p-0">
-                  1
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  2
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  3
-                </Button>
-                <span className="px-2 text-sm text-gray-500">...</span>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  8
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  9
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  10
-                </Button>
-              </div>
-
-              <Button variant="outline" size="sm" className="px-3">
-                <ArrowLeftIcon className="h-4 w-4 rotate-180" />
-              </Button>
             </div>
           </Card>
         </div>
@@ -358,7 +257,9 @@ export default function VendorDetails() {
                   <label className="mb-2 block text-sm font-semibold">
                     Tax ID
                   </label>
-                  <p className="text-sm font-medium">XX-XXXX</p>
+                  <p className="text-sm font-medium">
+                    {vendorData.businessInformation?.taxId || 'N/A'}
+                  </p>
                 </div>
 
                 {/* Status */}
@@ -366,28 +267,67 @@ export default function VendorDetails() {
                   <label className="mb-2 block text-sm font-semibold text-[#434343]">
                     Status
                   </label>
-                  <Badge className="bg-green-100 font-medium text-green-800 hover:bg-green-100">
-                    Active
+                  <Badge
+                    className={`font-medium ${
+                      vendorData.status === 'ACTIVE'
+                        ? 'bg-green-100 text-green-800 hover:bg-green-100'
+                        : vendorData.status === 'PENDING'
+                          ? 'bg-orange-100 text-orange-800 hover:bg-orange-100'
+                          : 'bg-red-100 text-red-800 hover:bg-red-100'
+                    }`}
+                  >
+                    {vendorData.status || 'N/A'}
                   </Badge>
+                </div>
+
+                {/* Registration Number */}
+                <div className="text-[#434343]">
+                  <label className="mb-2 block text-sm font-semibold">
+                    Registration Number
+                  </label>
+                  <p className="text-sm font-medium">
+                    {vendorData.businessInformation?.regNo || 'N/A'}
+                  </p>
                 </div>
               </div>
 
               {/* Right Column */}
               <div className="space-y-6 text-[#434343]">
-                {/* Payment Terms */}
+                {/* Type of Incorporation */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold">
-                    Payment Terms
+                    Type of Incorporation
                   </label>
-                  <p className="text-sm font-medium">2 days</p>
+                  <p className="text-sm font-medium">
+                    {vendorData.businessInformation?.typeOfInc || 'N/A'}
+                  </p>
                 </div>
 
-                {/* On-Time Rate */}
+                {/* Registration Date */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold">
-                    On-Time Rate
+                    Registration Date
                   </label>
-                  <p className="text-sm font-medium">2 days</p>
+                  <p className="text-sm font-medium">
+                    {vendorData.businessInformation?.regDate
+                      ? format(
+                          new Date(vendorData.businessInformation.regDate),
+                          'MMM dd, yyyy'
+                        )
+                      : 'N/A'}
+                  </p>
+                </div>
+
+                {/* Bank Details */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold">
+                    Bank Account
+                  </label>
+                  <p className="text-sm font-medium">
+                    {vendorData.bankDetails?.bankName || 'N/A'}
+                    {vendorData.bankDetails?.accountNumber &&
+                      ` - ${vendorData.bankDetails.accountNumber}`}
+                  </p>
                 </div>
               </div>
             </div>
@@ -402,54 +342,116 @@ export default function VendorDetails() {
             ></Textarea>
           </div>
 
-          {/* Rating */}
-          <div>
-            <h3 className="mt-6 text-sm font-semibold">Rating 4.5</h3>
-            <div className="mt-2 flex items-center gap-2">
-              <StarIcon size={16} fill="#FCEA2B" />
-              <StarIcon size={16} fill="#FCEA2B" />
-              <StarIcon size={16} fill="#FCEA2B" />
-              <StarIcon size={16} fill="#FCEA2B" />
-              <StarIcon size={16} />
-            </div>
-          </div>
-
           {/* Certificates */}
-          <div className="mt-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Tax Certificate */}
-              <div>
-                <h3 className="text-base font-semibold">Tax Certificate</h3>
-                <div className="mt-2 flex items-center justify-between rounded-xl border border-gray-200 p-2.5">
-                  <div className="flex items-center space-x-3">
-                    <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
-                    <span className="text-xs font-medium text-[#434343]">
-                      Tax Certificate.pdf
-                    </span>
+          {(vendorData.attachment?.tcc ||
+            vendorData.attachment?.ci ||
+            vendorData.attachment?.cl ||
+            vendorData.attachment?.vp) && (
+            <div className="mt-6">
+              <h3 className="mb-3 text-base font-semibold">Certificates</h3>
+              <div className="grid grid-cols-1 gap-4">
+                {/* Tax Certificate */}
+                {vendorData.attachment?.tcc && (
+                  <div>
+                    <h4 className="mb-2 text-sm font-semibold">
+                      Tax Clearance Certificate
+                    </h4>
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 p-2.5">
+                      <div className="flex items-center space-x-3">
+                        <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
+                        <span className="text-xs font-medium text-[#434343]">
+                          Tax Certificate
+                        </span>
+                      </div>
+                      <a
+                        href={vendorData.attachment.tcc}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <DownloadIcon size={16} />
+                      </a>
+                    </div>
                   </div>
-                  <button className="text-green-600 hover:text-green-700">
-                    <DownloadIcon size={16} />
-                  </button>
-                </div>
-              </div>
+                )}
 
-              {/* CAC Certificate */}
-              <div>
-                <h3 className="text-base font-semibold">CAC Certificate</h3>
-                <div className="mt-2 flex items-center justify-between rounded-xl border border-gray-200 p-2.5">
-                  <div className="flex items-center space-x-3">
-                    <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
-                    <span className="text-xs font-medium text-[#434343]">
-                      CAC Certificate.pdf
-                    </span>
+                {/* CAC Certificate */}
+                {vendorData.attachment?.ci && (
+                  <div>
+                    <h4 className="mb-2 text-sm font-semibold">
+                      Certificate of Incorporation
+                    </h4>
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 p-2.5">
+                      <div className="flex items-center space-x-3">
+                        <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
+                        <span className="text-xs font-medium text-[#434343]">
+                          CAC Certificate
+                        </span>
+                      </div>
+                      <a
+                        href={vendorData.attachment.ci}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <DownloadIcon size={16} />
+                      </a>
+                    </div>
                   </div>
-                  <button className="text-green-600 hover:text-green-700">
-                    <DownloadIcon size={16} />
-                  </button>
-                </div>
+                )}
+
+                {/* Company License */}
+                {vendorData.attachment?.cl && (
+                  <div>
+                    <h4 className="mb-2 text-sm font-semibold">
+                      Company License
+                    </h4>
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 p-2.5">
+                      <div className="flex items-center space-x-3">
+                        <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
+                        <span className="text-xs font-medium text-[#434343]">
+                          Company License
+                        </span>
+                      </div>
+                      <a
+                        href={vendorData.attachment.cl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <DownloadIcon size={16} />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Vendor Profile */}
+                {vendorData.attachment?.vp && (
+                  <div>
+                    <h4 className="mb-2 text-sm font-semibold">
+                      Vendor Profile
+                    </h4>
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 p-2.5">
+                      <div className="flex items-center space-x-3">
+                        <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
+                        <span className="text-xs font-medium text-[#434343]">
+                          Vendor Profile
+                        </span>
+                      </div>
+                      <a
+                        href={vendorData.attachment.vp}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <DownloadIcon size={16} />
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
 
           {/* Placeholder */}
           <div className="mt-6 h-fit w-full">
@@ -464,13 +466,13 @@ export default function VendorDetails() {
 
       <div className="mt-10 mb-4 flex justify-end gap-4">
         <Button
-          className={'h-10 w-[106px] text-sm'}
+          className={'h-10 w-26.5 text-sm'}
           variant={'outline'}
           onClick={handleGoBack}
         >
           Back
         </Button>
-        <Button className={'h-10 w-[130px] text-sm'}>
+        <Button className={'h-10 w-32.5 text-sm'}>
           <PencilLineIcon /> Edit Vendor
         </Button>
       </div>
