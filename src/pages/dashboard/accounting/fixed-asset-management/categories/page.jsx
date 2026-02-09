@@ -6,7 +6,7 @@ import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-re
 import { AppDialog } from '@/components/core/app-dialog';
 import CategoryForm from '@/components/dashboard/accounting/fixed-asset-management/categories/category-form';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
-import useCategories from '@/hooks/fixxed-asset-management/useCategories';
+import useCategories from '@/hooks/fixed-asset-management/useCategories';
 import toast from 'react-hot-toast';
 
 export default function FixedAssetMgtCategories() {

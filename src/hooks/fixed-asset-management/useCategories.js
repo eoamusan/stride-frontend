@@ -21,7 +21,6 @@ export default function useCategories() {
     setLoadingCategories(true);
     try {
       const response = await AssetCategoryService.fetch()
-      console.log('Fetched categories:', formatResponse(response.data.data.categories));
       setCategories(formatResponse(response.data.data.categories || []));
       setPaginationData(getPaginationData(response.data.data));
     } catch (error) {

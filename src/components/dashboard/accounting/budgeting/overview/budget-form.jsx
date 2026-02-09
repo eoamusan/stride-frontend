@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 import { zodResolver } from "@hookform/resolvers/zod"
-import { get, useForm } from "react-hook-form"
-import { useEffect, useRef, useState } from 'react'
+import { useForm } from "react-hook-form"
+import { useRef, useState } from 'react'
 import {
   Form,
   FormControl,
@@ -30,12 +30,14 @@ import { useUserStore } from "@/stores/user-store";
 import { Spinner } from "@/components/ui/spinner";
 import AttachBudgetUpload from "../shared/attach-budget-upload";
 import toast from "react-hot-toast";
-import { useSearchParams } from "react-router";
+import { useNavigate } from "react-router";
 
 
 const REQUIRED_HEADERS = ["Actual", "Budget", "Category", "Item"];
 
-export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
+export default function BudgetForm({ onCancel }) {
+
+  const navigate = useNavigate()
 
   const userStore = useUserStore()
   const { 
@@ -43,11 +45,8 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
     handleDownloadTemplate,
   } = useBudgeting()
 
-  const [, setSearchParams] = useSearchParams()
-
-  const [openCustomBudgetForm, setOpenCustomBudgetForm] = useState(false)
   const [budgetFile, setBudgetFile] = useState(null)
-  const [excelErrors, setExcelErrors] = useState([])
+  const [_excelErrors, setExcelErrors] = useState([])
   const [excelImportData, setExcelImportData] = useState([])
 
   
@@ -60,8 +59,7 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
     },
     mode: "onChange"
   })
-  const { handleSubmit, reset, control, formState } = form;
-  const { isValid, errors } = formState
+  const { handleSubmit, reset, control } = form;
 
   const onSubmit = async (values) => {
     // get select period (fiscal year) start and end dates
@@ -76,16 +74,11 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
       format: values?.budgetFormat,
       businessId: userStore.activeBusiness?._id,
       excelData: excelImportData,
+      budgetName: `Budget_${values?.period}_${values?.budgetType}`,
     };
 
     try {
-      setSearchParams(prev => {
-        const params = new URLSearchParams(prev);
-        const budgetName = `Budget_${values?.period}_${values?.budgetType}`;
-        params.set("budget", budgetName);
-        return params;
-      });
-      prepareCustomBudgetForm(budgetPayload)
+      navigate(`/dashboard/accounting/budgeting/${budgetPayload.budgetName}`, { state: { budgetPayload } })
     } catch (error) {
       console.error('Error creating budget:', error);
     }
@@ -289,13 +282,6 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
     }
   }
 
-  const handleCreateBudgetFromScratch = () => {
-    
-
-    setOpenCustomBudgetForm(true)
-    
-  }
-
   const removeAttachment = () => {
     setBudgetFile(null)
     setExcelErrors([])
@@ -387,7 +373,7 @@ export default function BudgetForm({ onCancel, prepareCustomBudgetForm }) {
 
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium">Available setup option</span>
-            <button type="button" className="flex flex-col items-center text-center text-[8pt] max-w-42 p-2 rounded-md border border-primary cursor-pointer" onClick={(e) => handleCreateBudgetFromScratch(e)}>
+            <button type="button" className="flex flex-col items-center text-center text-[8pt] max-w-42 p-2 rounded-md border border-primary cursor-pointer">
               <CircleDashed className="my-2" />
               <span className="font-bold">Custom Budgets</span>
               <span>Create a budget from scratch</span>

@@ -1,4 +1,5 @@
 import AssetService from "@/api/asset";
+import VendorService from "@/api/vendor";
 import { formatDate, getPaginationData } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
@@ -6,6 +7,9 @@ export default function useAssets() {
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [assets, setAssets] = useState([]);
   const [paginationData, setPaginationData] = useState({});
+  const [loadingVendors, setLoadingVendors] = useState(false);
+  const [loadingAssetDetails, setLoadingAssetDetails] = useState(false);
+  const [vendors, setVendors] = useState([]);
 
   const fetchAssets = useCallback(async () => {
 
@@ -27,16 +31,47 @@ export default function useAssets() {
       setLoadingAssets(false);
     }
   }, [])
-  
+
+  const fetchAssetById = async (id) => {
+    setLoadingAssetDetails(true);
+    try {
+      const response = await AssetService.get({id})
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching asset by ID:', error);
+      return null;
+    } finally {
+      setLoadingAssetDetails(false);
+    }
+  }
+
+  const fetchVendors = async () => {
+    setLoadingVendors(true);
+    try {
+      const res = await VendorService.fetch();
+      const vendorsData = res.data?.data?.vendors || [];
+      setVendors(vendorsData);
+    } catch (error) {
+      console.error('Error fetching vendors:', error);
+      setVendors([]);
+    } finally {
+      setLoadingVendors(false);
+    }
+  };
 
   useEffect(() => {
-    fetchAssets()
+    fetchAssets();
   }, [fetchAssets])
 
   return { 
     paginationData, 
     assets, 
     loadingAssets,
+    loadingVendors,
+    vendors,
+    loadingAssetDetails,
+    fetchAssetById,
+    fetchVendors,
     fetchAssets,
   }; 
 }

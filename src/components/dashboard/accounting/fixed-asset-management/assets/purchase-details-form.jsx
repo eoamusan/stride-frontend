@@ -12,60 +12,53 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import z from "zod";
+import AddVendorForm from "../../accounts-payable/vendors";
+import useAssets from "@/hooks/fixed-asset-management/useAssets";
 
 export default function PurchaseDetailsForm({ onBack, onNext, formValues }) {
-  console.log("formValues in purchase details form", formValues)
+  const [openVendorForm, setOpenVendorForm] = useState(false)
   const formSchema = z.object({
-      purchaseDate: z.date().min(1, "Purchase date is required"),
+      purchaseDate: z.date({required_error: "Purchase date is required"}),
       purchasePrice: z.coerce.number().min(1, "Purchase price is required"),
-      supplier: z.string({ message: 'Select a supplier'}),
+      supplier: z.string({ required_error: 'Select a supplier'}),
       pon: z.string().min(1, "Purchase order number is required"),
-      warrantyStartDate: z.date().min(1, "Warranty start date is required"),
-      warrantyEndDate: z.date().min(1, "Warranty end date is required"),
+      warrantyStartDate: z.date().nullable().refine((date) => date !== null, { message: "Warranty start date is required" }),
+      warrantyEndDate: z.date().nullable().refine((date) => date !== null, { message: "Warranty end date is required" }),
     })
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      purchaseDate: formValues.purchaseDate || null,
+      purchaseDate: formValues.purchaseDate ? new Date(formValues.purchaseDate) : null,
       pon: formValues.pon || '',
-      period: formValues.period || null,
       purchasePrice: formValues.purchasePrice || 0,
-      supplier: formValues.supplier || undefined,
-      purchaseOrderNumber: formValues.purchaseOrderNumber || '',
-      warrantyStartDate: formValues.warrantyStartDate || null,
-      warrantyEndDate: formValues.warrantyEndDate || null
+      supplier: formValues.supplier || '',
+      warrantyStartDate: formValues.warrantyStartDate ? new Date(formValues.warrantyStartDate) : null,
+      warrantyEndDate: formValues.warrantyEndDate ? new Date(formValues.warrantyEndDate) : null
     },
     mode: "onChange"
   })
+
   const { handleSubmit, control, formState } = form;
 
-  const { isValid } = formState
+  const { isValid, errors } = formState
   const [isLoading, setIsLoading] = useState(false)
+  const { vendors, fetchVendors, loadingVendors } = useAssets()
 
   const handleNext = async (values) => {
+    console.log(errors)
     if (!isValid) return
     try {
       setIsLoading(true)
       const payload = { ...values, assetId: formValues.item.asset?._id }
-      console.log(formValues)
       await AssetService.updatePurchaseInformation({ data: payload, id: formValues.item.purchaseDetails?._id })
       toast.success("Purchase Information saved successfully")
       onNext(values)
@@ -78,6 +71,10 @@ export default function PurchaseDetailsForm({ onBack, onNext, formValues }) {
     }
   }
 
+  useEffect(() => {
+    fetchVendors()
+  }, [])
+  
   return (
     <div>
       <Form {...form} >
@@ -143,27 +140,17 @@ export default function PurchaseDetailsForm({ onBack, onNext, formValues }) {
               <FormItem className="flex flex-col gap-3 items-baseline">
                 <FormLabel className="whitespace-nowrap min-w-25">Supplier</FormLabel>
                 <FormControl className="flex w-full">
-                  <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Supplier" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Vendors</SelectLabel>
-                          <SelectItem value="Jendol Superstores">Jendol Superstores</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    {/* <Combobox
-                        items={categories}
-                        value={field.value}
-                        onChange={(v) => form.setValue('category', v)}
-                        getValue={(item) => item._id}
-                        getLabel={(item) => item.categoryName}
-                        getSubLabel={(item) => item.code}
-                        onAddItem={() => setOpenCategoryForm(true)}
-                        addItemLabel='Add New Category'
-                      />  */}
+                    <Combobox
+                      loading={loadingVendors}
+                      items={vendors}
+                      value={field.value}
+                      onChange={(v) => form.setValue('supplier', v)}
+                      getValue={(item) => item._id}
+                      getLabel={(item) => `${item.firstName} ${item.lastName}`}
+                      getSubLabel={(item) => item.businessInformation?.businessName}
+                      onAddItem={() => setOpenVendorForm(true)}
+                      addItemLabel='Add New Vendor'
+                    /> 
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -282,6 +269,15 @@ export default function PurchaseDetailsForm({ onBack, onNext, formValues }) {
           
         </form>
       </Form>
+      <AddVendorForm
+        open={openVendorForm}
+        showSuccessModal={(newVendor) => {
+          toast.success('Vendor added successfully')
+          form.setValue('category', newVendor?._id || '')
+          setOpenVendorForm(false)
+        }}
+        onOpenChange={setOpenVendorForm}
+      />
     </div>
   );
 }

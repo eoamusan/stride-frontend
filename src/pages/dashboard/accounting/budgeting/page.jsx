@@ -1,24 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import AccountingTable from '@/components/dashboard/accounting/table';
-import BudgetCard from '@/components/dashboard/accounting/budgeting/overview/budget-card';
 import BudgetHeader from '@/components/dashboard/accounting/budgeting/shared/budget-header';
 import useBudgeting from '@/hooks/budgeting/useBudgeting';
-import { useSearchParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import SuccessModal from '@/components/dashboard/accounting/success-modal';
-import CustomBudgetForm from '@/components/dashboard/accounting/budgeting/overview/custom-budget-form';
-import { Bug } from 'lucide-react';
 import BudgetService from '@/api/budget';
 import { ControlledAlertDialog } from '@/components/dashboard/accounting/shared/alert-dialog';
 
 export default function Budgeting() {
 
-  const [searchParams, ] = useSearchParams()
+  const navigate = useNavigate()
   
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
-  const [ openBudgetForm, setOpenBudgetForm ] = useState(false)
-  const [showCustomBudgetForm, setShowCustomBudgetForm] = useState(false)
-  const [customBudgetFormValues, setCustomBudgetFormValues] = useState(null)
+  const [ openBudgetForm, _setOpenBudgetForm ] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState({visible: false, isCreate: true});
   const [openAlertDialog, setOpenAlertDialog] = useState(false);
   
@@ -93,34 +88,26 @@ export default function Budgeting() {
     { key: 'delete', label: 'Delete' },
   ];
 
-  const [, setSearchParams] = useSearchParams() 
+  // const [, setSearchParams] = useSearchParams() 
   const handleRowAction = (action, item) => {
     console.log(`Action ${action} on item:`, item);
 
     // Implement row action logic here
     switch (action) {
       case 'edit-budget':
-        setSearchParams(prev => {
-          const params = new URLSearchParams(prev);
+        {
           const budgetName = item.budgetName;
-          params.set("budget", budgetName);
-          return params;
-        });
-        setCustomBudgetFormValues(item);
-        setShowCustomBudgetForm(true);
-        break;
+          navigate(`/dashboard/accounting/budgeting/${budgetName}`, { state: { budgetPayload: item } }); // Navigate to budget details page
+          break;
+        }
       case 'duplicate':
-        { setSearchParams(prev => {
-          const params = new URLSearchParams(prev);
-          const budgetName = item.budgetName + ' Copy';
-          params.set("budget", budgetName);
-          return params;
-        });
+        {
         const copyItem = { ...item };
         delete copyItem.id; // Remove id to create a new budget
         delete copyItem._id;
-        setCustomBudgetFormValues(copyItem);
-        setShowCustomBudgetForm(true);
+        const budgetName = item.budgetName + '_Copy';
+        copyItem.budgetName = budgetName;
+        navigate(`/dashboard/accounting/budgeting/${budgetName}`, { state: { budgetPayload: copyItem } });
         break; }
       case 'archive':
         BudgetService.update({ data: { status: 'ARCHIVED' }, id: item._id }).then(() => {
@@ -154,36 +141,10 @@ export default function Budgeting() {
     deleteBudgets();
   }, [selectedItems, fetchBudgets]);
 
-  const handlePrepareBudgetForm = useCallback((payload) => {
-    console.log("Preparing custom budget form with payload: ", payload);
-    setOpenBudgetForm(false)
-    setShowCustomBudgetForm(true)
-    setCustomBudgetFormValues(payload)
-  }, []);
-
-  const handleOnCreateBudget = useCallback(() => {
-    setIsSuccessModalOpen({visible: true, isCreate: true})
-    fetchBudgets()
-  }, [fetchBudgets]);
-
-  const handleOnUpdateBudget = useCallback(() => {
-    setIsSuccessModalOpen({visible: true, isCreate: false})
-    fetchBudgets()
-  }, [fetchBudgets]);
-
-  useEffect(() => {
-    if (!searchParams.get("budget")) {
-      setShowCustomBudgetForm(false);
-      setCustomBudgetFormValues(null);
-    }
-  }, [searchParams]);
-
-
   return (
     <div className='my-4 min-h-screen'>
-    { showCustomBudgetForm ? <CustomBudgetForm formValues={customBudgetFormValues} onCreateBudget={() => handleOnCreateBudget()} onUpdateBudget={() => handleOnUpdateBudget()} /> :
     <>
-      <BudgetHeader triggerBudgetForm={openBudgetForm} budgetCreated={fetchBudgets} prepareCustomBudgetForm={handlePrepareBudgetForm}  />
+      <BudgetHeader triggerBudgetForm={openBudgetForm} budgetCreated={fetchBudgets}  />
       <div className="relative mt-10">
         <AccountingTable
           title="Budgets"
@@ -210,7 +171,6 @@ export default function Budgeting() {
         />
       </div>
     </>
-    }
       <SuccessModal
         title={isSuccessModalOpen.isCreate ? 'Budget Created' : 'Budget Updated'}
         description={isSuccessModalOpen.isCreate ? "You've successfully created a budget." : "You've successfully updated the budget."}

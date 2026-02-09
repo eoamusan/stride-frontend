@@ -24,14 +24,13 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import z from "zod";
-import useCategories from "@/hooks/fixxed-asset-management/useCategories";
+import useCategories from "@/hooks/fixed-asset-management/useCategories";
 import CategoryForm from "../categories/category-form";
 import { AppDialog } from "@/components/core/app-dialog";
 import { HousePlus } from "lucide-react";
 import { Combobox } from "@/components/core/combo-box";
 
 export default function AssetInformationForm({ onBack, onNext, formValues }) {
-  console.log("formValues in asset information form", formValues)
   const formSchema = z.object({
       assetName: z.string().min(1, "Asset name is required"),
       assetType: z.string({ message: 'Select an asset type'}),
@@ -81,7 +80,20 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
 
   useEffect(() => {
     fetchCategories()
-  }, [fetchCategories])
+  }, [fetchCategories, formValues])
+
+  useEffect(() => {
+    if (!formValues) return
+
+    form.reset({
+      assetName: formValues.assetName ?? '',
+      assetType: formValues.assetType ?? '',
+      serialNo: formValues.serialNo ?? '',
+      category: formValues.category ?? '',
+      subCategory: formValues.subCategory ?? '',
+      description: formValues.description ?? '',
+    })
+  }, [formValues, form])
 
   return (
     <div>

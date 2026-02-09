@@ -129,6 +129,7 @@ import RBAC from './dashboard/hr/setup/RBAC/page';
 import SalaryFramework from './dashboard/hr/setup/salary-framework/page';
 import GlobalSetting from './dashboard/hr/setup/global-setting/page';
 import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
+import CreateBudget from './dashboard/accounting/budgeting/[id]/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -424,6 +425,10 @@ const router = createBrowserRouter([
                       {
                         index: true,
                         Component: Budgeting,
+                      },
+                      {
+                        path: ':id',
+                        Component: CreateBudget
                       },
                       {
                         path: 'reports',

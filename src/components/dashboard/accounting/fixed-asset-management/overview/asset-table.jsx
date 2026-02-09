@@ -1,12 +1,18 @@
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AccountingTable from '../../table';
-import useAssets from '@/hooks/budgeting/useAssets';
+import useAssets from '@/hooks/fixed-asset-management/useAssets';
 import AssetCard from '../assets/asset-card';
+import toast from 'react-hot-toast';
+import { AppDialog } from '@/components/core/app-dialog';
+import { HousePlus } from 'lucide-react';
+import AssetForm from '../assets/asset-form';
 
 const AssetTable = ({ showItemDetails }) => {
   const [selectedItems, setSelectedItems] = useState([]);
-  const { assets, loadingAssets, paginationData, fetchAssets } = useAssets();
+  const [selectedItem, setSelectedItem] = useState(null);
+  const { assets, loadingAssets, paginationData, loadingAssetDetails, fetchAssetById } = useAssets();
+  const [openAssetForm, setOpenAssetForm] = useState(false);
   // Table columns configuration
   const tableColumns = [
     {
@@ -81,14 +87,18 @@ const AssetTable = ({ showItemDetails }) => {
       case 'view':
         showItemDetails(item);
         break;
+      case 'edit':
+        // fetch item details and open form
+        setOpenAssetForm(true);
+        fetchAssetById(item.id).then((detailedItem) => {
+          setSelectedItem(detailedItem);
+        });
+        break;
     }
   };
 
-  useEffect(() => {
-    fetchAssets();
-  }, [fetchAssets]);
-
   return (
+    <>
     <AccountingTable
       title="Recent Assets"
       data={assets}
@@ -106,6 +116,31 @@ const AssetTable = ({ showItemDetails }) => {
       itemComponent={AssetCard}
       isLoading={loadingAssets}
     /> 
+
+    <AppDialog 
+      title="Edit Asset"
+      headerIcon={<HousePlus />}
+      open={openAssetForm} 
+      onOpenChange={setOpenAssetForm}
+      className='sm:max-w-163'
+    >
+    {loadingAssetDetails ? <div className="absolute inset-0 z-10 flex items-center justify-center bg-white bg-opacity-70">
+      <div className='py-4'>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="border-primary mb-4 h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"></div>
+          <p className="text-muted-foreground">Loading asset details...</p>
+        </div>
+      </div>
+    </div> : 
+      <AssetForm
+        formValues={selectedItem}
+        onCreateAsset={() => {
+        toast.success('Asset updated successfully')
+        setOpenAssetForm(false)
+      }} />
+    }
+    </AppDialog>
+    </>
   );
 };
 

@@ -14,7 +14,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -29,7 +28,7 @@ export default function StatusConditionForm({ onBack, onNext, formValues }) {
   const formSchema = z.object({
       initialStatus: z.string({ message: 'Select an initial status'}),
       conditionalAssessment: z.string({ message: 'Select a conditional assessment'}),
-      notes: z.string().min(1, "Description is required"),
+      notes: z.optional(z.string())
     })
 
   const form = useForm({
@@ -51,7 +50,6 @@ export default function StatusConditionForm({ onBack, onNext, formValues }) {
 
     try {
       setIsLoading(true)
-      console.log("formValues in status condition form", formValues)
       const payload = { ...values, assetId: formValues.item.asset?._id }
       await AssetService.updateStatusCondition({ data: payload, id: formValues.item?.status?._id })
       toast.success("Status and Condition saved successfully")
@@ -82,8 +80,10 @@ export default function StatusConditionForm({ onBack, onNext, formValues }) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectLabel>Profiles</SelectLabel>
-                          <SelectItem value="profile1">Profile 1</SelectItem>
+                          <SelectItem value="good">Good</SelectItem>
+                          <SelectItem value="inRepair">In Repair</SelectItem>
+                          <SelectItem value="idle">Idle</SelectItem>
+                          <SelectItem value="disposed">Disposed</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -106,8 +106,9 @@ export default function StatusConditionForm({ onBack, onNext, formValues }) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectLabel>Profiles</SelectLabel>
-                          <SelectItem value="profile1">Profile 1</SelectItem>
+                          <SelectItem value="good">Good</SelectItem>
+                          <SelectItem value="bad">Bad</SelectItem>
+                          <SelectItem value="notAvailable">Not available</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>

@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import FileUploadDropzone from "../../shared/file-upload-dropzone";
@@ -49,7 +49,8 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
       sumIssued: formValues.sumIssued || 0,
       exclusions: formValues.exclusions || '',
       claimMade: formValues.claimMade || true,
-      date: formValues.date || null
+      date: formValues.date || null,
+      documents: formValues.insuranceDocuments || formValues.documents || []
     },
     mode: "onChange"
   })
@@ -314,12 +315,33 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
             )}
           />
 
+          
           <div className="space-y-2">
             <Label className="text-sm font-medium">Documents</Label>
             <FileUploadDropzone
               accept=".png,.jpg,.jpeg"
               onFilesChange={(files) => setFilesForUpload(files)}
             />
+            {/* Show preview of previously uploaded documents */}
+            {formValues.insuranceDocuments && formValues.insuranceDocuments.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {formValues.insuranceDocuments.map((doc, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between rounded bg-gray-50 p-2"
+                  >
+                    <span className="text-sm truncate">Document {index + 1}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 justify-end mt-4">

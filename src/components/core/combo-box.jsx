@@ -17,6 +17,7 @@ import { Check, ChevronsUpDown, PlusIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function Combobox({
+  loading = false,
   items = [],
   value,
   onChange,
@@ -66,6 +67,13 @@ export function Combobox({
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
+
+            {/* show loading state */}
+            {loading && (
+              <div className="p-2 text-center text-sm text-muted-foreground">
+                Loading...
+              </div>
+            )}
 
             <CommandGroup>
               {items.map((item) => {

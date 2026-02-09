@@ -16,7 +16,7 @@ import {
 import YoutubeVideoGuideButton from '../../shared/youtube-video-guide-button';
 import useBudgetAnalytics from '@/hooks/budgeting/useBudgetAnalytics';
 
-const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm, prepareCustomBudgetForm }) => {
+const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
 
   const [selectedValue, setSelectedValue] = useState('revenue');
   const { data: analyticsData, loading: loadingAnalytics } = useBudgetAnalytics();
@@ -31,13 +31,13 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm, prepareCustomB
 
     console.log('Analytics Data:', analyticsData);
 
-    const totalRevenueOrExpenseBudget = isRevenue ? totalBudget?.totalActualInvoice : totalBudget?.totalActualExpense
+    const totalRevenueOrExpenseBudget = isRevenue ? totalBudget?.totalInvoiceBudget : totalBudget?.totalExpenseBudget
     const totalActualRevenueOrExpense = isRevenue ? actualSpend?.totalActualInvoice : actualSpend?.totalActualExpense
     const varianceAmount = isRevenue ? variance?.invoiceVariance : variance?.expenseVariance
 
     return [
       {
-        title: isRevenue ? 'Total Revenue' : 'Total Expense Budget',
+        title: isRevenue ? 'Total Income Budget' : 'Total Expense Budget',
         value: totalRevenueOrExpenseBudget,
       },
       {
@@ -56,11 +56,6 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm, prepareCustomB
   }, [analyticsData, selectedValue]);
 
   const [openBudgetForm, setOpenBudgetForm] = useState(false);
-
-  const handlePrepareCustomBudgetForm = (budgetPayload) => {
-    setOpenBudgetForm(false)
-    prepareCustomBudgetForm(budgetPayload)
-  }
 
   useEffect(() => {
     setOpenBudgetForm(triggerBudgetForm)
@@ -125,7 +120,7 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm, prepareCustomB
         onOpenChange={setOpenBudgetForm}
         className='sm:max-w-130'
       >
-        <BudgetForm prepareCustomBudgetForm={handlePrepareCustomBudgetForm} onCancel={() => setOpenBudgetForm(false)} />
+        <BudgetForm onCancel={() => setOpenBudgetForm(false)} />
       </AppDialog>
     </>
   );

@@ -1,15 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
-import AccountingTable from '@/components/dashboard/accounting/table';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-react';
-import EmptyAsset from '@/components/dashboard/accounting/fixed-asset-management/overview/empty-state';
-import AssetCard from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-card';
+import { DownloadIcon, HousePlus } from 'lucide-react';
 import AssetForm from '@/components/dashboard/accounting/fixed-asset-management/assets/asset-form';
 import { AppDialog } from '@/components/core/app-dialog';
 import AssetDetails from '@/components/dashboard/accounting/fixed-asset-management/assets/asset-details';
 import YoutubeVideoGuideButton from '@/components/dashboard/accounting/shared/youtube-video-guide-button';
 import AssetTable from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-table';
+import NewAsset from '@/components/dashboard/accounting/fixed-asset-management/assets/new-asset';
 
 
 export default function FixedAssetMgtAssets() {
@@ -39,8 +37,8 @@ export default function FixedAssetMgtAssets() {
     ]
   })
 
-  const handleOnCreateAsset = useCallback((data) => {
-    console.log('Asset created:', data)
+  const handleOnCreateAsset = useCallback(() => {
+    setOpenAssetForm(false)
   }, [])
 
   return (
@@ -58,13 +56,7 @@ export default function FixedAssetMgtAssets() {
 
             <div className="flex space-x-4">
               <YoutubeVideoGuideButton url="" />
-              <Button
-                onClick={() => setOpenAssetForm(true)}
-                className={'h-10 rounded-2xl text-sm'}
-              >
-                <PlusCircleIcon className="size-4" />
-                Add New Asset
-              </Button>
+              <NewAsset />
               <Button size={'icon'} className={'size-10'} variant={'outline'}>
                 <DownloadIcon size={16} />
               </Button>

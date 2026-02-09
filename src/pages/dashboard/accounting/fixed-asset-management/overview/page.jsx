@@ -1,24 +1,17 @@
 import { useCallback, useMemo, useState } from 'react';
 import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import { Button } from '@/components/ui/button';
-import { DownloadIcon, HousePlus, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import EmptyAsset from '@/components/dashboard/accounting/fixed-asset-management/overview/empty-state';
 import UpcomingMaintenance from '@/components/dashboard/accounting/fixed-asset-management/overview/upcoming-maintenance';
 import AreaMetricCard from '@/components/dashboard/area-metric-card';
 import AssetCategories from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-categories';
 import PieMetricCard from '@/components/dashboard/pie-metric-card';
-import AssetForm from '@/components/dashboard/accounting/fixed-asset-management/assets/asset-form';
-import { AppDialog } from '@/components/core/app-dialog';
 import YoutubeVideoGuideButton from '@/components/dashboard/accounting/shared/youtube-video-guide-button';
-import SuccessModal from '@/components/dashboard/accounting/success-modal';
 import AssetTable from '@/components/dashboard/accounting/fixed-asset-management/overview/asset-table';
-import useAssets from '@/hooks/budgeting/useAssets';
+import useAssets from '@/hooks/fixed-asset-management/useAssets';
 import AssetDetails from '@/components/dashboard/accounting/fixed-asset-management/assets/asset-details';
+import NewAsset from '@/components/dashboard/accounting/fixed-asset-management/assets/new-asset';
 
 export default function FixedAssetMgtOverview() {
-  // State for table selection
-  const [ openAssetForm, setOpenAssetForm ] = useState(false)
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState()
   const { assets, loadingAssets } = useAssets();
 
@@ -87,16 +80,6 @@ export default function FixedAssetMgtOverview() {
     ]
   })
 
-  
-  const handleSetOpenAssetForm = useCallback((value) => {
-    setOpenAssetForm(value)
-  }, [])
-
-  const handleOnCreateAsset = useCallback(() => {
-    setOpenAssetForm(false)
-    setIsSuccessModalOpen(true);
-  }, [])
-
   const handleShowDetails = useCallback((value) => {
     setSelectedItem(value)
   }, [])
@@ -105,7 +88,7 @@ export default function FixedAssetMgtOverview() {
     <div className='my-4 min-h-screen'>
       { selectedItem ? <AssetDetails selectedItem={selectedItem} setShowDetails={() => setSelectedItem(null)} /> :
       <>
-      { !assets.length && !loadingAssets ? <EmptyAsset onClick={() => handleSetOpenAssetForm(true)} /> : 
+      { !assets.length && !loadingAssets ? <EmptyAsset /> : 
         <>
         <div className="flex flex-wrap items-center justify-between gap-6">
           <hgroup>
@@ -117,13 +100,7 @@ export default function FixedAssetMgtOverview() {
 
           <div className="flex space-x-4">
             <YoutubeVideoGuideButton url="" />
-            <Button
-              onClick={() => setOpenAssetForm(true)}
-              className={'h-10 rounded-2xl text-sm'}
-            >
-              <PlusCircleIcon className="size-4" />
-              Add New Asset
-            </Button>
+            <NewAsset />
             {/* <Button size={'icon'} className={'size-10'} variant={'outline'}>
               <DownloadIcon size={16} />
             </Button>
@@ -165,29 +142,8 @@ export default function FixedAssetMgtOverview() {
           <div className="relative mt-10">
             <AssetTable showItemDetails={handleShowDetails} />
           </div>
-        </>}
-        <AppDialog 
-          title="Add New Asset"
-          description="Create a new asset entry with comprehensive information and documentation"
-          headerIcon={<HousePlus />}
-          open={openAssetForm} 
-          onOpenChange={setOpenAssetForm}
-          className='sm:max-w-163'
-        >
-          <AssetForm onCreateAsset={handleOnCreateAsset} />
-        </AppDialog>
-        <SuccessModal
-          title={'Asset Saved'}
-          description={"You've successfully created an Asset."}
-          open={isSuccessModalOpen}
-          onOpenChange={setIsSuccessModalOpen}
-          backText={'Back'}
-          handleBack={() => {
-            setIsSuccessModalOpen(false);
-          }} 
-        /></>
+        </>}</>
       }
     </div>
-    
   );
 }

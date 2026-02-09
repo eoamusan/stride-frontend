@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { CalendarCog, Check, DownloadIcon, Pencil, PlusCircleIcon } from "lucide-react";
 import { useRef } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate } from "react-router";
 import SuccessModal from "../../success-modal";
 import AddAccountForm from "../../bookkeeping/add-account";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,7 +31,6 @@ const COL_WIDTH = "160px";
 export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateBudget }) {
   const { submitting,fetchBudgetTransactions, updateBudget,submitBudget } = useBudgeting();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const [accountData, setAccountData] = useState();
   const [budgetName, setBudgetName] = useState("");
@@ -90,7 +89,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
   }, []);
 
   useEffect(() => {
-    const name = searchParams.get("budget");
+    const name = formValues?.budgetName || "New Budget";
     const year =
       formValues?.periodStartDate
         ? new Date(formValues.periodStartDate).getFullYear()
@@ -98,7 +97,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
     setBudgetName(name || "");
     setFiscalYear(year);
-  }, [searchParams, formValues]);
+  }, [formValues]);
 
   // New account added from AddAccountForm
   useEffect(() => {
@@ -181,7 +180,6 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
 
   const groupedAccountsByType = useMemo(() => {
-    console.log(budgetAccounts, 'budgetAccounts for grouping by type')
     return budgetAccounts.reduce((acc, account) => {
       const type = account.account.accountType;
       acc[type] ??= [];
