@@ -4,7 +4,17 @@ import MetricCard from '@/components/dashboard/hr/metric-card';
 import youtubeIcon from '@/assets/icons/youtube-red.png';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
-import { FilterIcon, MoreHorizontalIcon, SearchIcon, Plus, EyeIcon, Edit, Check, CheckCircle, XCircle } from 'lucide-react';
+import {
+  FilterIcon,
+  MoreHorizontalIcon,
+  SearchIcon,
+  Plus,
+  EyeIcon,
+  Edit,
+  Check,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react';
 import ManpowerRequisitionForm from './form/requisition-form';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
 import { Input } from '@/components/ui/input';
@@ -28,7 +38,7 @@ export default function Recruitment() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { requisitions, isLoading, pagination, fetchRequisitions } =
     useJobRequisitionStore();
-  
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -39,7 +49,7 @@ export default function Recruitment() {
 
   useEffect(() => {
     // Initial fetch - fetch all for metrics and client-side pagination
-    fetchRequisitions(1, 1000); 
+    fetchRequisitions(1, 1000);
   }, [fetchRequisitions]);
 
   const handleRequisitionCreated = () => {
@@ -51,7 +61,6 @@ export default function Recruitment() {
   // ... (metrics logic unchanged)
 
   // Define actions that were previously passed to TableActions
-
 
   const metricCardsData = useMemo(() => {
     const data = requisitions || [];
@@ -191,7 +200,9 @@ export default function Recruitment() {
   // Define actions that were previously passed to TableActions
   const handleAction = (action, request) => {
     if (action === 'edit') {
-      const fullRequisition = requisitions.find(r => (r._id || r.id) === (request.id || request._id));
+      const fullRequisition = requisitions.find(
+        (r) => (r._id || r.id) === (request.id || request._id)
+      );
       setEditingRequisition(fullRequisition || request);
       setIsModalOpen(true);
     }
@@ -207,18 +218,25 @@ export default function Recruitment() {
   // Ideally, search/filter should trigger a new fetch.
   // Given the previous implementation did client-side filtering on `tableData` prop,
   // I will replicate that logic but apply it to the data passed to DataTable.
-  
+
   const rawTableData = (requisitions || []).map((item) => {
     const getRequesterName = (requester) => {
       if (!requester) return null;
       if (typeof requester === 'string') return requester;
-      return requester.name || 
-        (requester.firstName && requester.lastName ? `${requester.firstName} ${requester.lastName}` : null) ||
-        requester.username || 
-        'Unknown';
+      return (
+        requester.name ||
+        (requester.firstName && requester.lastName
+          ? `${requester.firstName} ${requester.lastName}`
+          : null) ||
+        requester.username ||
+        'Unknown'
+      );
     };
 
-    const requestedBy = getRequesterName(item.requestedBy) || getRequesterName(item.user) || 'N/A';
+    const requestedBy =
+      getRequesterName(item.requestedBy) ||
+      getRequesterName(item.user) ||
+      'N/A';
 
     return {
       id: item._id || item.id,
@@ -279,7 +297,7 @@ export default function Recruitment() {
         };
         return (
           <span
-            className="inline-block w-24 rounded-full py-2 text-center text-xs font-medium overflow-hidden"
+            className="inline-block w-24 overflow-hidden rounded-full py-2 text-center text-xs font-medium"
             style={{
               backgroundColor: style.bg,
               color: style.text,
@@ -311,11 +329,11 @@ export default function Recruitment() {
                   )
                 }
               >
-                <EyeIcon/>
+                <EyeIcon />
                 View
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAction('edit', row)}>
-                <Edit/>
+                <Edit />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAction('approve', row)}>
@@ -335,12 +353,12 @@ export default function Recruitment() {
 
   // Action Element (Search and Filter)
   const actionElement = (
-    <div className="flex items-center gap-3 w-full md:w-auto">
+    <div className="flex w-full items-center gap-3 md:w-auto">
       <div className="relative w-full">
         <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
         <Input
           placeholder="Search requests..."
-          className="w-full md:max-w-80 pl-10"
+          className="w-full pl-10 md:max-w-80"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -422,15 +440,15 @@ export default function Recruitment() {
             <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
             See video guide
           </Button>
-          <Dialog 
-            open={isModalOpen} 
+          <Dialog
+            open={isModalOpen}
             onOpenChange={(open) => {
               setIsModalOpen(open);
               if (!open) setEditingRequisition(null);
             }}
           >
             <DialogTrigger asChild>
-              <Button 
+              <Button
                 className={'h-10 rounded-2xl px-6 text-sm'}
                 onClick={() => setEditingRequisition(null)}
               >
@@ -439,15 +457,18 @@ export default function Recruitment() {
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="max-h-[80vh] w-full md:max-w-2xl overflow-y-auto rounded-2xl bg-gray-50">
+            <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
               <DialogTitle className="sr-only">
-                {editingRequisition ? 'Edit Man Power Requisition Form' : 'Man Power Requisition Form'}
+                {editingRequisition
+                  ? 'Edit Man Power Requisition Form'
+                  : 'Man Power Requisition Form'}
               </DialogTitle>
               <DialogDescription className="sr-only">
-                Form to {editingRequisition ? 'edit' : 'create'} Man Power Requisition Form
+                Form to {editingRequisition ? 'edit' : 'create'} Man Power
+                Requisition Form
               </DialogDescription>
-              <ManpowerRequisitionForm 
-                onSuccess={handleRequisitionCreated} 
+              <ManpowerRequisitionForm
+                onSuccess={handleRequisitionCreated}
                 initialData={editingRequisition}
               />
             </DialogContent>
