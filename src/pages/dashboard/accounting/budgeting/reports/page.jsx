@@ -18,7 +18,7 @@ import ReportSkeleton from '@/components/dashboard/accounting/budgeting/reports/
 
 export default function BudgetingAnalytics() {
   const [isLoading, setIsLoading] = useState(true)
-  const [chartType, setChartType] = useState('areaChart')
+  const [chartType, setChartType] = useState('barChart')
   const [period, setPeriod] = useState('yearly')
   const [metric, setMetric] = useState('budgetVsActual')
 
@@ -93,7 +93,7 @@ useEffect(() => {
                   <SelectContent>
                     <SelectGroup>
                       <SelectItem value="barChart"><ChartColumn /> Bar Chart</SelectItem>
-                      <SelectItem value="areaChart"><ChartArea /> Area Chart</SelectItem>
+                      {/* <SelectItem value="areaChart"><ChartArea /> Area Chart</SelectItem> */}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -126,14 +126,14 @@ useEffect(() => {
                 </Select>
               </div>
               <div className='w-full flex flex-col gap-2 [&>span]:font-medium'>
-                <span>Color scheme</span>
+                {/* <span>Color scheme</span>
                 <ColorPicker
                   showTitle={false}
                   selectedColor={selectedColor}
                   onColorChange={(color) => {
                     setSelectedColor(color);
                   }}
-                />
+                /> */}
               </div>
             </div>
           </div>

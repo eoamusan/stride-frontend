@@ -32,8 +32,8 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
     console.log('Analytics Data:', analyticsData);
 
     const totalRevenueOrExpenseBudget = isRevenue ? totalBudget?.totalInvoiceBudget : totalBudget?.totalExpenseBudget
-    const totalActualRevenueOrExpense = isRevenue ? actualSpend?.totalActualInvoice : actualSpend?.totalActualExpense
-    const varianceAmount = isRevenue ? variance?.invoiceVariance : variance?.expenseVariance
+    const totalActualRevenueOrExpense = isRevenue ? actualSpend?.totalRevenue : actualSpend?.totalExpense
+    const varianceAmount = isRevenue ? variance?.revenueVariance : variance?.expenseVariance
 
     return [
       {
@@ -46,7 +46,7 @@ const BudgetHeader = ( { triggerBudgetForm, setTriggerBudgetForm }) => {
       },
       {
         title: isRevenue ? 'Revenue Variance' : 'Expense Variance',
-        value: varianceAmount,
+        value: `${varianceAmount?.toFixed(2)} %`,
       },
       {
         title: 'Forecast Accuracy',
