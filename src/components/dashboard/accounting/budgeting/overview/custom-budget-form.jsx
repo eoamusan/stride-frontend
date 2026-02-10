@@ -1,6 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import useBudgeting from "@/hooks/budgeting/useBudgeting";
 import { cn } from "@/lib/utils";
@@ -22,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const QUARTERS = ["Q1","Q2","Q3","Q4"];
@@ -73,7 +79,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
   const gridTemplate = useMemo(
     () => ({
-      gridTemplateColumns: `repeat(${range.length + 3}, minmax(${COL_WIDTH}, 1fr))`,
+      gridTemplateColumns: `repeat(${range.length + 2}, minmax(${COL_WIDTH}, 1fr))`,
     }),
     [range.length]
   );
@@ -361,7 +367,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
   return (
     <>
       {/* Header */}
-      <div className="flex justify-between">
+      <div className="flex flex-wrap gap-3 justify-between">
         <div className="gap-2 min-w-80">
           <div className="flex items-center gap-2">
             {editingName ? (
@@ -388,7 +394,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
 
         <div className="flex gap-2 items-center">
-          <Button size={'icon'} variant="outline" onClick={() => setOpenCustomRangeForm(true)}>
+          <Button size={'icon'} variant="outline" disabled={formValues?._id ? true : false} onClick={() => setOpenCustomRangeForm(true)}>
             <CalendarCog />
           </Button>
           <Button variant={'outline'}>
@@ -418,31 +424,20 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
         )
       }
       {/* Grid table */}
-      <div className="bg-white mt-4">
-        <div className="overflow-x-auto border rounded">
+      <div className="grid grid-cols-[200px_1fr] bg-white mt-4 overflow-x-scroll">
+        <div className="border ">
 
           {/* Header row */}
-          <div className="grid text-sm" style={gridTemplate}>
-            <div className="p-2 border-r border-b border-r-gray-200 sticky left-0 bg-white">
+          <div className="grid text-sm">
+            <div className="p-2 border-b left-0 bg-white">
               Category
-            </div>
-            <div className="p-2 border-r border-b text-right">
-              Actual <span className="font-semibold">({fiscalYear - 1})</span>
-            </div>
-            {range.map(label => (
-              <div key={label} className="p-2 border-r border-b text-right font-medium">
-                {label} <span className="font-semibold">{fiscalYear}</span>
-              </div>
-            ))}
-            <div className="p-2 border-r border-b font-semibold text-right">
-              Total
             </div>
           </div>
 
           {loading ? (
-            <div className="grid" style={gridTemplate}>
+            <div className="grid">
               {Array.from({ length: range.length + 3 }).map((_, i) => (
-                <div key={i} className="p-2 border-r">
+                <div key={i} className="p-2">
                   <Skeleton className="h-4 w-full" />
                 </div>
               ))}
@@ -453,13 +448,13 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
             Object.entries(accountsByType).map(([type, accounts]) => (
               <>
               <div key={type}>
-                <div className="grid text-sm" style={gridTemplate}>
+                <div className="grid text-sm">
                   <div
                     className="p-2 font-medium capitalize border-b bg-gray-100"
-                    style={{ gridColumn: `span ${range.length + 3}` }}
+                    style={{ gridColumn: `span 1` }}
                   >
                     <div className="flex gap-2 items-center ">
-                      <div className="flex gap-2 items-center sticky left-0">
+                      <div className="flex gap-2 items-center whitespace-nowrap left-0">
                         {/* implement check all by type */}
                         <Checkbox
                           checked={accounts.every(account => checkedAccounts[account.account._id])}
@@ -483,69 +478,36 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
                   <div
                     key={account.id}
                     className={cn("grid text-sm [&>*:nth-child(even)]:bg-gray-100", !account.account.accountCode && "bg-red-400/10 text-red-400 rounded")}
-                    style={gridTemplate}
                   >
-                    <div className="p-2 border-r border-b sticky left-0 bg-white">
-                      <div className="flex gap-2 items-center">
+                    <div className="p-2 border-b left-0 bg-white">
+                      <div className="flex gap-2 items-center whitespace-nowrap">
                         <Checkbox checked={checkedAccounts[account.account._id]} onCheckedChange={() => handleCheckboxChange(account.account._id)} />
-                        {account.account.accountName}
+                        <span className="truncate max-w-50">
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span>{account.account.accountName}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{account.account.accountName}</p>
+                            </TooltipContent>
+                          </Tooltip>
+
+                        </span>
                         { !account.account.accountCode && <Button variant="ghost" size="icon" className="size-6 p-0" onClick={() => addMissingAccount(account)}>
                           <PlusCircleIcon className="size-4" />
                         </Button>}
                       </div>
                     </div>
-                  
-                    <div className="p-2 border-r border-b text-right font-medium">
-                      {currency.format(Number(account.groups.reduce((acc, group) => acc + group.totalAmount, 0)) || 0)}
-                    </div>
-
-                    {range.map((_, idx) => (
-                      // set input to auto focus when clicked
-                      <div key={idx} className="p-2 border-r border-b flex justify-end" onClick={() => handleSetSelectedAccountId(account.account._id, idx)}>
-                        { selectedAccountId === account.account._id ? (
-                          <Input
-                            type="number"
-                            placeholder="0.00"
-                            value={values[account.account._id]?.[idx] ?? ""}
-                            onChange={(e) => updateValue(account.account._id, idx, e.target.value)}
-                            className="w-full text-right bg-white"
-                            formatNumber
-                            ref={(el) => (budgetInputRefs.current[idx] = el)}
-                          />) :
-                        <span>{currency.format(Number(values[account.account._id]?.[idx]) || 0)}</span>
-                      }
-                      </div>
-                    ))}
-
-                    <div className="p-2 border-r border-b text-right font-medium">
-                      {currency.format(computeTotalForAccountRow(account))}
-                    </div>
-                    
                   </div>
                   </>
                 ))}
               </div>
               <div
                 className="grid text-sm [&>*:nth-child(even)]:bg-gray-100 bg-white"
-                style={gridTemplate}
               >
-                <div className="p-2 border-r border-b font-semibold sticky left-0 bg-white">
+                <div className="p-2 border-b font-semibold sticky left-0 bg-white">
                   Total
-                </div>
-              
-                <div className="p-2 border-r border-b text-right font-semibold">
-                  { currency.format(computeTotalForAccountType(accounts)) }
-                </div>
-
-                {range.map((_, idx) => (
-                  // set input to auto focus when clicked
-                  <div key={idx} className={cn("p-2 border-r border-b flex justify-end font-bold", getTotalForAccountTypeAtIndex(accounts, idx) < 0 && "text-destructive")}>
-                    <span>{currency.format(getTotalForAccountTypeAtIndex(accounts, idx))}</span>
-                  </div>
-                ))}
-
-                <div className="p-2 border-r border-b text-right font-semibold">
-                  { currency.format(getTotalForAccountTypeAtIndexRow(accounts)) }
                 </div>
               </div>
               </>
@@ -553,29 +515,140 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
           }
           <div
             className="grid text-sm [&>*:nth-child(even)]:bg-gray-100"
-            style={gridTemplate}
           >
-            <div className="p-2 border-r border-b font-semibold sticky left-0 bg-white">
+            <div className="p-2 font-semibold sticky left-0 bg-white">
               Gross Profit
-            </div>
-          
-            <div className={cn("p-2 border-r border-b text-right font-semibold", computeGrossProfit() < 0 && "text-destructive")}>
-              { currency.format(computeGrossProfit()) }
-            </div>
-
-            {range.map((_, idx) => (
-              // set input to auto focus when clicked
-              <div key={idx} className={cn("p-2 border-r border-b flex justify-end font-bold", computeGrossProfitAtIndex(idx) < 0 && "text-destructive")}>
-                <span>{currency.format(computeGrossProfitAtIndex(idx))}</span>
-              </div>
-            ))}
-
-            <div className={cn("p-2 border-r border-b text-right font-semibold", computeGrossProfitRow() < 0 && "text-destructive")}>
-              { currency.format(computeGrossProfitRow()) }
             </div>
           </div>
           </>
           )}
+        </div>
+        <div className="overflow-x-auto border border-l-0">
+            {/* Header row */}
+            <div className="grid text-sm" style={gridTemplate}>
+              <div className="p-2 border-r border-b text-right">
+                Actual <span className="font-semibold">({fiscalYear - 1})</span>
+              </div>
+              {range.map(label => (
+                <div key={label} className="p-2 border-r border-b text-right font-medium">
+                  {label} <span className="font-semibold">{fiscalYear}</span>
+                </div>
+              ))}
+              <div className="p-2 border-r border-b font-semibold text-right">
+                Total
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                {/* {Array.from({ length: range.length + 3 }).map((_, i) => (
+                  <div key={i} className="p-2 border-r">
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ))} */}
+                <Spinner className="size-8" />
+              </div>
+            ) : (
+              <>
+              {
+              Object.entries(accountsByType).map(([type, accounts]) => (
+                <>
+                <div key={type}>
+                  <div className="grid text-sm" style={gridTemplate}>
+                    <div
+                      className="p-2 font-medium capitalize border-b bg-gray-100"
+                      style={{ gridColumn: `span ${range.length + 3}` }}
+                    >
+                      <div className="flex gap-2 items-center ">
+                        &nbsp;
+                      </div>
+                      
+                    </div>
+                  </div>
+
+                  {accounts.map(account => (
+                    <>
+                    <div
+                      key={account.id}
+                      className={cn("grid text-sm [&>*:nth-child(even)]:bg-gray-100", !account.account.accountCode && "bg-red-400/10 text-red-400 rounded")}
+                      style={gridTemplate}
+                    >
+                    
+                      <div className="p-2 border-r border-b text-right font-medium">
+                        {currency.format(Number(account.groups.reduce((acc, group) => acc + group.totalAmount, 0)) || 0)}
+                      </div>
+
+                      {range.map((_, idx) => (
+                        // set input to auto focus when clicked
+                        <div key={idx} className="p-2 border-r border-b flex justify-end" onClick={() => handleSetSelectedAccountId(account.account._id, idx)}>
+                          { selectedAccountId === account.account._id ? (
+                            <Input
+                              type="number"
+                              placeholder="0.00"
+                              value={values[account.account._id]?.[idx] ?? ""}
+                              onChange={(e) => updateValue(account.account._id, idx, e.target.value)}
+                              className="w-full text-right bg-white"
+                              formatNumber
+                              ref={(el) => (budgetInputRefs.current[idx] = el)}
+                            />) :
+                          <span>{currency.format(Number(values[account.account._id]?.[idx]) || 0)}</span>
+                        }
+                        </div>
+                      ))}
+
+                      <div className="p-2 border-r border-b text-right font-medium">
+                        {currency.format(computeTotalForAccountRow(account))}
+                      </div>
+                      
+                    </div>
+                    </>
+                  ))}
+                </div>
+                <div
+                  className="grid text-sm [&>*:nth-child(even)]:bg-gray-100 bg-white"
+                  style={gridTemplate}
+                >
+                
+                  <div className="p-2 border-r border-b text-right font-semibold">
+                    { currency.format(computeTotalForAccountType(accounts)) }
+                  </div>
+
+                  {range.map((_, idx) => (
+                    // set input to auto focus when clicked
+                    <div key={idx} className={cn("p-2 border-r border-b flex justify-end font-bold", getTotalForAccountTypeAtIndex(accounts, idx) < 0 && "text-destructive")}>
+                      <span>{currency.format(getTotalForAccountTypeAtIndex(accounts, idx))}</span>
+                    </div>
+                  ))}
+
+                  <div className="p-2 border-r border-b text-right font-semibold">
+                    { currency.format(getTotalForAccountTypeAtIndexRow(accounts)) }
+                  </div>
+                </div>
+                </>
+              ))
+            }
+            <div
+              className="grid text-sm [&>*:nth-child(even)]:bg-gray-100"
+              style={gridTemplate}
+            >
+            
+              <div className={cn("p-2 border-r border-b text-right font-semibold", computeGrossProfit() < 0 && "text-destructive")}>
+                { currency.format(computeGrossProfit()) }
+              </div>
+
+              {range.map((_, idx) => (
+                // set input to auto focus when clicked
+                <div key={idx} className={cn("p-2 border-r border-b flex justify-end font-bold", computeGrossProfitAtIndex(idx) < 0 && "text-destructive")}>
+                  <span>{currency.format(computeGrossProfitAtIndex(idx))}</span>
+                </div>
+              ))}
+
+              <div className={cn("p-2 border-r border-b text-right font-semibold", computeGrossProfitRow() < 0 && "text-destructive")}>
+                { currency.format(computeGrossProfitRow()) }
+              </div>
+            </div>
+            </>
+            )}
         </div>
       </div>
 

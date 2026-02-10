@@ -32,9 +32,6 @@ import AttachBudgetUpload from "../shared/attach-budget-upload";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
 
-
-const REQUIRED_HEADERS = ["Actual", "Budget", "Category", "Item"];
-
 export default function BudgetForm({ onCancel }) {
 
   const navigate = useNavigate()
@@ -46,7 +43,7 @@ export default function BudgetForm({ onCancel }) {
   } = useBudgeting()
 
   const [budgetFile, setBudgetFile] = useState(null)
-  const [_excelErrors, setExcelErrors] = useState([])
+  const [excelErrors, setExcelErrors] = useState([])
   const [excelImportData, setExcelImportData] = useState([])
 
   
@@ -105,29 +102,29 @@ export default function BudgetForm({ onCancel }) {
   
   // validate excel data
   const validateExcelData = (data) => {
-    const errors = [];
+    const excelErrors = [];
     data.forEach((row, index) => {
       const normalizedRow = normalizeRow(row);
       const result = excelBudgetRowSchema.safeParse(normalizedRow);
       if (!result.success) {
         const fieldErrors = {};
-        result.error.errors.forEach((err) => {
+        const errors = JSON.parse(result.error)
+        errors.forEach((err) => {
           const fieldName = err.path[0];
           if (!fieldErrors[fieldName]) {
             fieldErrors[fieldName] = [];
           }
           fieldErrors[fieldName].push(err.message);
         });
-        errors.push({
+        excelErrors.push({
           row: index + 2, // +2 to account for header row and 0-based index
           issues: fieldErrors,
         });
       }
     });
 
-    const valid = errors.length === 0;
-
-    return { valid, errors };
+    const valid = excelErrors.length === 0;
+    return { valid, errors: excelErrors };
   };
 
   // const formatExcelData = (data) => {
@@ -177,7 +174,7 @@ export default function BudgetForm({ onCancel }) {
     const result = [];
 
     data.forEach((row) => {
-      const itemName = row.Item.trim();
+      const itemName = row.Item?.trim();
 
       // 1. Detect if the row is a Category Header
       if (itemName === "INCOME" || itemName === "EXPENSES") {
@@ -242,7 +239,7 @@ export default function BudgetForm({ onCancel }) {
 
         const formattedExcelData = formatExcelData(jsonData);
         if (formattedExcelData.length === 0) {
-          toast.error('The uploaded file is missing required headers. Please use the provided template.');
+          // toast.error('The uploaded file is missing required headers. Please use the provided template.');
           setExcelErrors([{
             row: 'N/A',
             issues: { Item: ['The uploaded file is missing required headers. Please use the provided template.'] }
@@ -411,7 +408,7 @@ export default function BudgetForm({ onCancel }) {
               </div>
               
             </div>
-            {/* { excelErrors[0] && <div className="text-destructive bg-destructive/10 p-2 rounded text-sm">
+            { excelErrors[0] && <div className="text-destructive bg-destructive/10 p-2 rounded text-sm">
               Errors found in uploaded file:
               <span className="font-bold block">Row: { excelErrors[0]?.row}</span>
               <ul>
@@ -419,7 +416,7 @@ export default function BudgetForm({ onCancel }) {
                   return value?.map((msg, idx) => <li key={idx}><span className="font-bold">{key}:</span> {msg}</li>)
                 })}
               </ul>
-            </div>} */}
+            </div>}
           </div>
           
           {/* Footer Buttons */}
@@ -436,6 +433,7 @@ export default function BudgetForm({ onCancel }) {
             <Button
               type="submit"
               className="h-10 px-10 text-sm rounded-3xl"
+              disabled={budgetFile && excelErrors.length > 0}
             >
               Next
             </Button>
