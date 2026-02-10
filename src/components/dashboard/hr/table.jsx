@@ -364,7 +364,7 @@ export function TableActions({
                     return (
                       <TableCell key={key} className="py-4 font-medium">
                         <span
-                          className="rounded-full px-3 py-2 text-xs"
+                          className="flex max-w-26 justify-center overflow-hidden rounded-full px-3 py-2 text-xs"
                           style={{
                             backgroundColor: style.bg,
                             color: style.text,

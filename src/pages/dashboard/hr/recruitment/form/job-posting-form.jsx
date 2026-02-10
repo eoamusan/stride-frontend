@@ -40,22 +40,30 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
   // Populate form if editing
   useEffect(() => {
     if (initialData) {
-        setFormData(prev => ({
-            ...prev,
-            requisitionId: initialData.jobRequisitionId?._id || initialData.jobRequisitionId || '',
-            title: initialData.title || initialData.jobTitle || '',
-            department: initialData.jobRequisitionId?.department || initialData.department || '',
-            location: initialData.location || '',
-            type: initialData.employmentType || initialData.type || 'Full Time',
-            deadline: initialData.deadline ? new Date(initialData.deadline).toISOString().split('T')[0] : '',
-            description: initialData.description || '',
-            // requirements & responsibilities are implicitly in description now, or empty
-            requirements: [], 
-            responsibilities: [],
-        }));
-        if (initialData.cadre) {
-            setCadre(initialData.cadre);
-        }
+      setFormData((prev) => ({
+        ...prev,
+        requisitionId:
+          initialData.jobRequisitionId?._id ||
+          initialData.jobRequisitionId ||
+          '',
+        title: initialData.title || initialData.jobTitle || '',
+        department:
+          initialData.jobRequisitionId?.department ||
+          initialData.department ||
+          '',
+        location: initialData.location || '',
+        type: initialData.employmentType || initialData.type || 'Full Time',
+        deadline: initialData.deadline
+          ? new Date(initialData.deadline).toISOString().split('T')[0]
+          : '',
+        description: initialData.description || '',
+        // requirements & responsibilities are implicitly in description now, or empty
+        requirements: [],
+        responsibilities: [],
+      }));
+      if (initialData.cadre) {
+        setCadre(initialData.cadre);
+      }
     }
   }, [initialData]);
 
@@ -66,12 +74,12 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
       ...prev,
       [name]: value,
     }));
-    
+
     // Auto-fill if requisition changes
     if (name === 'requisitionId') {
-      const selectedReq = requisitions.find(r => (r._id || r.id) === value);
+      const selectedReq = requisitions.find((r) => (r._id || r.id) === value);
       if (selectedReq) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           requisitionId: value,
           title: selectedReq.jobTitle || '',
@@ -126,7 +134,12 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
     console.log('JobPostingForm.handleSubmit called with status:', status);
     e.preventDefault();
 
-    if (!formData.requisitionId || !formData.title || !formData.location || !formData.deadline) {
+    if (
+      !formData.requisitionId ||
+      !formData.title ||
+      !formData.location ||
+      !formData.deadline
+    ) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -135,53 +148,66 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
     let formattedDescription = formData.description || '';
 
     if (formData.responsibilities?.length > 0) {
-      formattedDescription += '\n\nResponsibilities:\n' + formData.responsibilities.map(r => `- ${r}`).join('\n');
+      formattedDescription +=
+        '\n\nResponsibilities:\n' +
+        formData.responsibilities.map((r) => `- ${r}`).join('\n');
     }
 
     if (formData.requirements?.length > 0) {
-      formattedDescription += '\n\nRequirements:\n' + formData.requirements.map(r => `- ${r}`).join('\n');
+      formattedDescription +=
+        '\n\nRequirements:\n' +
+        formData.requirements.map((r) => `- ${r}`).join('\n');
     }
 
     try {
-        const payload = {
-            jobRequisitionId: formData.requisitionId,
-            title: formData.title,
-            employmentType: formData.type,
-            location: formData.location,
-            cadre: cadre, 
-            deadline: formData.deadline && !isNaN(new Date(formData.deadline).getTime()) 
-              ? new Date(formData.deadline).toISOString() 
-              : undefined,
-            description: formattedDescription,
-            status: status, // Use the status passed from the button
-        };
+      const payload = {
+        jobRequisitionId: formData.requisitionId,
+        title: formData.title,
+        employmentType: formData.type,
+        location: formData.location,
+        cadre: cadre,
+        deadline:
+          formData.deadline && !isNaN(new Date(formData.deadline).getTime())
+            ? new Date(formData.deadline).toISOString()
+            : undefined,
+        description: formattedDescription,
+        status: status, // Use the status passed from the button
+      };
 
-        if (initialData) {
-            await updateJobPosting({ id: initialData._id || initialData.id, data: payload });
-            toast.success(`Job updated as ${status}`);
-        } else {
-            const response = await createJobPosting(payload);
-            const createdJob = response?.data?.data || response?.data;
-            const jobId = createdJob?._id || createdJob?.id;
+      if (initialData) {
+        await updateJobPosting({
+          id: initialData._id || initialData.id,
+          data: payload,
+        });
+        toast.success(`Job updated as ${status}`);
+      } else {
+        const response = await createJobPosting(payload);
+        const createdJob = response?.data?.data || response?.data;
+        const jobId = createdJob?._id || createdJob?.id;
 
-            // Workaround: If saving as Draft, force update status because Create might default to Active/Open
-            if (status === 'Draft' && jobId) {
-                await updateJobPosting({ id: jobId, data: { status: 'Draft' } });
-            }
-            
-            toast.success(`Job ${status === 'Draft' ? 'saved as draft' : 'posted'} successfully`);
+        // Workaround: If saving as Draft, force update status because Create might default to Active/Open
+        if (status === 'Draft' && jobId) {
+          await updateJobPosting({ id: jobId, data: { status: 'Draft' } });
         }
-        
-        if (onSuccess) onSuccess();
+
+        toast.success(
+          `Job ${status === 'Draft' ? 'saved as draft' : 'posted'} successfully`
+        );
+      }
+
+      if (onSuccess) onSuccess();
     } catch (error) {
-        console.error('Job posting error:', error.response?.data || error);
-        toast.error(error.response?.data?.message || 'Failed to post job');
+      console.error('Job posting error:', error.response?.data || error);
+      toast.error(error.response?.data?.message || 'Failed to post job');
     }
   };
 
   return (
     <div className="w-full">
-      <form onSubmit={(e) => handleSubmit(e, 'Active')} className="w-full space-y-6">
+      <form
+        onSubmit={(e) => handleSubmit(e, 'Active')}
+        className="w-full space-y-6"
+      >
         {/* Header Section */}
         <div className="flex items-start justify-between border-b border-gray-100 pb-4">
           <div className="flex gap-4">
@@ -189,9 +215,13 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
               <Plus size={24} strokeWidth={3} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">{initialData ? 'Edit Job Posting' : 'Post New Job'}</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                {initialData ? 'Edit Job Posting' : 'Post New Job'}
+              </h2>
               <p className="text-sm text-gray-500">
-                {initialData ? 'Update job details' : 'Create and publish a new job opening'}
+                {initialData
+                  ? 'Update job details'
+                  : 'Create and publish a new job opening'}
               </p>
             </div>
           </div>
@@ -199,7 +229,6 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
 
         {/* Form Content */}
         <div className="space-y-6 py-4">
-          
           {/* Requisition ID */}
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-gray-700">

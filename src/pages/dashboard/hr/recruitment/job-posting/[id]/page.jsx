@@ -38,19 +38,28 @@ import Fields from '@/components/dashboard/hr/overview/fields';
 export default function JobDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentJob: job, getJobPosting, deleteJobPosting, isLoading } = useJobPostStore();
+  const {
+    currentJob: job,
+    getJobPosting,
+    deleteJobPosting,
+    isLoading,
+  } = useJobPostStore();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleDelete = async () => {
-      if (window.confirm('Are you sure you want to delete this job posting? This action cannot be undone.')) {
-          try {
-              await deleteJobPosting(job._id || job.id);
-              toast.success('Job posting deleted successfully');
-              navigate('/dashboard/hr/recruitment/job-postings');
-          } catch (error) {
-              toast.error('Failed to delete job posting');
-          }
+    if (
+      window.confirm(
+        'Are you sure you want to delete this job posting? This action cannot be undone.'
+      )
+    ) {
+      try {
+        await deleteJobPosting(job._id || job.id);
+        toast.success('Job posting deleted successfully');
+        navigate('/dashboard/hr/recruitment/job-postings');
+      } catch (error) {
+        toast.error('Failed to delete job posting');
       }
+    }
   };
 
   useEffect(() => {
@@ -122,7 +131,9 @@ export default function JobDetails() {
               <p className="text-center text-gray-500">Job not found</p>
               <Button
                 variant="link"
-                onClick={() => navigate('/dashboard/hr/recruitment/job-postings')}
+                onClick={() =>
+                  navigate('/dashboard/hr/recruitment/job-postings')
+                }
                 className="mx-auto mt-4 block"
               >
                 Back to Job Postings
@@ -135,7 +146,7 @@ export default function JobDetails() {
   }
 
   // Map API data to table format (placeholder for now as applicants might be a separate fetch)
-  const tableData = []; 
+  const tableData = [];
 
   return (
     <div className="min-h-screen overflow-scroll bg-gray-100 p-6">
@@ -156,77 +167,88 @@ export default function JobDetails() {
           </nav>
 
           {/* Job Header Card */}
-           <div className="flex items-end md:items-center justify-between gap-4 flex-row lg:col-span-3">
-              <header className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 md:w-156 w-full">
-                <div className="flex h-24 md:h-34 w-24 md:w-34 items-center justify-center rounded-full bg-[#B190B6]">
-                  <Briefcase className="h-14 w-14 md:h-24 md:w-24 text-white" />
+          <div className="flex flex-row items-end justify-between gap-4 md:items-center lg:col-span-3">
+            <header className="flex w-full flex-col gap-4 md:w-156 md:flex-row md:items-center md:gap-6">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#B190B6] md:h-34 md:w-34">
+                <Briefcase className="h-14 w-14 text-white md:h-24 md:w-24" />
+              </div>
+              <hgroup className="flex-1">
+                <h1 className="text-xl font-semibold">{job.title}</h1>
+                <p className="mt-1 text-sm text-gray-600">
+                  {job._id || job.id}
+                </p>
+                <div className="mt-2 flex flex-col gap-2 text-sm text-gray-600 md:flex-row">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-6 w-6" />
+                    <span>
+                      Posted{' '}
+                      {job.createdAt
+                        ? new Date(job.createdAt).toLocaleDateString()
+                        : 'N/A'}
+                    </span>
+                  </span>
+
+                  <span className="flex items-center gap-1">
+                    <BriefcaseIcon className="h-6 w-6" />
+                    <span>
+                      {job.jobRequisitionId?.department || job.department} Dept
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <LocateIcon className="h-6 w-6" />
+                    <span>{job.location}</span>
+                  </span>
                 </div>
-                <hgroup className="flex-1">
-                  <h1 className="text-xl font-semibold">{job.title}</h1>
-                  <p className="mt-1 text-sm text-gray-600">
-                    {job._id || job.id}
-                  </p>
-                  <div className="mt-2 flex flex-col md:flex-row gap-2 text-sm text-gray-600">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-6 w-6" />
-                      <span>Posted {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'}</span>
-                    </span>
+              </hgroup>
+            </header>
 
-                    <span className="flex items-center gap-1">
-                      <BriefcaseIcon className="h-6 w-6" />
-                      <span>{job.jobRequisitionId?.department || job.department} Dept</span>
-                    </span>
-                    <span className='flex items-center gap-1'>
-                      <LocateIcon className="h-6 w-6" />
-                      <span>{job.location}</span>
-                    </span>
-                  </div>
-                </hgroup>
-              </header>
-
-          <div className="flex flex-col md:items-end gap-2 md:gap-8">
-            <Badge
-              className={`px-2 py-1 ${
-                (job.status === 'Active' || job.status?.toUpperCase() === 'CREATE') 
-                  ? 'bg-green-100 text-green-700' 
-                  : job.status === 'Closed' 
-                  ? 'bg-gray-100 text-gray-700' 
-                  : 'bg-yellow-100 text-yellow-700'
-              }`}
-            >
-              {(job.status?.toUpperCase() === 'CREATE') ? 'Active' : job.status}
-            </Badge>
-            <div className="flex w-full justify-between gap-4 md:justify-end">
-              <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="rounded-xl bg-[#3300C9] p-6 text-white"
-                  >
-                    <Edit className="h-5 w-5" />
-                    Edit Job Post
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[80vh] w-full md:max-w-2xl overflow-y-auto rounded-2xl bg-gray-50">
-                  <DialogTitle className="sr-only">
-                    Edit Job Posting Form
-                  </DialogTitle>
-                  <DialogDescription className="sr-only">
-                    Form to edit Job Posting Form
-                  </DialogDescription>
-                  <JobPostingForm
-                    initialData={job}
-                    onSuccess={() => {
+            <div className="flex flex-col gap-2 md:items-end md:gap-8">
+              <Badge
+                className={`px-2 py-1 ${
+                  job.status === 'Active' ||
+                  job.status?.toUpperCase() === 'CREATE'
+                    ? 'bg-green-100 text-green-700'
+                    : job.status === 'Closed'
+                      ? 'bg-gray-100 text-gray-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                }`}
+              >
+                {job.status?.toUpperCase() === 'CREATE' ? 'Active' : job.status}
+              </Badge>
+              <div className="flex w-full justify-between gap-4 md:justify-end">
+                <Dialog
+                  open={isEditModalOpen}
+                  onOpenChange={setIsEditModalOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="rounded-xl bg-[#3300C9] p-6 text-white"
+                    >
+                      <Edit className="h-5 w-5" />
+                      Edit Job Post
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
+                    <DialogTitle className="sr-only">
+                      Edit Job Posting Form
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">
+                      Form to edit Job Posting Form
+                    </DialogDescription>
+                    <JobPostingForm
+                      initialData={job}
+                      onSuccess={() => {
                         setIsEditModalOpen(false);
                         getJobPosting(id); // Refresh data
-                    }}
-                    onCancel={() => setIsEditModalOpen(false)}
-                  />
-                </DialogContent>
-              </Dialog>
+                      }}
+                      onCancel={() => setIsEditModalOpen(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
-        </div>
 
           {/* Left Column - Job Overview */}
           <div className="mt-6 grid gap-6 md:col-span-3 md:grid-cols-2 xl:grid-cols-4">
@@ -249,9 +271,6 @@ export default function JobDetails() {
                 Job Information
               </h2>
               <div className="mb-8 grid gap-6 sm:grid-cols-2">
-               
-               
-                
                 <Fields
                   title={job.employmentType || job.type}
                   header="Employment Type"
@@ -262,13 +281,17 @@ export default function JobDetails() {
                   header="Cadre Level"
                   icon={<Award className="h-6 w-6 text-gray-400" />}
                 />
-                 <Fields
+                <Fields
                   title={job.salaryRange || 'Not Specified'}
                   header="Salary Range"
                   icon={<Banknote className="h-6 w-6 text-gray-400" />}
                 />
                 <Fields
-                  title={job.deadline ? new Date(job.deadline).toLocaleDateString() : 'No Deadline'}
+                  title={
+                    job.deadline
+                      ? new Date(job.deadline).toLocaleDateString()
+                      : 'No Deadline'
+                  }
                   header="Deadline"
                   icon={<CalendarIcon className="h-6 w-6 text-gray-400" />}
                 />
@@ -278,7 +301,7 @@ export default function JobDetails() {
                 <h3 className="text-sm font-semibold text-gray-900">
                   Description
                 </h3>
-                <p className="text-sm leading-relaxed text-gray-600 whitespace-pre-wrap">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-600">
                   {job.description}
                 </p>
               </div>
@@ -288,13 +311,20 @@ export default function JobDetails() {
                     Requirements
                   </h3>
                   <ul className="list-inside list-disc space-y-1">
-                    {Array.isArray(job.requirements) ? job.requirements.map((req, index) => (
-                      <li key={index} className="text-sm text-gray-600">
-                        {req}
-                      </li>
-                    )) : <p className="text-sm text-gray-600">{job.requirements}</p>}
+                    {Array.isArray(job.requirements) ? (
+                      job.requirements.map((req, index) => (
+                        <li key={index} className="text-sm text-gray-600">
+                          {req}
+                        </li>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-600">
+                        {job.requirements}
+                      </p>
+                    )}
                   </ul>
-                </div>)}
+                </div>
+              )}
             </div>
           </div>
 
@@ -306,8 +336,8 @@ export default function JobDetails() {
                 Activity Log
               </h2>
               <div className="space-y-4">
-                 {/* Placeholder for activity log if not in API response */}
-                 <p className="text-sm text-gray-500">No activity logged.</p>
+                {/* Placeholder for activity log if not in API response */}
+                <p className="text-sm text-gray-500">No activity logged.</p>
               </div>
             </div>
 

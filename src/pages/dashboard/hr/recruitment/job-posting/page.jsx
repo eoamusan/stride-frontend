@@ -1,16 +1,22 @@
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { Button } from '@/components/ui/button';
 import youtubeIcon from '@/assets/icons/youtube-red.png';
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import JobPostingForm from '../form/job-posting-form';
 import { useState, useMemo, useEffect } from 'react';
-import { 
-  Plus, 
-  SearchIcon, 
-  FilterIcon, 
-  MoreHorizontalIcon, 
-  EyeIcon, 
-  Edit, 
+import {
+  Plus,
+  SearchIcon,
+  FilterIcon,
+  MoreHorizontalIcon,
+  EyeIcon,
+  Edit,
   Trash2,
   XCircle,
 } from 'lucide-react';
@@ -28,8 +34,9 @@ import { useJobPostStore } from '@/stores/job-post-store';
 
 export default function JobPosting() {
   const navigate = useNavigate();
-  const { jobPostings, fetchJobPostings, updateJobPosting, isLoading } = useJobPostStore();
-  
+  const { jobPostings, fetchJobPostings, updateJobPosting, isLoading } =
+    useJobPostStore();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,18 +50,18 @@ export default function JobPosting() {
   }, [fetchJobPostings]);
 
   const handleJobPosted = () => {
-       setIsModalOpen(false);
+    setIsModalOpen(false);
   };
 
   const handleCloseJob = async (id) => {
-      if (window.confirm('Are you sure you want to close this job?')) {
-          try {
-              await updateJobPosting({ id, data: { status: 'Closed' } });
-              toast.success('Job closed successfully');
-          } catch (error) {
-              toast.error('Failed to close job');
-          }
+    if (window.confirm('Are you sure you want to close this job?')) {
+      try {
+        await updateJobPosting({ id, data: { status: 'Closed' } });
+        toast.success('Job closed successfully');
+      } catch (error) {
+        toast.error('Failed to close job');
       }
+    }
   };
 
   // --- Metrics Calculation ---
@@ -77,42 +84,45 @@ export default function JobPosting() {
     };
 
     const processTrend = (filterFn) => {
-        const months = getLast4Months();
-        data.forEach((item) => {
-            if (filterFn && !filterFn(item)) return;
-            const dateStr = item.createdAt;
-            if (!dateStr) return;
-            const date = new Date(dateStr);
-            const bucket = months.find(m => m.month === date.getMonth() && m.year === date.getFullYear());
-            if (bucket) bucket.value++;
-        });
-        
-        const totalValue = months.reduce((acc, m) => acc + m.value, 0);
-        
-        if (totalValue === 0) {
-             return { chartData: months, percentage: 0 };
-        }
+      const months = getLast4Months();
+      data.forEach((item) => {
+        if (filterFn && !filterFn(item)) return;
+        const dateStr = item.createdAt;
+        if (!dateStr) return;
+        const date = new Date(dateStr);
+        const bucket = months.find(
+          (m) => m.month === date.getMonth() && m.year === date.getFullYear()
+        );
+        if (bucket) bucket.value++;
+      });
 
-        const currentMonthVal = months[3].value;
-        const prevMonthVal = months[2].value;
-        let percentage = 0;
-        if (prevMonthVal > 0) percentage = ((currentMonthVal - prevMonthVal) / prevMonthVal) * 100;
-        else if (currentMonthVal > 0) percentage = 100;
+      const totalValue = months.reduce((acc, m) => acc + m.value, 0);
 
-        return { chartData: months, percentage: Math.round(percentage) };
+      if (totalValue === 0) {
+        return { chartData: months, percentage: 0 };
+      }
+
+      const currentMonthVal = months[3].value;
+      const prevMonthVal = months[2].value;
+      let percentage = 0;
+      if (prevMonthVal > 0)
+        percentage = ((currentMonthVal - prevMonthVal) / prevMonthVal) * 100;
+      else if (currentMonthVal > 0) percentage = 100;
+
+      return { chartData: months, percentage: Math.round(percentage) };
     };
 
     // 1. Total Postings
     const totalTrend = processTrend(() => true);
-    
+
     // 2. Active Jobs
-    const activeTrend = processTrend(item => item.status === 'Active');
+    const activeTrend = processTrend((item) => item.status === 'Active');
 
     // 3. Closed Jobs
-    const closedTrend = processTrend(item => item.status === 'Closed');
+    const closedTrend = processTrend((item) => item.status === 'Closed');
 
     // 4. Draft Jobs
-    const draftTrend = processTrend(item => item.status === 'Draft');
+    const draftTrend = processTrend((item) => item.status === 'Draft');
 
     return [
       {
@@ -124,34 +134,33 @@ export default function JobPosting() {
       },
       {
         title: 'Active Jobs',
-        value: data.filter(i => i.status === 'Active').length,
+        value: data.filter((i) => i.status === 'Active').length,
         percentage: activeTrend.percentage,
         isPositive: activeTrend.percentage >= 0,
         chartData: activeTrend.chartData,
       },
       {
         title: 'Closed Jobs',
-        value: data.filter(i => i.status === 'Closed').length,
+        value: data.filter((i) => i.status === 'Closed').length,
         percentage: closedTrend.percentage,
         isPositive: closedTrend.percentage >= 0,
         chartData: closedTrend.chartData,
       },
       {
         title: 'Draft Jobs',
-        value: data.filter(i => i.status === 'Draft').length,
+        value: data.filter((i) => i.status === 'Draft').length,
         percentage: draftTrend.percentage,
         isPositive: draftTrend.percentage >= 0,
         chartData: draftTrend.chartData,
       },
     ];
-
   }, [jobPostings]);
-  
+
   // --- Table Data & Filtering ---
   const rawTableData = useMemo(() => {
     // Clone and sort to avoid mutating the store state directly if it's frozen
     const sortedPostings = [...jobPostings].sort((a, b) => {
-        return new Date(b.createdAt) - new Date(a.createdAt);
+      return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
     return sortedPostings.map((item) => ({
@@ -159,34 +168,42 @@ export default function JobPosting() {
       title: item.title, // Corrected from jobTitle based on API log
       department: item.jobRequisitionId?.department || item.department,
       application: 0, // Placeholder
-      postedDate: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A',
+      postedDate: item.createdAt
+        ? new Date(item.createdAt).toLocaleDateString()
+        : 'N/A',
       status: item.status || 'Active', // Default to Active instead of Pending
     }));
   }, [jobPostings]);
 
   const filteredData = useMemo(() => {
-      let data = rawTableData;
-      
-      if (statusFilter !== 'all') {
-          data = data.filter(item => item.status.toLowerCase() === statusFilter.toLowerCase());
-      }
-      
-      if (searchTerm) {
-          const lower = searchTerm.toLowerCase();
-          data = data.filter(item => 
-            item.title?.toLowerCase().includes(lower) ||
-            item.department?.toLowerCase().includes(lower) ||
-            item.status?.toLowerCase().includes(lower)
-          );
-      }
-      return data;
+    let data = rawTableData;
+
+    if (statusFilter !== 'all') {
+      data = data.filter(
+        (item) => item.status.toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    if (searchTerm) {
+      const lower = searchTerm.toLowerCase();
+      data = data.filter(
+        (item) =>
+          item.title?.toLowerCase().includes(lower) ||
+          item.department?.toLowerCase().includes(lower) ||
+          item.status?.toLowerCase().includes(lower)
+      );
+    }
+    return data;
   }, [rawTableData, statusFilter, searchTerm]);
 
   // Pagination Logic
   const totalItems = filteredData.length;
   const totalPages = Math.ceil(totalItems / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
-  const currentTableData = filteredData.slice(startIndex, startIndex + pageSize);
+  const currentTableData = filteredData.slice(
+    startIndex,
+    startIndex + pageSize
+  );
 
   const columns = [
     { header: 'Job Title', accessorKey: 'title' },
@@ -209,13 +226,13 @@ export default function JobPosting() {
           Closed: { bg: '#3741511A', text: '#374151' },
         };
         const style = statusColors[status] || {
-          bg: '#CE8D001A', 
+          bg: '#CE8D001A',
           text: '#CE8D00',
         };
-        
+
         return (
           <span
-            className="inline-block w-24 rounded-full py-2 text-center text-xs font-medium overflow-hidden"
+            className="inline-block w-24 overflow-hidden rounded-full py-2 text-center text-xs font-medium"
             style={{
               backgroundColor: style.bg,
               color: style.text,
@@ -240,15 +257,25 @@ export default function JobPosting() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate(`/dashboard/hr/recruitment/job-postings/detail/${row.id}`)}>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(
+                    `/dashboard/hr/recruitment/job-postings/detail/${row.id}`
+                  )
+                }
+              >
                 <EyeIcon className="mr-2 h-4 w-4" />
                 View
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                const jobToEdit = jobPostings.find(j => (j._id || j.id) === row.id);
-                setEditingJob(jobToEdit);
-                setIsModalOpen(true);
-              }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  const jobToEdit = jobPostings.find(
+                    (j) => (j._id || j.id) === row.id
+                  );
+                  setEditingJob(jobToEdit);
+                  setIsModalOpen(true);
+                }}
+              >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
@@ -256,7 +283,10 @@ export default function JobPosting() {
                 <XCircle className="mr-2 h-4 w-4" />
                 Close
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log('Delete', row.id)} className="text-red-600 focus:text-red-600">
+              <DropdownMenuItem
+                onClick={() => console.log('Delete', row.id)}
+                className="text-red-600 focus:text-red-600"
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>
@@ -268,16 +298,16 @@ export default function JobPosting() {
   ];
 
   const actionElement = (
-    <div className="flex items-center gap-3 w-full md:w-auto">
+    <div className="flex w-full items-center gap-3 md:w-auto">
       <div className="relative w-full">
         <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
         <Input
           placeholder="Search jobs..."
-          className="w-full md:max-w-80 pl-10"
+          className="w-full pl-10 md:max-w-80"
           value={searchTerm}
           onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1); // Reset page on search
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // Reset page on search
           }}
         />
       </div>
@@ -287,25 +317,39 @@ export default function JobPosting() {
           <Button
             variant="outline"
             size="icon"
-            className={statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''}
+            className={
+              statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
+            }
           >
             <FilterIcon className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={() => setStatusFilter('all')} className={statusFilter === 'all' ? 'bg-blue-50' : ''}>
+          <DropdownMenuItem
+            onClick={() => setStatusFilter('all')}
+            className={statusFilter === 'all' ? 'bg-blue-50' : ''}
+          >
             All Statuses
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setStatusFilter('Active')} className={statusFilter === 'Active' ? 'bg-blue-50' : ''}>
+          <DropdownMenuItem
+            onClick={() => setStatusFilter('Active')}
+            className={statusFilter === 'Active' ? 'bg-blue-50' : ''}
+          >
             Active
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setStatusFilter('Draft')} className={statusFilter === 'Draft' ? 'bg-blue-50' : ''}>
+          <DropdownMenuItem
+            onClick={() => setStatusFilter('Draft')}
+            className={statusFilter === 'Draft' ? 'bg-blue-50' : ''}
+          >
             Draft
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setStatusFilter('Closed')} className={statusFilter === 'Closed' ? 'bg-blue-50' : ''}>
+          <DropdownMenuItem
+            onClick={() => setStatusFilter('Closed')}
+            className={statusFilter === 'Closed' ? 'bg-blue-50' : ''}
+          >
             Closed
           </DropdownMenuItem>
-           {(statusFilter !== 'all' || searchTerm) && (
+          {(statusFilter !== 'all' || searchTerm) && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -338,30 +382,32 @@ export default function JobPosting() {
             <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
             See video guide
           </Button>
-          
-           <Button 
+
+          <Button
             className={'h-10 rounded-2xl px-6 text-sm'}
             onClick={() => {
               setEditingJob(null);
               setIsModalOpen(true);
             }}
-           >
+          >
             <Plus className="mr-2 h-4 w-4" />
             Post New Jobs
           </Button>
 
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className="max-h-[80vh] w-full md:max-w-2xl overflow-y-auto rounded-2xl bg-gray-50">
+            <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
               <DialogTitle className="sr-only">
                 {editingJob ? 'Edit Job Posting' : 'Post New Job'}
               </DialogTitle>
               <DialogDescription className="sr-only">
-                {editingJob ? 'Form to edit job posting' : 'Form to post a new job'}
+                {editingJob
+                  ? 'Form to edit job posting'
+                  : 'Form to post a new job'}
               </DialogDescription>
-              <JobPostingForm 
-                initialData={editingJob} 
+              <JobPostingForm
+                initialData={editingJob}
                 onSuccess={() => {
-                  fetchJobPostings(1, 1000); 
+                  fetchJobPostings(1, 1000);
                   handleJobPosted();
                 }}
                 onCancel={() => setIsModalOpen(false)}

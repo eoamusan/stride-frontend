@@ -131,6 +131,7 @@ import GlobalSetting from './dashboard/hr/setup/global-setting/page';
 import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
 import JobDetails from './dashboard/hr/recruitment/job-posting/[id]/page';
 import ApplicantDetails from './dashboard/hr/recruitment/applicant-screening/[applicantID]/page';
+import InterviewScheduleDetails from './dashboard/hr/recruitment/interview-schedules/[id]/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -593,7 +594,16 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'interview-schedules',
-                        Component: InterviewAndSchedules,
+                        children: [
+                          {
+                            index: true,
+                            Component: InterviewAndSchedules,
+                          },
+                          {
+                            path: 'detail/:id',
+                            Component: InterviewScheduleDetails,
+                          },
+                        ],
                       },
                       {
                         path: 'offer-stage',
