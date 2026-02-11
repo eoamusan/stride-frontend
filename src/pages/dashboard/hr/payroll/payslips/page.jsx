@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { CustomButton } from '@/components/customs';
-import Header from '@/components/dashboard/hr/header';
+import Header from '@/components/customs/header';
 
 import ReleaseIcon from '@/assets/icons/document-text.svg';
 import MetricCard from '@/components/dashboard/hr/metric-card';

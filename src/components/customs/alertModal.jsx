@@ -16,7 +16,7 @@ export default function AlertModal({
   nextText,
   backText,
   open,
-  onOpenChange,
+  onOpenChange = () => {},
   handleBack,
   handleNext,
 }) {
@@ -28,7 +28,9 @@ export default function AlertModal({
             <img src={checkmarkIcon} alt="Success" className="" />
           </div>
 
-          <AlertDialogTitle className="text-[28px] font-bold text-center">{title}</AlertDialogTitle>
+          <AlertDialogTitle className="text-center text-[28px] font-bold">
+            {title}
+          </AlertDialogTitle>
 
           <AlertDialogDescription className="mt-1 text-center text-base md:mx-6">
             {description}
@@ -36,20 +38,20 @@ export default function AlertModal({
         </AlertDialogHeader>
 
         <hr className="my-4" />
-        
+
         <AlertDialogFooter className={'w-full space-x-2'}>
           {handleNext ? (
             <>
               <AlertDialogAction
                 onClick={handleNext}
-                className="rounded-xl mb-4 text-xs h-10 w-full md:max-w-[50%]"
+                className="mb-4 h-10 w-full rounded-xl text-xs md:max-w-[50%]"
               >
                 {nextText}
               </AlertDialogAction>
 
               <AlertDialogCancel
                 onClick={handleBack}
-                className="rounded-xl text-xs mb-4 h-10 w-full md:max-w-[48%]"
+                className="mb-4 h-10 w-full rounded-xl text-xs md:max-w-[48%]"
               >
                 {backText}
               </AlertDialogCancel>

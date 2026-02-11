@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { CustomButton } from '@/components/customs';
-import Header from '@/components/dashboard/hr/header';
+import Header from '@/components/customs/header';
 import CustomModal from '@/components/customs/modal';
 
 import PlusIcon from '@/assets/icons/plus.svg';

@@ -1,13 +1,21 @@
 import { CustomButton } from '@/components/customs';
 import AlertModal from '@/components/customs/alertModal';
 import { useModalStore } from '@/stores/modal-store';
+import { useNavigate } from 'react-router';
 
 const PayrollPreview = ({ onBack }) => {
   const { openModal, closeModal, modals } = useModalStore();
   const runPayrollModal = modals['runPayrollAlert'];
 
+  const navigate = useNavigate();
+
   const handleRunPayroll = () => {
     openModal('runPayrollAlert');
+  };
+
+  const handleConfirmRunPayroll = () => {
+    closeModal('runPayrollAlert');
+    navigate('/dashboard/hr/payroll/review');
   };
 
   const handleCloseModal = () => {
@@ -40,7 +48,7 @@ const PayrollPreview = ({ onBack }) => {
 
       <hr />
 
-      <div className="flex flex-col w-full items-center justify-between gap-4 md:flex-row">
+      <div className="flex w-full flex-col items-center justify-between gap-4 md:flex-row">
         <CustomButton type="button" variant="outline" onClick={onBack}>
           Back
         </CustomButton>
@@ -52,9 +60,8 @@ const PayrollPreview = ({ onBack }) => {
 
       <AlertModal
         open={runPayrollModal?.open}
-        onOpenChange={handleCloseModal}
         handleBack={handleCloseModal}
-        handleNext={handleCloseModal}
+        handleNext={handleConfirmRunPayroll}
         title="Run Payroll"
         description="You are about to calculate payroll for March 2025. This process will include 142 employees."
         backText="Back"
@@ -84,7 +91,7 @@ const summaryItems = [
     isLarge: true,
   },
   {
-    label: 'Total Net Pay', 
+    label: 'Total Net Pay',
     value: '₦7,000',
     valueClassName: 'text-gray-900',
     isLarge: true,

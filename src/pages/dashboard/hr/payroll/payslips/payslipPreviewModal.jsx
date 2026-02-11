@@ -65,7 +65,6 @@ const PayslipPreviewModal = ({
         <div className="flex items-center justify-between border-b px-6 py-8">
           <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-900 text-green-600">
-              {/* <CheckIcon className="h-5 w-5" /> */}
               <img src={DocumentIcon} alt="document" className="h-4 w-4" />
             </span>
             {payslip.period} Payslip Preview

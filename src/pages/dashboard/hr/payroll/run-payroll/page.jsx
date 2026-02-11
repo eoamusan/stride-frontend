@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import Stepper from '@/components/customs/stepper';
-import Header from '@/components/dashboard/hr/header';
+import Header from '@/components/customs/header';
 import { Card, CardContent } from '@/components/ui/card';
 
 import PeriodAndType from './steps/periodAndType';

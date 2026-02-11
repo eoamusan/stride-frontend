@@ -1,4 +1,4 @@
-import Header from '@/components/dashboard/hr/header';
+import Header from '@/components/customs/header';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { useState } from 'react';
 

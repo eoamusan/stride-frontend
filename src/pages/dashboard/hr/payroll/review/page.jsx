@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { CustomButton } from '@/components/customs';
-import Header from '@/components/dashboard/hr/header';
+import Header from '@/components/customs/header';
 
 import ExportIcon from '@/assets/icons/export.svg';
 import RefreshIcon from '@/assets/icons/refresh-circle.svg';
