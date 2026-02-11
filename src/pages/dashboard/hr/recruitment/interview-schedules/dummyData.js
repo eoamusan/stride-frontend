@@ -7,6 +7,9 @@ export const interviewSchedulesDummyData = [
     interviewTime: '10:00 AM',
     roleApplied: 'Senior Frontend Engineer',
     status: 'Upcoming',
+    email: 'alice.johnson@example.com',
+    phone: '+1 (555) 123-4567',
+    location: 'New York, USA',
   },
   {
     id: '2',
@@ -16,6 +19,9 @@ export const interviewSchedulesDummyData = [
     interviewTime: '02:00 PM',
     roleApplied: 'Product Manager',
     status: 'Pending',
+    email: 'bob.smith@example.com',
+    phone: '+1 (555) 234-5678',
+    location: 'San Francisco, USA',
   },
   {
     id: '3',
@@ -25,6 +31,9 @@ export const interviewSchedulesDummyData = [
     interviewTime: '11:00 AM',
     roleApplied: 'UX Designer',
     status: 'Completed',
+    email: 'charlie.brown@example.com',
+    phone: '+1 (555) 345-6789',
+    location: 'Austin, USA',
   },
   {
     id: '4',
@@ -34,6 +43,9 @@ export const interviewSchedulesDummyData = [
     interviewTime: '09:30 AM',
     roleApplied: 'Backend Developer',
     status: 'Upcoming',
+    email: 'david.lee@example.com',
+    phone: '+1 (555) 456-7890',
+    location: 'Seattle, USA',
   },
   {
     id: '5',
@@ -43,6 +55,9 @@ export const interviewSchedulesDummyData = [
     interviewTime: '04:00 PM',
     roleApplied: 'Marketing Specialist',
     status: 'Completed',
+    email: 'eva.green@example.com',
+    phone: '+1 (555) 567-8901',
+    location: 'Boston, USA',
   },
   {
     id: '6',
@@ -52,6 +67,9 @@ export const interviewSchedulesDummyData = [
     interviewTime: '01:00 PM',
     roleApplied: 'Sales Representative',
     status: 'Pending',
+    email: 'frank.white@example.com',
+    phone: '+1 (555) 678-9012',
+    location: 'Chicago, USA',
   },
   {
     id: '7',
@@ -61,6 +79,9 @@ export const interviewSchedulesDummyData = [
     interviewTime: '10:30 AM',
     roleApplied: 'Data Analyst',
     status: 'Upcoming',
+    email: 'grace.hall@example.com',
+    phone: '+1 (555) 789-0123',
+    location: 'Denver, USA',
   },
   {
     id: '8',
@@ -70,6 +91,9 @@ export const interviewSchedulesDummyData = [
     interviewTime: '11:00 AM',
     roleApplied: 'HR Coordinator',
     status: 'Pending',
+    email: 'henry.ford@example.com',
+    phone: '+1 (555) 890-1234',
+    location: 'Miami, USA',
   },
   {
     id: '9',
@@ -79,6 +103,9 @@ export const interviewSchedulesDummyData = [
     interviewTime: '03:00 PM',
     roleApplied: 'Content Writer',
     status: 'Completed',
+    email: 'ivy.wilson@example.com',
+    phone: '+1 (555) 901-2345',
+    location: 'Portland, USA',
   },
   {
     id: '10',
@@ -88,5 +115,8 @@ export const interviewSchedulesDummyData = [
     interviewTime: '02:30 PM',
     roleApplied: 'Customer Support',
     status: 'Upcoming',
+    email: 'jack.king@example.com',
+    phone: '+1 (555) 012-3456',
+    location: 'Atlanta, USA',
   },
 ];
