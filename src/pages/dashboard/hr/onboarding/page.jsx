@@ -69,30 +69,30 @@ export default function HROnboarding() {
 
   const metricCardsData = [
     {
-      title: 'Total Onboardings',
+      title: 'Validation Queue',
       value: totalOnboardings,
-      percentage: 12,
+      percentage: 0,
       isPositive: true,
       chartData: sampleChartData,
     },
     {
       title: 'Offer Accepted',
       value: offerAcceptedCount,
-      percentage: 5,
-      isPositive: true,
+      percentage: 0,
+      isPositive: false,
       chartData: sampleChartData,
     },
     {
       title: 'HR Validation',
       value: hrValidationCount,
-      percentage: -2,
+      percentage: 0,
       isPositive: false,
       chartData: sampleChartData,
     },
     {
       title: 'Asset Assigned',
       value: assetAssignedCount,
-      percentage: 8,
+      percentage: 0,
       isPositive: true,
       chartData: sampleChartData,
     },
