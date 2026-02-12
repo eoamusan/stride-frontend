@@ -22,7 +22,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
+
+import CalendarIcon from '@/assets/icons/calendar.svg';
 
 const assignTrainingSchema = z.object({
   course: z.string().min(1, { message: 'Course is required' }),
@@ -32,7 +33,12 @@ const assignTrainingSchema = z.object({
   notes: z.string().optional(),
 });
 
-export default function AssignTrainingForm({ open, onOpenChange, onSave }) {
+export default function AssignTrainingForm({
+  open,
+  onOpenChange,
+  onSave,
+  editData,
+}) {
   const form = useForm({
     resolver: zodResolver(assignTrainingSchema),
     defaultValues: {
@@ -45,7 +51,24 @@ export default function AssignTrainingForm({ open, onOpenChange, onSave }) {
   });
 
   useEffect(() => {
-    if (!open) {
+    if (open && editData) {
+      // Populate form with edit data
+      const courseValue =
+        courseOptions.find((c) => c.label === editData.courseName)?.value || '';
+
+      const employeeValue =
+        employeeOptions.find((e) => e.label === editData.assignedTo.name)
+          ?.value || '';
+
+      form.reset({
+        course: courseValue,
+        assignTo: employeeValue,
+        dueDate: new Date(editData.dueDate),
+        mandatory: editData.priority.toLowerCase() === 'mandatory',
+        notes: editData.notes || '',
+      });
+    } else if (!open) {
+      // Reset form when modal closes
       form.reset({
         course: '',
         assignTo: '',
@@ -54,18 +77,19 @@ export default function AssignTrainingForm({ open, onOpenChange, onSave }) {
         notes: '',
       });
     }
-  }, [open, form]);
+  }, [open, editData, form]);
 
   const onFormSubmit = async (formData) => {
     const trainingData = {
+      ...(editData && { id: editData.id }),
       courseName: courseOptions.find((c) => c.value === formData.course)?.label,
       assignedTo: {
         name: employeeOptions.find((e) => e.value === formData.assignTo)?.label,
-        avatar: '',
+        avatar: editData?.assignedTo?.avatar || '',
       },
       dueDate: format(formData.dueDate, 'yyyy-MM-dd'),
       priority: formData.mandatory ? 'Mandatory' : 'Optional',
-      status: 'Assigned',
+      status: editData?.status || 'Assigned',
       notes: formData.notes,
     };
 
@@ -106,12 +130,17 @@ export default function AssignTrainingForm({ open, onOpenChange, onSave }) {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="h-16 w-full justify-start rounded-xl py-6 text-left font-normal"
+                    className="h-16 w-full justify-between rounded-xl py-6 text-left text-sm font-normal"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
                     {field.value ? format(field.value, 'PPP') : 'Pick a date'}
+                    <img
+                      src={CalendarIcon}
+                      alt="Calendar Icon"
+                      className="ml-2"
+                    />
                   </Button>
                 </PopoverTrigger>
+
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
@@ -134,11 +163,12 @@ export default function AssignTrainingForm({ open, onOpenChange, onSave }) {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/50 p-4">
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-semibold">
+                <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-gray-600">
                       Mandatory Training
                     </h3>
+
                     <p className="text-xs text-gray-500">
                       Employees must complete this training by the due date.
                     </p>
@@ -160,7 +190,7 @@ export default function AssignTrainingForm({ open, onOpenChange, onSave }) {
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>Notes (Optional)</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Add optional notes about the training assignment..."
@@ -184,7 +214,7 @@ export default function AssignTrainingForm({ open, onOpenChange, onSave }) {
             Cancel
           </Button>
           <Button type="submit" className="h-12 rounded-xl px-6">
-            Assign Training
+            {editData ? 'Update Training' : 'Assign Training'}
           </Button>
         </div>
       </form>

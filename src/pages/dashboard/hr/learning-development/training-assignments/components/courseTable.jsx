@@ -18,17 +18,17 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontalIcon } from 'lucide-react';
 
 const priorityBadgeStyles = {
-  mandatory: 'bg-red-100 text-red-700',
-  optional: 'bg-gray-100 text-gray-700',
+  mandatory: 'bg-red-100 text-red-500',
+  optional: 'bg-blue-50 text-blue-400',
 };
 
 const statusBadgeStyles = {
-  completed: 'bg-green-100 text-green-700',
-  assigned: 'bg-blue-100 text-blue-700',
-  'in progress': 'bg-amber-100 text-amber-700',
+  completed: 'bg-green-100 text-green-500',
+  assigned: 'bg-gray-200 text-gray-700',
+  'in progress': 'bg-amber-50 text-amber-400',
 };
 
-const CourseTable = () => {
+const CourseTable = ({ onEdit }) => {
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [rows, setRows] = useState(tableData);
@@ -88,7 +88,9 @@ const CourseTable = () => {
     const key = (text || '').toLowerCase();
     const styles = map[key] ?? 'bg-gray-100 text-gray-700';
     return (
-      <span className={`rounded-full px-4 py-2 text-sm font-medium ${styles}`}>
+      <span
+        className={`min-w-[98px] rounded-full px-4 py-2 text-xs font-medium ${styles}`}
+      >
         {text}
       </span>
     );
@@ -213,9 +215,10 @@ const CourseTable = () => {
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="end" className="text-sm">
-                  <DropdownMenuItem onClick={() => console.log('Edit', row.id)}>
+                  <DropdownMenuItem onClick={() => onEdit(row)}>
                     Edit
                   </DropdownMenuItem>
+
                   <DropdownMenuItem onClick={() => handleDelete(row.id)}>
                     Delete
                   </DropdownMenuItem>

@@ -11,9 +11,22 @@ import AssignTrainingForm from './components/assignTrainingForm';
 
 export default function TrainingAssignments() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editData, setEditData] = useState(null);
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
+  const handleOpenModal = () => {
+    setEditData(null);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditData(null);
+  };
+
+  const handleEdit = (rowData) => {
+    setEditData(rowData);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="my-5 flex flex-col gap-4">
@@ -43,20 +56,30 @@ export default function TrainingAssignments() {
       </div>
 
       <Card>
-        <CourseTable />
+        <CourseTable onEdit={handleEdit} />
       </Card>
 
       <CustomModal
-        title="Assign Training"
-        description="Select trainings and who it can be assigned to."
+        title={editData ? 'Edit Assigned Training' : 'Assign Training'}
+        description={
+          editData
+            ? 'Update training assignment details.'
+            : 'Select trainings and who it can be assigned to.'
+        }
         open={isModalOpen}
         handleClose={handleCloseModal}
       >
         <AssignTrainingForm
           open={isModalOpen}
           onOpenChange={handleCloseModal}
+          editData={editData}
           onSave={(trainingData) => {
-            console.log('New training assignment:', trainingData);
+            console.log(
+              editData
+                ? 'Updated training assignment:'
+                : 'New training assignment:',
+              trainingData
+            );
             // You can add logic here to save to backend or update table
           }}
         />
