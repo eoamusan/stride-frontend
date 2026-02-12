@@ -19,10 +19,14 @@ import {
   FilterIcon,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { hrValidationDummyData } from './dummyData';
 
 export default function HrValidation() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  // ... existing code ...
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const itemsPerPage = 5;
@@ -116,7 +120,7 @@ export default function HrValidation() {
 
         return (
           <span
-            className="max-w-32 justify-center items-center flex rounded-full px-3 py-2 text-xs font-medium whitespace-nowrap"
+            className="flex max-w-32 items-center justify-center rounded-full px-3 py-2 text-xs font-medium whitespace-nowrap"
             style={{
               backgroundColor: style.bg,
               color: style.text,
@@ -141,7 +145,13 @@ export default function HrValidation() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => console.log('View', row.id)}>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(
+                    `/dashboard/hr/onboarding/hr-validation/detail/${row.id}`
+                  )
+                }
+              >
                 <EyeIcon className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>

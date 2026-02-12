@@ -132,6 +132,7 @@ import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
 import JobDetails from './dashboard/hr/recruitment/job-posting/[id]/page';
 import ApplicantDetails from './dashboard/hr/recruitment/applicant-screening/[applicantID]/page';
 import InterviewScheduleDetails from './dashboard/hr/recruitment/interview-schedules/[id]/page';
+import HrValidationDetails from './dashboard/hr/onboarding/hr-validation/[id]/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -617,7 +618,16 @@ const router = createBrowserRouter([
                       { index: true, Component: HROnboarding },
                       {
                         path: 'hr-validation',
-                        Component: HrValidation,
+                        children: [
+                          {
+                            index: true,
+                            Component: HrValidation,
+                          },
+                          {
+                            path: 'detail/:id',
+                            Component: HrValidationDetails,
+                          },
+                        ],
                       },
                       {
                         path: 'asset-management',
