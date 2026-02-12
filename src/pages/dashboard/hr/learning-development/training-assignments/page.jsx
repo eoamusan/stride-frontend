@@ -9,6 +9,8 @@ import { Card } from '@/components/ui/card';
 import CourseTable from './components/courseTable';
 import AssignTrainingForm from './components/assignTrainingForm';
 
+import DocumentIcon from '@/assets/icons/document-text.svg';
+
 export default function TrainingAssignments() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
@@ -68,6 +70,7 @@ export default function TrainingAssignments() {
         }
         open={isModalOpen}
         handleClose={handleCloseModal}
+        icon={DocumentIcon}
       >
         <AssignTrainingForm
           open={isModalOpen}

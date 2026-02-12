@@ -68,7 +68,6 @@ export default function AssignTrainingForm({
         notes: editData.notes || '',
       });
     } else if (!open) {
-      // Reset form when modal closes
       form.reset({
         course: '',
         assignTo: '',
@@ -101,7 +100,6 @@ export default function AssignTrainingForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-6">
-        {/* Select Course */}
         <FormSelect
           control={form.control}
           name="course"
@@ -110,7 +108,6 @@ export default function AssignTrainingForm({
           options={courseOptions}
         />
 
-        {/* Assign to */}
         <FormSelect
           control={form.control}
           name="assignTo"
@@ -119,7 +116,6 @@ export default function AssignTrainingForm({
           options={employeeOptions}
         />
 
-        {/* Due Date */}
         <FormField
           control={form.control}
           name="dueDate"
@@ -156,7 +152,6 @@ export default function AssignTrainingForm({
           )}
         />
 
-        {/* Mandatory Training Switch */}
         <FormField
           control={form.control}
           name="mandatory"
@@ -184,7 +179,6 @@ export default function AssignTrainingForm({
           )}
         />
 
-        {/* Notes */}
         <FormField
           control={form.control}
           name="notes"
@@ -203,7 +197,6 @@ export default function AssignTrainingForm({
           )}
         />
 
-        {/* Action Buttons */}
         <div className="flex justify-end gap-4 pt-4">
           <Button
             type="button"
