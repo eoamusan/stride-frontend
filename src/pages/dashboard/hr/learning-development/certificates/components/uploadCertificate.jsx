@@ -8,7 +8,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormControl,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,8 +17,6 @@ import {
 } from '@/components/ui/popover';
 import CalendarIcon from '@/assets/icons/calendar-search.svg';
 import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import React, { useRef, useState } from 'react';
 import { CustomButton } from '@/components/customs';
 import { FormSelect } from '@/components/customs';
@@ -67,7 +64,6 @@ export default function UploadCertificateModalContent({ onBack, onSubmit }) {
     },
   });
 
-  // File upload state
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState(null);
@@ -75,7 +71,6 @@ export default function UploadCertificateModalContent({ onBack, onSubmit }) {
   const [uploadError, setUploadError] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  // File select handler
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -122,10 +117,6 @@ export default function UploadCertificateModalContent({ onBack, onSubmit }) {
       formData.append('expiryDate', format(data.expiryDate, 'yyyy-MM-dd'));
       formData.append('file', data.file[0]);
 
-      // Example: call API (replace with actual API call)
-      // await api.uploadCertificate(formData);
-
-      // If parent onSubmit is provided, call it
       if (onSubmit) {
         await onSubmit({
           ...data,
@@ -150,7 +141,6 @@ export default function UploadCertificateModalContent({ onBack, onSubmit }) {
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-6"
       >
-        {/* Row 1: Employee & Certificate Type */}
         <div className="flex flex-col gap-4 md:flex-row">
           <FormSelect
             control={form.control}
@@ -170,7 +160,6 @@ export default function UploadCertificateModalContent({ onBack, onSubmit }) {
           />
         </div>
 
-        {/* Row 2: Start Date & Expiry Date */}
         <div className="flex flex-col gap-4 md:flex-row">
           <FormField
             control={form.control}
@@ -205,6 +194,7 @@ export default function UploadCertificateModalContent({ onBack, onSubmit }) {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="expiryDate"
@@ -225,6 +215,7 @@ export default function UploadCertificateModalContent({ onBack, onSubmit }) {
                       />
                     </Button>
                   </PopoverTrigger>
+
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
@@ -267,7 +258,7 @@ export default function UploadCertificateModalContent({ onBack, onSubmit }) {
               Click or drag file to this area to upload
             </p>
             <p className="text-sm text-gray-500">
-              Click to upload image or PDF
+              Support for a single or bulk upload.
             </p>
             {thumbnailFile && (
               <p className="mt-2 text-xs text-green-600">

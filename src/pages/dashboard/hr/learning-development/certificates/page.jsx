@@ -53,6 +53,8 @@ export default function Certificates() {
         open={uploadModalOpen}
         handleClose={handleCloseModal}
         title="Upload Certificate"
+        className="sm:max-w-3xl"
+        icon={UploadIcon}
       >
         <UploadCertificateModalContent
           onBack={handleCloseModal}
