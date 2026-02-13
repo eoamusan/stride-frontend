@@ -417,7 +417,7 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
       {
         budgetAccounts.length > 0 && budgetAccounts.some(acct => !acct.account.accountCode) && (
           <div className="p-4 bg-yellow-100 text-yellow-800 border border-yellow-300 my-4">
-            <strong>Warning:</strong> Some accounts from the imported Excel data were not found in your accounting accounts.
+            <strong>Warning:</strong> Some accounts from the imported Excel data were not found in your chart of accounts.
             <br/>
             Kindly add them before creating budgets.
           </div>
@@ -580,14 +580,14 @@ export default function CustomBudgetForm({ formValues, onCreateBudget, onUpdateB
 
                       {range.map((_, idx) => (
                         // set input to auto focus when clicked
-                        <div key={idx} className="p-2 border-r border-b flex justify-end" onClick={() => handleSetSelectedAccountId(account.account._id, idx)}>
+                        <div key={idx} className="p-1 border-r border-b flex justify-end" onClick={() => handleSetSelectedAccountId(account.account._id, idx)}>
                           { selectedAccountId === account.account._id ? (
                             <Input
                               type="number"
                               placeholder="0.00"
                               value={values[account.account._id]?.[idx] ?? ""}
                               onChange={(e) => updateValue(account.account._id, idx, e.target.value)}
-                              className="w-full text-right bg-white"
+                              className="w-full text-right bg-white h-7"
                               formatNumber
                               ref={(el) => (budgetInputRefs.current[idx] = el)}
                             />) :

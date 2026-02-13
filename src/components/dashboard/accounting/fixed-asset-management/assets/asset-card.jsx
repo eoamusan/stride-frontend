@@ -9,7 +9,7 @@ export default function AssetCard({ title, data = []}) {
           <Info />
           <h2 className="font-semibold">{title}</h2>
         </div>
-        { data.component ? <data.component /> : <div className="grid grid-cols-2 mt-4 gap-4">
+        { data?.component ? data.component : <div className="grid grid-cols-2 mt-4 gap-4">
           {
             data.map((item, index) => (
               <div key={index} className="flex flex-col">

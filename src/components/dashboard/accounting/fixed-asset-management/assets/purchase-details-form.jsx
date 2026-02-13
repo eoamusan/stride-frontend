@@ -49,12 +49,12 @@ export default function PurchaseDetailsForm({ onBack, onNext, formValues }) {
 
   const { handleSubmit, control, formState } = form;
 
-  const { isValid, errors } = formState
+  const { isValid } = formState
   const [isLoading, setIsLoading] = useState(false)
   const { vendors, fetchVendors, loadingVendors } = useAssets()
 
   const handleNext = async (values) => {
-    console.log(errors)
+    console.log("Form values on submit:", formValues)
     if (!isValid) return
     try {
       setIsLoading(true)

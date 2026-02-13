@@ -48,10 +48,11 @@ export default function AssetForm({onCreateAsset, formValues}) {
   const [initialValues, setInitialValues] = useState()
   useEffect(() => {
     const values = {
+      assetId: formValues?.asset?._id || '',
       assetName: formValues?.asset?.assetName || '',
       assetType: formValues?.asset?.assetType || '',
       serialNo: formValues?.asset?.serialNo || '',
-      category: formValues?.asset?.category || '',
+      category: formValues?.asset?.category?._id || '',
       subCategory: formValues?.asset?.subCategory || '',
       description: formValues?.asset?.description || '',
       purchaseDate: formValues?.purchaseDetails?.createdAt || null,
@@ -82,8 +83,9 @@ export default function AssetForm({onCreateAsset, formValues}) {
       assetPhotos: formValues?.assetFile?.assetPhotos || [],
       assetDocuments: formValues?.assetFile?.documents || [],
       assetPhoto: formValues?.assetFile?.photo || '',
+      item: { ...formValues }
     }
-    console.log("Mapped initial form values:", values)
+    console.log("Initial form values:", values)
     setInitialValues(values)
   }, [formValues])
 

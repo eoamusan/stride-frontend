@@ -29,8 +29,13 @@ import CategoryForm from "../categories/category-form";
 import { AppDialog } from "@/components/core/app-dialog";
 import { HousePlus } from "lucide-react";
 import { Combobox } from "@/components/core/combo-box";
+import useOptions from "@/hooks/fixed-asset-management/useOptions";
+import OptionsForm from "./options-form";
 
 export default function AssetInformationForm({ onBack, onNext, formValues }) {
+
+  const { loadingOptions, subCategoryOptions, openOptionsForm, setOpenOptionsForm, fetchOptions } = useOptions()
+
   const formSchema = z.object({
       assetName: z.string().min(1, "Asset name is required"),
       assetType: z.string({ message: 'Select an asset type'}),
@@ -63,10 +68,22 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
     // save form data and go to next step
     try {
       setIsLoading(true)
-      const res = await AssetService.create({ data: values })
-      const item = res.data?.data
+
+      console.log("Form values to be saved:", formValues.assetId)
+      const create = async () => {
+        return await AssetService.create({ data: values })
+      }
+
+      const update = async () => {
+        return await AssetService.update({ data: values, id: formValues.assetId })
+      }
+
+      console.log("formValues in asset information form", formValues)
+
+      const res = formValues?.assetId ? await update() : await create();
+      const assetData = res.data?.data
       toast.success("Asset Information saved successfully")
-      onNext({...values, item })
+      onNext({...values, item: { assetData, ...formValues.item} })
     } catch (error) {
       console.log(error)
       toast.error(error.response?.data?.message || "Failed to save Asset Information")
@@ -81,6 +98,10 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
   useEffect(() => {
     fetchCategories()
   }, [fetchCategories, formValues])
+
+  useEffect(() => {
+    fetchOptions('sub-category');
+  }, [fetchOptions])
 
   useEffect(() => {
     if (!formValues) return
@@ -185,13 +206,13 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
                 <FormLabel className="whitespace-nowrap min-w-25">Sub-Category</FormLabel>
                 <FormControl className="flex w-full">
                   <Combobox
-                    items={categories}
+                    loading={loadingOptions}
+                    items={subCategoryOptions}
                     value={field.value}
                     onChange={(v) => form.setValue('subCategory', v)}
                     getValue={(item) => item._id}
-                    getLabel={(item) => item.categoryName}
-                    getSubLabel={(item) => item.code}
-                    onAddItem={() => setOpenCategoryForm(true)}
+                    getLabel={(item) => `${item.name}`}
+                    onAddItem={() => setOpenOptionsForm({ open: true, type: 'sub-category' })}
                     addItemLabel='Add New Sub-Category'
                   /> 
                 </FormControl>
@@ -245,6 +266,13 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
           toast.success('Category added successfully');
         }} onCancel={() => setOpenCategoryForm(false)} />
       </AppDialog>
+      <OptionsForm open={openOptionsForm.open} optionType={openOptionsForm.type} 
+        onSubmit={(data) => {
+          fetchOptions(data.section)
+          setOpenOptionsForm({ open: false, type: '' })
+        }} 
+        onClose={() => setOpenOptionsForm((prev) => ({ ...prev, open: false }))} 
+      />
     </div>
   );
 }

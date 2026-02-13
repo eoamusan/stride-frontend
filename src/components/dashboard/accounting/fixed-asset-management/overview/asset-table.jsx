@@ -25,7 +25,7 @@ const AssetTable = ({ showItemDetails }) => {
       className: 'font-medium',
     },
     {
-      key: 'category',
+      key: 'categoryName',
       label: 'Category',
     },
     {
@@ -41,7 +41,7 @@ const AssetTable = ({ showItemDetails }) => {
       label: 'Last Updated',
     },
     {
-      key: 'depreciation',
+      key: 'depreciationMethod',
       label: 'Depreciation',
     },
     {

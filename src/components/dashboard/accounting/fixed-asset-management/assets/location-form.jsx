@@ -1,4 +1,5 @@
 import AssetService from "@/api/asset";
+import { Combobox } from "@/components/core/combo-box";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -24,19 +25,21 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import z from "zod";
+import OptionsForm from "./options-form";
+import useOptions from "@/hooks/fixed-asset-management/useOptions";
 
 export default function LocationForm({ onBack, onNext, formValues }) {
   const formSchema = z.object({
-      building: z.string().min(1, "Building is required"),
-      floor: z.string({ message: 'Select a floor'}),
-      room: z.string().min(1, "Room/Area is required"),
-      department: z.string({ message: 'Select a department'}),
-      assignedTo: z.string({ message: 'Select assigned to'}),
-      assignmentDate: z.date().min(1, "Assignment date is required"),
+      building: z.optional(z.string()),
+      floor: z.optional(z.string()),
+      room: z.optional(z.string()),
+      department: z.optional(z.string()),
+      assignedTo: z.optional(z.string()),
+      assignmentDate: z.optional(z.date())
     })
 
   const form = useForm({
@@ -75,6 +78,14 @@ export default function LocationForm({ onBack, onNext, formValues }) {
     }
   }
 
+  const { loadingOptions, buildingOptions, floorOptions, departmentOptions, openOptionsForm, setOpenOptionsForm, fetchOptions } = useOptions()
+
+  useEffect(() => {
+    fetchOptions('building');
+    fetchOptions('floor');
+    fetchOptions('department');
+  }, [fetchOptions])
+
   return (
     <div>
       <Form {...form} >
@@ -86,7 +97,16 @@ export default function LocationForm({ onBack, onNext, formValues }) {
               <FormItem className="flex flex-col gap-3 items-baseline">
                 <FormLabel className="whitespace-nowrap min-w-25">Building</FormLabel>
                 <FormControl className="flex w-full">
-                  <Input type="text" placeholder="Enter building" onChange={field.onChange} value={field.value} />
+                  <Combobox
+                    loading={loadingOptions}
+                    items={buildingOptions}
+                    value={field.value}
+                    onChange={(v) => form.setValue('building', v)}
+                    getValue={(item) => item._id}
+                    getLabel={(item) => `${item.name}`}
+                    onAddItem={() => setOpenOptionsForm({ open: true, type: 'building' })}
+                    addItemLabel='Add New Building'
+                  /> 
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -100,17 +120,16 @@ export default function LocationForm({ onBack, onNext, formValues }) {
               <FormItem className="flex flex-col gap-3 items-baseline">
                 <FormLabel className="whitespace-nowrap min-w-25">Floor</FormLabel>
                 <FormControl className="flex w-full">
-                  <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Floor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Profiles</SelectLabel>
-                          <SelectItem value="profile1">Profile 1</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                  <Combobox
+                    loading={loadingOptions}
+                    items={floorOptions}
+                    value={field.value}
+                    onChange={(v) => form.setValue('floor', v)}
+                    getValue={(item) => item._id}
+                    getLabel={(item) => `${item.name}`}
+                    onAddItem={() => setOpenOptionsForm({ open: true, type: 'floor' })}
+                    addItemLabel='Add New Floor'
+                  /> 
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -138,17 +157,16 @@ export default function LocationForm({ onBack, onNext, formValues }) {
               <FormItem className="flex flex-col gap-3 items-baseline">
                 <FormLabel className="whitespace-nowrap min-w-25">Department</FormLabel>
                 <FormControl className="flex w-full">
-                  <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Profiles</SelectLabel>
-                          <SelectItem value="profile1">Profile 1</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <Combobox
+                      loading={loadingOptions}
+                      items={departmentOptions}
+                      value={field.value}
+                      onChange={(v) => form.setValue('department', v)}
+                      getValue={(item) => item._id}
+                      getLabel={(item) => `${item.name}`}
+                      onAddItem={() => setOpenOptionsForm({ open: true, type: 'department' })}
+                      addItemLabel='Add New Department'
+                    /> 
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -236,6 +254,13 @@ export default function LocationForm({ onBack, onNext, formValues }) {
           
         </form>
       </Form>
+      <OptionsForm open={openOptionsForm.open} optionType={openOptionsForm.type} 
+        onSubmit={(data) => {
+          fetchOptions(data.section)
+          setOpenOptionsForm({ open: false, type: '' })
+        }} 
+        onClose={() => setOpenOptionsForm((prev) => ({ ...prev, open: false }))} 
+      />
     </div>
   );
 }
