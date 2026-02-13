@@ -95,18 +95,14 @@ export default function useBudgeting() {
           endDate: endDate.toISOString(),
         });
 
-    console.log(res.data.data, 'budget transactions response')
-
     // const expenseAccountsData = expenseRes.data.data.accounts || [];
     // const revenueAccountsData = revenueRes.data.data.accounts || [];
 
     const accountsData = res.data.data.accounts || [];
 
     // Group by accountType
-    console.log(accountsData, 'accountsData for template download')
     const grouped = accountsData.reduce((acc, item) => {
       const key = item.account.accountType;
-      console.log(key, 'account type key')
       acc[key] ??= [];
       acc[key].push(item);
       return acc;
@@ -115,7 +111,6 @@ export default function useBudgeting() {
     const wsData = [];
     const sectionTotals = {}; // Track TOTAL row per section
 
-    console.log(formValues, 'formValues for template download')
     // Column headers
     const fiscalYear = formValues.period.split("_")[1] || new Date().getFullYear();
     const months = MONTHS.map(month => {
@@ -155,8 +150,6 @@ export default function useBudgeting() {
       // Spacer row
       wsData.push([]);
     });
-
-    console.log(wsData, 'final wsData')
 
     // Remove trailing spacer
     if (wsData[wsData.length - 1]?.length === 0) {
