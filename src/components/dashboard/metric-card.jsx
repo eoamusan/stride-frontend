@@ -123,7 +123,7 @@ export default function MetricCard({
         </div>
 
         {/* Chart Area */}
-        {emptyChartData  && (
+        {emptyChartData && (
           <div className="ml-4 shrink-0">
             <div className="relative h-12 w-20">
               <ResponsiveContainer width="100%" height="100%">
