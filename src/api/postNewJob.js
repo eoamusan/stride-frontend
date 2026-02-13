@@ -58,10 +58,6 @@ export default class JobPostService {
     console.log('JobPostService.update called with ID:', id);
     console.log('Update Payload:', payload);
 
-    if (!payload.accountId) {
-      console.warn('JobPostService.update: accountId is missing in payload!');
-    }
-
     const response = await axiosInstance.patch(`job/${id}`, payload, {
       headers: {
         Authorization: `Bearer ${userStore.data?.accessToken}`,

@@ -14,6 +14,8 @@ import {
   Check,
   CheckCircle,
   XCircle,
+  PlusCircle,
+  PlusIcon,
 } from 'lucide-react';
 import ManpowerRequisitionForm from './form/requisition-form';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
@@ -343,6 +345,14 @@ export default function Recruitment() {
               <DropdownMenuItem onClick={() => handleAction('reject', row)}>
                 <XCircle />
                 Reject
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() =>
+                navigate(
+                  `/dashboard/hr/recruitment/job-postings`
+                )
+              }>
+                <PlusIcon />
+                Create Job
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -180,37 +180,27 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
             ? new Date(formData.deadline).toISOString()
             : undefined,
         description: formattedDescription,
-        // status: status, // REMOVED: Status is not part of create payload
+        status: status,
       };
 
       if (initialData) {
         // Update existing job
-        // Backend requires status for updates, so we include it here
-        const updatePayload = { ...payload, status };
+        // 1. Remove status and jobRequisitionId from payload for the general update endpoint
+        const { status: _status, jobRequisitionId: _reqId, ...updatePayload } = payload;
 
         await updateJobPosting({
           id: initialData._id || initialData.id,
           data: updatePayload,
         });
 
-        // If status changed (or re-asserting status), update it separately
-        if (status) {
-          await updateJobStatus({
-            id: initialData._id || initialData.id,
-            status: status
-          });
-        }
-
-        toast.success(`Job updated as ${status}`);
+        toast.success(
+          status === 'Active' ? 'Job updated and posted successfully' : 'Job updated as draft'
+        );
       } else {
         // Create new job
-        const response = await createJobPosting(payload);
-        const createdJob = response?.data?.data || response?.data;
-        const jobId = createdJob?._id || createdJob?.id;
+        await createJobPosting(payload);
 
-        // If "Post Job" (Active) was selected, update status immediately
-        if (status === 'Active' && jobId) {
-          await updateJobStatus({ id: jobId, status: 'Active' });
+        if (status === 'Active') {
           toast.success('Job posted successfully');
         } else {
           toast.success('Job saved as draft');

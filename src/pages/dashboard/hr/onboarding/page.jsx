@@ -127,11 +127,10 @@ export default function HROnboarding() {
                   <div className="relative flex flex-col items-center">
                     {/* Circle */}
                     <div
-                      className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-medium transition-colors ${
-                        isCompleted
-                          ? 'bg-[#10B981] text-white'
-                          : 'bg-white text-gray-400 ring-1 ring-gray-200'
-                      }`}
+                      className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-medium transition-colors ${isCompleted
+                        ? 'bg-[#10B981] text-white'
+                        : 'bg-white text-gray-400 ring-1 ring-gray-200'
+                        }`}
                     >
                       {isCompleted ? (
                         <CheckIcon className="h-3.5 w-3.5" />
@@ -141,9 +140,8 @@ export default function HROnboarding() {
                     </div>
                     {/* Label */}
                     <span
-                      className={`absolute -bottom-4 w-max text-[9px] font-medium ${
-                        isCurrent ? 'text-gray-900' : 'text-gray-400'
-                      }`}
+                      className={`absolute -bottom-4 w-max text-[9px] font-medium ${isCurrent ? 'text-gray-900' : 'text-gray-400'
+                        }`}
                     >
                       {step}
                     </span>
@@ -151,9 +149,8 @@ export default function HROnboarding() {
                   {/* Line */}
                   {!isLast && (
                     <div
-                      className={`mx-2 h-px flex-1 border-t border-dashed ${
-                        i < currentIdx ? 'border-[#10B981]' : 'border-gray-200'
-                      }`}
+                      className={`mx-2 h-px flex-1 border-t border-dashed ${i < currentIdx ? 'border-[#10B981]' : 'border-gray-200'
+                        }`}
                     />
                   )}
                 </div>
