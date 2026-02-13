@@ -1,60 +1,23 @@
 import React, { useState } from 'react';
-import { Calendar } from '@/components/ui/calendar';
-import { useJobRequisitionStore } from '@/stores/job-requisition-store';
-import toast from 'react-hot-toast';
-import {
-  NumberInput,
-  RadioInput,
-  SelectInput,
-  TextAreaInput,
-  TextInput,
-} from './inputs';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import PreviewForm from './preview-form';
+import { Calendar } from 'lucide-react';
 
-export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
-  const [isPreview, setIsPreview] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { createRequisition, updateRequisition } = useJobRequisitionStore();
+export default function ManpowerRequisitionForm() {
   const [formData, setFormData] = useState({
-    jobTitle: initialData?.jobTitle || '',
-    department: initialData?.department || '',
-    employmentType: initialData?.employmentType || '',
-    detailedReason: initialData?.detailedReason || '',
-    grade: initialData?.grade || '',
-    minBudget: initialData?.minBudget || '',
-    maxBudget: initialData?.maxBudget || '',
-    noOfOpenings: initialData?.noOfOpenings || initialData?.openings || 1,
-    reason: initialData?.reason || '',
-    startDate: initialData?.startDate ? new Date(initialData.startDate) : undefined,
-    urgency: initialData?.urgency ? (initialData.urgency === true ? 'High' : 'Low') : '',
+    jobTitle: '',
+    department: '',
+    employmentType: '',
+    cadre: '',
+    budgetMin: '',
+    budgetMax: '',
+    openings: 1,
+    urgency: '',
+    expectedStartDate: '',
+    reasonForHire: '',
+    detailedReason: '',
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    // Handle comma formatting for budget fields
-    if (name === 'minBudget' || name === 'maxBudget') {
-      // Remove existing commas and non-numeric chars (except dot if needed, but usually budget is int)
-      const rawValue = value.replace(/,/g, '').replace(/\D/g, '');
-      // Format with commas
-      const formattedValue = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-      setFormData((prev) => ({
-        ...prev,
-        [name]: formattedValue,
-      }));
-      return;
-    }
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -70,135 +33,122 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setIsPreview(true);
+    console.log('Form Data:', formData);
+    // Add your submission logic here
   };
-
-  const handleFinalSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const payload = {
-        jobTitle: formData.jobTitle,
-        department: formData.department,
-        employmentType: formData.employmentType,
-        grade: formData.grade,
-        minBudget: formData.minBudget.replace(/,/g, ''),
-        maxBudget: formData.maxBudget.replace(/,/g, ''),
-        noOfOpenings: `${formData.noOfOpenings}`,
-        urgency: formData.urgency === 'High' ? true : false,
-        reason: formData.reason,
-        detailedReason: formData.detailedReason.slice(0, 200),
-        startDate: formData.startDate,
-      };
-
-      if (initialData?._id || initialData?.id) {
-        await updateRequisition({
-          id: initialData._id || initialData.id,
-          data: payload
-        });
-        toast.success('Requisition updated successfully');
-      } else {
-        await createRequisition({ data: payload });
-        toast.success('Requisition created successfully');
-      }
-
-      setFormData({
-        jobTitle: '',
-        department: '',
-        employmentType: '',
-        detailedReason: '',
-        grade: '',
-        minBudget: '',
-        maxBudget: '',
-        noOfOpenings: 1,
-        reason: '',
-        startDate: '',
-        urgency: true,
-      });
-      setIsPreview(false);
-      if (onSuccess) onSuccess();
-    } catch (error) {
-      console.error('Error saving requisition:', error);
-      toast.error(
-        error.response?.data?.message || 'Failed to save requisition'
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isPreview) {
-    return (
-      <>
-        <PreviewForm
-          formData={formData}
-          handleFinalSubmit={handleFinalSubmit}
-          isSubmitting={isSubmitting}
-          setIsPreview={setIsPreview}
-        />
-      </>
-    );
-  }
 
   return (
-    <div className="flex h-full w-full items-center justify-center">
+    <div className="flex h-full w-full items-center justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-2xl space-y-6"
+        className="w-full max-w-2xl space-y-6 bg-white"
       >
         <h2 className="mb-6 text-center text-2xl font-bold text-gray-900">
-          {initialData ? 'Edit Man-Power Requisition Form' : 'Man-Power Requisition Form'}
+          Man-Power Requisition Form
         </h2>
 
         {/* Job Title */}
-        <TextInput
-          label="Job Title"
-          name="jobTitle"
-          placeholder="e.g Senior Software Engineer"
-          value={formData.jobTitle}
-          onChange={handleInputChange}
-        />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Job Title <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="jobTitle"
+            placeholder="e.g Senior Software Engineer"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 transition-all focus:border-transparent focus:ring-2 focus:ring-purple-600 focus:outline-none"
+            required
+            value={formData.jobTitle}
+            onChange={handleInputChange}
+          />
+        </div>
 
         {/* Department */}
-        <SelectInput
-          label="Department"
-          name="department"
-          value={formData.department}
-          onChange={handleInputChange}
-          options={[
-            { label: 'Select Department', value: '', disabled: true },
-            { label: 'Engineering', value: 'engineering' },
-            { label: 'Design', value: 'design' },
-            { label: 'Marketing', value: 'marketing' },
-            { label: 'Human Resources', value: 'hr' },
-          ]}
-        />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Department <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <select
+              name="department"
+              className="w-full cursor-pointer appearance-none rounded-lg border border-gray-200 bg-white px-4 py-2.5 focus:ring-2 focus:ring-purple-600 focus:outline-none"
+              value={formData.department}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="" disabled>
+                Engineering
+              </option>
+              <option value="engineering">Engineering</option>
+              <option value="design">Design</option>
+              <option value="marketing">Marketing</option>
+              <option value="hr">Human Resources</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </div>
+          </div>
+        </div>
 
         {/* Employment Type */}
-        <RadioInput
-          label="Employment Type"
-          name="employmentType"
-          value={formData.employmentType}
-          onChange={handleRadioChange}
-          options={['Full Time', 'Contract', 'Internship']}
-        />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Employment Type <span className="text-red-500">*</span>
+          </label>
+          <div className="flex gap-6 pt-1">
+            {['Full Time', 'Contract', 'Internship'].map((type) => (
+              <label
+                key={type}
+                className="group flex cursor-pointer items-center"
+              >
+                <div className="relative flex items-center">
+                  <input
+                    type="radio"
+                    name="employmentType"
+                    value={type}
+                    checked={formData.employmentType === type}
+                    onChange={() => handleRadioChange('employmentType', type)}
+                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-full border border-gray-300 transition-all checked:border-purple-600 checked:bg-white"
+                  />
+                  <div className="pointer-events-none absolute top-1/2 left-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 opacity-0 transition-opacity peer-checked:opacity-100"></div>
+                </div>
+                <span className="ml-2 text-sm text-gray-600 group-hover:text-gray-900">
+                  {type}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
 
         {/* Cadre */}
-        <SelectInput
-          label="Cadre"
-          name="grade"
-          value={formData.grade}
-          onChange={handleInputChange}
-          options={[
-            {
-              label: 'Select the role level or grade',
-              value: '',
-              disabled: true,
-            },
-            { label: 'Junior (L1-L2)', value: 'junior' },
-            { label: 'Mid-Level (L3-L4)', value: 'mid' },
-            { label: 'Senior (L5+)', value: 'senior' },
-          ]}
-        />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Cadre <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <select
+              name="cadre"
+              className="w-full cursor-pointer appearance-none rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-500 focus:ring-2 focus:ring-purple-600 focus:outline-none"
+              value={formData.cadre}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="" disabled>
+                Select the role level or grade
+              </option>
+              <option value="junior">Junior (L1-L2)</option>
+              <option value="mid">Mid-Level (L3-L4)</option>
+              <option value="senior">Senior (L5+)</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </div>
+          </div>
+        </div>
 
         {/* Budget Range & Number of Openings */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -215,10 +165,10 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
                 </span>
                 <input
                   type="text"
-                  name="minBudget"
+                  name="budgetMin"
                   placeholder="₦15,000,000"
                   className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
-                  value={formData.minBudget}
+                  value={formData.budgetMin}
                   onChange={handleInputChange}
                 />
               </div>
@@ -228,95 +178,136 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
                 </span>
                 <input
                   type="text"
-                  name="maxBudget"
+                  name="budgetMax"
                   placeholder="₦25,000,000"
                   className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
-                  value={formData.maxBudget}
+                  value={formData.budgetMax}
                   onChange={handleInputChange}
                 />
               </div>
             </div>
           </div>
-          <NumberInput
-            label="Number of Openings"
-            name="noOfOpenings"
-            value={formData.noOfOpenings}
-            onChange={handleInputChange}
-          />
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Number of Openings <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              name="openings"
+              min="1"
+              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 focus:ring-2 focus:ring-purple-600 focus:outline-none"
+              value={formData.openings}
+              onChange={handleInputChange}
+            />
+          </div>
         </div>
 
         {/* Urgency */}
-        <RadioInput
-          label="Urgency"
-          name="urgency"
-          value={formData.urgency}
-          onChange={handleRadioChange}
-          options={['Low', 'High']}
-        />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Urgency
+          </label>
+          <div className="flex gap-6 pt-1">
+            {['Low', 'High'].map((level) => (
+              <label
+                key={level}
+                className="group flex cursor-pointer items-center"
+              >
+                <div className="relative flex items-center">
+                  <input
+                    type="radio"
+                    name="urgency"
+                    value={level}
+                    checked={formData.urgency === level}
+                    onChange={() => handleRadioChange('urgency', level)}
+                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-full border border-gray-300 transition-all checked:border-purple-600 checked:bg-white"
+                  />
+                  <div className="pointer-events-none absolute top-1/2 left-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 opacity-0 transition-opacity peer-checked:opacity-100"></div>
+                </div>
+                <span className="ml-2 text-sm text-gray-600 group-hover:text-gray-900">
+                  {level}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
 
         {/* Expected Start Date */}
         <div className="space-y-2">
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          <label className="block text-sm font-medium text-gray-700">
             Expected Start Date
           </label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  'w-full justify-start text-left font-normal',
-                  !formData.startDate && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.startDate ? (
-                  format(formData.startDate, 'PPP')
-                ) : (
-                  <span>Pick a date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={formData.startDate}
-                onSelect={(date) =>
-                  handleInputChange({
-                    target: { name: 'startDate', value: date },
-                  })
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <div className="relative">
+            <input
+              type="text"
+              name="expectedStartDate"
+              placeholder="20/12/2025"
+              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-gray-600 focus:ring-2 focus:ring-purple-600 focus:outline-none"
+              value={formData.expectedStartDate}
+              onChange={handleInputChange}
+              onFocus={(e) => (e.target.type = 'date')}
+              onBlur={(e) => (e.target.type = 'text')}
+            />
+            <Calendar className="pointer-events-none absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          </div>
         </div>
 
         {/* Reason for Hire */}
-        <RadioInput
-          label="Reason for Hire"
-          name="reason"
-          value={formData.reason}
-          onChange={handleRadioChange}
-          options={['New Role', 'Replacement', 'Growth']}
-        />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Reason for Hire <span className="text-red-500">*</span>
+          </label>
+          <div className="flex gap-6 pt-1">
+            {['New Role', 'Replacement', 'Growth'].map((reason) => (
+              <label
+                key={reason}
+                className="group flex cursor-pointer items-center"
+              >
+                <div className="relative flex items-center">
+                  <input
+                    type="radio"
+                    name="reasonForHire"
+                    value={reason}
+                    checked={formData.reasonForHire === reason}
+                    onChange={() => handleRadioChange('reasonForHire', reason)}
+                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-full border border-gray-300 transition-all checked:border-purple-600 checked:bg-white"
+                  />
+                  <div className="pointer-events-none absolute top-1/2 left-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 opacity-0 transition-opacity peer-checked:opacity-100"></div>
+                </div>
+                <span className="ml-2 text-sm text-gray-600 group-hover:text-gray-900">
+                  {reason}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
 
         {/* Detailed Reason */}
-        <TextAreaInput
-          label="Detailed Reason"
-          name="detailedReason"
-          placeholder="Explain with details the reasons for this hire and how it benefits the company"
-          value={formData.detailedReason}
-          onChange={handleInputChange}
-          textLength={formData.detailedReason.length}
-          maxLength={200}
-        />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Detailed Reason
+          </label>
+          <textarea
+            name="detailedReason"
+            rows="4"
+            maxLength="200"
+            placeholder="Explain with details the reasons for this hire and how it benefits the company"
+            className="w-full resize-none rounded-lg border border-gray-200 px-4 py-2.5 focus:ring-2 focus:ring-purple-600 focus:outline-none"
+            value={formData.detailedReason}
+            onChange={handleInputChange}
+          ></textarea>
+          <div className="text-right text-xs text-gray-400">
+            {formData.detailedReason.length}/200
+          </div>
+        </div>
 
         {/* Submit Button */}
         <button
           type="submit"
           className="mt-4 w-full rounded-xl bg-[#3b07bb] py-3 font-medium text-white shadow-sm transition-colors hover:bg-[#2f0596]"
         >
-          {initialData ? 'Update Requisition' : 'Preview Requisition'}
+          Preview Requisition
         </button>
       </form>
     </div>

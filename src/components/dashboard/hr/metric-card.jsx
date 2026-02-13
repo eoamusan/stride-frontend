@@ -1,11 +1,4 @@
-import {
-  Bar,
-  BarChart,
-  Cell,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-} from 'recharts';
+import { Bar, BarChart, Cell, XAxis, ResponsiveContainer } from 'recharts';
 import chevronUpIcon from '@/assets/icons/chevron-up.svg';
 import chevronDownIcon from '@/assets/icons/chevron-down.svg';
 import { Card } from '../../ui/card'; // Verify this path matches your project
@@ -33,10 +26,10 @@ export default function MetricCard({
   // Define colors directly here to avoid CSS variable issues
   const colors = {
     // Start Light (300) -> End Dark (600) to increase visual weight
-    month1: isPositive ? '#36FF1B' : '#fca5a5',
-    month2: isPositive ? '#36FF1BCC' : '#f87171',
-    month3: isPositive ? '#36FF1BB2' : '#ef4444',
-    month4: isPositive ? '#36FF1B80' : '#dc2626',
+    month1: isPositive ? '#86efac' : '#fca5a5',
+    month2: isPositive ? '#4ade80' : '#f87171',
+    month3: isPositive ? '#22c55e' : '#ef4444',
+    month4: isPositive ? '#16a34a' : '#dc2626',
   };
 
   const chartConfig = {
@@ -69,7 +62,7 @@ export default function MetricCard({
   // Render function for the chart to ensure consistency
   const renderChart = () => (
     <div className="ml-4 shrink-0">
-      <div className="relative h-12 w-12">
+      <div className="relative h-12 w-16">
         <ChartContainer config={chartConfig} className="h-full w-full">
           <BarChart
             data={activeData}
@@ -78,10 +71,6 @@ export default function MetricCard({
           >
             {/* XAxis is required to define the slots, but we hide it and remove padding */}
             <XAxis dataKey="month" hide padding={{ left: 0, right: 0 }} />
-            <YAxis
-              hide
-              domain={[0, (dataMax) => (dataMax < 50 ? 50 : dataMax)]}
-            />
             <Bar dataKey="unifiedValue" radius={0}>
               {activeData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fillColor} />
@@ -150,7 +139,7 @@ export default function MetricCard({
 
       <div className="flex items-end justify-between">
         <div className="flex-1">
-          <div className="mb-2 text-2xl font-bold text-[#434343]">
+          <div className="mb-2 text-base font-bold text-[#434343]">
             {new Intl.NumberFormat('en-US', {
               minimumFractionDigits: 0,
               maximumFractionDigits: 2,

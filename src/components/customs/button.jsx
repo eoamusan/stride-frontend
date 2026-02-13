@@ -5,7 +5,7 @@ const CustomButton = ({
   type,
   variant,
   onClick,
-  className = 'h-10 rounded-xl text-xs',
+  className = 'h-10 rounded-xl text-xs w-full md:w-auto',
 }) => {
   return (
     <Button

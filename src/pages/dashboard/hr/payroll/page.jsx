@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 
 import SearchInput from '@/components/customs/searchInput';
-import Header from '@/components/dashboard/hr/header';
+import Header from '@/components/customs/header';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -29,7 +29,6 @@ export default function Payroll() {
   const currentPage = useTableStore((s) => s.currentPage);
   const setCurrentPage = useTableStore((state) => state.setCurrentPage);
 
-  // Modal store helpers
   const handleOpenModal = useModalStore((s) => s.handleOpen);
   const handleCloseModal = useModalStore((s) => s.handleClose);
   const isAddComponentOpen = useModalStore(
@@ -43,10 +42,9 @@ export default function Payroll() {
 
   const handleStatusFilterChange = (status) => {
     setStatusFilter(status);
-    setCurrentPage(1); // Reset to first page when filtering
+    setCurrentPage(1);
   };
 
-  // table rows state (editable per-row for demo)
   const [rows, setRows] = useState(tableData);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -96,8 +94,12 @@ export default function Payroll() {
       <Header
         title="Payroll Configuration"
         description="Define salary components and structure"
+        hasYoutubeButton
       >
-        <Button onClick={() => handleOpenModal('addComponent')} className="rounded-xl md:py-6">
+        <Button
+          onClick={() => handleOpenModal('addComponent')}
+          className="rounded-xl md:py-6"
+        >
           <img src={PlusIcon} alt="Add Component" className="mr-1 h-4" /> Add
           Component
         </Button>
@@ -116,7 +118,7 @@ export default function Payroll() {
 
       <Card className="mt-2 w-full border-0 shadow-none">
         <CardContent>
-          <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-center justify-between">
+          <div className="mb-2 flex flex-col justify-between gap-2 md:flex-row md:items-center">
             <h2 className="font-bold">Salary Component</h2>
 
             <div className="flex items-center gap-3">

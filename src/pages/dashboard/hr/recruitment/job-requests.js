@@ -51,85 +51,19 @@ export const dummyJobRequests = [
     ],
     applicants: [
       {
-        id: 'APP-2025-001',
         name: 'Alice Freeman',
         date: 'Nov 15, 2025',
         status: 'Interviewing',
-        personalInfo: {
-          phone: '+1 (555) 010-9988',
-          email: 'alice.freeman@example.com',
-          location: 'San Francisco, CA',
-        },
-        jobExperience: [
-          {
-            title: 'Senior Frontend Developer',
-            role: 'TechFlow Systems',
-            date: 'Jan 2022 - Present',
-            description:
-              'Leading a team of 5 developers in building a next-gen SaaS platform. Improved performance by 40%.',
-          },
-          {
-            title: 'Software Engineer',
-            role: 'Creative Solutions',
-            date: 'Jun 2019 - Dec 2021',
-            description:
-              'Developed and maintained client-facing web applications using React and Redux.',
-          },
-        ],
-        qualifications: [
-          {
-            title: 'B.S. Computer Science',
-            role: 'University of California, Berkeley',
-            date: '2015 - 2019',
-            description:
-              'Graduated with Honors. Capstone project focused on distributed systems.',
-          },
-        ],
-        links: [
-          { title: 'LinkedIn', link: 'https://linkedin.com/in/alicefreeman' },
-          { title: 'GitHub', link: 'https://github.com/alicefreeman' },
-        ],
-        attachment: { name: 'alice_resume.pdf', url: '#' },
       },
       {
-        id: 'APP-2025-002',
         name: 'Bob Smith',
         date: 'Nov 16, 2025',
-        status: 'View',
-        personalInfo: {
-          phone: '+1 (555) 010-5566',
-          email: 'bob.smith@example.com',
-          location: 'Austin, TX',
-        },
-        jobExperience: [
-          {
-            title: 'Backend Developer',
-            role: 'DataSystems Inc.',
-            date: 'Mar 2021 - Present',
-            description:
-              'Architected and implemented microservices using Go and gRPC.',
-          },
-        ],
-        qualifications: [],
-        links: [{ title: 'Portfolio', link: 'https://bobsmith.dev' }],
-        attachment: { name: 'bob_smith_cv.pdf', url: '#' },
+        status: 'New',
       },
       {
-        id: 'APP-2025-003',
         name: 'Charlie Brown',
         date: 'Nov 17, 2025',
         status: 'Rejected',
-        personalInfo: [
-          {
-            phone: '+1 (555) 010-3322',
-            email: 'charlie.brown@example.com',
-            location: 'New York, NY',
-          },
-        ],
-        jobExperience: [],
-        qualifications: [],
-        links: [],
-        attachment: { name: 'charlie_resume.docx', url: '#' },
       },
     ],
   },
@@ -188,34 +122,14 @@ export const dummyJobRequests = [
     ],
     applicants: [
       {
-        id: 'APP-2025-004',
         name: 'David Wilson',
         date: 'Nov 13, 2025',
-        status: 'Approved',
-        personalInfo: {
-          phone: '+1 (555) 987-6543',
-          email: 'david.wilson@example.com',
-          location: 'Seattle, WA',
-        },
-        jobExperience: [],
-        qualifications: [],
-        links: [],
-        attachment: { name: 'david_cv.pdf', url: '#' },
+        status: 'Hired',
       },
       {
-        id: 'APP-2025-005',
         name: 'Eva Green',
         date: 'Nov 14, 2025',
-        status: 'Shortlisted',
-        personalInfo: {
-          phone: '+1 (555) 876-5432',
-          email: 'eva.green@example.com',
-          location: 'Portland, OR',
-        },
-        jobExperience: [],
-        qualifications: [],
-        links: [],
-        attachment: { name: 'eva_resume.pdf', url: '#' },
+        status: 'Offer Sent',
       },
     ],
   },
@@ -274,19 +188,9 @@ export const dummyJobRequests = [
     ],
     applicants: [
       {
-        id: 'APP-2025-006',
         name: 'Frank White',
         date: 'Nov 11, 2025',
         status: 'Rejected',
-        personalInfo: {
-          phone: '+1 (555) 456-7890',
-          email: 'frank.white@example.com',
-          location: 'Chicago, IL',
-        },
-        jobExperience: [],
-        qualifications: [],
-        links: [],
-        attachment: { name: 'frank_resume.pdf', url: '#' },
       },
     ],
   },

@@ -39,11 +39,6 @@ export function TableActions({
   description,
   pageSize = 3,
   path,
-  tableActions = [],
-  applicantID,
-  paginationData,
-  onPageChange,
-  isLoading,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,8 +61,7 @@ export function TableActions({
     return (
       request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.applicantName?.toLowerCase().includes(searchTerm.toLowerCase())
+      request.status?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -305,32 +299,73 @@ export function TableActions({
             ))}
           </TableRow>
         </TableHeader>
-
         <TableBody>
-          {isLoading ? (
-            Array.from({ length: 5 }).map((_, index) => (
-              <TableRow
-                key={`skeleton-${index}`}
-                className="hover:bg-muted/50 border-transparent [&_td]:border-y [&_td:first-child]:rounded-l-3xl [&_td:first-child]:border-l [&_td:last-child]:rounded-r-3xl [&_td:last-child]:border-r"
-              >
-                {tableHeaders.map((_, colIndex) => (
-                  <TableCell key={colIndex} className="px-6 py-4">
-                    <Skeleton className="h-4 w-full" />
+          {currentData.map((request) => (
+            <TableRow
+              key={request.id}
+              className="hover:bg-muted/50 border-transparent [&_td]:border-y [&_td:first-child]:rounded-l-3xl [&_td:first-child]:border-l [&_td:last-child]:rounded-r-3xl [&_td:last-child]:border-r"
+            >
+              {/* 1. DYNAMIC DATA COLUMNS */}
+              {Object.entries(request).map(([key, value]) => {
+                // A. Filter out keys you don't want to display (e.g., 'id')
+                if (key === 'id') return null;
+
+                // B. Special Styling for 'status'
+                if (key === 'status') {
+                  const statusColors = {
+                    Pending: { bg: '#CE8D001A', text: '#CE8D00' },
+                    Approved: { bg: '#0596691A', text: '#059669' },
+                    Rejected: { bg: '#DC26261A', text: '#DC2626' },
+                  };
+
+                  // Fallback in case status is unknown
+                  const style = statusColors[value] || {
+                    bg: '#000',
+                    text: '#fff',
+                  };
+
+                  return (
+                    <TableCell key={key} className="py-4 font-medium">
+                      <span
+                        className="rounded-full px-3 py-2 text-xs"
+                        style={{
+                          backgroundColor: style.bg,
+                          color: style.text,
+                        }}
+                      >
+                        {value}
+                      </span>
+                    </TableCell>
+                  );
+                }
+
+                // C. Default Render for all other keys (Title, Department, etc.)
+                return (
+                  <TableCell key={key} className="px-6 py-4 font-medium">
+                    {value}
                   </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : currentData.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={tableHeaders.length + 1}
-                className="h-24 text-center text-gray-500"
-              >
-                <img
-                  src={emptyTableImg}
-                  alt="Empty Table"
-                  className="mx-auto block w-55"
-                />
+                );
+              })}
+
+              {/* 2. STATIC ACTION COLUMN (The Dropdown) */}
+              <TableCell className="py-4 text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="size-8">
+                      <MoreHorizontalIcon />
+                      <span className="sr-only">Open menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => navigate(`${path}/${request?.id}`)}
+                    >
+                      View
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Approve</DropdownMenuItem>
+                    <DropdownMenuItem>Reject</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ) : (

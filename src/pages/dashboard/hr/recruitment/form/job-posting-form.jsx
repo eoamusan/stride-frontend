@@ -1,19 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, X, Plus, ChevronDown, Trash2 } from 'lucide-react';
-import { useJobRequisitionStore } from '@/stores/job-requisition-store';
-import { useJobPostStore } from '@/stores/job-post-store';
-import { toast } from 'react-hot-toast';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { Calendar, X, Plus, ChevronDown, Trash2 } from 'lucide-react';
 
-export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
+export default function JobPostingForm() {
   // 1. Updated State to match your specific requirement
   const [formData, setFormData] = useState({
     requisitionId: '',
@@ -28,7 +16,7 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
     location: '',
     type: 'Full Time',
     salary: '', // Populated based on Cadre/Selection
-    deadline: undefined,
+    deadline: '',
     description: '',
     requirements: [], // Handled via dynamic list
     responsibilities: [], // Handled via dynamic list
@@ -39,43 +27,6 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
   const [newResponsibility, setNewResponsibility] = useState('');
   const [cadre, setCadre] = useState('Senior Management'); // UI specific state
 
-  const { requisitions, fetchRequisitions } = useJobRequisitionStore();
-  const { createJobPosting, updateJobPosting, updateJobStatus, isLoading } = useJobPostStore();
-
-  useEffect(() => {
-    fetchRequisitions(1, 100); // Fetch all/many for the dropdown
-  }, []);
-
-  // Populate form if editing
-  useEffect(() => {
-    if (initialData) {
-      setFormData((prev) => ({
-        ...prev,
-        requisitionId:
-          initialData.jobRequisitionId?._id ||
-          initialData.jobRequisitionId ||
-          '',
-        title: initialData.title || initialData.jobTitle || '',
-        department:
-          initialData.jobRequisitionId?.department ||
-          initialData.department ||
-          '',
-        location: initialData.location || '',
-        type: initialData.employmentType || initialData.type || 'Full Time',
-        deadline: initialData.deadline
-          ? new Date(initialData.deadline)
-          : undefined,
-        description: initialData.description || '',
-        // requirements & responsibilities are implicitly in description now, or empty
-        requirements: [],
-        responsibilities: [],
-      }));
-      if (initialData.cadre) {
-        setCadre(initialData.cadre);
-      }
-    }
-  }, [initialData]);
-
   // Handle simple text/select changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -83,23 +34,6 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
       ...prev,
       [name]: value,
     }));
-
-    // Auto-fill if requisition changes
-    if (name === 'requisitionId') {
-      const selectedReq = requisitions.find((r) => (r._id || r.id) === value);
-      if (selectedReq) {
-        setFormData((prev) => ({
-          ...prev,
-          requisitionId: value,
-          title: selectedReq.jobTitle || '',
-          department: selectedReq.department || '',
-          requestedBy: selectedReq.user || '', // Or requestedBy if available
-          openings: selectedReq.noOfOpenings || 0,
-          description: selectedReq.detailedReason || prev.description,
-          // Map other fields if available in requisition
-        }));
-      }
-    }
   };
 
   // Handle Radio changes
@@ -139,87 +73,19 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
     }));
   };
 
-  const handleSubmit = async (e, status) => {
-    console.log('JobPostingForm.handleSubmit called with status:', status);
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (
-      !formData.requisitionId ||
-      !formData.title ||
-      !formData.location ||
-      !formData.deadline
-    ) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    // Combine rich text data into description since backend doesn't support separate fields
-    let formattedDescription = formData.description || '';
-
-    if (formData.responsibilities?.length > 0) {
-      formattedDescription +=
-        '\n\nResponsibilities:\n' +
-        formData.responsibilities.map((r) => `- ${r}`).join('\n');
-    }
-
-    if (formData.requirements?.length > 0) {
-      formattedDescription +=
-        '\n\nRequirements:\n' +
-        formData.requirements.map((r) => `- ${r}`).join('\n');
-    }
-
-    try {
-      const payload = {
-        jobRequisitionId: formData.requisitionId,
-        title: formData.title,
-        employmentType: formData.type,
-        location: formData.location,
-        cadre: cadre,
-        deadline:
-          formData.deadline && !isNaN(new Date(formData.deadline).getTime())
-            ? new Date(formData.deadline).toISOString()
-            : undefined,
-        description: formattedDescription,
-        status: status,
-      };
-
-      if (initialData) {
-        // Update existing job
-        // 1. Remove status and jobRequisitionId from payload for the general update endpoint
-        const { status: _status, jobRequisitionId: _reqId, ...updatePayload } = payload;
-
-        await updateJobPosting({
-          id: initialData._id || initialData.id,
-          data: updatePayload,
-        });
-
-        toast.success(
-          status === 'Active' ? 'Job updated and posted successfully' : 'Job updated as draft'
-        );
-      } else {
-        // Create new job
-        await createJobPosting(payload);
-
-        if (status === 'Active') {
-          toast.success('Job posted successfully');
-        } else {
-          toast.success('Job saved as draft');
-        }
-      }
-
-      if (onSuccess) onSuccess();
-    } catch (error) {
-      console.error('Job posting error:', error.response?.data || error);
-      toast.error(error.response?.data?.message || 'Failed to post job');
-    }
+    // postedDate is set on submit
+    const finalData = {
+      ...formData,
+      postedDate: new Date().toISOString().split('T')[0],
+    };
+    console.log('Final Form Data:', finalData);
   };
 
   return (
-    <div className="w-full">
-      <form
-        onSubmit={(e) => handleSubmit(e, 'Active')}
-        className="w-full space-y-6"
-      >
+    <div className="flex min-h-screen w-full items-center justify-center p-2">
+      <form onSubmit={handleSubmit}>
         {/* Header Section */}
         <div className="flex items-start justify-between border-b border-gray-100 pb-4">
           <div className="flex gap-4">
@@ -227,20 +93,19 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
               <Plus size={24} strokeWidth={3} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                {initialData ? 'Edit Job Posting' : 'Post New Job'}
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900">Post New Job</h2>
               <p className="text-sm text-gray-500">
-                {initialData
-                  ? 'Update job details'
-                  : 'Create and publish a new job opening'}
+                Create and publish a new job opening
               </p>
             </div>
           </div>
+          <button type="button" className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
         </div>
 
-        {/* Form Content */}
-        <div className="space-y-6 py-4">
+        {/* Scrollable Form Content */}
+        <div className="flex-1 space-y-6 overflow-y-auto py-4">
           {/* Requisition ID */}
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-gray-700">
@@ -257,11 +122,8 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
                 <option value="" disabled>
                   Select existing requisition
                 </option>
-                {requisitions.map((req) => (
-                  <option key={req._id || req.id} value={req._id || req.id}>
-                    {req.jobTitle} - {req.department}
-                  </option>
-                ))}
+                <option value="req-001">REQ-001: Senior Engineer</option>
+                <option value="req-002">REQ-002: Product Manager</option>
               </select>
               <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
             </div>
@@ -279,7 +141,6 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
                 className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 value={formData.title}
                 onChange={handleInputChange}
-                readOnly // Auto-filled from requisition, maybe allow edit if needed?
                 placeholder="e.g. Senior Software Engineer"
               />
             </div>
@@ -378,34 +239,16 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
               <label className="block text-sm font-medium text-gray-700">
                 Application Deadline <span className="text-red-500">*</span>
               </label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !formData.deadline && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.deadline ? (
-                      format(formData.deadline, 'PPP')
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.deadline}
-                    onSelect={(date) =>
-                      setFormData((prev) => ({ ...prev, deadline: date }))
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="relative">
+                <input
+                  type="date"
+                  name="deadline"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-600"
+                  value={formData.deadline}
+                  onChange={handleInputChange}
+                />
+                <Calendar className="pointer-events-none absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              </div>
             </div>
           </div>
 
@@ -465,11 +308,11 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
                 onKeyDown={(e) =>
                   e.key === 'Enter' &&
                   (e.preventDefault(),
-                    addItem(
-                      'responsibilities',
-                      newResponsibility,
-                      setNewResponsibility
-                    ))
+                  addItem(
+                    'responsibilities',
+                    newResponsibility,
+                    setNewResponsibility
+                  ))
                 }
               />
               <button
@@ -520,7 +363,7 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
                 onKeyDown={(e) =>
                   e.key === 'Enter' &&
                   (e.preventDefault(),
-                    addItem('requirements', newRequirement, setNewRequirement))
+                  addItem('requirements', newRequirement, setNewRequirement))
                 }
               />
               <button
@@ -557,26 +400,23 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
         <div className="flex items-center justify-between border-t border-gray-100 p-6">
           <button
             type="button"
-            onClick={onCancel}
             className="rounded-full border border-green-700 px-8 py-2.5 text-sm font-medium text-green-700 hover:bg-green-50"
           >
-            Cancel
+            Back
           </button>
 
           <div className="flex gap-4">
             <button
               type="button"
-              onClick={(e) => handleSubmit(e, 'Draft')}
               className="rounded-full border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
             >
               Save as Draft
             </button>
             <button
-              type="button" // changed to button to handle explicit click
-              onClick={(e) => handleSubmit(e, 'Active')}
+              type="submit"
               className="rounded-full bg-[#3b07bb] px-8 py-2.5 text-sm font-medium text-white hover:bg-[#2f0596]"
             >
-              {initialData ? 'Update Job' : 'Post Job'}
+              Post Job
             </button>
           </div>
         </div>

@@ -1,41 +1,19 @@
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { Button } from '@/components/ui/button';
 import youtubeIcon from '@/assets/icons/youtube-red.png';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { dummyJobRequests } from '../job-requests';
+import { TableActions } from '@/components/dashboard/hr/table';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import JobPostingForm from '../form/job-posting-form';
-import { useState, useMemo, useEffect } from 'react';
-import {
-  Plus,
-  SearchIcon,
-  FilterIcon,
-  MoreHorizontalIcon,
-  EyeIcon,
-  Edit,
-  Trash2,
-  XCircle,
-} from 'lucide-react';
-import { DataTable } from '@/components/ui/data-table';
-import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useNavigate } from 'react-router';
-import { useJobPostStore } from '@/stores/job-post-store';
-
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
 export default function JobPosting() {
-  const navigate = useNavigate();
-  const { jobPostings, fetchJobPostings, updateJobPosting, isLoading } =
-    useJobPostStore();
+  const sampleChartData = [
+    { month: 'Jan', month1: 600 },
+    { month: 'Feb', month2: 800 },
+    { month: 'Mar', month3: 1000 },
+    { month: 'Apr', month4: 1200 },
+  ];
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -297,78 +275,24 @@ export default function JobPosting() {
     },
   ];
 
-  const actionElement = (
-    <div className="flex w-full items-center gap-3 md:w-auto">
-      <div className="relative w-full">
-        <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-        <Input
-          placeholder="Search jobs..."
-          className="w-full pl-10 md:max-w-80"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1); // Reset page on search
-          }}
-        />
-      </div>
+  const tableHeaders = [
+    { key: 'jobTitle', label: 'Job Title', className: '' },
+    { key: 'department', label: 'Department', className: '' },
+    { key: 'application', label: 'Applications', className: '' },
+    { key: 'datePosted', label: 'Date Posted', className: '' },
+    { key: 'status', label: 'Status', className: '' },
+  ];
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className={
-              statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-            }
-          >
-            <FilterIcon className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('all')}
-            className={statusFilter === 'all' ? 'bg-blue-50' : ''}
-          >
-            All Statuses
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('Active')}
-            className={statusFilter === 'Active' ? 'bg-blue-50' : ''}
-          >
-            Active
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('Draft')}
-            className={statusFilter === 'Draft' ? 'bg-blue-50' : ''}
-          >
-            Draft
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('Closed')}
-            className={statusFilter === 'Closed' ? 'bg-blue-50' : ''}
-          >
-            Closed
-          </DropdownMenuItem>
-          {(statusFilter !== 'all' || searchTerm) && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  setStatusFilter('all');
-                  setSearchTerm('');
-                  setCurrentPage(1);
-                }}
-                className="text-red-600 hover:text-red-700"
-              >
-                Clear All Filters
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+  const tableData = dummyJobRequests.map((item) => ({
+    id: item.id,
+    title: item.title,
+    department: item.department,
+    application: item.application,
+    postedDate: item.postedDate,
+    status: item.status,
+  }));
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div className="my-5">
       <div className="flex flex-wrap items-center justify-between gap-6">
@@ -378,6 +302,20 @@ export default function JobPosting() {
         </hgroup>
 
         <div className="flex space-x-4">
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger asChild>
+              <Button className={'h-10 rounded-2xl px-6 text-sm'}>
+                <Plus className="mr-2 h-4 w-4" />
+                Post New Jobs
+              </Button>
+            </DialogTrigger>
+
+            {/* 5. The Content of the Modal */}
+            <DialogContent className="max-h-[60vh] w-full max-w-7xl overflow-y-auto rounded-2xl">
+              <JobPostingForm />
+            </DialogContent>
+          </Dialog>
+
           <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
             <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
             See video guide
@@ -429,17 +367,11 @@ export default function JobPosting() {
       </div>
 
       <div className="mt-6 rounded-lg bg-white p-6 shadow-md">
-        <DataTable
-          columns={columns}
-          data={currentTableData}
+        <TableActions
+          tableData={tableData}
+          tableHeaders={tableHeaders}
           title="Job Posting"
-          isLoading={isLoading}
-          actionElement={actionElement}
-          pagination={{
-            page: currentPage,
-            totalPages: totalPages === 0 ? 1 : totalPages,
-          }}
-          onPageChange={setCurrentPage}
+          path="/dashboard/hr/recruitment/job-postings/detail"
         />
       </div>
     </div>

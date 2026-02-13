@@ -1,109 +1,53 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { dummyJobRequests } from '../../job-requests';
 import {
   ArrowLeftIcon,
   CalendarIcon,
   BriefcaseIcon,
   NotebookPen,
   CheckCircleIcon,
-  Loader2,
-  Briefcase,
-  Calendar,
-  Edit,
-  LocateIcon,
-  LocateFixedIcon,
-  XCircle,
-  Delete,
-  Building2,
-  Clock,
-  Banknote,
-  Award,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { TableActions } from '@/components/dashboard/hr/table';
-import { useJobPostStore } from '@/stores/job-post-store';
-import { useEffect, useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import JobPostingForm from '../../form/job-posting-form';
-import Fields from '@/components/dashboard/hr/overview/fields';
 
 export default function JobDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const {
-    currentJob: job,
-    getJobPosting,
-    deleteJobPosting,
-    isLoading,
-  } = useJobPostStore();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  const handleDelete = async () => {
-    if (
-      window.confirm(
-        'Are you sure you want to delete this job posting? This action cannot be undone.'
-      )
-    ) {
-      try {
-        await deleteJobPosting(job._id || job.id);
-        toast.success('Job posting deleted successfully');
-        navigate('/dashboard/hr/recruitment/job-postings');
-      } catch (error) {
-        toast.error('Failed to delete job posting');
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (id) {
-      getJobPosting(id);
-    }
-  }, [id, getJobPosting]);
-
-  useEffect(() => {
-    if (job) console.log('Current Job Details:', job);
-  }, [job]);
-
-  // Placeholder metrics - future improvement: fetch real metrics for this specific job
+  const job = dummyJobRequests.find((job) => job.id === id);
   const sampleChartData = [
-    { month: 'Jan', month1: 0 },
-    { month: 'Feb', month2: 0 },
-    { month: 'Mar', month3: 0 },
-    { month: 'Apr', month4: 0 },
+    { month: 'Jan', month1: 600 },
+    { month: 'Feb', month2: 800 },
+    { month: 'Mar', month3: 1000 },
+    { month: 'Apr', month4: 1200 },
   ];
 
   const metricsData = [
     {
       title: 'Total Applicants',
-      value: 0,
-      percentage: 0,
+      value: 150,
+      percentage: 5,
       chartData: sampleChartData,
     },
     {
       title: 'Pending Review',
-      value: 0,
-      percentage: 0,
+      value: 20,
+      percentage: -2,
       chartData: sampleChartData,
       isPositive: false,
     },
     {
       title: 'Interviewing',
-      value: 0,
-      percentage: 0,
+      value: 70,
+      percentage: 5,
       chartData: sampleChartData,
     },
     {
       title: 'Offers Sent',
-      value: 0,
-      percentage: 0,
+      value: 50,
+      percentage: 2,
       chartData: sampleChartData,
     },
   ];
@@ -114,14 +58,6 @@ export default function JobDetails() {
     { key: 'status', label: 'Status', className: '' },
   ];
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-      </div>
-    );
-  }
-
   if (!job) {
     return (
       <div className="min-h-screen bg-gray-100 p-6">
@@ -129,24 +65,12 @@ export default function JobDetails() {
           <Card>
             <CardContent className="p-6">
               <p className="text-center text-gray-500">Job not found</p>
-              <Button
-                variant="link"
-                onClick={() =>
-                  navigate('/dashboard/hr/recruitment/job-postings')
-                }
-                className="mx-auto mt-4 block"
-              >
-                Back to Job Postings
-              </Button>
             </CardContent>
           </Card>
         </div>
       </div>
     );
   }
-
-  // Map API data to table format (placeholder for now as applicants might be a separate fetch)
-  const tableData = [];
 
   return (
     <div className="min-h-screen overflow-scroll bg-gray-100 p-6">
@@ -167,85 +91,44 @@ export default function JobDetails() {
           </nav>
 
           {/* Job Header Card */}
-          <div className="flex flex-row items-end justify-between gap-4 md:items-center lg:col-span-3">
-            <header className="flex w-full flex-col gap-4 md:w-156 md:flex-row md:items-center md:gap-6">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#B190B6] md:h-34 md:w-34">
-                <Briefcase className="h-14 w-14 text-white md:h-24 md:w-24" />
+          <div className="flex flex-col items-center justify-between gap-4 md:col-span-3 md:flex-row">
+            <div className="flex items-center gap-4 md:w-full">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#B190B6] md:h-30 md:w-30">
+                <BriefcaseIcon className="h-12 w-12 text-white" />
               </div>
-              <hgroup className="flex-1">
+              <div className="flex-1">
                 <h1 className="text-xl font-semibold">{job.title}</h1>
-                <p className="mt-1 text-sm text-gray-600">
-                  {job._id || job.id}
-                </p>
-                <div className="mt-2 flex flex-col gap-2 text-sm text-gray-600 md:flex-row">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-6 w-6" />
-                    <span>
-                      Posted{' '}
-                      {job.createdAt
-                        ? new Date(job.createdAt).toLocaleDateString()
-                        : 'N/A'}
-                    </span>
-                  </span>
-
-                  <span className="flex items-center gap-1">
-                    <BriefcaseIcon className="h-6 w-6" />
-                    <span>
-                      {job.jobRequisitionId?.department || job.department} Dept
-                    </span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <LocateIcon className="h-6 w-6" />
+                <p className="mt-1 text-sm text-gray-600">{job.id}</p>
+                <div className="items-centergap-2 mt-2 flex flex-col gap-2 text-sm text-gray-600 md:gap-3 xl:flex-row xl:items-center">
+                  <div className="flex items-center gap-1">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>{job.department} Dept</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>Posted {job.postedDate}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CalendarIcon className="h-4 w-4" />
                     <span>{job.location}</span>
-                  </span>
+                  </div>
                 </div>
-              </hgroup>
-            </header>
-
-            <div className="flex flex-col gap-2 md:items-end md:gap-8">
+              </div>
+            </div>
+            <div className="flex w-full flex-col items-end gap-2">
               <Badge
-                className={`px-2 py-1 ${
-                  job.status === 'Active' ||
-                  job.status?.toUpperCase() === 'CREATE'
-                    ? 'bg-green-100 text-green-700'
-                    : job.status === 'Closed'
-                      ? 'bg-gray-100 text-gray-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                }`}
+                className={`${job.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : job.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
               >
-                {job.status?.toUpperCase() === 'CREATE' ? 'Active' : job.status}
+                {job.status === 'Pending' ? 'Pending Approval' : job.status}
               </Badge>
               <div className="flex w-full justify-between gap-4 md:justify-end">
-                <Dialog
-                  open={isEditModalOpen}
-                  onOpenChange={setIsEditModalOpen}
+                <Button
+                  variant="outline"
+                  className="rounded-xl bg-[#3300C9] p-6 text-white"
                 >
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="rounded-xl bg-[#3300C9] p-6 text-white"
-                    >
-                      <Edit className="h-5 w-5" />
-                      Edit Job Post
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
-                    <DialogTitle className="sr-only">
-                      Edit Job Posting Form
-                    </DialogTitle>
-                    <DialogDescription className="sr-only">
-                      Form to edit Job Posting Form
-                    </DialogDescription>
-                    <JobPostingForm
-                      initialData={job}
-                      onSuccess={() => {
-                        setIsEditModalOpen(false);
-                        getJobPosting(id); // Refresh data
-                      }}
-                      onCancel={() => setIsEditModalOpen(false)}
-                    />
-                  </DialogContent>
-                </Dialog>
+                  <NotebookPen className="h-5 w-5" />
+                  Edit Job Post
+                </Button>
               </div>
             </div>
           </div>
@@ -271,60 +154,60 @@ export default function JobDetails() {
                 Job Information
               </h2>
               <div className="mb-8 grid gap-6 sm:grid-cols-2">
-                <Fields
-                  title={job.employmentType || job.type}
-                  header="Employment Type"
-                  icon={<Clock className="h-6 w-6 text-gray-400" />}
-                />
-                <Fields
-                  title={job.cadre || job.careerLevel || 'Not Specified'}
-                  header="Cadre Level"
-                  icon={<Award className="h-6 w-6 text-gray-400" />}
-                />
-                <Fields
-                  title={job.salaryRange || 'Not Specified'}
-                  header="Salary Range"
-                  icon={<Banknote className="h-6 w-6 text-gray-400" />}
-                />
-                <Fields
-                  title={
-                    job.deadline
-                      ? new Date(job.deadline).toLocaleDateString()
-                      : 'No Deadline'
-                  }
-                  header="Deadline"
-                  icon={<CalendarIcon className="h-6 w-6 text-gray-400" />}
-                />
+                <div>
+                  <label className="text-xs font-medium text-gray-600">
+                    Employment Type
+                  </label>
+                  <p className="mt-2 font-medium text-gray-900">{job.type}</p>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600">
+                    Cadre Level
+                  </label>
+                  <p className="mt-2 font-medium text-gray-900">
+                    {job.careerLevel || 'Not Specified'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600">
+                    Salary Range (Per Annum)
+                  </label>
+                  <p className="mt-2 font-medium text-gray-900">{job.salary}</p>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600">
+                    Application Deadline
+                  </label>
+                  <p className="mt-2 font-medium text-gray-900">
+                    {job.deadline}
+                  </p>
+                </div>
               </div>
 
               <div className="mb-8 space-y-2">
                 <h3 className="text-sm font-semibold text-gray-900">
                   Description
                 </h3>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-600">
+                <p className="text-sm leading-relaxed text-gray-600">
                   {job.description}
                 </p>
               </div>
-              {job.requirements && (
-                <div className="mb-8 space-y-2">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    Requirements
-                  </h3>
-                  <ul className="list-inside list-disc space-y-1">
-                    {Array.isArray(job.requirements) ? (
-                      job.requirements.map((req, index) => (
-                        <li key={index} className="text-sm text-gray-600">
-                          {req}
-                        </li>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-600">
-                        {job.requirements}
-                      </p>
-                    )}
-                  </ul>
-                </div>
-              )}
+
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Requirements
+                </h3>
+                <ul className="list-inside list-disc space-y-1">
+                  {job.requirements?.map((req, index) => (
+                    <li key={index} className="text-sm text-gray-600">
+                      {req}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -336,8 +219,27 @@ export default function JobDetails() {
                 Activity Log
               </h2>
               <div className="space-y-4">
-                {/* Placeholder for activity log if not in API response */}
-                <p className="text-sm text-gray-500">No activity logged.</p>
+                {job.activityLog?.map((activity, index) => (
+                  <div key={index} className="flex gap-3">
+                    <div className="flex-shrink-0 pt-0.5">
+                      {activity.type === 'approved' ||
+                      activity.type === 'created' ||
+                      activity.type === 'submitted' ? (
+                        <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <div className="h-5 w-5 rounded-full border-2 border-gray-300"></div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {activity.title}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {activity.user} • {activity.date}, {activity.time}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -351,16 +253,15 @@ export default function JobDetails() {
                   variant="outline"
                   className="rounded-xl bg-[#3300C9] p-6 text-white md:w-full"
                 >
-                  <XCircle className="h-5 w-5" />
-                  Close
+                  <NotebookPen className="h-5 w-5" />
+                  Edit Job Post
                 </Button>
                 <Button
                   variant="outline"
                   className="rounded-xl border-green-300 bg-transparent p-6 md:w-full"
-                  onClick={handleDelete}
                 >
-                  <Delete className="h-5 w-5" />
-                  Delete
+                  <NotebookPen className="h-5 w-5" />
+                  Edit
                 </Button>
               </div>
             </div>
@@ -368,10 +269,10 @@ export default function JobDetails() {
 
           <div className="rounded-lg bg-white p-6 shadow-md md:col-span-3 xl:col-span-2">
             <TableActions
-              tableData={tableData}
+              tableData={job.applicants}
               tableHeaders={jobHeader}
               title="Applicants"
-              path="/dashboard/hr/recruitment/applicant-screening/applicant"
+              path="/dashboard/hr/recruitment/applicant-screening/"
             />
           </div>
         </main>

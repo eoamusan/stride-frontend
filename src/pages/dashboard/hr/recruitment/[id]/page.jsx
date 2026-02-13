@@ -9,14 +9,12 @@ import {
   Building,
   Calendar,
   CalendarIcon,
+  ClockIcon,
+  DollarSignIcon,
   CheckCircleIcon,
   Clock,
   DownloadIcon,
-  Edit,
-  FileQuestion,
   NotebookPen,
-  User,
-  Users,
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import RecruitmentNotFound from '../NotFound';
@@ -88,182 +86,196 @@ export default function RecruitmentDetails() {
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-full overflow-scroll bg-gray-100 p-6">
-      {/* Main Content */}
-      <main className="grid gap-6 md:gap-8 lg:grid-cols-3">
-        <nav className="flex items-center gap-4 lg:col-span-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={() => navigate('/dashboard/hr/recruitment')}
-          >
-            <ArrowLeftIcon className="h-5 w-5" />
-          </Button>
-          <p className="text-2xl font-bold text-gray-900">
-            Requisition Details
-          </p>
-        </nav>
-
-        {/* Job Header Card */}
-        <div className="flex items-end md:items-center justify-between gap-4 flex-row lg:col-span-3">
-          <header className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 md:w-156 w-full">
-            <div className="flex h-24 md:h-34 w-24 md:w-34 items-center justify-center rounded-full bg-[#B190B6]">
-              <Briefcase className="h-14 w-14 md:h-24 md:w-24 text-white" />
-            </div>
-            <hgroup className="flex-1">
-              <h1 className="text-xl font-semibold">{jobRequest.jobTitle}</h1>
-              <p className="mt-1 text-sm text-gray-600">
-                {jobRequest._id || jobRequest.id}
-              </p>
-              <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
-                <Calendar className="h-6 w-6" />
-                <span>
-                  Created {formatDate(jobRequest.createdAt)},{' '}
-                  {formatTime(jobRequest.createdAt)}
-                </span>
-              </div>
-            </hgroup>
-          </header>
-
-          <div className="flex flex-col md:items-end gap-2 md:gap-8">
-            <Badge
-              className={`px-2 py-1 ${jobRequest.status === 'PENDING' ? 'bg-[#CE8D001A] text-[#CE8D00]' : jobRequest.status === 'APPROVED' ? 'bg-[#00B8661A] text-[#00B866]' : 'bg-[#FF3B301A] text-[#FF3B30]'}`}
+    <div className="min-h-screen overflow-scroll bg-gray-100 p-6">
+      <div className="mx-auto max-w-full">
+        {/* Main Content */}
+        <main className="grid gap-6 md:gap-8 lg:grid-cols-3">
+          {/* Header with back button and title */}
+          <nav className="flex items-center gap-4 lg:col-span-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={() => navigate('/dashboard/hr/recruitment')}
             >
-              {jobRequest.status === 'PENDING'
-                ? 'Pending Approval'
-                : jobRequest.status === 'APPROVED'
-                ? 'Approved'
-                : jobRequest.status === 'REJECTED'
-                ? 'Rejected'
-                : jobRequest.status}
-            </Badge>
-            <div className="flex w-full justify-between gap-4 md:justify-end">
-              <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="hidden md:inline-flex rounded-xl border-green-300 bg-transparent p-6"
-                  >
-                    <Edit className="h-5 w-5" />
-                    Edit
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[80vh] w-full md:max-w-2xl overflow-y-auto rounded-2xl bg-gray-50">
-                  <DialogTitle className="sr-only">
-                    Edit Man Power Requisition Form
-                  </DialogTitle>
-                  <DialogDescription className="sr-only">
-                    Form to edit Man Power Requisition Form
-                  </DialogDescription>
-                  <ManpowerRequisitionForm
-                    initialData={jobRequest}
-                    onSuccess={() => {
-                      setIsEditModalOpen(false);
-                      fetchRequisitions(1); // Refresh data
-                    }}
-                  />
-                </DialogContent>
-              </Dialog>
-              <Button
-                variant="outline"
-                className="rounded-xl bg-[#3300C9] p-6 text-white"
+              <ArrowLeftIcon className="h-5 w-5" />
+            </Button>
+            <p className="text-2xl font-bold text-gray-900">
+              Requisition Details
+            </p>
+          </nav>
+
+          {/* Job Header Card */}
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row lg:col-span-3">
+            <div className="flex items-center gap-4 md:w-156">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#B190B6] md:h-30 md:w-30">
+                <BriefcaseIcon className="h-12 w-12 text-white" />
+              </div>
+              <div className="flex-1">
+                <h1 className="text-xl font-semibold">{jobRequest.title}</h1>
+                <p className="mt-1 text-sm text-gray-600">{jobRequest.id}</p>
+                <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
+                  <CalendarIcon className="h-4 w-4" />
+                  <span>
+                    Created {jobRequest.dateCreated}, {jobRequest.createdTime}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex w-full flex-col items-end gap-2">
+              <Badge
+                className={`${jobRequest.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : jobRequest.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
               >
-                <DownloadIcon className="h-5 w-5" />
-                Generate PDF
-              </Button>
+                {jobRequest.status === 'Pending'
+                  ? 'Pending Approval'
+                  : jobRequest.status}
+              </Badge>
+              <div className="flex w-full justify-between gap-4 md:justify-end">
+                <Button
+                  variant="outline"
+                  className="rounded-xl border-green-300 bg-transparent p-6"
+                >
+                  <NotebookPen className="h-5 w-5" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-xl bg-[#3300C9] p-6 text-white"
+                >
+                  <DownloadIcon className="h-5 w-5" />
+                  Generate PDF
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Left Column - Job Overview */}
-        <section className="rounded-2xl bg-white p-8 lg:col-span-2">
-          {/* Job Overview Section */}
-          <h2 className="mb-6 text-lg font-semibold text-gray-900">
-            Job Overview
-          </h2>
-          <div className="grid gap-8 sm:grid-cols-2">
-            {/* Left Column Fields */}
-            <Fields
-              title={jobRequest.jobTitle}
-              header="Job Title"
-              icon={<BriefcaseIcon className="h-6 w-6 text-gray-400" />}
-            />
-            <Fields
-              title={jobRequest.department}
-              header="Department"
-              icon={<Building className="h-6 w-6 text-gray-400" />}
-            />
-            <Fields
-              title={jobRequest.employmentType}
-              header="Employment Type"
-              icon={<BriefcaseIcon className="h-6 w-6 text-gray-400" />}
-            />
-            <Fields
-              title={jobRequest.grade}
-              header="Cadre Level"
-              icon={<BriefcaseIcon className="h-6 w-6 text-gray-400" />}
-            />
-            <Fields
-              title={`${jobRequest.minBudget} - ${jobRequest.maxBudget}`}
-              header="Budget Range (Per Annum)"
-              icon={<Banknote className="h-6 w-6 text-gray-400" />}
-            />
-            <Fields
-              title={`${jobRequest.noOfOpenings} Positions`}
-              header="Number of Openings"
-              icon={<Users className="h-6 w-6 text-gray-400" />}
-            />
-            <Fields
-              title={
-                typeof jobRequest.urgency === 'boolean'
-                  ? jobRequest.urgency
-                    ? 'High'
-                    : 'Low'
-                  : jobRequest.urgency
-              }
-              header="Urgency"
-              icon={<Clock className="h-6 w-6 text-gray-400" />}
-            />
-            <Fields
-              title={jobRequest.startDate}
-              header="Expected Start Date"
-              icon={<CalendarIcon className="h-6 w-6 text-gray-400" />}
-            />
-            <Fields
-              title={jobRequest.requestedBy || 'N/A'}
-              header="Requested By"
-              icon={<User className="h-6 w-6 text-gray-400" />}
-            />
-            <Fields
-              title={jobRequest.reason}
-              header="Reason for Hire"
-              icon={<FileQuestion className="h-6 w-6 text-gray-400" />}
-            />
-          </div>
-        </section>
+          {/* Left Column - Job Overview */}
+          <div className="rounded-2xl bg-white px-8 py-4 lg:col-span-2">
+            {/* Job Overview Section */}
+            <div>
+              <h2 className="mb-6 text-lg font-semibold text-gray-900">
+                Job Overview
+              </h2>
+              <div className="grid gap-8 sm:grid-cols-2">
+                {/* Left Column Fields */}
+                <div className="space-y-5">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Job Title
+                    </label>
+                    <div className="mt-2 flex items-center gap-2 text-gray-900">
+                      <BriefcaseIcon className="h-4 w-4 text-gray-400" />
+                      <span className="font-medium">{jobRequest.title}</span>
+                    </div>
+                  </div>
 
-        {/* Right Column - Activity and Reason */}
-        <div className="space-y-6">
-          {/* Activity Log Card */}
-          <div className="rounded-xl bg-white p-6">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Activity Log
-            </h2>
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 pt-0.5">
-                  <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Employment Type
+                    </label>
+                    <div className="mt-2 flex items-center gap-2 text-gray-900">
+                      <ClockIcon className="h-4 w-4 text-gray-400" />
+                      <span className="font-medium">{jobRequest.type}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Budget Range
+                    </label>
+                    <div className="mt-2 flex items-center gap-2 text-gray-900">
+                      <DollarSignIcon className="h-4 w-4 text-gray-400" />
+                      <span className="font-medium">{jobRequest.salary}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Urgency
+                    </label>
+                    <div className="mt-2">
+                      <Badge
+                        variant="outline"
+                        className={`${jobRequest.urgency === 'High' ? 'border-red-200 bg-red-50 text-red-700' : jobRequest.urgency === 'Medium' ? 'border-yellow-200 bg-yellow-50 text-yellow-700' : 'border-green-200 bg-green-50 text-green-700'}`}
+                      >
+                        {jobRequest.urgency}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Requested By
+                    </label>
+                    <div className="mt-2 flex items-center gap-2 text-gray-900">
+                      <span className="h-4 w-4 rounded-full bg-gray-300"></span>
+                      <span className="font-medium">
+                        {jobRequest.requestedBy}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Requisition Created
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    by {jobRequest.user || 'N/A'} •{' '}
-                    {formatDate(jobRequest.createdAt)},
-                    {formatTime(jobRequest.createdAt)}
-                  </p>
+
+                {/* Right Column Fields */}
+                <div className="space-y-5">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Department
+                    </label>
+                    <div className="mt-2 flex items-center gap-2 text-gray-900">
+                      <span className="text-lg">🏢</span>
+                      <span className="font-medium">
+                        {jobRequest.department}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Career Level
+                    </label>
+                    <div className="mt-2 flex items-center gap-2 text-gray-900">
+                      <span className="text-lg">📊</span>
+                      <span className="font-medium">
+                        {jobRequest.careerLevel}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Number of Openings
+                    </label>
+                    <div className="mt-2 flex items-center gap-2 text-gray-900">
+                      <UsersIcon className="h-4 w-4 text-gray-400" />
+                      <span className="font-medium">
+                        {jobRequest.openings} Positions
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Expected Start Date
+                    </label>
+                    <div className="mt-2 flex items-center gap-2 text-gray-900">
+                      <CalendarIcon className="h-4 w-4 text-gray-400" />
+                      <span className="font-medium">{jobRequest.deadline}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">
+                      Reason for Hire
+                    </label>
+                    <div className="mt-2 flex items-center gap-2 text-gray-900">
+                      <span className="text-lg">📝</span>
+                      <span className="font-medium">
+                        {jobRequest.reasonForHire}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
