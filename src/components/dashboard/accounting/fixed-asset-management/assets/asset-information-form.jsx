@@ -69,7 +69,6 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
     try {
       setIsLoading(true)
 
-      console.log("Form values to be saved:", formValues.assetId)
       const create = async () => {
         return await AssetService.create({ data: values })
       }
@@ -77,8 +76,6 @@ export default function AssetInformationForm({ onBack, onNext, formValues }) {
       const update = async () => {
         return await AssetService.update({ data: values, id: formValues.assetId })
       }
-
-      console.log("formValues in asset information form", formValues)
 
       const res = formValues?.assetId ? await update() : await create();
       const assetData = res.data?.data

@@ -10,9 +10,7 @@ export default function EmptyAsset() {
       <p className="mt-2 mb-4 text-sm text-[#7D7D7D]">
         It looks like you haven’t added asset yet. 
       </p>
-      <NewAsset className={'h-10 w-full max-w-74.5'} label="Add Asset" showIcon={false}>
-        Hello
-      </NewAsset>
+      <NewAsset className={'h-10 w-full max-w-74.5'} label="Add Asset" showIcon={false} />
     </div>
   );
 }

@@ -85,7 +85,6 @@ export default function AssetForm({onCreateAsset, formValues}) {
       assetPhoto: formValues?.assetFile?.photo || '',
       item: { ...formValues }
     }
-    console.log("Initial form values:", values)
     setInitialValues(values)
   }, [formValues])
 

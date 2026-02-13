@@ -165,7 +165,7 @@ export default function useBudgeting() {
       "GROSS PROFIT",
       { f: `B${incomeTotalRow} - B${expenseTotalRow}` },
       ...Array(12).fill(0).map((_, idx) => ({ f: `${String.fromCharCode(67 + idx)}${incomeTotalRow} - ${String.fromCharCode(67 + idx)}${expenseTotalRow}` })),
-      // funcion to sum the gross profit for the year usinng the array above take not of the space row
+      // funcion to sum the gross profit for the year usinng the array
       // { f: `SUM(C${wsData.length + 1}:N${wsData.length + 1})` }
     ]);
 
