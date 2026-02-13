@@ -65,6 +65,29 @@ export const useJobPostStore = create((set, get) => ({
     }
   },
 
+  updateJobStatus: async ({ id, status }) => {
+    try {
+      set({ isLoading: true });
+      const response = await JobPostService.updateStatus({ id, status });
+      // Refresh the list after successful update
+      const { pagination } = get();
+      await get().fetchJobPostings(pagination.page, pagination.limit);
+
+      // Also update currentJob if it matches
+      const { currentJob } = get();
+      if (currentJob && (currentJob._id === id || currentJob.id === id)) {
+        set({ currentJob: { ...currentJob, status } });
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Error updating job status:', error);
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
   deleteJobPosting: async (id) => {
     try {
       set({ isLoading: true });
@@ -86,11 +109,11 @@ export const useJobPostStore = create((set, get) => ({
     try {
       const { jobPostings } = get();
       const existingJob = jobPostings.find(job => job._id === id || job.id === id);
-      
+
       if (existingJob) {
-          set({ currentJob: existingJob, isLoading: false });
-          // Optional: still fetch in background to update
-          // return; 
+        set({ currentJob: existingJob, isLoading: false });
+        // Optional: still fetch in background to update
+        // return; 
       }
 
       set({ isLoading: !existingJob, currentJob: existingJob || null });

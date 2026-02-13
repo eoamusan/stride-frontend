@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, X, Plus, ChevronDown, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, X, Plus, ChevronDown, Trash2 } from 'lucide-react';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
 import { useJobPostStore } from '@/stores/job-post-store';
 import { toast } from 'react-hot-toast';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
   // 1. Updated State to match your specific requirement
@@ -19,7 +28,7 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
     location: '',
     type: 'Full Time',
     salary: '', // Populated based on Cadre/Selection
-    deadline: '',
+    deadline: undefined,
     description: '',
     requirements: [], // Handled via dynamic list
     responsibilities: [], // Handled via dynamic list
@@ -31,7 +40,7 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
   const [cadre, setCadre] = useState('Senior Management'); // UI specific state
 
   const { requisitions, fetchRequisitions } = useJobRequisitionStore();
-  const { createJobPosting, updateJobPosting, isLoading } = useJobPostStore();
+  const { createJobPosting, updateJobPosting, updateJobStatus, isLoading } = useJobPostStore();
 
   useEffect(() => {
     fetchRequisitions(1, 100); // Fetch all/many for the dropdown
@@ -54,8 +63,8 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
         location: initialData.location || '',
         type: initialData.employmentType || initialData.type || 'Full Time',
         deadline: initialData.deadline
-          ? new Date(initialData.deadline).toISOString().split('T')[0]
-          : '',
+          ? new Date(initialData.deadline)
+          : undefined,
         description: initialData.description || '',
         // requirements & responsibilities are implicitly in description now, or empty
         requirements: [],
@@ -171,28 +180,41 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
             ? new Date(formData.deadline).toISOString()
             : undefined,
         description: formattedDescription,
-        status: status, // Use the status passed from the button
+        // status: status, // REMOVED: Status is not part of create payload
       };
 
       if (initialData) {
+        // Update existing job
+        // Backend requires status for updates, so we include it here
+        const updatePayload = { ...payload, status };
+
         await updateJobPosting({
           id: initialData._id || initialData.id,
-          data: payload,
+          data: updatePayload,
         });
+
+        // If status changed (or re-asserting status), update it separately
+        if (status) {
+          await updateJobStatus({
+            id: initialData._id || initialData.id,
+            status: status
+          });
+        }
+
         toast.success(`Job updated as ${status}`);
       } else {
+        // Create new job
         const response = await createJobPosting(payload);
         const createdJob = response?.data?.data || response?.data;
         const jobId = createdJob?._id || createdJob?.id;
 
-        // Workaround: If saving as Draft, force update status because Create might default to Active/Open
-        if (status === 'Draft' && jobId) {
-          await updateJobPosting({ id: jobId, data: { status: 'Draft' } });
+        // If "Post Job" (Active) was selected, update status immediately
+        if (status === 'Active' && jobId) {
+          await updateJobStatus({ id: jobId, status: 'Active' });
+          toast.success('Job posted successfully');
+        } else {
+          toast.success('Job saved as draft');
         }
-
-        toast.success(
-          `Job ${status === 'Draft' ? 'saved as draft' : 'posted'} successfully`
-        );
       }
 
       if (onSuccess) onSuccess();
@@ -366,16 +388,34 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
               <label className="block text-sm font-medium text-gray-700">
                 Application Deadline <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  name="deadline"
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-600"
-                  value={formData.deadline}
-                  onChange={handleInputChange}
-                />
-                <Calendar className="pointer-events-none absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 text-gray-400" />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !formData.deadline && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.deadline ? (
+                      format(formData.deadline, 'PPP')
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.deadline}
+                    onSelect={(date) =>
+                      setFormData((prev) => ({ ...prev, deadline: date }))
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -435,11 +475,11 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
                 onKeyDown={(e) =>
                   e.key === 'Enter' &&
                   (e.preventDefault(),
-                  addItem(
-                    'responsibilities',
-                    newResponsibility,
-                    setNewResponsibility
-                  ))
+                    addItem(
+                      'responsibilities',
+                      newResponsibility,
+                      setNewResponsibility
+                    ))
                 }
               />
               <button
@@ -490,7 +530,7 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
                 onKeyDown={(e) =>
                   e.key === 'Enter' &&
                   (e.preventDefault(),
-                  addItem('requirements', newRequirement, setNewRequirement))
+                    addItem('requirements', newRequirement, setNewRequirement))
                 }
               />
               <button

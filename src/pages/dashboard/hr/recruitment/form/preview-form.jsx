@@ -1,4 +1,5 @@
 import { CheckCircle, Pencil, Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function PreviewForm({
   formData,
@@ -77,7 +78,7 @@ export default function PreviewForm({
                   Expected Start Date
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
-                  {formData.startDate || '-'}
+                  {formData.startDate ? format(formData.startDate, 'PPP') : '-'}
                 </td>
               </tr>
               <tr>

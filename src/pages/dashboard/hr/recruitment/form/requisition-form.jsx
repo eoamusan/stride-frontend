@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, CheckCircle, Pencil, Loader2 } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
 import toast from 'react-hot-toast';
 import {
@@ -9,6 +9,15 @@ import {
   TextAreaInput,
   TextInput,
 } from './inputs';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import PreviewForm from './preview-form';
 
 export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
@@ -25,7 +34,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
     maxBudget: initialData?.maxBudget || '',
     noOfOpenings: initialData?.noOfOpenings || initialData?.openings || 1,
     reason: initialData?.reason || '',
-    startDate: initialData?.startDate || '',
+    startDate: initialData?.startDate ? new Date(initialData.startDate) : undefined,
     urgency: initialData?.urgency ? (initialData.urgency === true ? 'High' : 'Low') : '',
   });
 
@@ -67,16 +76,16 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
       };
 
       if (initialData?._id || initialData?.id) {
-        await updateRequisition({ 
-          id: initialData._id || initialData.id, 
-          data: payload 
+        await updateRequisition({
+          id: initialData._id || initialData.id,
+          data: payload
         });
         toast.success('Requisition updated successfully');
       } else {
         await createRequisition({ data: payload });
         toast.success('Requisition created successfully');
       }
-      
+
       setFormData({
         jobTitle: '',
         department: '',
@@ -232,22 +241,39 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
 
         {/* Expected Start Date */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             Expected Start Date
           </label>
-          <div className="relative">
-            <input
-              type="text"
-              name="startDate"
-              placeholder="20/12/2025"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-gray-600 focus:ring-2 focus:ring-purple-600 focus:outline-none"
-              value={formData.startDate}
-              onChange={handleInputChange}
-              onFocus={(e) => (e.target.type = 'date')}
-              onBlur={(e) => (e.target.type = 'text')}
-            />
-            <Calendar className="pointer-events-none absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 text-gray-400" />
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  'w-full justify-start text-left font-normal',
+                  !formData.startDate && 'text-muted-foreground'
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {formData.startDate ? (
+                  format(formData.startDate, 'PPP')
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={formData.startDate}
+                onSelect={(date) =>
+                  handleInputChange({
+                    target: { name: 'startDate', value: date },
+                  })
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Reason for Hire */}

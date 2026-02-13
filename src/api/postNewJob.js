@@ -28,18 +28,18 @@ export default class JobPostService {
 
   static async get({ id }) {
     const userStore = useUserStore.getState();
-    console.log('JobPostService.get called with ID:', id); 
+    console.log('JobPostService.get called with ID:', id);
     const url = `job/${id}`;
     console.log('Requesting URL:', url);
-    
+
     // Attempting to add accountId just in case backend needs it for context, though usually GET params
     const response = await axiosInstance.get(url, {
       headers: {
         Authorization: `Bearer ${userStore.data?.accessToken}`,
       },
       params: {
-         accountId: userStore.data?.account?._id,
-         businessId: userStore.activeBusiness?._id,
+        accountId: userStore.data?.account?._id,
+        businessId: userStore.activeBusiness?._id,
       }
     });
     return response;
@@ -54,7 +54,7 @@ export default class JobPostService {
       ...data,
       accountId: userStore.data?.account?._id,
     };
-    
+
     console.log('JobPostService.update called with ID:', id);
     console.log('Update Payload:', payload);
 
@@ -63,6 +63,23 @@ export default class JobPostService {
     }
 
     const response = await axiosInstance.patch(`job/${id}`, payload, {
+      headers: {
+        Authorization: `Bearer ${userStore.data?.accessToken}`,
+      },
+    });
+    return response;
+  }
+
+  static async updateStatus({ id, status }) {
+    const userStore = useUserStore.getState();
+    const payload = {
+      status,
+      accountId: userStore.data?.account?._id,
+    };
+
+    console.log('JobPostService.updateStatus called with ID:', id, 'Status:', status);
+
+    const response = await axiosInstance.patch(`job/${id}/status`, payload, {
       headers: {
         Authorization: `Bearer ${userStore.data?.accessToken}`,
       },
