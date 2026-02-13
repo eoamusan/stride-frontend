@@ -40,6 +40,21 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // Handle comma formatting for budget fields
+    if (name === 'minBudget' || name === 'maxBudget') {
+      // Remove existing commas and non-numeric chars (except dot if needed, but usually budget is int)
+      const rawValue = value.replace(/,/g, '').replace(/\D/g, '');
+      // Format with commas
+      const formattedValue = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]: formattedValue,
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -66,8 +81,8 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
         department: formData.department,
         employmentType: formData.employmentType,
         grade: formData.grade,
-        minBudget: formData.minBudget,
-        maxBudget: formData.maxBudget,
+        minBudget: formData.minBudget.replace(/,/g, ''),
+        maxBudget: formData.maxBudget.replace(/,/g, ''),
         noOfOpenings: `${formData.noOfOpenings}`,
         urgency: formData.urgency === 'High' ? true : false,
         reason: formData.reason,
