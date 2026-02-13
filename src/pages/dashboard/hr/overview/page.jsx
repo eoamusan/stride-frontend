@@ -20,6 +20,7 @@ export default function Overview() {
         { month: 'Jan', month1: 1000 },
         { month: 'Feb', month2: 800 },
         { month: 'Mar', month3: 600 },
+        { month: 'April', month4: 300 },
       ],
     },
     {
@@ -38,6 +39,7 @@ export default function Overview() {
         { month: 'Jan', month1: 600 },
         { month: 'Feb', month2: 800 },
         { month: 'Mar', month3: 1000 },
+        { month: 'April', month4: 1200 },
       ],
     },
   ];
