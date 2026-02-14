@@ -16,6 +16,9 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontalIcon } from 'lucide-react';
 
+import CheckmarkIcon from '@/assets/icons/gray-checkmark.svg';
+import CloseIcon from '@/assets/icons/close-circle.svg';
+
 const statusBadgeStyles = {
   pending: 'bg-amber-50 text-amber-400',
   approved: 'bg-green-100 text-green-500',
@@ -84,7 +87,7 @@ const TrainingQueueTable = () => {
     const styles = statusBadgeStyles[key] ?? 'bg-gray-100 text-gray-700';
     return (
       <span
-        className={`min-w-[98px] rounded-full px-4 py-2 text-xs font-medium ${styles}`}
+        className={`inline-flex w-[98px] items-center justify-center rounded-full px-4 py-2 text-sm font-medium ${styles}`}
       >
         {text}
       </span>
@@ -180,11 +183,13 @@ const TrainingQueueTable = () => {
 
                 <DropdownMenuContent align="end" className="text-sm">
                   <DropdownMenuItem onClick={() => handleApprove(row.id)}>
-                    Approve
+                    <img src={CheckmarkIcon} alt="Approve" className="mr-1 h-4" />
+                    <span className="text-sm">Approve</span>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem onClick={() => handleReject(row.id)}>
-                    Reject
+                    <img src={CloseIcon} alt="Reject" className="mr-1 h-4" />
+                    <span className="text-sm">Reject</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

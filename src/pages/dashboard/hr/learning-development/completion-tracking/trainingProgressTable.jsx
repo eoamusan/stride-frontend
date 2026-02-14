@@ -104,7 +104,9 @@ const TrainingProgressTable = () => {
     const key = (status || '').toLowerCase();
     const styles = statusBadgeStyles[key] ?? 'bg-gray-100 text-gray-600';
     return (
-      <span className={`rounded-full px-4 py-2 text-xs font-medium ${styles}`}>
+      <span
+        className={`inline-flex w-[98px] items-center justify-center rounded-full px-4 py-2 text-sm font-medium ${styles}`}
+      >
         {status}
       </span>
     );

@@ -22,6 +22,8 @@ import PlusIcon from '@/assets/icons/plus.svg';
 import CustomModal from '@/components/customs/modal';
 import AddComponent from './form/addComponent';
 import { useModalStore } from '@/stores/modal-store';
+import EditIcon from '@/assets/icons/gray-edit.svg';
+import DeleteIcon from '@/assets/icons/gray-delete.svg';
 
 export default function Payroll() {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -203,7 +205,7 @@ export default function Payroll() {
                 <TableCell className="py-4 font-medium">
                   <Badge
                     variant={typeToBadgeVariant(row.type)}
-                    className="px-6 py-2"
+                    className="px-6 py-2 min-w-[98px]"
                   >
                     {row.type}
                   </Badge>
@@ -222,12 +224,14 @@ export default function Payroll() {
                       <DropdownMenuItem
                         onClick={() => console.log('edit', row)}
                       >
-                        Edit
+                        <img src={EditIcon} alt="Edit" className="mr-1 h-4" />
+                        <span>Edit</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDelete(row.componentName)}
                       >
-                        Delete
+                        <img src={DeleteIcon} alt="Delete" className="mr-1 h-4" />
+                        <span>Delete</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

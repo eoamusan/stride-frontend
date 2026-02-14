@@ -87,7 +87,7 @@ const CertificateTable = () => {
     const styles = statusBadgeStyles[key] ?? 'bg-gray-100 text-gray-700';
     return (
       <span
-        className={`min-w-[98px] rounded-full px-4 py-2 text-xs font-medium ${styles}`}
+        className={`inline-flex w-[125px] items-center justify-center rounded-full px-4 py-2 text-sm font-medium ${styles}`}
       >
         {text}
       </span>
@@ -275,8 +275,6 @@ const CertificateTable = () => {
         </CustomTable>
       </CardContent>
 
-      {/* Certificate Preview Modal */}
-      {/* Renew Certificate Modal */}
       <CustomModal
         open={!!modals['renewCertificate']?.open}
         handleClose={handleCloseRenew}

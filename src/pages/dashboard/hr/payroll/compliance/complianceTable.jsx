@@ -78,7 +78,9 @@ const ComplianceTable = ({ rows, onRowsChange }) => {
     const key = status.toLowerCase();
     const styles = statusStyles[key] ?? 'bg-gray-100 text-gray-700';
     return (
-      <span className={`rounded-full px-4 py-2 text-sm font-medium ${styles}`}>
+      <span
+        className={`inline-flex w-[98px] items-center justify-center rounded-full px-4 py-2 text-sm font-medium ${styles}`}
+      >
         {status}
       </span>
     );
