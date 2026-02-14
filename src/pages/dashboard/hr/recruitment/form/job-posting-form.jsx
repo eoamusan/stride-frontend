@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, X, Plus, ChevronDown, Trash2 } from 'lucide-react';
+import {
+  Calendar as CalendarIcon,
+  X,
+  Plus,
+  ChevronDown,
+  Trash2,
+} from 'lucide-react';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
 import { useJobPostStore } from '@/stores/job-post-store';
 import { toast } from 'react-hot-toast';
@@ -40,7 +46,8 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
   const [cadre, setCadre] = useState('Senior Management'); // UI specific state
 
   const { requisitions, fetchRequisitions } = useJobRequisitionStore();
-  const { createJobPosting, updateJobPosting, updateJobStatus, isLoading } = useJobPostStore();
+  const { createJobPosting, updateJobPosting, updateJobStatus, isLoading } =
+    useJobPostStore();
 
   useEffect(() => {
     fetchRequisitions(1, 100); // Fetch all/many for the dropdown
@@ -186,7 +193,11 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
       if (initialData) {
         // Update existing job
         // 1. Remove status and jobRequisitionId from payload for the general update endpoint
-        const { status: _status, jobRequisitionId: _reqId, ...updatePayload } = payload;
+        const {
+          status: _status,
+          jobRequisitionId: _reqId,
+          ...updatePayload
+        } = payload;
 
         await updateJobPosting({
           id: initialData._id || initialData.id,
@@ -194,7 +205,9 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
         });
 
         toast.success(
-          status === 'Active' ? 'Job updated and posted successfully' : 'Job updated as draft'
+          status === 'Active'
+            ? 'Job updated and posted successfully'
+            : 'Job updated as draft'
         );
       } else {
         // Create new job
@@ -465,11 +478,11 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
                 onKeyDown={(e) =>
                   e.key === 'Enter' &&
                   (e.preventDefault(),
-                    addItem(
-                      'responsibilities',
-                      newResponsibility,
-                      setNewResponsibility
-                    ))
+                  addItem(
+                    'responsibilities',
+                    newResponsibility,
+                    setNewResponsibility
+                  ))
                 }
               />
               <button
@@ -520,7 +533,7 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
                 onKeyDown={(e) =>
                   e.key === 'Enter' &&
                   (e.preventDefault(),
-                    addItem('requirements', newRequirement, setNewRequirement))
+                  addItem('requirements', newRequirement, setNewRequirement))
                 }
               />
               <button

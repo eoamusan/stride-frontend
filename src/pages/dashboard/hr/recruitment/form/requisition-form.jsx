@@ -34,8 +34,14 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
     maxBudget: initialData?.maxBudget || '',
     noOfOpenings: initialData?.noOfOpenings || initialData?.openings || 1,
     reason: initialData?.reason || '',
-    startDate: initialData?.startDate ? new Date(initialData.startDate) : undefined,
-    urgency: initialData?.urgency ? (initialData.urgency === true ? 'High' : 'Low') : '',
+    startDate: initialData?.startDate
+      ? new Date(initialData.startDate)
+      : undefined,
+    urgency: initialData?.urgency
+      ? initialData.urgency === true
+        ? 'High'
+        : 'Low'
+      : '',
   });
 
   const handleInputChange = (e) => {
@@ -93,7 +99,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
       if (initialData?._id || initialData?.id) {
         await updateRequisition({
           id: initialData._id || initialData.id,
-          data: payload
+          data: payload,
         });
         toast.success('Requisition updated successfully');
       } else {
@@ -141,12 +147,11 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
 
   return (
     <div className="flex h-full w-full items-center justify-center">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-2xl space-y-6"
-      >
+      <form onSubmit={handleSubmit} className="w-full max-w-2xl space-y-6">
         <h2 className="mb-6 text-center text-2xl font-bold text-gray-900">
-          {initialData ? 'Edit Man-Power Requisition Form' : 'Man-Power Requisition Form'}
+          {initialData
+            ? 'Edit Man-Power Requisition Form'
+            : 'Man-Power Requisition Form'}
         </h2>
 
         {/* Job Title */}
@@ -200,50 +205,50 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
           ]}
         />
 
-        {/* Budget Range & Number of Openings */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Budget Range{' '}
-              <span className="text-xs text-gray-400">(Per Annum)</span>{' '}
-              <span className="text-red-500">*</span>
-            </label>
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400">
-                  Min
-                </span>
-                <input
-                  type="text"
-                  name="minBudget"
-                  placeholder="₦15,000,000"
-                  className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
-                  value={formData.minBudget}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="relative flex-1">
-                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400">
-                  Max
-                </span>
-                <input
-                  type="text"
-                  name="maxBudget"
-                  placeholder="₦25,000,000"
-                  className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
-                  value={formData.maxBudget}
-                  onChange={handleInputChange}
-                />
-              </div>
+        {/* Budget Range */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Budget Range{' '}
+            <span className="text-xs text-gray-400">(Per Annum)</span>{' '}
+            <span className="text-red-500">*</span>
+          </label>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400">
+                Min
+              </span>
+              <input
+                type="text"
+                name="minBudget"
+                placeholder="₦15,000,000"
+                className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
+                value={formData.minBudget}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="relative flex-1">
+              <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400">
+                Max
+              </span>
+              <input
+                type="text"
+                name="maxBudget"
+                placeholder="₦25,000,000"
+                className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
+                value={formData.maxBudget}
+                onChange={handleInputChange}
+              />
             </div>
           </div>
-          <NumberInput
-            label="Number of Openings"
-            name="noOfOpenings"
-            value={formData.noOfOpenings}
-            onChange={handleInputChange}
-          />
         </div>
+
+        {/* Number of Openings */}
+        <NumberInput
+          label="Number of Openings"
+          name="noOfOpenings"
+          value={formData.noOfOpenings}
+          onChange={handleInputChange}
+        />
 
         {/* Urgency */}
         <RadioInput
@@ -256,7 +261,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
 
         {/* Expected Start Date */}
         <div className="space-y-2">
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          <label className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             Expected Start Date
           </label>
           <Popover>
