@@ -1,50 +1,35 @@
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
-import {
-  MoreHorizontalIcon,
-  EyeIcon,
-  CheckCheck,
-  SearchIcon,
-  FilterIcon,
-} from 'lucide-react';
+import { MoreHorizontalIcon, EyeIcon, CheckCheck } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { useState } from 'react';
 import { offerStageDummyData } from './dummyData';
 import Header from '@/components/customs/header';
+import { useDataTable } from '@/hooks/use-data-table';
 
 export default function OfferStage() {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const itemsPerPage = 5;
 
-  // Filter logic
-  const filteredData = offerStageDummyData.filter((item) => {
-    const matchesSearch = item.applicantName
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === 'All' || item.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const {
+    currentTableData,
+    pagination,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    setCurrentPage,
+  } = useDataTable({
+    data: offerStageDummyData,
+    pageSize: 5,
+    filterKeys: ['applicantName', 'status', 'interviewType'],
   });
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const currentTableData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
   const isLoading = false;
 
   const sampleChartData = [
@@ -147,52 +132,13 @@ export default function OfferStage() {
     },
   ];
 
-  const dummyActionElement = (
-    <div className="flex items-center gap-2">
-      <div className="relative">
-        <SearchIcon className="absolute top-2.5 left-2.5 h-4 w-4 text-gray-500" />
-        <Input
-          type="search"
-          placeholder="Search by name..."
-          className="w-64 rounded-xl bg-gray-50 pl-9"
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setCurrentPage(1);
-          }}
-        />
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            className="gap-2 rounded-xl border-gray-200"
-          >
-            <FilterIcon className="h-4 w-4" />
-            Filter by Status
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {['All', 'Accepted', 'Rejected', 'Offer Sent', 'Pending'].map(
-            (status) => (
-              <DropdownMenuCheckboxItem
-                key={status}
-                checked={statusFilter === status}
-                onCheckedChange={() => {
-                  setStatusFilter(status);
-                  setCurrentPage(1);
-                }}
-              >
-                {status}
-              </DropdownMenuCheckboxItem>
-            )
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+  const dropdownItems = [
+    { label: 'All Statuses', value: 'all' },
+    { label: 'Accepted', value: 'Accepted' },
+    { label: 'Rejected', value: 'Rejected' },
+    { label: 'Offer Sent', value: 'Offer Sent' },
+    { label: 'Pending', value: 'Pending' },
+  ];
 
   return (
     <div className="my-5">
@@ -214,13 +160,16 @@ export default function OfferStage() {
           columns={columns}
           data={currentTableData}
           title="Offers"
-          actionElement={dummyActionElement}
           isLoading={isLoading}
-          pagination={{
-            page: currentPage,
-            totalPages: totalPages,
-          }}
-          onPageChange={(page) => setCurrentPage(page)}
+          pagination={pagination}
+          onPageChange={setCurrentPage}
+          placeholder="Search by name..."
+          inputValue={searchTerm}
+          handleInputChange={(e) => setSearchTerm(e.target.value)}
+          dropdownItems={dropdownItems}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          setSearchTerm={setSearchTerm}
         />
       </div>
     </div>

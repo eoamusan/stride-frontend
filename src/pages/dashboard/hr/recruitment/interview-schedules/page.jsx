@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { DataTable } from '@/components/ui/data-table';
@@ -9,80 +8,29 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  CheckCheck,
-  MoreHorizontalIcon,
-  EyeIcon,
-  SearchIcon,
-  FilterIcon,
-} from 'lucide-react';
+import { CheckCheck, MoreHorizontalIcon, EyeIcon } from 'lucide-react';
 import { interviewSchedulesDummyData } from './dummyData';
-import { Input } from '@/components/ui/input';
 import Header from '@/components/customs/header';
+import { useDataTable } from '@/hooks/use-data-table';
 
 export default function InterviewAndSchedules() {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All Statuses');
-  const itemsPerPage = 5;
 
-  const filteredData = interviewSchedulesDummyData.filter((item) => {
-    const matchesSearch = item.applicantName
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === 'All Statuses' || item.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const {
+    currentTableData,
+    pagination,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    setCurrentPage,
+  } = useDataTable({
+    data: interviewSchedulesDummyData,
+    pageSize: 5,
+    filterKeys: ['applicantName', 'status', 'interviewType'],
   });
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const currentTableData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   const isLoading = false;
-
-  const actionElement = (
-    <div className="flex w-full items-center gap-3 md:w-auto">
-      <div className="relative w-full">
-        <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setCurrentPage(1); // Reset to first page on search
-          }}
-          placeholder="Search Interviews..."
-          className="w-full pl-10 md:max-w-80"
-        />
-      </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2">
-            <FilterIcon className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          {['All Statuses', 'Upcoming', 'Pending', 'Completed'].map(
-            (status) => (
-              <DropdownMenuItem
-                key={status}
-                onClick={() => {
-                  setStatusFilter(status);
-                  setCurrentPage(1); // Reset to first page on filter change
-                }}
-              >
-                {status}
-              </DropdownMenuItem>
-            )
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
 
   const sampleChartData = [
     { month: 'Jan', month1: 600 },
@@ -189,6 +137,13 @@ export default function InterviewAndSchedules() {
     },
   ];
 
+  const dropdownItems = [
+    { label: 'All Statuses', value: 'all' },
+    { label: 'Upcoming', value: 'Upcoming' },
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Completed', value: 'Completed' },
+  ];
+
   return (
     <div className="my-5">
       <Header
@@ -210,13 +165,16 @@ export default function InterviewAndSchedules() {
           columns={columns}
           data={currentTableData}
           title="Interviews"
-          actionElement={actionElement}
           isLoading={isLoading}
-          pagination={{
-            page: currentPage,
-            totalPages: totalPages,
-          }}
-          onPageChange={(page) => setCurrentPage(page)}
+          pagination={pagination}
+          onPageChange={setCurrentPage}
+          placeholder="Search Interviews..."
+          inputValue={searchTerm}
+          handleInputChange={(e) => setSearchTerm(e.target.value)}
+          dropdownItems={dropdownItems}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          setSearchTerm={setSearchTerm}
         />
       </div>
     </div>

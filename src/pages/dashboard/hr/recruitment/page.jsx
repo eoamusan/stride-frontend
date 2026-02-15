@@ -1,13 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import MetricCard from '@/components/dashboard/hr/metric-card';
-import youtubeIcon from '@/assets/icons/youtube-red.png';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import {
-  FilterIcon,
   MoreHorizontalIcon,
-  SearchIcon,
   EyeIcon,
   Edit,
   CheckCircle,
@@ -16,12 +13,10 @@ import {
 import PlusIcon from '@/assets/icons/plus.svg';
 import ManpowerRequisitionForm from './form/requisition-form';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -32,18 +27,13 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import Header from '@/components/customs/header';
+import { useDataTable } from '@/hooks/use-data-table';
 
 export default function Recruitment() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { requisitions, isLoading, pagination, fetchRequisitions } =
     useJobRequisitionStore();
-
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 3;
 
   const [editingRequisition, setEditingRequisition] = useState(null);
 
@@ -57,10 +47,6 @@ export default function Recruitment() {
     setEditingRequisition(null);
     fetchRequisitions(1, 1000);
   };
-
-  // ... (metrics logic unchanged)
-
-  // Define actions that were previously passed to TableActions
 
   const metricCardsData = useMemo(() => {
     const data = requisitions || [];
@@ -252,26 +238,19 @@ export default function Recruitment() {
     };
   });
 
-  const filteredData = useMemo(() => {
-    return rawTableData.filter((request) => {
-      // Status filter
-      if (statusFilter !== 'all') {
-        const statusMatch =
-          request.status.toLowerCase() === statusFilter.toLowerCase();
-        if (!statusMatch) return false;
-      }
-
-      // Search filter
-      if (!searchTerm) return true;
-
-      return (
-        request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.requestedBy?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    });
-  }, [rawTableData, statusFilter, searchTerm]);
+  const {
+    currentTableData,
+    pagination: tablePagination,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    setCurrentPage,
+  } = useDataTable({
+    data: rawTableData,
+    pageSize: 3,
+    filterKeys: ['title', 'department', 'status', 'requestedBy'],
+  });
 
   // Define Columns
   const columns = [
@@ -359,81 +338,12 @@ export default function Recruitment() {
     },
   ];
 
-  // Action Element (Search and Filter)
-  const actionElement = (
-    <div className="flex w-full items-center gap-3 md:w-auto">
-      <div className="relative w-full">
-        <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-        <Input
-          placeholder="Search requests..."
-          className="w-full pl-10 md:max-w-80"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className={
-              statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-            }
-          >
-            <FilterIcon className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('all')}
-            className={statusFilter === 'all' ? 'bg-blue-50' : ''}
-          >
-            All Statuses
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('pending')}
-            className={statusFilter === 'pending' ? 'bg-blue-50' : ''}
-          >
-            Pending Approval
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('approved')}
-            className={statusFilter === 'approved' ? 'bg-blue-50' : ''}
-          >
-            Approved
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('rejected')}
-            className={statusFilter === 'rejected' ? 'bg-blue-50' : ''}
-          >
-            Rejected
-          </DropdownMenuItem>
-          {(statusFilter !== 'all' || searchTerm) && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  setStatusFilter('all');
-                  setSearchTerm('');
-                }}
-                className="text-red-600 hover:text-red-700"
-              >
-                Clear All Filters
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
-
-  // Client-side pagination logic
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const currentTableData = filteredData.slice(startIndex, endIndex);
+  const dropdownItems = [
+    { label: 'All Statuses', value: 'all' },
+    { label: 'Pending Approval', value: 'pending' },
+    { label: 'Approved', value: 'approved' },
+    { label: 'Rejected', value: 'rejected' },
+  ];
 
   return (
     <div className="my-5">
@@ -497,13 +407,16 @@ export default function Recruitment() {
           columns={columns}
           data={currentTableData}
           title="Job Requisitions"
-          actionElement={actionElement}
           isLoading={isLoading}
-          pagination={{
-            page: currentPage,
-            totalPages: totalPages,
-          }}
-          onPageChange={(page) => setCurrentPage(page)}
+          pagination={tablePagination}
+          onPageChange={setCurrentPage}
+          placeholder="Search requests..."
+          inputValue={searchTerm}
+          handleInputChange={(e) => setSearchTerm(e.target.value)}
+          dropdownItems={dropdownItems}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          setSearchTerm={setSearchTerm}
         />
       </div>
     </div>

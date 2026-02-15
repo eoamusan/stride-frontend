@@ -1,8 +1,22 @@
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { dummyJobRequests } from '../job-requests';
-import { TableActions } from '@/components/dashboard/hr/table';
 import Header from '@/components/customs/header';
+import { DataTable } from '@/components/ui/data-table';
+import { Button } from '@/components/ui/button';
+import { useDataTable } from '@/hooks/use-data-table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontalIcon } from 'lucide-react';
+
 export default function ApplicantScreening() {
+  const navigate = useNavigate();
+
   const sampleChartData = [
     { month: 'Jan', month1: 600 },
     { month: 'Feb', month2: 800 },
@@ -37,30 +51,125 @@ export default function ApplicantScreening() {
       chartData: sampleChartData,
     },
   ];
-  const tableHeaders = [
-    { key: 'applicantName', label: 'Applicant Name', className: '' },
-    { key: 'applicantDate', label: 'Applicant Date', className: '' },
-    { key: 'roleApplied', label: 'Role Applied', className: '' },
-    { key: 'status', label: 'Status', className: '' },
+
+  function toTitleCase(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
+  const rawTableData = useMemo(() => {
+    return dummyJobRequests.flatMap((job) =>
+      (job.applicants || []).map((applicant) => ({
+        id: applicant.id,
+        applicantID: applicant.id,
+        applicantName: applicant.name,
+        applicantDate: applicant.date,
+        roleApplied: job.title,
+        status: toTitleCase(applicant.status),
+      }))
+    );
+  }, []);
+
+  const {
+    currentTableData,
+    pagination,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    setCurrentPage,
+  } = useDataTable({
+    data: rawTableData,
+    pageSize: 3,
+    filterKeys: ['applicantName', 'roleApplied', 'status'],
+  });
+
+  // Define Columns
+  const columns = [
+    {
+      header: 'Applicant Name',
+      accessorKey: 'applicantName',
+    },
+    {
+      header: 'Applicant Date',
+      accessorKey: 'applicantDate',
+    },
+    {
+      header: 'Role Applied',
+      accessorKey: 'roleApplied',
+    },
+    {
+      header: 'Status',
+      accessorKey: 'status',
+      cell: (row) => {
+        const statusColors = {
+          Pending: { bg: '#CE8D001A', text: '#CE8D00' },
+          Approved: { bg: '#0596691A', text: '#059669' },
+          Rejected: { bg: '#DC26261A', text: '#DC2626' },
+          Review: { bg: '#F39C121A', text: '#F39C12' },
+          Interviewing: { bg: '#3300C91A', text: '#3300C9' },
+          Shortlisted: { bg: '#3498DB1A', text: '#3498DB' },
+        };
+
+        const style = statusColors[row.status] || {
+          bg: '#000',
+          text: '#fff',
+        };
+
+        return (
+          <span
+            className="flex max-w-26 justify-center overflow-hidden rounded-full px-3 py-2 text-xs"
+            style={{
+              backgroundColor: style.bg,
+              color: style.text,
+            }}
+          >
+            {row.status}
+          </span>
+        );
+      },
+    },
+    {
+      header: '',
+      accessorKey: 'actions',
+      className: 'text-right',
+      cell: (row) => (
+        <div className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-8">
+                <MoreHorizontalIcon className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(
+                    `/dashboard/hr/recruitment/applicant-screening/applicant/${row.applicantID}`
+                  )
+                }
+              >
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem>Approve</DropdownMenuItem>
+              <DropdownMenuItem>Reject</DropdownMenuItem>
+              <DropdownMenuItem>Shortlist</DropdownMenuItem>
+              <DropdownMenuItem>Interview</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
   ];
 
-  const tableActions = [
-    { title: 'Approve', action: 'approve' },
-    { title: 'Reject', action: 'reject' },
-    { title: 'Shortlist', action: 'shortlist' },
-    { title: 'Interview', action: 'interview' },
+  const dropdownItems = [
+    { label: 'All Statuses', value: 'all' },
+    { label: 'Interviewing', value: 'interviewing' },
+    { label: 'Shortlisted', value: 'shortlisted' },
+    { label: 'Approved', value: 'approved' },
+    { label: 'Rejected', value: 'rejected' },
   ];
-
-  const tableData = dummyJobRequests.flatMap((job) =>
-    (job.applicants || []).map((applicant) => ({
-      id: `${job.id}`,
-      applicantID: applicant.id,
-      applicantName: applicant.name,
-      applicantDate: applicant.date,
-      roleApplied: job.title,
-      status: applicant.status,
-    }))
-  );
 
   return (
     <div className="my-5">
@@ -81,14 +190,19 @@ export default function ApplicantScreening() {
       </div>
 
       <div className="mt-6 rounded-lg bg-white p-6 shadow-md">
-        <TableActions
-          tableData={tableData}
-          tableHeaders={tableHeaders}
+        <DataTable
+          columns={columns}
+          data={currentTableData}
           title="Applicants"
-          path={`/dashboard/hr/recruitment/applicant-screening/applicant/`}
-          pageSize={9}
-          tableActions={tableActions}
-          applicantID={true}
+          pagination={pagination}
+          onPageChange={setCurrentPage}
+          placeholder="Search applicants..."
+          inputValue={searchTerm}
+          handleInputChange={(e) => setSearchTerm(e.target.value)}
+          dropdownItems={dropdownItems}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          setSearchTerm={setSearchTerm}
         />
       </div>
     </div>

@@ -1,19 +1,14 @@
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { Button } from '@/components/ui/button';
-import youtubeIcon from '@/assets/icons/youtube-red.png';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import JobPostingForm from '../form/job-posting-form';
 import { useState, useMemo, useEffect } from 'react';
 import {
-  Plus,
-  SearchIcon,
-  FilterIcon,
   MoreHorizontalIcon,
   EyeIcon,
   Edit,
@@ -21,29 +16,25 @@ import {
   XCircle,
 } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router';
 import { useJobPostStore } from '@/stores/job-post-store';
 import Header from '@/components/customs/header';
 import PlusIcon from '@/assets/icons/plus.svg';
+import { useDataTable } from '@/hooks/use-data-table';
+
 export default function JobPosting() {
   const navigate = useNavigate();
   const { jobPostings, fetchJobPostings, updateJobPosting, isLoading } =
     useJobPostStore();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
-  const pageSize = 5;
 
   useEffect(() => {
     // Fetch all for client-side functionality
@@ -176,35 +167,19 @@ export default function JobPosting() {
     }));
   }, [jobPostings]);
 
-  const filteredData = useMemo(() => {
-    let data = rawTableData;
-
-    if (statusFilter !== 'all') {
-      data = data.filter(
-        (item) => item.status.toLowerCase() === statusFilter.toLowerCase()
-      );
-    }
-
-    if (searchTerm) {
-      const lower = searchTerm.toLowerCase();
-      data = data.filter(
-        (item) =>
-          item.title?.toLowerCase().includes(lower) ||
-          item.department?.toLowerCase().includes(lower) ||
-          item.status?.toLowerCase().includes(lower)
-      );
-    }
-    return data;
-  }, [rawTableData, statusFilter, searchTerm]);
-
-  // Pagination Logic
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const currentTableData = filteredData.slice(
-    startIndex,
-    startIndex + pageSize
-  );
+  const {
+    currentTableData,
+    pagination,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    setCurrentPage,
+  } = useDataTable({
+    data: rawTableData,
+    pageSize: 5,
+    filterKeys: ['title', 'department', 'status'],
+  });
 
   const columns = [
     { header: 'Job Title', accessorKey: 'title' },
@@ -298,77 +273,12 @@ export default function JobPosting() {
     },
   ];
 
-  const actionElement = (
-    <div className="flex w-full items-center gap-3 md:w-auto">
-      <div className="relative w-full">
-        <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-        <Input
-          placeholder="Search jobs..."
-          className="w-full pl-10 md:max-w-80"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1); // Reset page on search
-          }}
-        />
-      </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className={
-              statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-            }
-          >
-            <FilterIcon className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('all')}
-            className={statusFilter === 'all' ? 'bg-blue-50' : ''}
-          >
-            All Statuses
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('Active')}
-            className={statusFilter === 'Active' ? 'bg-blue-50' : ''}
-          >
-            Active
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('Draft')}
-            className={statusFilter === 'Draft' ? 'bg-blue-50' : ''}
-          >
-            Draft
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setStatusFilter('Closed')}
-            className={statusFilter === 'Closed' ? 'bg-blue-50' : ''}
-          >
-            Closed
-          </DropdownMenuItem>
-          {(statusFilter !== 'all' || searchTerm) && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  setStatusFilter('all');
-                  setSearchTerm('');
-                  setCurrentPage(1);
-                }}
-                className="text-red-600 hover:text-red-700"
-              >
-                Clear All Filters
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+  const dropdownItems = [
+    { label: 'All Statuses', value: 'all' },
+    { label: 'Active', value: 'Active' },
+    { label: 'Draft', value: 'Draft' },
+    { label: 'Closed', value: 'Closed' },
+  ];
 
   return (
     <div className="my-5">
@@ -430,12 +340,15 @@ export default function JobPosting() {
           data={currentTableData}
           title="Job Posting"
           isLoading={isLoading}
-          actionElement={actionElement}
-          pagination={{
-            page: currentPage,
-            totalPages: totalPages === 0 ? 1 : totalPages,
-          }}
+          pagination={pagination}
           onPageChange={setCurrentPage}
+          placeholder="Search jobs..."
+          inputValue={searchTerm}
+          handleInputChange={(e) => setSearchTerm(e.target.value)}
+          dropdownItems={dropdownItems}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          setSearchTerm={setSearchTerm}
         />
       </div>
     </div>

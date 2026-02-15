@@ -18,6 +18,17 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import emptyTableImg from '@/assets/icons/empty-table.svg';
 import { cn } from '@/lib/utils';
+import { SearchIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import FilterIcon from '@/assets/icons/filter.svg';
+import { Button } from './button';
 
 export function DataTable({
   columns,
@@ -25,19 +36,24 @@ export function DataTable({
   isLoading,
   pagination,
   onPageChange,
-  actionElement, // Optional element to render above the table (search, filters, etc.)
-  title, // Optional title
-  description, // Optional description
+  title,
+  description,
+  placeholder,
+  inputValue,
+  handleInputChange,
+  dropdownItems = [],
+  statusFilter,
+  setStatusFilter,
+  searchTerm,
+  setSearchTerm,
 }) {
   const { page, totalPages } = pagination || {};
 
-  // Render pagination items (using activePage instead of currentPage)
   const renderPaginationItems = () => {
     const items = [];
     const activePage = page;
 
     if (totalPages <= 3) {
-      // Show all pages if total is 3 or less
       for (let i = 1; i <= totalPages; i++) {
         items.push(
           <PaginationItem key={i}>
@@ -140,14 +156,66 @@ export function DataTable({
   return (
     <div className="w-full rounded-2xl px-4 py-2">
       {/* Header Section */}
-      <div className="mb-2 flex items-center justify-between flex-col md:flex-row gap-2">
-        <hgroup className="flex flex-col w-full">
+      <div className="mb-2 flex flex-col items-center justify-between gap-2 md:flex-row">
+        <hgroup className="flex w-full flex-col">
           {title && <h2 className="text-xl font-bold">{title}</h2>}
           {description && (
             <span className="text-sm text-[#7D7D7D]">{description}</span>
           )}
         </hgroup>
-        {actionElement}
+
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+
+            <Input
+              placeholder={placeholder}
+              value={inputValue}
+              onChange={handleInputChange}
+              className={'w-full rounded-xl py-6 pl-10'}
+            />
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className={
+                  statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
+                }
+              >
+                <img src={FilterIcon} alt="Filter Icon" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-48">
+              {dropdownItems.map((item) => (
+                <DropdownMenuItem
+                  key={item.value}
+                  onClick={() => setStatusFilter && setStatusFilter(item.value)}
+                  className={statusFilter === item.value ? 'bg-blue-50' : ''}
+                >
+                  {item.label}
+                </DropdownMenuItem>
+              ))}
+              {(statusFilter !== 'all' || searchTerm) && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      if (setStatusFilter) setStatusFilter('all');
+                      if (setSearchTerm) setSearchTerm('');
+                    }}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Clear All Filters
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <Table className="border-separate border-spacing-y-2">
@@ -157,7 +225,7 @@ export function DataTable({
               <TableHead
                 key={index}
                 className={cn(
-                  "py-4 font-semibold text-gray-600",
+                  'py-4 font-semibold text-gray-600',
                   column.className
                 )}
               >
@@ -206,10 +274,7 @@ export function DataTable({
                 {columns.map((column, colIndex) => (
                   <TableCell
                     key={colIndex}
-                    className={cn(
-                      "px-6 py-4", 
-                      column.className
-                    )}
+                    className={cn('py-4 pr-6 font-medium', column.className)}
                   >
                     {column.cell ? column.cell(row) : row[column.accessorKey]}
                   </TableCell>
@@ -245,7 +310,6 @@ export function DataTable({
           </PaginationContent>
         </Pagination>
       )}
-       
     </div>
   );
 }
