@@ -499,6 +499,10 @@ const payrollItems = [
   },
 ];
 
+const employeePayroll = [
+  { title: 'PaySlips History', link: '/dashboard/hr/payroll/payslips-history' },
+];
+
 const learningAndDevelopmentItems = [
   {
     title: 'Course Catalogs',
@@ -661,6 +665,7 @@ const hrTopItems = {
   attendanceLeave: attendanceLeaveItems,
   performance: performanceItems,
   payroll: payrollItems,
+  employeePayroll: employeePayroll,
   learningAndDevelopement: learningAndDevelopmentItems,
   engagement: engagementItems,
   analytics: analyticsItems,

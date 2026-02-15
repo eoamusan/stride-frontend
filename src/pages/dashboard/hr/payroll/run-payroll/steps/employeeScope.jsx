@@ -1,7 +1,6 @@
 import { CustomButton, SearchInput } from '@/components/customs';
 import CustomCheckbox from '@/components/customs/checkbox';
 import SelectionCard from '@/components/customs/selectionCard';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useState } from 'react';
 
 const departments = [
@@ -32,11 +31,11 @@ const sampleEmployees = [
   {
     id: '2',
     name: 'Femi Johnson',
-    initials: null, // using avatar image instead
+    initials: null, 
     role: 'Senior Software Engineer',
     department: 'Engineering',
     empId: '345321231',
-    avatar: 'https://i.pravatar.cc/40?u=femi', // placeholder
+    avatar: 'https://i.pravatar.cc/40?u=femi', 
   },
   {
     id: '3',
@@ -107,7 +106,6 @@ const EmployeeSelection = ({ onBack, onNext }) => {
           }}
         />
 
-        {/* 2. Filter by Department */}
         <SelectionCard
           title="Filter by Department"
           description="Select specific departments to process"
@@ -139,7 +137,6 @@ const EmployeeSelection = ({ onBack, onNext }) => {
           )}
         </SelectionCard>
 
-        {/* 3. Filter by Cadre */}
         <SelectionCard
           title="Filter by Cadre"
           description="Select specific cadres to process"
@@ -171,7 +168,6 @@ const EmployeeSelection = ({ onBack, onNext }) => {
           )}
         </SelectionCard>
 
-        {/* 4. Specific Employees */}
         <SelectionCard
           title="Specific Employees"
           description="Select individual employees manually"
@@ -233,7 +229,6 @@ const EmployeeSelection = ({ onBack, onNext }) => {
 
       <hr />
 
-      {/* Footer Buttons */}
       <div className="flex items-center justify-between">
         <CustomButton variant="outline" onClick={onBack}>Back</CustomButton>
         <CustomButton onClick={onNext}>Preview</CustomButton>

@@ -1,11 +1,31 @@
 import { CustomButton } from '@/components/customs';
-import React from 'react';
+import AlertModal from '@/components/customs/alertModal';
+import { useModalStore } from '@/stores/modal-store';
+import { useNavigate } from 'react-router';
 
 const PayrollPreview = ({ onBack }) => {
+  const { openModal, closeModal, modals } = useModalStore();
+  const runPayrollModal = modals['runPayrollAlert'];
+
+  const navigate = useNavigate();
+
+  const handleRunPayroll = () => {
+    openModal('runPayrollAlert');
+  };
+
+  const handleConfirmRunPayroll = () => {
+    closeModal('runPayrollAlert');
+    navigate('/dashboard/hr/payroll/review');
+  };
+
+  const handleCloseModal = () => {
+    closeModal('runPayrollAlert');
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <div className="rounded-lg bg-amber-50 p-4">
-        <p className="font-medium text-[13px] text-[#F39C12]">
+        <p className="text-[13px] font-medium text-[#F39C12]">
           This is a draft. No funds will be transferred until you finalize in
           the next stage.
         </p>
@@ -21,32 +41,35 @@ const PayrollPreview = ({ onBack }) => {
               {item.label}
             </h3>
 
-            <p
-              className="font-bold"
-            >
-              {item.value}
-            </p>
+            <p className="font-bold">{item.value}</p>
           </div>
         ))}
       </div>
 
       <hr />
 
-      {/* Action Buttons */}
-      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+      <div className="flex w-full flex-col items-center justify-between gap-4 md:flex-row">
         <CustomButton type="button" variant="outline" onClick={onBack}>
           Back
         </CustomButton>
 
-        <CustomButton type="button">
+        <CustomButton type="button" onClick={handleRunPayroll}>
           Run Payroll
         </CustomButton>
       </div>
+
+      <AlertModal
+        open={runPayrollModal?.open}
+        handleBack={handleCloseModal}
+        handleNext={handleConfirmRunPayroll}
+        title="Run Payroll"
+        description="You are about to calculate payroll for March 2025. This process will include 142 employees."
+        backText="Back"
+        nextText="Confirm & Run"
+      />
     </div>
   );
 };
-
-export default PayrollPreview;
 
 const summaryItems = [
   {
@@ -86,3 +109,5 @@ const summaryItems = [
     isLarge: false,
   },
 ];
+
+export default PayrollPreview;
