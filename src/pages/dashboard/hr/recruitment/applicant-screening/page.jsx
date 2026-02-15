@@ -12,7 +12,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontalIcon } from 'lucide-react';
+import {
+  CheckCircle,
+  EyeIcon,
+  MoreHorizontalIcon,
+  XCircle,
+} from 'lucide-react';
+import calenderIcon from '@/assets/icons/calendar.svg';
 
 export default function ApplicantScreening() {
   const navigate = useNavigate();
@@ -150,12 +156,25 @@ export default function ApplicantScreening() {
                   )
                 }
               >
+                <EyeIcon className="mr-2 h-4 w-4" />
                 View
               </DropdownMenuItem>
-              <DropdownMenuItem>Approve</DropdownMenuItem>
-              <DropdownMenuItem>Reject</DropdownMenuItem>
-              <DropdownMenuItem>Shortlist</DropdownMenuItem>
-              <DropdownMenuItem>Interview</DropdownMenuItem>
+              <DropdownMenuItem>
+                <CheckCircle />
+                Shortlist
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <img src={calenderIcon} alt="Interview Calender" />
+                Interview
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <CheckCircle />
+                Approve
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <XCircle />
+                Reject
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

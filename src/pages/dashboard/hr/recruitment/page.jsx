@@ -9,6 +9,7 @@ import {
   Edit,
   CheckCircle,
   XCircle,
+  
 } from 'lucide-react';
 import PlusIcon from '@/assets/icons/plus.svg';
 import ManpowerRequisitionForm from './form/requisition-form';
@@ -290,6 +291,7 @@ export default function Recruitment() {
     { header: 'Date Created', accessorKey: 'dateCreated' },
     {
       header: 'Actions',
+      accessorKey: 'actions',
       className: 'text-right',
       cell: (row) => (
         <div className="flex justify-end">
@@ -303,33 +305,31 @@ export default function Recruitment() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() =>
-                  navigate(
-                    `/dashboard/hr/recruitment/detail/${row.applicantID || row.id}`
-                  )
+                  navigate(`/dashboard/hr/recruitment/detail/${row.id}`)
                 }
               >
-                <EyeIcon />
+                <EyeIcon className="mr-2 h-4 w-4" />
                 View
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAction('edit', row)}>
-                <Edit />
+              <DropdownMenuItem
+                onClick={() => {
+                  const requisitionToEdit = requisitions.find(
+                    (j) => (j._id || j.id) === row.id
+                  );
+                  setEditingRequisition(requisitionToEdit);
+                  setIsModalOpen(true);
+                }}
+              >
+                <Edit className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAction('approve', row)}>
-                <CheckCircle />
+              <DropdownMenuItem onClick={() => console.log('Approve', row.id)}>
+                <CheckCircle className="mr-2 h-4 w-4" />
                 Approve
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAction('reject', row)}>
-                <XCircle />
+              <DropdownMenuItem onClick={() => console.log('Reject', row.id)}>
+                <XCircle className="mr-2 h-4 w-4" />
                 Reject
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  navigate(`/dashboard/hr/recruitment/job-postings`)
-                }
-              >
-                <PlusIcon />
-                Create Job
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
