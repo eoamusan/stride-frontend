@@ -704,7 +704,7 @@ const router = createBrowserRouter([
                       {
                         path: 'payslips-history',
                         Component: PayslipsHistory,
-                      }
+                      },
                     ],
                   },
                   {

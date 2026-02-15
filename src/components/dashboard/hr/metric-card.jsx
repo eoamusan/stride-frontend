@@ -1,11 +1,4 @@
-import {
-  Bar,
-  BarChart,
-  Cell,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-} from 'recharts';
+import { Bar, BarChart, Cell, XAxis, YAxis } from 'recharts';
 import chevronUpIcon from '@/assets/icons/chevron-up.svg';
 import chevronDownIcon from '@/assets/icons/chevron-down.svg';
 import { Card } from '../../ui/card'; // Verify this path matches your project
@@ -99,8 +92,8 @@ export default function MetricCard({
         <h3 className="text-sm font-medium text-[#434343]">{title}</h3>
         <div className="flex items-end justify-between">
           <div className="flex-1">
-            <div className="mb-2 text-base font-bold text-[#434343]">
-              000{unit && <span className="text-[#7D7D7D]">{unit}</span>}
+            <div className="mb-2 text-2xl font-bold text-[#434343]">
+              00{unit && <span className="text-[#7D7D7D]">{unit}</span>}
             </div>
             <div className="mt-4 flex items-center text-sm font-bold text-[#7D7D7D]">
               <img src={chevronUpIcon} alt="Increase" className="mr-1" />
@@ -109,36 +102,7 @@ export default function MetricCard({
           </div>
 
           {/* Chart Area */}
-          {(chartData || sampleChartData) && renderChart()}
-
-          {emojis && (
-            <div className="ml-4 shrink-0">
-              <span className="text-4xl">{emojis}</span>
-            </div>
-          )}
-
-          {!chartData && !emojis && (
-            <div className="flex flex-row items-center">
-              <Avatar>
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  className="grayscale"
-                />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <Avatar className="-ml-3">
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  className="grayscale"
-                />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <Avatar className="-ml-3">
-                <AvatarImage src="#" className="grayscale" />
-                <AvatarFallback>+3</AvatarFallback>
-              </Avatar>
-            </div>
-          )}
+          {sampleChartData && renderChart()}
         </div>
       </Card>
     );
@@ -175,17 +139,20 @@ export default function MetricCard({
         {/* Chart Area */}
         {chartData && renderChart()}
 
-        {emojis && (
-          <div className="ml-4 shrink-0">
-            <span className="text-4xl">{emojis}</span>
-          </div>
-        )}
+        {emojis && <div className="ml-4 shrink-0">{emojis}</div>}
 
         {!chartData && !emojis && (
           <div className="flex flex-row items-center">
             <Avatar className="h-6 w-6">
               <AvatarImage
-                src="https://github.com/shadcn.png"
+                src="https://github.com/1.png"
+                className="grayscale"
+              />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+            <Avatar className="-ml-3 h-6 w-6">
+              <AvatarImage
+                src="https://github.com/8.png"
                 className="grayscale"
               />
               <AvatarFallback>CN</AvatarFallback>
@@ -197,14 +164,7 @@ export default function MetricCard({
               />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
-            <Avatar className="-ml-3 h-6 w-6">
-              <AvatarImage
-                src="https://github.com/shadcn.png"
-                className="grayscale"
-              />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-            <Avatar className="-ml-3 h-6 w-6">
+            <Avatar className="-ml-3 h-6 w-6 text-xs">
               <AvatarImage src="#" className="grayscale" />
               <AvatarFallback>+27</AvatarFallback>
             </Avatar>
