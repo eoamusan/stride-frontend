@@ -1,6 +1,7 @@
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { dummyJobRequests } from '../job-requests';
 import { TableActions } from '@/components/dashboard/hr/table';
+import Header from '@/components/customs/header';
 export default function ApplicantScreening() {
   const sampleChartData = [
     { month: 'Jan', month1: 600 },
@@ -63,14 +64,10 @@ export default function ApplicantScreening() {
 
   return (
     <div className="my-5">
-      <div className="flex flex-wrap items-center justify-between gap-6">
-        <hgroup>
-          <h1 className="text-2xl font-bold">Applicant Screening</h1>
-          <p className="text-sm text-[#7D7D7D]">
-            Review and manage applicants for open job posting
-          </p>
-        </hgroup>
-      </div>
+      <Header
+        title="Applicant Screening"
+        description="Review and manage applicants for open job posting"
+      />
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {metricsData.map((metric) => (

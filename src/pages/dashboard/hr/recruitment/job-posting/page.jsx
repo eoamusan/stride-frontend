@@ -31,7 +31,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router';
 import { useJobPostStore } from '@/stores/job-post-store';
-
+import Header from '@/components/customs/header';
+import PlusIcon from '@/assets/icons/plus.svg';
 export default function JobPosting() {
   const navigate = useNavigate();
   const { jobPostings, fetchJobPostings, updateJobPosting, isLoading } =
@@ -371,51 +372,46 @@ export default function JobPosting() {
 
   return (
     <div className="my-5">
-      <div className="flex flex-wrap items-center justify-between gap-6">
-        <hgroup>
-          <h1 className="text-2xl font-bold">Job Posting</h1>
-          <p className="text-sm text-[#7D7D7D]">Manage Job Posting</p>
-        </hgroup>
-
-        <div className="flex space-x-4">
-          <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
-            <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
-            See video guide
-          </Button>
-
-          <Button
-            className={'h-10 rounded-2xl px-6 text-sm'}
-            onClick={() => {
-              setEditingJob(null);
-              setIsModalOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Post New Jobs
-          </Button>
-
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
-              <DialogTitle className="sr-only">
-                {editingJob ? 'Edit Job Posting' : 'Post New Job'}
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                {editingJob
-                  ? 'Form to edit job posting'
-                  : 'Form to post a new job'}
-              </DialogDescription>
-              <JobPostingForm
-                initialData={editingJob}
-                onSuccess={() => {
-                  fetchJobPostings(1, 1000);
-                  handleJobPosted();
-                }}
-                onCancel={() => setIsModalOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+      <Header
+        title="Job Posting"
+        description="Manage Job Posting"
+        hasYoutubeButton
+      >
+        <Button
+          className="rounded-xl md:py-6"
+          onClick={() => {
+            setEditingJob(null);
+            setIsModalOpen(true);
+          }}
+        >
+          <img
+            src={PlusIcon}
+            alt="Create New Job Posting"
+            className="mr-1 h-4"
+          />{' '}
+          Post New Job
+        </Button>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
+            <DialogTitle className="sr-only">
+              {editingJob ? 'Edit Job Posting' : 'Post New Job'}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              {editingJob
+                ? 'Form to edit job posting'
+                : 'Form to post a new job'}
+            </DialogDescription>
+            <JobPostingForm
+              initialData={editingJob}
+              onSuccess={() => {
+                fetchJobPostings(1, 1000);
+                handleJobPosted();
+              }}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </Header>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {metricsData.map((metric) => (

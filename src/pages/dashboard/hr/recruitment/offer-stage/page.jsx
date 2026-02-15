@@ -21,6 +21,7 @@ import {
 import { useNavigate } from 'react-router';
 import { useState } from 'react';
 import { offerStageDummyData } from './dummyData';
+import Header from '@/components/customs/header';
 
 export default function OfferStage() {
   const navigate = useNavigate();
@@ -195,12 +196,7 @@ export default function OfferStage() {
 
   return (
     <div className="my-5">
-      <div className="flex flex-wrap items-center justify-between gap-6">
-        <hgroup>
-          <h1 className="text-2xl font-bold">Offer Stage</h1>
-          <p className="text-sm text-[#7D7D7D]">Manage Offer Stage</p>
-        </hgroup>
-      </div>
+      <Header title="Offer Stage" description="Manage Offer Stage" />
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {metricsData.map((metric) => (

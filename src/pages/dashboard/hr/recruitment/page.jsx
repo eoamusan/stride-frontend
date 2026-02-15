@@ -8,15 +8,12 @@ import {
   FilterIcon,
   MoreHorizontalIcon,
   SearchIcon,
-  Plus,
   EyeIcon,
   Edit,
-  Check,
   CheckCircle,
   XCircle,
-  PlusCircle,
-  PlusIcon,
 } from 'lucide-react';
+import PlusIcon from '@/assets/icons/plus.svg';
 import ManpowerRequisitionForm from './form/requisition-form';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
 import { Input } from '@/components/ui/input';
@@ -34,6 +31,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import Header from '@/components/customs/header';
 
 export default function Recruitment() {
   const navigate = useNavigate();
@@ -346,11 +344,11 @@ export default function Recruitment() {
                 <XCircle />
                 Reject
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() =>
-                navigate(
-                  `/dashboard/hr/recruitment/job-postings`
-                )
-              }>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(`/dashboard/hr/recruitment/job-postings`)
+                }
+              >
                 <PlusIcon />
                 Create Job
               </DropdownMenuItem>
@@ -439,52 +437,49 @@ export default function Recruitment() {
 
   return (
     <div className="my-5">
-      <div className="flex flex-wrap items-center justify-between gap-6">
-        <hgroup>
-          <h1 className="text-2xl font-bold">Job Requisitions</h1>
-          <p className="text-sm text-[#7D7D7D]">Manage Job Requisitions</p>
-        </hgroup>
+      <Header
+        title="Job Requisitions"
+        description="Manage Job Requisitions"
+        hasYoutubeButton
+      >
+        <Dialog
+          open={isModalOpen}
+          onOpenChange={(open) => {
+            setIsModalOpen(open);
+            if (!open) setEditingRequisition(null);
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button
+              className="rounded-xl md:py-6"
+              onClick={() => setEditingRequisition(null)}
+            >
+              <img
+                src={PlusIcon}
+                alt="Create New Requisition"
+                className="mr-1 h-4"
+              />{' '}
+              Create New Requisition
+            </Button>
+          </DialogTrigger>
 
-        <div className="flex space-x-4">
-          <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
-            <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
-            See video guide
-          </Button>
-          <Dialog
-            open={isModalOpen}
-            onOpenChange={(open) => {
-              setIsModalOpen(open);
-              if (!open) setEditingRequisition(null);
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button
-                className={'h-10 rounded-2xl px-6 text-sm'}
-                onClick={() => setEditingRequisition(null)}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create New Requisition
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
-              <DialogTitle className="sr-only">
-                {editingRequisition
-                  ? 'Edit Man Power Requisition Form'
-                  : 'Man Power Requisition Form'}
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                Form to {editingRequisition ? 'edit' : 'create'} Man Power
-                Requisition Form
-              </DialogDescription>
-              <ManpowerRequisitionForm
-                onSuccess={handleRequisitionCreated}
-                initialData={editingRequisition}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+          <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
+            <DialogTitle className="sr-only">
+              {editingRequisition
+                ? 'Edit Man Power Requisition Form'
+                : 'Man Power Requisition Form'}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Form to {editingRequisition ? 'edit' : 'create'} Man Power
+              Requisition Form
+            </DialogDescription>
+            <ManpowerRequisitionForm
+              onSuccess={handleRequisitionCreated}
+              initialData={editingRequisition}
+            />
+          </DialogContent>
+        </Dialog>
+      </Header>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {metricCardsData.map((metric) => (

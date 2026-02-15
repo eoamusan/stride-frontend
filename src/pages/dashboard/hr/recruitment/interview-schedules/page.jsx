@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { interviewSchedulesDummyData } from './dummyData';
 import { Input } from '@/components/ui/input';
+import Header from '@/components/customs/header';
 
 export default function InterviewAndSchedules() {
   const navigate = useNavigate();
@@ -190,10 +191,10 @@ export default function InterviewAndSchedules() {
 
   return (
     <div className="my-5">
-      <hgroup>
-        <h1 className="text-2xl font-bold">Interview and Schedules</h1>
-        <p className="text-sm text-[#7D7D7D]">Manage Interview and Schedules</p>
-      </hgroup>
+      <Header
+        title="Interview and Schedules"
+        description="Manage Interview and Schedules"
+      />
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {metricsData.map((metric) => (
           <MetricCard
