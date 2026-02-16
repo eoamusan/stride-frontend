@@ -269,7 +269,7 @@ export function DataTable({
             data.map((row, rowIndex) => (
               <TableRow
                 key={row.id || rowIndex}
-                className="hover:bg-muted/50 border-transparent [&_td]:border-y [&_td:first-child]:rounded-l-3xl [&_td:first-child]:border-l [&_td:last-child]:rounded-r-3xl [&_td:last-child]:border-r"
+                className="hover:bg-muted/50 border-transparent capitalize [&_td]:border-y [&_td:first-child]:rounded-l-3xl [&_td:first-child]:border-l [&_td:last-child]:rounded-r-3xl [&_td:last-child]:border-r"
               >
                 {columns.map((column, colIndex) => (
                   <TableCell

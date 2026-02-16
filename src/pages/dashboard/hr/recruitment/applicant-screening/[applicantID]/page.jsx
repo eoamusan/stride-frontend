@@ -19,6 +19,7 @@ import {
   User,
 } from 'lucide-react';
 import Fields from '@/components/dashboard/hr/overview/fields';
+import ActivityLog from '@/components/dashboard/hr/activity-log';
 
 export default function ApplicantDetails() {
   const navigate = useNavigate();
@@ -60,56 +61,44 @@ export default function ApplicantDetails() {
     );
   }
 
-  // Normalize personal info
-  const personalInfo = Array.isArray(applicant.personalInfo)
-    ? applicant.personalInfo[0]
-    : applicant.personalInfo || {};
-
-  // Timeline Steps matching the image "Activity Timeline"
-  const timelineSteps = [
+  const activityLog = [
     {
-      label: 'Under Review',
-      status: 'done',
-      date: 'May 12, 2024',
-      time: '10:30 AM',
+      title: 'Under Review',
+      date: '2024-01-01',
+      time: '10:00 AM',
+      checked: true,
     },
     {
-      label: 'Shortlisted',
-      status: 'done',
-      date: 'May 12, 2024',
-      time: '10:30 AM',
+      title: 'Shortlisted',
+      date: '2024-01-01',
+      time: '10:00 AM',
+      checked: true,
     },
     {
-      label: 'Interviewing',
-      status: 'current',
-      date: 'May 12, 2024',
-      time: '10:30 AM',
+      title: 'Interviewing',
+      date: '2024-01-01',
+      time: '10:00 AM',
+      checked: false,
     },
-    { label: 'Approved', status: 'pending', date: 'Pending' },
-    { label: 'Offer Sent', status: 'pending', date: 'Pending' },
-    { label: 'Offer Accepted', status: 'pending', date: 'Pending' },
+    {
+      title: 'Approved',
+      date: '2024-01-01',
+      time: '10:00 AM',
+      checked: false,
+    },
+    {
+      title: 'Offer Sent',
+      date: '2024-01-01',
+      time: '10:00 AM',
+      checked: false,
+    },
+    {
+      title: 'Offer Accepted',
+      date: '2024-01-01',
+      time: '10:00 AM',
+      checked: false,
+    },
   ];
-
-  // Helper function to render step icon based on status
-  const StepIcon = ({ status }) => {
-    if (status === 'done')
-      return (
-        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-green-500 bg-green-500 text-white shadow-sm">
-          <CheckCircle2 className="h-3.5 w-3.5 text-white" />
-        </div>
-      );
-    if (status === 'current')
-      return (
-        <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-green-500 bg-white">
-          <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-        </div>
-      );
-    return (
-      <div className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white">
-        <Circle className="h-3.5 w-3.5 fill-gray-100 text-gray-300" />
-      </div>
-    );
-  };
 
   return (
     <div className="mx-auto min-h-screen space-y-8 p-6 font-sans text-gray-900">
@@ -317,60 +306,7 @@ export default function ApplicantDetails() {
         </section>
 
         {/* Activity Timeline */}
-        <aside className="space-y-6 lg:col-span-1">
-          <article className="overflow-hidden rounded-3xl border border-gray-100 bg-white px-6 py-8 shadow-sm">
-            <hgroup>
-              <h2 className="mb-6 text-lg font-semibold text-gray-900">
-                Activity Timeline
-              </h2>
-            </hgroup>
-            <div>
-              <div className="relative my-2 ml-4 space-y-4 border-l-2 border-dashed border-gray-200 pb-2 pl-10">
-                {timelineSteps.map((step, idx) => (
-                  <div key={idx} className="relative">
-                    {/* Icon */}
-                    <div className="absolute -top-1 -left-13 bg-white py-1">
-                      <StepIcon status={step.status} />
-                    </div>
-
-                    {/* Text */}
-                    <div className="flex items-start justify-between gap-4">
-                      <span
-                        className={`text-md font-medium ${step.status === 'done' ? 'text-gray-900' : 'text-gray-500'}`}
-                      >
-                        {step.label}
-                      </span>
-                      <div className="shrink-0 text-right">
-                        <div className="text-xs font-medium text-gray-500">
-                          {step.date}
-                        </div>
-                        {step.time && (
-                          <div className="text-xs text-gray-400">
-                            {step.time}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </article>
-
-          {/* Offer Letter */}
-          <Card className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-            <CardHeader className="border-b border-gray-50 px-8 py-6">
-              <CardTitle className="text-base font-bold text-gray-900">
-                Offer Letter
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex justify-center p-8 py-10">
-              <div className="w-full rounded-lg border border-gray-100 bg-gray-50 py-3 text-center text-sm text-gray-500">
-                No offer yet
-              </div>
-            </CardContent>
-          </Card>
-        </aside>
+        <ActivityLog activity={activityLog} />
       </main>
     </div>
   );

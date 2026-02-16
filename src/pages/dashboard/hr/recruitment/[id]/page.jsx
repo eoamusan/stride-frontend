@@ -31,10 +31,10 @@ import {
 import ManpowerRequisitionForm from '../form/requisition-form';
 
 import CalendarIcon from '@/assets/icons/calendar.svg';
-import EditIcon from '@/assets/icons/edit.svg';
 import SaveIcon from '@/assets/icons/save.svg';
 
 import { CustomButton } from '@/components/customs';
+import ActivityLog from '@/components/dashboard/hr/activity-log';
 
 export default function RecruitmentDetails() {
   const { id } = useParams();
@@ -90,6 +90,27 @@ export default function RecruitmentDetails() {
       return '';
     }
   };
+
+  const activityLog = [
+    {
+      id: 1,
+      title: 'Requisition Created',
+      description: `by ${jobRequest.user || 'N/A'} • ${formatDate(jobRequest.createdAt)}, ${formatTime(jobRequest.createdAt)}`,
+      checked: true,
+    },
+    {
+      id: 2,
+      title: 'Submitted for Approval',
+      description: `by ${jobRequest.user || 'N/A'} • ${formatDate(jobRequest.createdAt)}, ${formatTime(jobRequest.createdAt)}`,
+      checked: true,
+    },
+    {
+      id: 3,
+      title: 'Approved',
+      description: `by ${jobRequest.user || 'N/A'} • ${formatDate(jobRequest.createdAt)}, ${formatTime(jobRequest.createdAt)}`,
+      checked: false,
+    },
+  ];
 
   return (
     <div className="mx-auto min-h-screen max-w-full overflow-scroll bg-gray-100 py-4 md:p-6">
@@ -316,72 +337,7 @@ export default function RecruitmentDetails() {
         {/* Right Column - Activity and Reason */}
         <div className="space-y-6">
           {/* Activity Log Card */}
-          <div className="rounded-xl bg-white p-6">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Activity Log
-            </h2>
-            <div className="relative space-y-0 pb-2">
-              <div
-                className="absolute top-6 bottom-6 left-[35px] w-px border-l-2 border-dashed border-[#24A959]"
-                aria-hidden="true"
-              />
-              <div className="relative flex gap-4 rounded-xl border border-gray-100 bg-white p-4">
-                <div className="flex-shrink-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#24A959]">
-                    <CheckCircleIcon className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <p className="text-base font-medium text-gray-900">
-                    Requisition Created
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    by {jobRequest.user || 'N/A'} •{' '}
-                    {formatDate(jobRequest.createdAt)},{' '}
-                    {formatTime(jobRequest.createdAt)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="relative mt-4 flex gap-4 rounded-xl border border-gray-100 bg-white p-4">
-                <div className="flex-shrink-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#24A959]">
-                    <CheckCircleIcon className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <p className="text-base font-medium text-gray-900">
-                    Submitted for Approval
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    by {jobRequest.user || 'N/A'} •{' '}
-                    {formatDate(jobRequest.createdAt)},{' '}
-                    {formatTime(jobRequest.createdAt)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="relative mt-4 flex gap-4 rounded-xl border border-gray-100 bg-white p-4">
-                <div className="flex-shrink-0">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full ${jobRequest.status === 'APPROVED' ? 'bg-green-500 ' : 'bg-gray-200 ring-gray-50'}`}
-                  >
-                    <CheckCircleIcon className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <p className="text-base font-medium text-gray-900">
-                    Approved
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {jobRequest.status === 'APPROVED'
-                      ? `by ${jobRequest.user || 'N/A'} • ${formatDate(jobRequest.createdAt)}, ${formatTime(jobRequest.createdAt)}`
-                      : `by ${jobRequest.user || 'N/A'} • ${formatDate(jobRequest.createdAt)}, ${formatTime(jobRequest.createdAt)}`}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ActivityLog activity={activityLog} />
 
           {/* Detailed Reason Card */}
           <div className="rounded-xl bg-white p-6">
