@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,23 +27,19 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
 import { format } from 'date-fns';
 import {
   CalendarIcon,
@@ -51,7 +47,16 @@ import {
   Plus,
   FileText,
   CreditCardIcon,
+  Check,
+  ChevronsUpDown,
 } from 'lucide-react';
+import AccountingTable from '@/components/dashboard/accounting/table';
+import BillService from '@/api/bills';
+import { cn } from '@/lib/utils';
+import VendorService from '@/api/vendor';
+import PaymentScheduleService from '@/api/paymentSchedule';
+import { useUserStore } from '@/stores/user-store';
+import toast from 'react-hot-toast';
 
 // Zod schema for form validation
 const paymentScheduleSchema = z.object({
@@ -73,13 +78,22 @@ const paymentScheduleSchema = z.object({
 export default function SchedulePaymentForm({
   open,
   onOpenChange,
-  allInvoices = [],
-  selectedInvoices = [],
-  handleSelectInvoice,
-  clearSelections,
+  onSuccess,
+  editData,
 }) {
   const [paymentType, setPaymentType] = useState('invoice');
   const [showSelectInvoices, setShowSelectInvoices] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState();
+  const [allInvoices, setAllInvoices] = useState([]);
+  const [isLoadingBills, setIsLoadingBills] = useState(false);
+  const [openInvoiceCombobox, setOpenInvoiceCombobox] = useState(false);
+  const [vendors, setVendors] = useState([]);
+  const [isLoadingVendors, setIsLoadingVendors] = useState(false);
+  const [openVendorCombobox, setOpenVendorCombobox] = useState(false);
+  const [selectedInvoices, setSelectedInvoices] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { activeBusiness } = useUserStore();
 
   // React Hook Form setup
   const form = useForm({
@@ -99,18 +113,154 @@ export default function SchedulePaymentForm({
 
   const { handleSubmit, control, reset } = form;
 
+  // Fetch bills
+  const fetchBills = useCallback(async () => {
+    try {
+      setIsLoadingBills(true);
+      const res = await BillService.fetch({ page: 1, perPage: 100 });
+      const billsData = res.data?.data?.bills || [];
+
+      // Transform bills for display
+      const transformed = billsData.map((bill) => {
+        const vendor = bill.vendorId;
+        const vendorName =
+          `${vendor?.firstName || ''} ${vendor?.lastName || ''}`.trim();
+        const vendorInitials =
+          `${vendor?.firstName?.[0] || ''}${vendor?.lastName?.[0] || ''}`.toUpperCase();
+
+        return {
+          id: bill._id || bill.id,
+          vendorInitials: vendorInitials || 'NA',
+          vendor: vendorName || 'N/A',
+          invoiceId: bill.billNo,
+          amount: `$${Number(bill.billAmount).toLocaleString('en-US')}`,
+          category:
+            bill.category?.charAt(0).toUpperCase() + bill.category?.slice(1) ||
+            'N/A',
+          dueDate: bill.dueDate
+            ? format(new Date(bill.dueDate), 'M/d/yyyy')
+            : 'N/A',
+          status: bill.status,
+          rawAmount: bill.billAmount,
+          rawVendor: vendor,
+        };
+      });
+      setAllInvoices(transformed);
+    } catch (error) {
+      console.error('Error fetching bills:', error);
+    } finally {
+      setIsLoadingBills(false);
+    }
+  }, []);
+
+  // Fetch vendors
+  const fetchVendors = useCallback(async () => {
+    try {
+      setIsLoadingVendors(true);
+      const res = await VendorService.fetch({ page: 1, perPage: 100 });
+      const vendorsData = res.data?.data?.vendors || [];
+      setVendors(vendorsData);
+    } catch (error) {
+      console.error('Error fetching vendors:', error);
+    } finally {
+      setIsLoadingVendors(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      fetchBills();
+      fetchVendors();
+    }
+  }, [open, fetchBills, fetchVendors]);
+
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (editData && open) {
+      // Determine payment type
+      const paymentTypeValue = editData.bill ? 'invoice' : 'manual';
+      setPaymentType(paymentTypeValue);
+
+      // Set form values
+      form.setValue('paymentType', paymentTypeValue);
+      form.setValue('amount', editData.amount);
+      form.setValue('vendor', editData.vendorId?._id || editData.vendorId);
+      form.setValue('paymentMethod', editData.paymentMethod);
+      form.setValue('priority', editData.priority);
+      form.setValue('notes', editData.notes || '');
+      form.setValue('paymentDescription', editData.description || '');
+
+      // Set scheduled date
+      if (editData.scheduledDate) {
+        form.setValue('scheduledDate', new Date(editData.scheduledDate));
+      }
+
+      // Set invoice ID if it exists
+      if (editData.invoiceId) {
+        form.setValue('invoiceId', editData.invoiceId);
+      }
+    } else if (!editData && open) {
+      // Reset form when creating new
+      reset();
+      setPaymentType('invoice');
+    }
+  }, [editData, open, form, reset]);
+
   const handleCancel = () => {
     reset();
+    setSelectedInvoice(null);
+    setSelectedInvoices([]);
     onOpenChange?.(false);
   };
 
-  const onSubmit = (data) => {
-    console.log('Payment schedule data:', data);
-    // Logic to schedule payment
-    reset();
-    onOpenChange?.(false);
-    if (clearSelections) {
-      clearSelections();
+  const onSubmit = async (data) => {
+    if (!activeBusiness?._id) {
+      toast.error('Business not found');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      // Map form data to API payload
+      const payload = {
+        businessId: activeBusiness._id,
+        invoiceId: data.invoiceId || undefined,
+        vendorId: data.vendor,
+        amount: data.amount,
+        paymentMethod: data.paymentMethod,
+        scheduledDate: data.scheduledDate.toISOString(),
+        priority: data.priority,
+        notes: data.notes || undefined,
+        description: data.paymentDescription || undefined,
+      };
+
+      if (editData) {
+        // Update existing payment schedule
+        await PaymentScheduleService.update({
+          id: editData._id || editData.id,
+          data: payload,
+        });
+        toast.success('Payment schedule updated successfully');
+      } else {
+        // Create new payment schedule
+        await PaymentScheduleService.create({ data: payload });
+        toast.success('Payment scheduled successfully');
+      }
+
+      reset();
+      setSelectedInvoice(null);
+      setSelectedInvoices([]);
+      onOpenChange?.(false);
+      onSuccess?.(); // Refresh the payment schedules list
+    } catch (error) {
+      console.error('Error saving payment schedule:', error);
+      toast.error(
+        error.response?.data?.message ||
+          `Failed to ${editData ? 'update' : 'schedule'} payment`
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -122,6 +272,45 @@ export default function SchedulePaymentForm({
     }
   };
 
+  const handleInvoiceSelect = (invoice) => {
+    setSelectedInvoice(invoice);
+  };
+
+  const handleSelectItem = (itemId, checked) => {
+    if (checked) {
+      // Find the selected invoice
+      const selectedInvoice = allInvoices.find(
+        (invoice) => invoice.id === itemId
+      );
+
+      if (selectedInvoice) {
+        // Update form fields
+        form.setValue('invoiceId', selectedInvoice.id);
+        form.setValue('amount', selectedInvoice.rawAmount);
+
+        // Find and set vendor by ID
+        const vendorId =
+          selectedInvoice.rawVendor?._id || selectedInvoice.rawVendor?.id;
+        if (vendorId) {
+          form.setValue('vendor', vendorId);
+        }
+
+        // Update selected invoice state
+        setSelectedInvoice(selectedInvoice);
+        setSelectedInvoices([itemId]);
+        handleInvoiceSelect(selectedInvoice);
+      }
+    } else {
+      // Deselect - clear form fields
+      form.setValue('invoiceId', '');
+      form.setValue('amount', '');
+      form.setValue('vendor', '');
+      setSelectedInvoice(null);
+      setSelectedInvoices([]);
+      handleInvoiceSelect(null);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] w-[90%] max-w-3xl overflow-y-auto p-8 sm:max-w-3xl">
@@ -130,7 +319,7 @@ export default function SchedulePaymentForm({
             <CreditCardIcon className="size-4" />
           </div>
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-            Schedule payment
+            {editData ? 'Edit Payment Schedule' : 'Schedule payment'}
           </DialogTitle>
         </div>
 
@@ -154,7 +343,9 @@ export default function SchedulePaymentForm({
                 <div className="text-left">
                   <div className="font-medium">Select From Invoices</div>
                   <div className="text-sm text-gray-500">
-                    {selectedInvoices.length || '0'} Invoices available
+                    {selectedInvoice
+                      ? ` 1 Invoice selected`
+                      : `${allInvoices.length || '0'} Invoices available`}
                   </div>
                 </div>
               </Button>
@@ -173,7 +364,7 @@ export default function SchedulePaymentForm({
                   <Plus className="size-4" />
                 </div>
                 <div className="text-left">
-                  <div className="font-medium">Create Manuel Payment</div>
+                  <div className="font-medium">Create Manual Payment</div>
                   <div className="text-sm text-gray-500">
                     For ad-hoc payment
                   </div>
@@ -188,23 +379,98 @@ export default function SchedulePaymentForm({
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Left Column */}
                 <div className="space-y-6">
-                  {/* Invoice ID - Show for both types */}
+                  {/* Invoice ID - Searchable Dropdown */}
                   <FormField
                     control={control}
                     name="invoiceId"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-col">
                         <FormLabel>Invoice ID</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              placeholder=""
-                              {...field}
-                              className="h-10 w-full pr-10"
-                            />
-                            <Search className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                          </div>
-                        </FormControl>
+                        <Popover
+                          open={openInvoiceCombobox}
+                          onOpenChange={setOpenInvoiceCombobox}
+                        >
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  'h-10 w-full justify-between',
+                                  !field.value && 'text-muted-foreground'
+                                )}
+                              >
+                                {field.value
+                                  ? allInvoices.find(
+                                      (invoice) => invoice.id === field.value
+                                    )?.invoiceId
+                                  : 'Select invoice...'}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-87.5 p-0">
+                            <Command>
+                              <CommandInput placeholder="Search invoice..." />
+                              {isLoadingBills ? (
+                                <div className="flex items-center justify-center py-6">
+                                  <div className="text-sm text-gray-500">
+                                    Loading invoices...
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <CommandEmpty>No invoice found.</CommandEmpty>
+                                  <CommandGroup className="max-h-75 overflow-auto">
+                                    {allInvoices.map((invoice) => (
+                                      <CommandItem
+                                        key={invoice.id}
+                                        value={invoice.invoiceId}
+                                        onSelect={() => {
+                                          form.setValue(
+                                            'invoiceId',
+                                            invoice.id
+                                          );
+                                          form.setValue(
+                                            'amount',
+                                            invoice.rawAmount
+                                          );
+                                          // Find and set vendor by ID
+                                          const vendorId =
+                                            invoice.rawVendor?._id ||
+                                            invoice.rawVendor?.id;
+                                          if (vendorId) {
+                                            form.setValue('vendor', vendorId);
+                                          }
+                                          setSelectedInvoice(invoice);
+                                          setSelectedInvoices([invoice.id]);
+                                          setOpenInvoiceCombobox(false);
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            'mr-2 h-4 w-4',
+                                            invoice.id === field.value
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
+                                          )}
+                                        />
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">
+                                            {invoice.invoiceId}
+                                          </span>
+                                          <span className="text-xs text-gray-500">
+                                            {invoice.vendor} - {invoice.amount}
+                                          </span>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </>
+                              )}
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -278,35 +544,94 @@ export default function SchedulePaymentForm({
 
                 {/* Right Column */}
                 <div className="space-y-6">
-                  {/* Vendor */}
+                  {/* Vendor - Searchable Dropdown */}
                   <FormField
                     control={control}
                     name="vendor"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-col">
                         <FormLabel>Vendor</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
+                        <Popover
+                          open={openVendorCombobox}
+                          onOpenChange={setOpenVendorCombobox}
                         >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select Vendor" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="vendor1">
-                              ABC Corporation
-                            </SelectItem>
-                            <SelectItem value="vendor2">XYZ Ltd</SelectItem>
-                            <SelectItem value="vendor3">
-                              Tech Solutions Inc
-                            </SelectItem>
-                            <SelectItem value="vendor4">
-                              Global Services
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  'h-10 w-full justify-between',
+                                  !field.value && 'text-muted-foreground'
+                                )}
+                              >
+                                {field.value
+                                  ? (() => {
+                                      const vendor = vendors.find(
+                                        (v) => (v._id || v.id) === field.value
+                                      );
+                                      return vendor
+                                        ? `${vendor.firstName || ''} ${vendor.lastName || ''}`.trim()
+                                        : 'Select vendor...';
+                                    })()
+                                  : 'Select vendor...'}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-100 p-0">
+                            <Command>
+                              <CommandInput placeholder="Search vendor..." />
+                              {isLoadingVendors ? (
+                                <div className="flex items-center justify-center py-6">
+                                  <div className="text-sm text-gray-500">
+                                    Loading vendors...
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <CommandEmpty>No vendor found.</CommandEmpty>
+                                  <CommandGroup className="max-h-75 overflow-auto">
+                                    {vendors.map((vendor) => {
+                                      const vendorId = vendor._id || vendor.id;
+                                      const vendorName =
+                                        `${vendor.firstName || ''} ${vendor.lastName || ''}`.trim();
+                                      return (
+                                        <CommandItem
+                                          key={vendorId}
+                                          value={vendorName}
+                                          onSelect={() => {
+                                            form.setValue('vendor', vendorId);
+                                            setOpenVendorCombobox(false);
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              'mr-2 h-4 w-4',
+                                              vendorId === field.value
+                                                ? 'opacity-100'
+                                                : 'opacity-0'
+                                            )}
+                                          />
+                                          <div className="flex flex-col">
+                                            <span className="font-medium">
+                                              {vendorName}
+                                            </span>
+                                            {vendor.contact?.email && (
+                                              <span className="text-xs text-gray-500">
+                                                {vendor.contact.email}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </CommandItem>
+                                      );
+                                    })}
+                                  </CommandGroup>
+                                </>
+                              )}
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -357,7 +682,7 @@ export default function SchedulePaymentForm({
                         >
                           <FormControl>
                             <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Medium" />
+                              <SelectValue placeholder="Select Priority" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -383,7 +708,7 @@ export default function SchedulePaymentForm({
                       <FormControl>
                         <Textarea
                           placeholder="Enter payment description..."
-                          className="min-h-[100px] w-full resize-none"
+                          className="min-h-25 w-full resize-none"
                           {...field}
                         />
                       </FormControl>
@@ -402,7 +727,7 @@ export default function SchedulePaymentForm({
                     <FormControl>
                       <Textarea
                         placeholder="Add any additional notes..."
-                        className="min-h-[100px] w-full resize-none"
+                        className="min-h-25 w-full resize-none"
                         {...field}
                       />
                     </FormControl>
@@ -416,14 +741,24 @@ export default function SchedulePaymentForm({
             <div className="flex justify-end space-x-4 pt-8">
               <Button
                 type="button"
-                className="h-10 min-w-[113px]"
+                className="h-10 min-w-28.25"
                 variant="outline"
                 onClick={handleCancel}
               >
                 Cancel
               </Button>
-              <Button type="submit" className="h-10 min-w-[156px]">
-                Schedule Payment
+              <Button
+                type="submit"
+                className="h-10 min-w-39"
+                disabled={isSubmitting}
+              >
+                {isSubmitting
+                  ? editData
+                    ? 'Updating...'
+                    : 'Scheduling...'
+                  : editData
+                    ? 'Update Payment'
+                    : 'Schedule Payment'}
               </Button>
             </div>
           </form>
@@ -433,8 +768,11 @@ export default function SchedulePaymentForm({
           open={showSelectInvoices}
           onOpenChange={setShowSelectInvoices}
           allInvoices={allInvoices}
+          onInvoiceSelect={handleInvoiceSelect}
+          handleSelectItem={handleSelectItem}
+          isLoadingBills={isLoadingBills}
           selectedInvoices={selectedInvoices}
-          onUpdateSelection={handleSelectInvoice}
+          setSelectedInvoices={setSelectedInvoices}
         />
       </DialogContent>
     </Dialog>
@@ -445,21 +783,69 @@ const SelectInvoices = ({
   open,
   onOpenChange,
   allInvoices = [],
+  handleSelectItem,
+  isLoadingBills = false,
   selectedInvoices = [],
-  onUpdateSelection,
+  setSelectedInvoices,
 }) => {
-  const handleInvoiceToggle = (invoiceId) => {
-    const isCurrentlySelected = selectedInvoices.includes(invoiceId);
-    onUpdateSelection(invoiceId, !isCurrentlySelected);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const onSelectItem = (itemId, checked) => {
+    if (checked) {
+      setSelectedInvoices([itemId]);
+    } else {
+      setSelectedInvoices([]);
+    }
+    // Call parent handler to update form
+    if (handleSelectItem) {
+      handleSelectItem(itemId, checked);
+    }
   };
 
-  const isInvoiceSelected = (invoiceId) => {
-    return selectedInvoices.includes(invoiceId);
+  // Column configuration matching the payment scheduling page
+  const invoiceColumns = [
+    {
+      key: 'img',
+      label: 'Img',
+      render: (value, item) => (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-medium">
+          {item.vendorInitials}
+        </div>
+      ),
+    },
+    { key: 'vendor', label: 'Vendor' },
+    { key: 'invoiceId', label: 'Invoice ID' },
+    { key: 'amount', label: 'Amount' },
+    { key: 'category', label: 'Category' },
+    {
+      key: 'dueDate',
+      label: 'Due Date',
+      render: (value, item) => (
+        <div className="flex flex-col">
+          <span className="text-sm text-[#434343]">{value}</span>
+          {item.overdueDays && item.overdueDays !== '0 days overdue' && (
+            <span className="text-xs text-red-500">{item.overdueDays}</span>
+          )}
+        </div>
+      ),
+    },
+    { key: 'status', label: 'Status' },
+  ];
+
+  const statusStyles = {
+    Pending: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
+    PENDING: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
+    Paid: 'bg-green-100 text-green-800 hover:bg-green-100',
+    PAID: 'bg-green-100 text-green-800 hover:bg-green-100',
+    Overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
+    PAST_DUE: 'bg-red-100 text-red-800 hover:bg-red-100',
+    'Past Due': 'bg-red-100 text-red-800 hover:bg-red-100',
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[90%] max-w-4xl overflow-y-auto p-8 sm:max-w-4xl">
+      <DialogContent className="max-h-[90vh] w-[90%] max-w-5xl overflow-y-auto p-8 sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             Select Invoice
@@ -483,102 +869,32 @@ const SelectInvoices = ({
               </p>
             </div>
           ) : (
-            <div className="rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="w-12"></TableHead>
-                    <TableHead>Img</TableHead>
-                    <TableHead>Vendor</TableHead>
-                    <TableHead>Invoice ID</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-12"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {allInvoices.map((invoice, index) => (
-                    <TableRow
-                      key={index}
-                      className={`cursor-pointer hover:bg-gray-50 ${
-                        isInvoiceSelected(invoice.id)
-                          ? 'border-blue-200 bg-blue-50'
-                          : ''
-                      }`}
-                      onClick={() => handleInvoiceToggle(invoice.id)}
-                    >
-                      <TableCell>
-                        <Checkbox
-                          checked={isInvoiceSelected(invoice.id)}
-                          onChange={() => handleInvoiceToggle(invoice.id)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback
-                            className={`text-xs font-medium text-white ${
-                              invoice.vendor.includes('JI') ||
-                              invoice.vendor.includes('JJ')
-                                ? 'bg-red-500'
-                                : 'bg-gray-800'
-                            }`}
-                          >
-                            {invoice.vendor
-                              .split(' ')
-                              .map((n) => n[0])
-                              .join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {invoice.vendor}
-                      </TableCell>
-                      <TableCell>{invoice.id}</TableCell>
-                      <TableCell className="font-medium">
-                        {invoice.amount}
-                      </TableCell>
-                      <TableCell>{invoice.category}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-sm">{invoice.dueDate}</span>
-                          {(invoice.status === 'Overdue' ||
-                            invoice.overdueDays !== '0 days overdue') && (
-                            <span className="text-xs text-red-500">
-                              {invoice.overdueDays}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className={
-                            invoice.status === 'Pending'
-                              ? 'bg-orange-100 text-orange-700'
-                              : invoice.status === 'Overdue'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-green-100 text-green-700'
-                          }
-                        >
-                          {invoice.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                        >
-                          <span className="text-gray-400">⋯</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <AccountingTable
+              title="Available Invoices"
+              isLoading={isLoadingBills}
+              actionBtns={
+                <>
+                  <Button onClick={() => onOpenChange?.(false)}>
+                    Continue
+                  </Button>
+                </>
+              }
+              data={allInvoices}
+              columns={invoiceColumns}
+              searchFields={['vendor', 'invoiceId', 'amount', 'category']}
+              showDataSize={true}
+              searchPlaceholder="Search vendor, amount or invoice ......"
+              statusStyles={statusStyles}
+              paginationData={{
+                page: currentPage,
+                totalPages: Math.ceil(allInvoices.length / itemsPerPage),
+                pageSize: itemsPerPage,
+                totalCount: allInvoices.length,
+              }}
+              onPageChange={setCurrentPage}
+              selectedItems={selectedInvoices}
+              handleSelectItem={onSelectItem}
+            />
           )}
         </div>
 
@@ -590,7 +906,7 @@ const SelectInvoices = ({
           </div>
           <Button
             type="button"
-            className="h-10 min-w-[113px]"
+            className="h-10 min-w-28.25"
             variant="outline"
             onClick={() => onOpenChange?.(false)}
           >
