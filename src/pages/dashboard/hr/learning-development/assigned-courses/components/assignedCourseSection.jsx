@@ -21,22 +21,21 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import CourseCard from './courseCard';
 import { CardContent } from '@/components/ui/card';
-import { mockCourses } from '../data';
+import { courses } from '../../data';
+import CourseCard from './assignedCourseCard';
 
-const CoursesSection = ({ onViewCourse }) => {
+const CoursesSection = ({ onSelectCourse }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   const currentPage = useTableStore((s) => s.currentPage);
   const setCurrentPage = useTableStore((state) => state.setCurrentPage);
 
-  // Filter courses
-  const filteredCourses = mockCourses.filter((course) => {
+  const filteredCourses = courses.filter((course) => {
     const matchesStatus =
       statusFilter === 'all' ||
-      course.status.toLowerCase() === statusFilter.toLowerCase();
+      course.category.toLowerCase() === statusFilter.toLowerCase();
     const matchesSearch = course.title
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -145,7 +144,7 @@ const CoursesSection = ({ onViewCourse }) => {
   return (
     <CardContent>
       <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-center">
-        <h2 className="text-lg font-semibold">Courses</h2>
+        <h2 className="text-lg font-semibold">Assigned Courses</h2>
 
         <div className="flex items-center gap-3">
           <SearchInput
@@ -168,12 +167,12 @@ const CoursesSection = ({ onViewCourse }) => {
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="text-sm">
+            <DropdownMenuContent align="end">
               {filterData.map((filter) => (
                 <DropdownMenuItem
                   key={filter.key}
                   onClick={() => handleStatusFilterChange(filter.key)}
-                  className={statusFilter === filter.key ? 'bg-blue-50' : ''}
+                  className={`text-xs ${statusFilter === filter.key ? 'bg-blue-50' : ''}`}
                 >
                   {filter.label}
                 </DropdownMenuItem>
@@ -183,26 +182,20 @@ const CoursesSection = ({ onViewCourse }) => {
         </div>
       </div>
 
-      {/* Course Cards Grid */}
       <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {paginatedCourses.length > 0 ? (
-          paginatedCourses.map((course) => (
+        {paginatedCourses?.length > 0 ? (
+          paginatedCourses?.map((course) => (
             <CourseCard
               key={course.id}
-              image={course.image}
-              status={course.status}
-              category={course.category}
               title={course.title}
-              duration={course.duration}
-              trainees={course.trainees}
-              deliveryMode={course.deliveryMode}
-              hasStatus={true}
-              onView={onViewCourse ? () => onViewCourse(course) : undefined}
-              onEdit={() => console.log('Edit:', course.id)}
-              onDelete={() => console.log('Delete:', course.id)}
-              statusVariant={
-                course.status === 'Draft' ? 'secondary' : 'default'
-              }
+              category={course.category}
+              image={course.image}
+              type={course.type}
+              status={course.status}
+              progress={course.progress}
+              dueDate={course.dueDate}
+              completionDate={course.completionDate}
+              onClick={() => onSelectCourse?.(course)}
             />
           ))
         ) : (
@@ -249,8 +242,9 @@ const CoursesSection = ({ onViewCourse }) => {
 };
 
 export default CoursesSection;
+
 const filterData = [
   { key: 'all', label: 'All Courses' },
-  { key: 'draft', label: 'Draft' },
-  { key: 'active', label: 'Active' },
+  { key: 'Soft Skills', label: 'Soft Skills' },
+  { key: 'compliance', label: 'Compliance' },
 ];

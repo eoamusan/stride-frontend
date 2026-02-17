@@ -1,11 +1,13 @@
 'use client';
 
-import { useTableStore } from '@/stores/table-store';
 import { useState } from 'react';
+import { useTableStore } from '@/stores/table-store';
 
 import FilterIcon from '@/assets/icons/filter.svg';
 import { SearchInput } from '@/components/customs';
+import CustomDialog from '@/components/customs/dialog';
 import { Button } from '@/components/ui/button';
+import { CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,33 +23,32 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import CourseCard from './courseCard';
-import { CardContent } from '@/components/ui/card';
-import { mockCourses } from '../data';
+import CertificatePreview from '../components/certificatePreview';
+import CertificateCard from './certificateCard';
+import { certificatesData } from './data';
 
-const CoursesSection = ({ onViewCourse }) => {
+const CertificatesSection = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeCertificate, setActiveCertificate] = useState(null);
 
   const currentPage = useTableStore((s) => s.currentPage);
   const setCurrentPage = useTableStore((state) => state.setCurrentPage);
 
-  // Filter courses
-  const filteredCourses = mockCourses.filter((course) => {
+  const filteredCertificates = certificatesData.filter((certificate) => {
     const matchesStatus =
-      statusFilter === 'all' ||
-      course.status.toLowerCase() === statusFilter.toLowerCase();
-    const matchesSearch = course.title
+      statusFilter === 'all' || certificate.status === statusFilter;
+    const matchesSearch = certificate.title
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
-  // Pagination
   const itemsPerPage = 6;
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredCertificates.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCourses = filteredCourses.slice(
+  const paginatedCertificates = filteredCertificates.slice(
     startIndex,
     startIndex + itemsPerPage
   );
@@ -60,6 +61,17 @@ const CoursesSection = ({ onViewCourse }) => {
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePreview = (certificate) => {
+    setActiveCertificate(certificate);
+    setDialogOpen(true);
+  };
+
+  const handleDownload = (certificate) => {
+    if (certificate?.downloadUrl) {
+      window.open(certificate.downloadUrl, '_blank');
+    }
   };
 
   const generatePaginationItems = () => {
@@ -145,11 +157,11 @@ const CoursesSection = ({ onViewCourse }) => {
   return (
     <CardContent>
       <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-center">
-        <h2 className="text-lg font-semibold">Courses</h2>
+        <h2 className="text-lg font-semibold">Certificates</h2>
 
         <div className="flex items-center gap-3">
           <SearchInput
-            placeholder="Search courses..."
+            placeholder="Search certificate..."
             value={searchTerm}
             onValueChange={setSearchTerm}
             onResetPage={() => setCurrentPage(1)}
@@ -164,16 +176,16 @@ const CoursesSection = ({ onViewCourse }) => {
                   statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
                 }
               >
-                <img src={FilterIcon} alt="Filter Icon" />
+                <img src={FilterIcon} alt="Filter" />
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="text-sm">
+            <DropdownMenuContent align="end">
               {filterData.map((filter) => (
                 <DropdownMenuItem
                   key={filter.key}
                   onClick={() => handleStatusFilterChange(filter.key)}
-                  className={statusFilter === filter.key ? 'bg-blue-50' : ''}
+                  className={`text-xs ${statusFilter === filter.key ? 'bg-blue-50' : ''}`}
                 >
                   {filter.label}
                 </DropdownMenuItem>
@@ -183,36 +195,23 @@ const CoursesSection = ({ onViewCourse }) => {
         </div>
       </div>
 
-      {/* Course Cards Grid */}
       <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {paginatedCourses.length > 0 ? (
-          paginatedCourses.map((course) => (
-            <CourseCard
-              key={course.id}
-              image={course.image}
-              status={course.status}
-              category={course.category}
-              title={course.title}
-              duration={course.duration}
-              trainees={course.trainees}
-              deliveryMode={course.deliveryMode}
-              hasStatus={true}
-              onView={onViewCourse ? () => onViewCourse(course) : undefined}
-              onEdit={() => console.log('Edit:', course.id)}
-              onDelete={() => console.log('Delete:', course.id)}
-              statusVariant={
-                course.status === 'Draft' ? 'secondary' : 'default'
-              }
+        {paginatedCertificates.length > 0 ? (
+          paginatedCertificates.map((certificate) => (
+            <CertificateCard
+              key={certificate.id}
+              certificate={certificate}
+              onPreview={handlePreview}
+              onDownload={handleDownload}
             />
           ))
         ) : (
           <div className="col-span-full flex items-center justify-center py-12">
-            <p className="text-gray-500">No courses found</p>
+            <p className="text-gray-500">No certificates found</p>
           </div>
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <Pagination>
           <PaginationContent className="w-full justify-between">
@@ -244,13 +243,40 @@ const CoursesSection = ({ onViewCourse }) => {
           </PaginationContent>
         </Pagination>
       )}
+
+      <CustomDialog
+        isOpen={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title="Certificate Preview"
+        description={activeCertificate?.title || ''}
+        outlineBtnText="Close"
+        defaultBtnText="Download"
+        onOutlineBtnClick={() => setDialogOpen(false)}
+        onDefaultBtnClick={() => handleDownload(activeCertificate)}
+      >
+        <CertificatePreview
+          certificate={
+            activeCertificate
+              ? {
+                  name: activeCertificate.owner,
+                  course: activeCertificate.title,
+                  issueDate: activeCertificate.issued,
+                  validUntil: activeCertificate.expires,
+                  issuer: activeCertificate.issuer,
+                }
+              : null
+          }
+        />
+      </CustomDialog>
     </CardContent>
   );
 };
 
-export default CoursesSection;
+export default CertificatesSection;
+
 const filterData = [
-  { key: 'all', label: 'All Courses' },
-  { key: 'draft', label: 'Draft' },
+  { key: 'all', label: 'All Certificates' },
   { key: 'active', label: 'Active' },
+  { key: 'expiring', label: 'Expiring Soon' },
+  { key: 'expired', label: 'Expired' },
 ];

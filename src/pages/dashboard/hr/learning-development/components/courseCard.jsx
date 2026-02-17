@@ -5,6 +5,8 @@ import UsersIcon from '@/assets/icons/users.svg';
 import EyeIcon from '@/assets/icons/eye.svg';
 import TrashIcon from '@/assets/icons/gray-delete.svg';
 import EditIcon from '@/assets/icons/gray-edit.svg';
+import SendIcon from '@/assets/icons/send.svg';
+import { CustomButton } from '@/components/customs';
 
 export default function CourseCard({
   image,
@@ -19,7 +21,23 @@ export default function CourseCard({
   onDelete,
   categoryVariant = 'default',
   statusVariant = 'secondary',
+  isEmployeeView = false,
+  hasStatus = false,
+  hasFooter = true,
 }) {
+  const normalizedStatus = status?.toLowerCase();
+
+  const statusColorClass =
+    normalizedStatus === 'pending'
+      ? 'bg-[#F39C12CC] text-white hover:bg-amber-600'
+      : normalizedStatus === 'approved' || normalizedStatus === 'active'
+        ? 'bg-green-500/80 text-white hover:bg-green-600'
+        : normalizedStatus === 'rejected'
+          ? 'bg-[#EF4444CC] text-white hover:bg-red-600'
+          : normalizedStatus === 'draft'
+            ? 'bg-white text-gray-700 hover:bg-white'
+            : '';
+
   return (
     <div className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-shadow hover:shadow-md">
       <div className="relative h-48 w-full overflow-hidden bg-gray-100">
@@ -29,23 +47,18 @@ export default function CourseCard({
           className="h-full w-full object-cover transition-transform group-hover:scale-105"
         />
 
-        {status && (
+        {hasStatus && status && (
           <Badge
             variant={statusVariant}
-            className={`border-sm absolute top-3 right-3 px-3 py-1 ${
-              status.toLowerCase() === 'active'
-                ? 'bg-green-500 text-white hover:bg-green-600'
-                : 'bg-white/90 text-gray-700 hover:bg-white'
-            }`}
+            className={`border-sm rounded-lg text-xs absolute top-3 right-3 px-3 py-1 ${statusColorClass}`}
           >
             {status}
           </Badge>
         )}
       </div>
 
-      {/* Card Content */}
       <div className="flex flex-col gap-6 px-5 py-6">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {category && (
             <Badge
               variant={categoryVariant}
@@ -73,41 +86,50 @@ export default function CourseCard({
         <hr className="border-gray-200" />
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-700">{deliveryMode}</span>
+        {hasFooter && !isEmployeeView && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-700">{deliveryMode}</span>
 
-          <div className="flex items-center gap-2">
-            {onView && (
-              <button
-                onClick={onView}
-                className="cursor-pointer rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                aria-label="View course"
-              >
-                <img src={EyeIcon} alt="View Icon" />
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {onView && (
+                <button
+                  onClick={onView}
+                  className="cursor-pointer rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                  aria-label="View course"
+                >
+                  <img src={EyeIcon} alt="View Icon" />
+                </button>
+              )}
 
-            {onEdit && (
-              <button
-                onClick={onEdit}
-                className="cursor-pointer rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                aria-label="Edit course"
-              >
-                <img src={EditIcon} alt="Edit Icon" />
-              </button>
-            )}
+              {onEdit && (
+                <button
+                  onClick={onEdit}
+                  className="cursor-pointer rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                  aria-label="Edit course"
+                >
+                  <img src={EditIcon} alt="Edit Icon" />
+                </button>
+              )}
 
-            {onDelete && (
-              <button
-                onClick={onDelete}
-                className="cursor-pointer rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-red-600"
-                aria-label="Delete course"
-              >
-                <img src={TrashIcon} alt="Delete Icon" className='h-4' />
-              </button>
-            )}
+              {onDelete && (
+                <button
+                  onClick={onDelete}
+                  className="cursor-pointer rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-red-600"
+                  aria-label="Delete course"
+                >
+                  <img src={TrashIcon} alt="Delete Icon" className="h-4" />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
+
+        {isEmployeeView && hasFooter && (
+          <CustomButton>
+            <img src={SendIcon} alt="Send Icon" />
+            Request Training
+          </CustomButton>
+        )}
       </div>
     </div>
   );

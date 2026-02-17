@@ -526,6 +526,25 @@ const learningAndDevelopmentItems = [
   },
 ];
 
+const employeeLearningAndDevelopmentItems = [
+  {
+    title: 'All Courses',
+    link: '/dashboard/hr/learning-and-development/employee/all-courses',
+  },
+  {
+    title: 'Assigned Course',
+    link: '/dashboard/hr/learning-and-development/employee/assigned-courses',
+  },
+  {
+    title: 'Requested Training',
+    link: '/dashboard/hr/learning-and-development/employee/requested-training',
+  },
+  {
+    title: 'Certificates',
+    link: '/dashboard/hr/learning-and-development/employee/certificates',
+  },
+];
+
 const engagementItems = [
   {
     title: 'Celebration Hub',
@@ -667,6 +686,7 @@ const hrTopItems = {
   payroll: payrollItems,
   employeePayroll: employeePayroll,
   learningAndDevelopement: learningAndDevelopmentItems,
+  employeeLearningAndDevelopment: employeeLearningAndDevelopmentItems,
   engagement: engagementItems,
   analytics: analyticsItems,
   disciplinaryAndExit: disciplinaryAndExitItems,

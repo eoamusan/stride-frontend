@@ -19,6 +19,8 @@ export default function HumanResourcesLayout() {
     if (pathname.includes('/performance')) return 'performance';
     if (pathname.includes('/payslips-history')) return 'employeePayroll';
     if (pathname.includes('/payroll')) return 'payroll';
+    if (pathname.includes('learning-and-development/employee'))
+      return 'employeeLearningAndDevelopment';
     if (pathname.includes('/learning-and-development'))
       return 'learningAndDevelopement';
     if (pathname.includes('/engagement')) return 'engagement';

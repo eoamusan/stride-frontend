@@ -1,6 +1,5 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PencilLine, Trash2 } from 'lucide-react';
 
 import ClockIcon from '@/assets/icons/white-clock.svg';
 import UsersIcon from '@/assets/icons/white-users.svg';
@@ -47,7 +46,7 @@ export default function ViewCourseDetails({
         <div className="flex items-center gap-3">
           <Button
             type="button"
-            className="h-10 rounded-xl px-4 md:px-10 text-sm"
+            className="h-10 rounded-xl px-4 text-sm md:px-10"
             onClick={onEdit}
           >
             <img src={EditIcon} alt="edit" className="h-4 w-4" />
@@ -57,7 +56,7 @@ export default function ViewCourseDetails({
           <Button
             type="button"
             variant="outline"
-            className="h-10 rounded-xl border-red-500 px-4 md:px-10 text-sm text-red-600 hover:bg-red-50"
+            className="h-10 rounded-xl border-red-500 px-4 text-sm text-red-600 hover:bg-red-50 md:px-10"
             onClick={onDelete}
           >
             <img src={DeleteIcon} alt="delete" className="h-4 w-4" />
@@ -76,7 +75,7 @@ export default function ViewCourseDetails({
           <div className="absolute inset-0 bg-gray-900/70" />
         </div>
 
-        <div className="relative flex flex-col gap-6 ps-6 pe-12 py-6 md:py-12 md:flex-row md:items-center md:justify-between">
+        <div className="relative flex flex-col gap-6 py-6 ps-6 pe-12 md:flex-row md:items-center md:justify-between md:py-12">
           <div className="max-w-2xl">
             <div className="mb-2 flex flex-wrap items-center gap-3">
               {tags.map((tag) => (
@@ -102,7 +101,9 @@ export default function ViewCourseDetails({
             </h1>
 
             {course.description && (
-              <p className="mt-2 text-white text-sm md:text-base">{course.description}</p>
+              <p className="mt-2 text-sm text-white md:text-base">
+                {course.description}
+              </p>
             )}
           </div>
 

@@ -131,6 +131,10 @@ import GlobalSetting from './dashboard/hr/setup/global-setting/page';
 import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
 import JobDetails from './dashboard/hr/recruitment/job-posting/[id]/page';
 import PayslipsHistory from './dashboard/hr/payroll/payslips-history/page';
+import AllCourses from './dashboard/hr/learning-development/all-courses/page';
+import AssignedCourses from './dashboard/hr/learning-development/assigned-courses/page';
+import RequestedTraining from './dashboard/hr/learning-development/requested-traning/page';
+import EmployeeCertificates from './dashboard/hr/learning-development/employee-certificates/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -709,6 +713,22 @@ const router = createBrowserRouter([
                         path: 'certificates',
                         Component: Certificates,
                       },
+                      {
+                        path: 'employee/all-courses',
+                        Component: AllCourses
+                      },
+                      {
+                        path: 'employee/assigned-courses',
+                        Component: AssignedCourses,
+                      },
+                      {
+                        path: 'employee/requested-training',
+                        Component: RequestedTraining,
+                      },
+                      {
+                        path: 'employee/certificates',
+                        Component: EmployeeCertificates,
+                      }
                     ],
                   },
                   {

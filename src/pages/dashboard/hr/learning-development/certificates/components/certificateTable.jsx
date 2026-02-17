@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useModalStore } from '@/stores/modal-store';
 import CustomModal from '@/components/customs/modal';
 import RenewCertificateModalContent from './renewCertificateModalContent';
-import CertificatePreview from './certificatePreview';
+import CertificatePreview from '../../components/certificatePreview';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 

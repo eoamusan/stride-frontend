@@ -2,18 +2,18 @@ import React from 'react';
 
 import CertificateIcon from '@/assets/icons/certificate.svg';
 
-const Certificate = () => {
+const Certificate = ({ certificate }) => {
   const data = {
-    name: 'Femi Johnson',
-    course: 'Leadership Fundamentals',
-    issueDate: 'Jan 15, 2025',
-    validUntil: 'Jan 15, 2027',
-    issuer: 'OneDa HR Learning & Development',
+    name: certificate?.name || 'Femi Johnson',
+    course: certificate?.course || 'Leadership Fundamentals',
+    issueDate: certificate?.issueDate || 'Jan 15, 2025',
+    validUntil: certificate?.validUntil || 'Jan 15, 2027',
+    issuer: certificate?.issuer || 'OneDa HR Learning & Development',
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="relative flex aspect-[1/1] w-full flex-col items-center justify-between rounded-xl border border-purple-400 bg-[#EFEDFF4D] pt-12 pb-6 px-12 text-center shadow-sm ">
+      <div className="relative flex aspect-[1/1] w-full flex-col items-center justify-between rounded-xl border border-purple-400 bg-[#EFEDFF4D] px-12 pt-12 pb-6 text-center shadow-sm">
         <div className="mt-2 flex flex-col items-center gap-2">
           <img
             src={CertificateIcon}
@@ -25,9 +25,7 @@ const Certificate = () => {
             Certificate of Completion
           </h1>
 
-          <p className="text-sm text-gray-500">
-            This certifies that
-          </p>
+          <p className="text-sm text-gray-500">This certifies that</p>
         </div>
 
         <div className="flex w-full flex-col gap-8">
@@ -35,9 +33,7 @@ const Certificate = () => {
             <h2 className="text-2xl font-semibold text-gray-900 md:text-[32px]">
               {data.name}
             </h2>
-            <p className="text-sm text-gray-500">
-              has successfully completed
-            </p>
+            <p className="text-sm text-gray-500">has successfully completed</p>
           </div>
 
           <div className="space-y-2">
@@ -63,7 +59,7 @@ const Certificate = () => {
             </div>
 
             <div className="flex flex-col gap-1">
-              <span className="tracking-widest text-gray-500 text-xs">
+              <span className="text-xs tracking-widest text-gray-500">
                 Valid Until
               </span>
               <span className="text-xs font-bold text-gray-900">
@@ -72,7 +68,7 @@ const Certificate = () => {
             </div>
           </div>
 
-          <div className="mt-5 tracking-wide text-gray-500 text-xs">
+          <div className="mt-5 text-xs tracking-wide text-gray-500">
             {data.issuer}
           </div>
         </div>

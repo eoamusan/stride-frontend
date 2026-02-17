@@ -121,7 +121,7 @@ const metricsData = [
   },
   {
     title: 'Average Completion',
-    value: '78%',
+    value: 78,
     percentage: 2,
     chartData: sampleChartData,
   },
