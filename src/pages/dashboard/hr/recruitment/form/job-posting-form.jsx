@@ -36,14 +36,15 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
     salary: '', // Populated based on Cadre/Selection
     deadline: undefined,
     description: '',
-    requirements: [], // Handled via dynamic list
-    responsibilities: [], // Handled via dynamic list
+    requirements: [''], // Handled via dynamic list
+    responsibilities: [''], // Handled via dynamic list
   });
+
+  const [cadre, setCadre] = useState('Senior Management'); // UI specific state
 
   // Helper state for array inputs
   const [newRequirement, setNewRequirement] = useState('');
   const [newResponsibility, setNewResponsibility] = useState('');
-  const [cadre, setCadre] = useState('Senior Management'); // UI specific state
 
   const { requisitions, fetchRequisitions } = useJobRequisitionStore();
   const { createJobPosting, updateJobPosting, updateJobStatus, isLoading } =
@@ -74,8 +75,8 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
           : undefined,
         description: initialData.description || '',
         // requirements & responsibilities are implicitly in description now, or empty
-        requirements: [],
-        responsibilities: [],
+        requirements: initialData.requirements || [],
+        responsibilities: initialData.responsibilities || [],
       }));
       if (initialData.cadre) {
         setCadre(initialData.cadre);
@@ -102,8 +103,7 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
           department: selectedReq.department || '',
           requestedBy: selectedReq.user || '', // Or requestedBy if available
           openings: selectedReq.noOfOpenings || 0,
-          description: selectedReq.detailedReason || prev.description,
-          // Map other fields if available in requisition
+          description: selectedReq.description || prev.description,
         }));
       }
     }
@@ -160,21 +160,6 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
       return;
     }
 
-    // Combine rich text data into description since backend doesn't support separate fields
-    let formattedDescription = formData.description || '';
-
-    if (formData.responsibilities?.length > 0) {
-      formattedDescription +=
-        '\n\nResponsibilities:\n' +
-        formData.responsibilities.map((r) => `- ${r}`).join('\n');
-    }
-
-    if (formData.requirements?.length > 0) {
-      formattedDescription +=
-        '\n\nRequirements:\n' +
-        formData.requirements.map((r) => `- ${r}`).join('\n');
-    }
-
     try {
       const payload = {
         jobRequisitionId: formData.requisitionId,
@@ -186,22 +171,23 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
           formData.deadline && !isNaN(new Date(formData.deadline).getTime())
             ? new Date(formData.deadline).toISOString()
             : undefined,
-        description: formattedDescription,
+        description: formData.description,
         status: status,
+        requirements: [
+          ...(formData.requirements || []),
+          ...(newRequirement.trim() ? [newRequirement.trim()] : []),
+        ],
+        responsibilities: [
+          ...(formData.responsibilities || []),
+          ...(newResponsibility.trim() ? [newResponsibility.trim()] : []),
+        ],
       };
 
       if (initialData) {
         // Update existing job
-        // 1. Remove status and jobRequisitionId from payload for the general update endpoint
-        const {
-          status: _status,
-          jobRequisitionId: _reqId,
-          ...updatePayload
-        } = payload;
-
         await updateJobPosting({
           id: initialData._id || initialData.id,
-          data: updatePayload,
+          data: payload,
         });
 
         toast.success(
@@ -220,7 +206,7 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
         }
       }
 
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(!!initialData, status);
     } catch (error) {
       console.error('Job posting error:', error.response?.data || error);
       toast.error(error.response?.data?.message || 'Failed to post job');

@@ -41,6 +41,9 @@ export default function JobDetails() {
     deleteJobPosting,
     isLoading,
   } = useJobPostStore();
+
+  console.log(job);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleDelete = async () => {
@@ -164,17 +167,17 @@ export default function JobDetails() {
   };
   const activityLog = [
     {
-      title: 'Requisition Created',
+      title: 'Job Created',
       description: `by ${job.user || 'N/A'} • ${formatDate(job.createdAt)}, ${formatTime(job.createdAt)}`,
       checked: true,
     },
     {
-      title: 'Submitted for Approval',
+      title: 'Job Status Changed to Active',
       description: `by ${job.user || 'N/A'} • ${formatDate(job.createdAt)}, ${formatTime(job.createdAt)}`,
-      checked: false,
+      checked: true,
     },
     {
-      title: 'Approved',
+      title: 'Job Status Changed to Close',
       description: `by ${job.user || 'N/A'} • ${formatDate(job.createdAt)}, ${formatTime(job.createdAt)}`,
       checked: false,
     },
@@ -360,11 +363,7 @@ export default function JobDetails() {
               icon={<Banknote className="h-6 w-6 text-gray-400" />}
             />
             <Fields
-              title={
-                job.deadline
-                  ? new Date(job.deadline).toLocaleDateString()
-                  : 'No Deadline'
-              }
+              title={new Date(job.deadline).toLocaleDateString()}
               header="Deadline"
               icon={
                 <img
@@ -374,32 +373,38 @@ export default function JobDetails() {
                 />
               }
             />
-          </div>
 
-          <div className="mb-8 space-y-2">
-            <h3 className="text-sm font-semibold text-gray-900">Description</h3>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-600">
-              {job.description}
-            </p>
-          </div>
-          {job.requirements && (
-            <div className="mb-8 space-y-2">
-              <h3 className="text-sm font-semibold text-gray-900">
-                Requirements
-              </h3>
-              <ul className="list-inside list-disc space-y-1">
-                {Array.isArray(job.requirements) ? (
+            <div className="sm:col-span-2">
+              <h3 className="mb-4 block text-sm text-gray-800">Description</h3>
+              <p className="font-medium">{job.description}</p>
+            </div>
+
+            <div className="mb-8 space-y-2 sm:col-span-2">
+              <h3 className="mb-4 block text-sm text-gray-800">Requirements</h3>
+              <ul className="list-inside list-disc space-y-1 font-medium">
+                {Array.isArray(job.requirements) &&
                   job.requirements.map((req, index) => (
                     <li key={index} className="text-sm text-gray-600">
                       {req}
                     </li>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-600">{job.requirements}</p>
-                )}
+                  ))}
               </ul>
             </div>
-          )}
+
+            <div className="mb-8 space-y-2 sm:col-span-2">
+              <h3 className="mb-4 block text-sm text-gray-800">
+                Responsibilities
+              </h3>
+              <ul className="list-inside list-disc space-y-1 font-medium">
+                {Array.isArray(job.responsibilities) &&
+                  job.responsibilities.map((req, index) => (
+                    <li key={index} className="text-sm text-gray-600">
+                      {req}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
         </div>
 
         {/* Activity Log and Action */}

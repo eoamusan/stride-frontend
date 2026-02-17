@@ -1,5 +1,6 @@
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { Button } from '@/components/ui/button';
+import AlertModal from '@/components/customs/alertModal';
 import {
   Dialog,
   DialogContent,
@@ -30,10 +31,16 @@ import { useDataTable } from '@/hooks/use-data-table';
 
 export default function JobPosting() {
   const navigate = useNavigate();
-  const { jobPostings, fetchJobPostings, updateJobPosting, isLoading } =
-    useJobPostStore();
+  const {
+    jobPostings,
+    fetchJobPostings,
+    updateJobPosting,
+    isLoading,
+    deleteJobPosting,
+  } = useJobPostStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
 
   useEffect(() => {
@@ -41,8 +48,11 @@ export default function JobPosting() {
     fetchJobPostings(1, 1000);
   }, [fetchJobPostings]);
 
-  const handleJobPosted = () => {
+  const handleJobPosted = (isEdit, status) => {
     setIsModalOpen(false);
+    if (!isEdit && status === 'Active') {
+      setIsSuccessModalOpen(true);
+    }
   };
 
   const handleCloseJob = async (id) => {
@@ -52,6 +62,17 @@ export default function JobPosting() {
         toast.success('Job closed successfully');
       } catch (error) {
         toast.error('Failed to close job');
+      }
+    }
+  };
+
+  const handleDeleteJob = async (id) => {
+    if (window.confirm('Are you sure you want to delete this job?')) {
+      try {
+        await deleteJobPosting(id);
+        toast.success('Job deleted successfully');
+      } catch (error) {
+        toast.error('Failed to delete job');
       }
     }
   };
@@ -260,7 +281,7 @@ export default function JobPosting() {
                 Close
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => console.log('Delete', row.id)}
+                onClick={() => handleDeleteJob(row.id)}
                 className="text-red-600 focus:text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -313,14 +334,23 @@ export default function JobPosting() {
             </DialogDescription>
             <JobPostingForm
               initialData={editingJob}
-              onSuccess={() => {
+              onSuccess={(isEdit, status) => {
                 fetchJobPostings(1, 1000);
-                handleJobPosted();
+                handleJobPosted(isEdit, status);
               }}
               onCancel={() => setIsModalOpen(false)}
             />
           </DialogContent>
         </Dialog>
+
+        <AlertModal
+          open={isSuccessModalOpen}
+          onOpenChange={setIsSuccessModalOpen}
+          title="Job Posted"
+          description="You've successfully Posted a Job"
+          backText="Back"
+          handleBack={() => setIsSuccessModalOpen(false)}
+        />
       </Header>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
