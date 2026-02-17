@@ -105,9 +105,7 @@ const ComplianceTable = ({ rows, onRowsChange }) => {
               <Button
                 variant="outline"
                 size="icon"
-                className={
-                  statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-                }
+                className={`h-12 w-12 rounded-xl ${statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''}`}
               >
                 <span className="sr-only">Filter</span>
                 <img src={FilterIcon} alt="Filter Icon" />

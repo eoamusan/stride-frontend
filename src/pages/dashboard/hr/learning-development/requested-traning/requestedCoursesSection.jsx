@@ -159,9 +159,7 @@ const CoursesSection = () => {
               <Button
                 variant="outline"
                 size="icon"
-                className={
-                  statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-                }
+                className={`h-12 w-12 rounded-xl ${statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''}`}
               >
                 <img src={FilterIcon} alt="Filter Icon" />
               </Button>
@@ -196,7 +194,15 @@ const CoursesSection = () => {
               deliveryMode={course.deliveryMode}
               status={course.status}
               hasFooter={false}
-              statusVariant={course.status === 'Pending' ? 'warn' : course.status === 'Approved' ? 'success' : course.status === 'Rejected' ? 'danger' : 'default'}
+              statusVariant={
+                course.status === 'Pending'
+                  ? 'warn'
+                  : course.status === 'Approved'
+                    ? 'success'
+                    : course.status === 'Rejected'
+                      ? 'danger'
+                      : 'default'
+              }
               isEmployeeView={true}
               hasStatus={true}
             />

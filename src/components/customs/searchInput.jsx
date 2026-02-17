@@ -6,7 +6,7 @@ const SearchInput = ({
   onChange,
   onValueChange,
   placeholder = 'Search...',
-  className = 'w-full pl-10 py-6 rounded-xl',
+  className = 'w-full md:max-w-xs md:min-w-[268px] pl-10 py-6 rounded-xl',
   resetPageOnChange = false,
   onResetPage,
 }) => {

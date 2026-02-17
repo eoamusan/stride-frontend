@@ -11,6 +11,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { TableCell, TableRow } from '@/components/ui/table';
@@ -119,15 +121,20 @@ const CourseTable = ({ onEdit }) => {
                 variant="outline"
                 size="icon"
                 className={
-                  priorityFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
+                  `rounded-xl h-12 w-12 ${priorityFilter !== 'all' || statusFilter !== 'all'
+                    ? 'border-blue-200 bg-blue-50'
+                    : ''}`
                 }
-                title="Filter by Priority"
+                title="Filter by Priority or Status"
               >
-                <img src={FilterIcon} alt="Filter by Priority" />
+                <img src={FilterIcon} alt="Filter" />
               </Button>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="text-sm">
+              <DropdownMenuLabel className="text-xs font-semibold text-gray-500">
+                Priority
+              </DropdownMenuLabel>
               {priorityFilterData.map((filter) => (
                 <DropdownMenuItem
                   key={filter.key}
@@ -137,24 +144,12 @@ const CourseTable = ({ onEdit }) => {
                   {filter.label}
                 </DropdownMenuItem>
               ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className={
-                  statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-                }
-                title="Filter by Status"
-              >
-                <img src={FilterIcon} alt="Filter by Status" />
-              </Button>
-            </DropdownMenuTrigger>
+              <DropdownMenuSeparator />
 
-            <DropdownMenuContent align="end" className="text-sm">
+              <DropdownMenuLabel className="text-xs font-semibold text-gray-500">
+                Status
+              </DropdownMenuLabel>
               {statusFilterData.map((filter) => (
                 <DropdownMenuItem
                   key={filter.key}

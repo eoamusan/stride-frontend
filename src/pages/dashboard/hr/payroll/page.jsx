@@ -137,9 +137,7 @@ export default function Payroll() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className={
-                      statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-                    }
+                    className={`h-12 w-12 rounded-xl ${statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''}`}
                   >
                     <img src={FilterIcon} alt="Filter Icon" />
                   </Button>
@@ -205,7 +203,7 @@ export default function Payroll() {
                 <TableCell className="py-4 font-medium">
                   <Badge
                     variant={typeToBadgeVariant(row.type)}
-                    className="px-6 py-2 min-w-[98px]"
+                    className="min-w-[98px] px-6 py-2"
                   >
                     {row.type}
                   </Badge>
@@ -230,7 +228,11 @@ export default function Payroll() {
                       <DropdownMenuItem
                         onClick={() => handleDelete(row.componentName)}
                       >
-                        <img src={DeleteIcon} alt="Delete" className="mr-1 h-4" />
+                        <img
+                          src={DeleteIcon}
+                          alt="Delete"
+                          className="mr-1 h-4"
+                        />
                         <span>Delete</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>

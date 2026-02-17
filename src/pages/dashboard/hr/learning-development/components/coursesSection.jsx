@@ -160,9 +160,7 @@ const CoursesSection = ({ onViewCourse }) => {
               <Button
                 variant="outline"
                 size="icon"
-                className={
-                  statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-                }
+                className={`h-12 w-12 rounded-xl ${statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''}`}
               >
                 <img src={FilterIcon} alt="Filter Icon" />
               </Button>

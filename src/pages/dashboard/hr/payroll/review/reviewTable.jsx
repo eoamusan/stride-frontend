@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import EditIcon from '@/assets/icons/gray-edit.svg';
 import DeleteIcon from '@/assets/icons/gray-delete.svg';
 import EyeIcon from '@/assets/icons/eye.svg';
-import PaidIcon from "@/assets/icons/gray-checkmark.svg";
+import PaidIcon from '@/assets/icons/gray-checkmark.svg';
 
 const ReviewTable = ({ onAction, isFrozen = false }) => {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -89,14 +89,12 @@ const ReviewTable = ({ onAction, isFrozen = false }) => {
               <Button
                 variant="outline"
                 size="icon"
-                className={
-                  statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-                }
+                className={`h-12 w-12 rounded-xl ${statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''}`}
               >
                 <img src={FilterIcon} alt="Filter Icon" />
               </Button>
             </DropdownMenuTrigger>
-             
+
             <DropdownMenuContent align="end">
               {filterData.map((filter) => (
                 <DropdownMenuItem
@@ -107,8 +105,7 @@ const ReviewTable = ({ onAction, isFrozen = false }) => {
                   <span className="flex items-center gap-2">
                     <span
                       className={`h-2 w-2 rounded-full ${filter.color}`}
-                    >
-                    </span>
+                    ></span>
                     {filter.label}
                   </span>
                 </DropdownMenuItem>
@@ -169,7 +166,11 @@ const ReviewTable = ({ onAction, isFrozen = false }) => {
                     disabled={isFrozen}
                     onClick={() => !isFrozen && onAction(row, 'edit')}
                   >
-                    <img src={isFrozen ? PaidIcon : EditIcon} alt="Edit" className="mr-1 h-4" />
+                    <img
+                      src={isFrozen ? PaidIcon : EditIcon}
+                      alt="Edit"
+                      className="mr-1 h-4"
+                    />
                     <span>{isFrozen ? 'Paid' : 'Edit'}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem

@@ -113,9 +113,7 @@ const TrainingQueueTable = () => {
               <Button
                 variant="outline"
                 size="icon"
-                className={
-                  statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-                }
+                className={`h-12 w-12 rounded-xl ${statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''}`}
                 title="Filter by Status"
               >
                 <img src={FilterIcon} alt="Filter by Status" />
@@ -183,7 +181,11 @@ const TrainingQueueTable = () => {
 
                 <DropdownMenuContent align="end" className="text-sm">
                   <DropdownMenuItem onClick={() => handleApprove(row.id)}>
-                    <img src={CheckmarkIcon} alt="Approve" className="mr-1 h-4" />
+                    <img
+                      src={CheckmarkIcon}
+                      alt="Approve"
+                      className="mr-1 h-4"
+                    />
                     <span className="text-sm">Approve</span>
                   </DropdownMenuItem>
 
