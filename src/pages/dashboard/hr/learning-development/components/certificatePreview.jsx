@@ -13,7 +13,7 @@ const Certificate = ({ certificate }) => {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="relative flex aspect-[1/1] w-full flex-col items-center justify-between rounded-xl border border-purple-400 bg-[#EFEDFF4D] px-12 pt-12 pb-6 text-center shadow-sm">
+      <div className="relative flex aspect-[1/1] w-full flex-col items-center justify-between rounded-xl border border-purple-400 bg-[#EFEDFF4D] px-1 md:px-12 pt-6 md:pt-12 pb-6 text-center shadow-sm">
         <div className="mt-2 flex flex-col items-center gap-2">
           <img
             src={CertificateIcon}
@@ -30,14 +30,14 @@ const Certificate = ({ certificate }) => {
 
         <div className="flex w-full flex-col gap-8">
           <div className="space-y-1">
-            <h2 className="text-2xl font-semibold text-gray-900 md:text-[32px]">
+            <h2 className="text-lg md:text-2xl font-semibold text-gray-900 md:text-[32px]">
               {data.name}
             </h2>
             <p className="text-sm text-gray-500">has successfully completed</p>
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-2xl font-semibold text-gray-900 md:text-[32px]">
+            <h3 className="text-lg md:text-2xl font-semibold text-gray-900 md:text-[32px]">
               {data.course}
             </h3>
             <p className="mx-auto max-w-lg px-4 text-xs leading-relaxed text-gray-500 md:text-sm">
@@ -50,7 +50,7 @@ const Certificate = ({ certificate }) => {
         <div className="mb-4 flex w-full flex-col gap-12">
           <div className="flex w-full items-center justify-around px-8">
             <div className="flex flex-col gap-1">
-              <span className="tracking-widest text-gray-500 md:text-xs">
+              <span className="tracking-widest text-gray-500 text-xs">
                 Issue Date
               </span>
               <span className="text-xs font-bold text-gray-900">
@@ -68,7 +68,7 @@ const Certificate = ({ certificate }) => {
             </div>
           </div>
 
-          <div className="mt-5 text-xs tracking-wide text-gray-500">
+          <div className="md:mt-5 text-xs tracking-wide text-gray-500">
             {data.issuer}
           </div>
         </div>

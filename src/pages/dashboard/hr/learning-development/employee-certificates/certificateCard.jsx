@@ -42,6 +42,7 @@ const CertificateCard = ({ certificate, onPreview, onDownload }) => {
           alt={certificate.title}
           className="h-full w-full object-cover"
         />
+        
         <span
           className={`absolute top-3 right-3 rounded-lg px-4 py-2 text-xs font-semibold ${styles.badge}`}
         >
@@ -59,10 +60,12 @@ const CertificateCard = ({ certificate, onPreview, onDownload }) => {
             <span className='text-xs text-gray-800'>Issued:</span>
             <span className="text-sm text-gray-800 font-medium">{certificate.issued}</span>
           </div>
+
           <div className="flex justify-between">
             <span className='text-xs text-gray-800'>Expires:</span>
             <span className="text-sm text-gray-800 font-medium">{certificate.expires}</span>
           </div>
+
           <div className="flex justify-between">
             <span className='text-xs text-gray-800'>Days Left:</span>
             <span className={`text-sm font-semibold ${styles.days}`}>{daysText}</span>
@@ -77,6 +80,7 @@ const CertificateCard = ({ certificate, onPreview, onDownload }) => {
           >
             Preview
           </CustomButton>
+
           <CustomButton className="flex-1 rounded-xl py-6" onClick={handleDownload}>
             Download
           </CustomButton>

@@ -52,14 +52,14 @@ const CustomDialog = (props) => {
 
         <div className="flex min-h-0 flex-1 flex-col overflow-auto bg-[#F5F6FA]">
           <div className="min-h-full p-6">
-            <div className="min-h-full rounded-xl border border-gray-200 bg-white px-6 py-6 mb-2">
+            <div className="min-h-full rounded-xl border border-gray-200 bg-white px-6 md:px-6 md:py-6 mb-2">
               {children}
             </div>
           </div>
         </div>
 
-        <div className="flex flex-shrink-0 items-center justify-end border-t px-6 py-10">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-shrink-0 items-center md:justify-end border-t px-6 py-10">
+          <div className="flex flex-col md:flex-row w-full md:w-auto items-center gap-3">
             <CustomButton variant="outline" onClick={onOutlineBtnClick}>
               {outlineBtnText}
             </CustomButton>

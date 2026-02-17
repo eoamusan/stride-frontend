@@ -85,10 +85,10 @@ const CourseDetails = ({ course, onBack }) => {
   };
 
   return (
-    <div className="flex flex-col gap-8 py-6">
+    <div className="flex flex-col gap-8 px-4 py-6 sm:px-6 lg:px-0">
       <button
         onClick={onBack}
-        className="inline-flex cursor-pointer items-center gap-2 text-xl font-semibold text-black hover:text-gray-900"
+        className="inline-flex cursor-pointer items-center gap-2 text-base font-semibold text-black hover:text-gray-900 sm:text-xl"
       >
         <img src={BackArrowIcon} alt="back" />
         View Details
@@ -105,9 +105,9 @@ const CourseDetails = ({ course, onBack }) => {
           <div className="absolute inset-0 bg-gray-900/70" />
         </div>
 
-        <div className="relative z-10 flex flex-col items-center justify-between gap-6 md:flex-row">
-          <div className="max-w-2xl space-y-2">
-            <div className="flex gap-2">
+        <div className="relative z-10 flex flex-col items-center justify-between gap-6 lg:flex-row">
+          <div className="max-w-2xl space-y-2 text-center lg:text-left">
+            <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
               <span className="bg-primary min-w-24 rounded-lg px-3 py-2 text-center text-xs font-medium">
                 Compliance
               </span>
@@ -130,7 +130,7 @@ const CourseDetails = ({ course, onBack }) => {
             </p>
           </div>
 
-          <div className="flex min-w-max flex-col gap-3 text-sm text-gray-300">
+          <div className="flex w-full flex-col items-center gap-3 text-center text-sm text-gray-300 sm:w-auto sm:items-end sm:text-right lg:min-w-[220px]">
             <div className="flex items-center gap-1">
               <img src={ClockIcon} alt="duration" />
               <span>45 mins</span>
@@ -172,9 +172,9 @@ const CourseDetails = ({ course, onBack }) => {
           {modules.map((module, idx) => (
             <div
               key={idx}
-              className="group relative flex flex-col items-end justify-between gap-4 rounded-2xl border border-gray-100 bg-white p-5 md:flex-row"
+              className="group relative flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-5 md:flex-row md:items-end md:justify-between"
             >
-              <div className="flex items-start gap-4">
+              <div className="flex min-w-0 flex-1 items-start gap-4">
                 <div className="rounded-xl bg-purple-100 p-3 text-purple-600">
                   {module.type === 'video' ? (
                     <img src={PlayIcon} alt="module" className="h-6 w-6" />
@@ -182,8 +182,8 @@ const CourseDetails = ({ course, onBack }) => {
                     <img src={PdfIcon} alt="module" className="h-6 w-6" />
                   )}
                 </div>
-                <div className="space-y-1">
-                  <h5 className="truncate text-sm font-semibold text-gray-900 md:text-base">
+                <div className="min-w-0 space-y-1">
+                  <h5 className="line-clamp-2 text-sm leading-5 font-semibold break-words text-gray-900 md:text-base">
                     {module.title}
                   </h5>
                   <p className="mt-2 line-clamp-2 text-xs font-medium text-gray-900/60 md:text-sm">
@@ -196,8 +196,11 @@ const CourseDetails = ({ course, onBack }) => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="absolute top-3 right-6">
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:gap-4">
+                <div className="flex items-center justify-between gap-2 text-xs font-semibold text-gray-600 md:hidden">
+                  <span className="text-[11px] tracking-wide text-gray-400 uppercase">
+                    {module.completed ? 'Completed' : 'In Progress'}
+                  </span>
                   {module.completed ? (
                     <img
                       src={CheckCircleIcon}
@@ -209,17 +212,17 @@ const CourseDetails = ({ course, onBack }) => {
                   )}
                 </div>
 
-                <button className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-black">
+                <button className="flex w-full items-center justify-center gap-1 text-sm font-medium text-gray-500 hover:text-black sm:w-auto">
                   <Download size={14} /> Download
                 </button>
 
                 <CustomButton
                   variant={module.completed ? 'outline' : 'default'}
-                  className={
+                  className={`${
                     module.completed
-                      ? 'text-primary border-purple-600 px-6 hover:bg-purple-50'
+                      ? 'text-primary border-purple-600 hover:bg-purple-50'
                       : ''
-                  }
+                  } w-full justify-center px-6 sm:w-auto`}
                   onClick={() => handleModuleClick(module)}
                 >
                   <img
@@ -229,6 +232,18 @@ const CourseDetails = ({ course, onBack }) => {
                   />
                   {module.type === 'video' ? 'Watch Video' : 'Read PDF'}
                 </CustomButton>
+              </div>
+
+              <div className="absolute top-3 right-3 hidden md:right-6 md:block">
+                {module.completed ? (
+                  <img
+                    src={CheckCircleIcon}
+                    alt="completed"
+                    className="h-5 w-5"
+                  />
+                ) : (
+                  <div className="h-5 w-5 rounded-full border border-gray-500"></div>
+                )}
               </div>
             </div>
           ))}
@@ -246,7 +261,7 @@ const CourseDetails = ({ course, onBack }) => {
           <DialogHeader className="flex-shrink-0">
             <div className="flex items-center justify-between border-b px-6 py-8">
               <div className="flex items-start gap-2 text-lg font-semibold text-gray-900">
-                <span className="mt-2 flex h-8 w-8 items-center justify-center rounded-full bg-green-900 text-green-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-900 text-green-600">
                   <img src={DocumentIcon} alt="document" className="h-4 w-4" />
                 </span>
 
@@ -273,7 +288,7 @@ const CourseDetails = ({ course, onBack }) => {
                       <iframe
                         src={activeModule.pdfUrl}
                         title={activeModule.title}
-                        className="h-full w-full rounded-lg border"
+                        className="h-[60vh] w-full rounded-lg border"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm text-gray-600">
@@ -287,7 +302,7 @@ const CourseDetails = ({ course, onBack }) => {
                       <video
                         key={activeModule.videoUrl}
                         controls
-                        className="h-[420px] w-full overflow-hidden rounded-xl bg-black"
+                        className="aspect-video w-full overflow-hidden rounded-xl bg-black"
                       >
                         <source src={activeModule.videoUrl} type="video/mp4" />
                         Your browser does not support the video tag.
@@ -309,12 +324,12 @@ const CourseDetails = ({ course, onBack }) => {
             </div>
           </div>
 
-          <div className="flex flex-shrink-0 items-center justify-between border-t px-6 py-10">
+          <div className="flex flex-shrink-0 flex-col items-center justify-between gap-3 border-t px-6 py-10 md:flex-row">
             <CustomButton variant="outline" onClick={handleCloseDialog}>
               Back
             </CustomButton>
 
-            <div className="flex items-center gap-3">
+            <div className="flex w-full flex-col items-center gap-3 md:w-auto md:flex-row">
               <CustomButton variant="outline" onClick={handleCloseDialog}>
                 Download PDF
               </CustomButton>
