@@ -444,11 +444,11 @@ const employeeDirectoryItems = [
 
 const attendanceLeaveItems = [
   {
-    title: 'Attendance',
+    title: 'Attendance Management',
     link: '/dashboard/hr/attendance-leave',
   },
   {
-    title: 'Leave',
+    title: 'Leave Management',
     link: '/dashboard/hr/attendance-leave/leave',
   },
 ];

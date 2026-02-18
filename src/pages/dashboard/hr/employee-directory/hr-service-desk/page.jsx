@@ -177,7 +177,9 @@ export default function HRServiceDesk() {
   };
 
   const ticketData = transformTicketData(tickets);
-  const selectedTicket = ticketData.find((t) => t.id === selectedTicketId);
+  const selectedTicketForView = ticketData.find(
+    (t) => t.id === selectedTicketId
+  );
 
   // Sample chart data for metrics
   const sampleChartData = [
@@ -406,9 +408,9 @@ export default function HRServiceDesk() {
         </div>
 
         <div className="mt-10">
-          {selectedTicket ? (
+          {selectedTicketForView ? (
             <RequestDetailsView
-              ticket={selectedTicket}
+              ticket={selectedTicketForView}
               onBack={() => setSelectedTicketId(null)}
               onConfirmResolution={handleConfirmResolution}
               onReopenTicket={() => {
