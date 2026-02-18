@@ -20,7 +20,14 @@ const badgeVariants = cva(
         success: 'bg-[#24A959]/10 text-[#24A959]',
         danger: 'bg-[#830000]/10 text-[#830000]',
         warn: 'bg-[#1677FF]/10 text-[#1677FF]',
-        info: 'bg-[#FFAE4C]/10 text-[#FFAE4C]'
+        info: 'bg-[#FFAE4C]/10 text-[#FFAE4C]',
+
+        pending: 'bg-[#CE8D001A] text-[#CE8D00]',
+        approved: 'bg-[#0596691A] text-[#059669]',
+        rejected: 'bg-[#DC26261A] text-[#DC2626]',
+        review: 'bg-[#F39C121A] text-[#F39C12]',
+        interviewing: 'bg-[#3300C91A] text-[#3300C9]',
+        shortlisted: 'bg-[#3498DB1A] text-[#3498DB]',
       },
     },
     defaultVariants: {

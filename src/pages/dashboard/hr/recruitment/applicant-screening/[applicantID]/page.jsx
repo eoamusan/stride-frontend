@@ -1,30 +1,23 @@
-import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import ScheduleInterviewForm from '../../form/schedule-interview-form';
 import { dummyJobRequests } from '../../job-requests';
-import {
-  ArrowLeftIcon,
-  Briefcase,
-  Calendar,
-  CheckCircle2,
-  Circle,
-  LinkIcon,
-  Mail,
-  MapPin,
-  Phone,
-  User,
-} from 'lucide-react';
+import { ArrowLeftIcon, Briefcase, CheckCircle2, LinkIcon } from 'lucide-react';
+import { CustomButton } from '@/components/customs';
+import Avatar from '@/assets/icons/avatar.svg';
 import Fields from '@/components/dashboard/hr/overview/fields';
 import ActivityLog from '@/components/dashboard/hr/activity-log';
+
+import DocumentIcon from '@/assets/icons/document.svg';
+import EditIcon from '@/assets/icons/edit.svg';
+import SaveIcon from '@/assets/icons/save.svg';
+import PhoneIcon from '@/assets/icons/phone.svg';
+import LocationIcon from '@/assets/icons/location.svg';
+import userIcon from '@/assets/icons/user-square.svg';
 
 export default function ApplicantDetails() {
   const navigate = useNavigate();
   const { applicantID } = useParams();
-  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
 
   // Find applicant and associated job
   let applicant = null;
@@ -119,66 +112,68 @@ export default function ApplicantDetails() {
         </span>
       </nav>
 
-      {/* Header Section */}
-      <header className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
-        <div className="flex w-full max-w-4xl flex-col items-start gap-2 md:flex-row md:gap-6">
-          {/* Large Avatar */}
-          <div className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-purple-100 shadow-sm">
-            <span className="text-3xl font-bold text-purple-600">
-              {applicant.name
-                .split(' ')
-                .map((n) => n[0])
-                .join('')}
-            </span>
+      <header className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-4">
+          <div className="overflow-hidden rounded-full bg-purple-200">
+            <img src={Avatar} alt="avatar" />
           </div>
 
-          {/* Header Info */}
-          <hgroup className="space-y-1 pt-2">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {applicant.name}
-            </h1>
-            <p className="text-lg font-semibold text-gray-600">
-              {jobData?.title || 'Marketing Specialist'}
-            </p>
-            <p className="max-w-3xl pt-2 text-base leading-relaxed text-gray-500">
-              Detail-oriented {jobData?.title || 'Specialist'} experienced in
-              digital marketing, content strategy, and analytics-driven
-              decision-making. Adept at managing campaigns across social media
-              and online platforms while aligning marketing efforts with overall
-              business objectives.
-            </p>
-          </hgroup>
+          <div className="flex flex-col gap-2">
+            <div className="space-y-1">
+              <h5 className="font-semibold">{applicant?.name}</h5>
+              <p className="text-sm font-medium text-gray-700">
+                {jobData?.title}
+              </p>
+            </div>
+
+            <div className="w-160 text-sm">
+              <p>
+                {applicant?.name} is a {jobData?.title} with 5 years experience
+                in the field. He is currently working at Lorem ipsum dolor sit
+                amet consectetur adipisicing elit. Fuga provident amet, ipsa
+                quas cumque nisi laboriosam perferendis cum eius sapiente.
+                Accusantium.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex min-w-max flex-col items-end gap-3 pt-2">
-          {/* Review Pill */}
-          <Badge className="rounded-full border-none bg-[#FFF7ED] px-4 py-1.5 text-xs font-medium text-[#EA580C] hover:bg-[#FFF7ED]">
-            Review
-          </Badge>
-          {/* Schedule Button */}
-          <Dialog
-            open={isInterviewModalOpen}
-            onOpenChange={setIsInterviewModalOpen}
+        <div className="flex flex-col items-end gap-4">
+          <Badge
+            variant={
+              (applicant?.status === 'Pending' && 'pending') ||
+              (applicant?.status === 'Approved' && 'approved') ||
+              (applicant?.status === 'Rejected' && 'rejected') ||
+              (applicant?.status === 'Review' && 'review') ||
+              (applicant?.status === 'Interviewing' && 'interviewing') ||
+              (applicant?.status === 'Shortlisted' && 'shortlisted')
+            }
+            className="border-0 px-4 py-1 text-sm"
           >
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2 rounded-lg bg-[#3300C9] px-6 py-6 text-sm font-semibold text-white shadow-md transition-all hover:bg-[#2a00a8]">
-                <Calendar className="h-4 w-4" />
-                Schedule Interview
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white">
-              <ScheduleInterviewForm
-                onClose={() => setIsInterviewModalOpen(false)}
-                initialData={{
-                  candidateId: applicant.id,
-                  jobTitle: jobData?.title || '',
-                  interviewer: 'Current User', // Placeholder
-                  status: 'Scheduled',
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+            {applicant?.status}
+          </Badge>
+
+          {applicant?.status === 'Approved' ? (
+            <CustomButton className="rounded-xl py-6 text-sm">
+              <img src={DocumentIcon} alt="Download Payslip" className="mr-1" />
+              Download Payslip
+            </CustomButton>
+          ) : applicant?.status === 'Offer Sent' ? (
+            <CustomButton>
+              <img src={SaveIcon} alt="Save Changes" className="mr-1" />
+              Save Changes
+            </CustomButton>
+          ) : applicant?.status === 'Offer Accepted' ? (
+            <CustomButton className="rounded-xl py-6 text-sm">
+              <img src={EditIcon} alt="Edit Payroll" className="mr-1" />
+              Edit Payroll
+            </CustomButton>
+          ) : (
+            <CustomButton className="rounded-xl py-6 text-sm">
+              <img src={EditIcon} alt="Edit Payroll" className="mr-1" />
+              Edit Payroll
+            </CustomButton>
+          )}
         </div>
       </header>
 
@@ -187,32 +182,35 @@ export default function ApplicantDetails() {
         {/* LEFT COLUMN */}
         <section className="space-y-6 lg:col-span-2">
           {/* Personal Information */}
-          <article className="overflow-hidden rounded-3xl border border-gray-100 bg-white px-6 py-8 shadow-sm">
+          <article className="rounded-2xl bg-white px-8 py-4 md:col-span-3 xl:col-span-2">
             <hgroup>
               <h2 className="mb-6 text-lg font-semibold text-gray-900">
                 Personal Information
               </h2>
             </hgroup>
+
             <div className="mb-8 grid gap-6 sm:grid-cols-2">
               <Fields
-                title={applicant.name}
+                title={applicant?.name}
                 header="Name"
-                icon={<User className="h-6 w-6 text-gray-400" />}
+                icon={<img src={userIcon} className="h-6 w-6 text-gray-400" />}
               />
               <Fields
-                title={applicant.personalInfo.phone}
+                title={applicant?.personalInfo?.phone}
                 header="Phone"
-                icon={<Phone className="h-6 w-6 text-gray-400" />}
+                icon={<img src={PhoneIcon} className="h-6 w-6 text-gray-400" />}
               />
               <Fields
-                title={applicant.personalInfo.email}
+                title={applicant?.personalInfo?.email}
                 header="Email Address"
-                icon={<Mail className="h-6 w-6 text-gray-400" />}
+                icon={<img src={userIcon} className="h-6 w-6 text-gray-400" />}
               />
               <Fields
-                title={applicant.personalInfo.location}
+                title={applicant?.personalInfo?.location}
                 header="Location"
-                icon={<MapPin className="h-6 w-6 text-gray-400" />}
+                icon={
+                  <img src={LocationIcon} className="h-6 w-6 text-gray-400" />
+                }
               />
             </div>
           </article>
@@ -225,34 +223,52 @@ export default function ApplicantDetails() {
               </h2>
             </hgroup>
             <div className="mb-8 grid gap-6">
-              <div className="flex gap-5">
-                <div className="shrink-0 pt-1">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 shadow-sm">
-                    <Briefcase className="h-6 w-6 text-white" />
+              {[
+                {
+                  title: 'Marketing Lead',
+                  company: 'Bubbl HQ',
+                  date: 'January 2020 - March 2024',
+                  description:
+                    'Led marketing strategy and execution at Bubbl HQ, overseeing brand positioning, campaign planning, and audience growth. Drove engagement through content strategy, digital campaigns, and data-informed decision-making while aligning marketing efforts with business goals.',
+                },
+                {
+                  title: 'Senior Marketing Specialist',
+                  company: 'TechFlow',
+                  date: 'June 2018 - December 2019',
+                  description:
+                    'Managed digital marketing campaigns, social media strategy, and content creation. Increased engagement by 40% and generated 20% more leads through targeted ad campaigns.',
+                },
+              ].map((exp, index, arr) => (
+                <div key={index} className="relative flex gap-5">
+                  {/* Connector Line */}
+                  {index !== arr.length - 1 && (
+                    <div className="absolute top-12 left-[23px] h-full w-0.5 bg-gray-100" />
+                  )}
+
+                  <div className="z-10 shrink-0 pt-1">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#3b82f6] shadow-sm">
+                      <Briefcase className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-3 pb-6">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900">
+                          {exp.title}
+                        </h3>
+                        <p className="text-sm text-gray-500">{exp.company}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 self-start rounded-full border border-gray-200 bg-transparent px-3 py-1.5 text-xs font-medium text-gray-600">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-gray-900" />
+                        <span>{exp.date}</span>
+                      </div>
+                    </div>
+                    <p className="max-w-2xl text-sm leading-relaxed text-gray-500">
+                      {exp.description}
+                    </p>
                   </div>
                 </div>
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-bold text-gray-900">
-                        Marketing Lead
-                      </h3>
-                      <p className="text-gray-500">Bubbl HQ</p>
-                    </div>
-                    <div className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-gray-900" />
-                      <span>January 2020 - March 2024</span>
-                    </div>
-                  </div>
-                  <p className="max-w-2xl text-sm leading-relaxed text-gray-500">
-                    Led marketing strategy and execution at Bubbl HQ, overseeing
-                    brand positioning, campaign planning, and audience growth.
-                    Drove engagement through content strategy, digital
-                    campaigns, and data-informed decision-making while aligning
-                    marketing efforts with business goals.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </article>
 
@@ -306,7 +322,9 @@ export default function ApplicantDetails() {
         </section>
 
         {/* Activity Timeline */}
-        <ActivityLog activity={activityLog} />
+        <div>
+          <ActivityLog activity={activityLog} />
+        </div>
       </main>
     </div>
   );
