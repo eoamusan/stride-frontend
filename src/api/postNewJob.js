@@ -12,10 +12,13 @@ export default class JobPostService {
         data.append('accountId', userStore.data.account._id);
       }
     } else {
-      data = {
-        ...data,
-        accountId: userStore.data?.account?._id,
-      };
+      // Wrap in array as required for backend session transactions
+      data = [
+        {
+          ...data,
+          accountId: userStore.data?.account?._id,
+        },
+      ];
     }
 
     const response = await axiosInstance.post('job', data, {
@@ -40,7 +43,7 @@ export default class JobPostService {
       params: {
         accountId: userStore.data?.account?._id,
         businessId: userStore.activeBusiness?._id,
-      }
+      },
     });
     return response;
   }
@@ -50,8 +53,10 @@ export default class JobPostService {
     const accountId = userStore.data?.account?._id;
 
     // Create a safe payload for update to avoid 'ClientSession' BSON errors
+    // Also exclude 'status' as it might be restricted in general update
+    const { status, ...rest } = data;
     const payload = {
-      ...data,
+      ...rest,
       accountId: userStore.data?.account?._id,
     };
 
@@ -73,7 +78,12 @@ export default class JobPostService {
       accountId: userStore.data?.account?._id,
     };
 
-    console.log('JobPostService.updateStatus called with ID:', id, 'Status:', status);
+    console.log(
+      'JobPostService.updateStatus called with ID:',
+      id,
+      'Status:',
+      status
+    );
 
     const response = await axiosInstance.patch(`job/${id}/status`, payload, {
       headers: {
@@ -91,9 +101,7 @@ export default class JobPostService {
     if (perPage) params.append('perPage', perPage);
 
     const queryString = params.toString();
-    const url = queryString
-      ? `job/fetch?${queryString}`
-      : 'job/fetch';
+    const url = queryString ? `job/fetch?${queryString}` : 'job/fetch';
 
     const response = await axiosInstance.post(
       url,

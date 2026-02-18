@@ -56,24 +56,20 @@ export default function JobPosting() {
   };
 
   const handleCloseJob = async (id) => {
-    if (window.confirm('Are you sure you want to close this job?')) {
-      try {
-        await updateJobPosting({ id, data: { status: 'Closed' } });
-        toast.success('Job closed successfully');
-      } catch (error) {
-        toast.error('Failed to close job');
-      }
+    try {
+      await updateJobPosting({ id, data: { status: 'Closed' } });
+      toast.success('Job closed successfully');
+    } catch (error) {
+      toast.error('Failed to close job');
     }
   };
 
   const handleDeleteJob = async (id) => {
-    if (window.confirm('Are you sure you want to delete this job?')) {
-      try {
-        await deleteJobPosting(id);
-        toast.success('Job deleted successfully');
-      } catch (error) {
-        toast.error('Failed to delete job');
-      }
+    try {
+      await deleteJobPosting(id);
+      toast.success('Job deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete job');
     }
   };
 

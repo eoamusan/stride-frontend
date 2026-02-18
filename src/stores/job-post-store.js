@@ -14,7 +14,11 @@ export const useJobPostStore = create((set, get) => ({
   fetchJobPostings: async (page = 1, limit = 10, search = '') => {
     try {
       set({ isLoading: true });
-      const response = await JobPostService.fetch({ page, perPage: limit, search });
+      const response = await JobPostService.fetch({
+        page,
+        perPage: limit,
+        search,
+      });
       if (response.data && response.data.data) {
         set({
           jobPostings: response.data.data.jobs || [],
@@ -108,12 +112,14 @@ export const useJobPostStore = create((set, get) => ({
   getJobPosting: async (id) => {
     try {
       const { jobPostings } = get();
-      const existingJob = jobPostings.find(job => job._id === id || job.id === id);
+      const existingJob = jobPostings.find(
+        (job) => job._id === id || job.id === id
+      );
 
       if (existingJob) {
         set({ currentJob: existingJob, isLoading: false });
         // Optional: still fetch in background to update
-        // return; 
+        // return;
       }
 
       set({ isLoading: !existingJob, currentJob: existingJob || null });

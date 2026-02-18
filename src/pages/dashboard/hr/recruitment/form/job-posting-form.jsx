@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Calendar as CalendarIcon,
-  X,
   Plus,
   ChevronDown,
   Trash2,
@@ -14,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -36,8 +36,8 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
     salary: '', // Populated based on Cadre/Selection
     deadline: undefined,
     description: '',
-    requirements: [''], // Handled via dynamic list
-    responsibilities: [''], // Handled via dynamic list
+    requirements: [], // Handled via dynamic list
+    responsibilities: [], // Handled via dynamic list
   });
 
   const [cadre, setCadre] = useState('Senior Management'); // UI specific state
@@ -146,18 +146,44 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
     }));
   };
 
-  const handleSubmit = async (e, status) => {
-    console.log('JobPostingForm.handleSubmit called with status:', status);
+  const handleSubmit = async (e, targetStatus) => {
+    console.log(
+      'JobPostingForm.handleSubmit called with targetStatus:',
+      targetStatus
+    );
     e.preventDefault();
+    // Prepare arrays (clean up empty strings)
+    const finalRequirements = [
+      ...(formData.requirements || []),
+      ...(newRequirement.trim() ? [newRequirement.trim()] : []),
+    ].filter((req) => req.trim() !== '');
 
-    if (
-      !formData.requisitionId ||
-      !formData.title ||
-      !formData.location ||
-      !formData.deadline
-    ) {
-      toast.error('Please fill in all required fields');
-      return;
+    const finalResponsibilities = [
+      ...(formData.responsibilities || []),
+      ...(newResponsibility.trim() ? [newResponsibility.trim()] : []),
+    ].filter((resp) => resp.trim() !== '');
+
+    if (targetStatus === 'Active') {
+      if (
+        !formData.requisitionId ||
+        !formData.title ||
+        !formData.location ||
+        !formData.deadline
+      ) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+
+      if (finalRequirements.length === 0) {
+        toast.error('Please add at least one requirement');
+        return;
+      }
+
+      // Optional: Add responsibility check if required by schema (usually is for active job)
+      if (finalResponsibilities.length === 0) {
+        toast.error('Please add at least one responsibility');
+        return;
+      }
     }
 
     try {
@@ -166,21 +192,15 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
         title: formData.title,
         employmentType: formData.type,
         location: formData.location,
-        cadre: cadre,
+        cadre: cadre, // Sending as string based on form state
         deadline:
           formData.deadline && !isNaN(new Date(formData.deadline).getTime())
             ? new Date(formData.deadline).toISOString()
             : undefined,
         description: formData.description,
-        status: status,
-        requirements: [
-          ...(formData.requirements || []),
-          ...(newRequirement.trim() ? [newRequirement.trim()] : []),
-        ],
-        responsibilities: [
-          ...(formData.responsibilities || []),
-          ...(newResponsibility.trim() ? [newResponsibility.trim()] : []),
-        ],
+        status: targetStatus,
+        requirements: finalRequirements,
+        responsibilities: finalResponsibilities,
       };
 
       if (initialData) {
@@ -190,23 +210,34 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
           data: payload,
         });
 
+        // Check if status needs to be updated separately
+        const currentStatus = initialData.status;
+        if (targetStatus && targetStatus !== currentStatus) {
+          await updateJobStatus({
+            id: initialData._id || initialData.id,
+            status: targetStatus,
+          });
+        }
+
         toast.success(
-          status === 'Active'
+          targetStatus === 'Active'
             ? 'Job updated and posted successfully'
-            : 'Job updated as draft'
+            : targetStatus === 'Draft'
+              ? 'Job updated as draft'
+              : 'Job updated successfully'
         );
       } else {
         // Create new job
         await createJobPosting(payload);
 
-        if (status === 'Active') {
+        if (targetStatus === 'Active') {
           toast.success('Job posted successfully');
         } else {
           toast.success('Job saved as draft');
         }
       }
 
-      if (onSuccess) onSuccess(!!initialData, status);
+      if (onSuccess) onSuccess(!!initialData, targetStatus);
     } catch (error) {
       console.error('Job posting error:', error.response?.data || error);
       toast.error(error.response?.data?.message || 'Failed to post job');
@@ -216,7 +247,9 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
   return (
     <div className="w-full">
       <form
-        onSubmit={(e) => handleSubmit(e, 'Active')}
+        onSubmit={(e) =>
+          handleSubmit(e, initialData ? initialData.status : 'Active')
+        }
         className="w-full space-y-6"
       >
         {/* Header Section */}
@@ -572,7 +605,9 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
             </button>
             <button
               type="button" // changed to button to handle explicit click
-              onClick={(e) => handleSubmit(e, 'Active')}
+              onClick={(e) =>
+                handleSubmit(e, initialData ? initialData.status : 'Active')
+              }
               className="rounded-full bg-[#3b07bb] px-8 py-2.5 text-sm font-medium text-white hover:bg-[#2f0596]"
             >
               {initialData ? 'Update Job' : 'Post Job'}
