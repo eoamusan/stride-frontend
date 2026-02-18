@@ -134,6 +134,7 @@ import PayslipsHistory from './dashboard/hr/payroll/payslips-history/page';
 import ApplicantDetails from './dashboard/hr/recruitment/applicant-screening/[applicantID]/page';
 import InterviewScheduleDetails from './dashboard/hr/recruitment/interview-schedules/[id]/page';
 import HrValidationDetails from './dashboard/hr/onboarding/hr-validation/[id]/page';
+import ViewEmployee from './dashboard/hr/employee-directory/[id]/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -643,6 +644,10 @@ const router = createBrowserRouter([
                       {
                         path: 'hr-service-desk',
                         Component: HRServiceDesk,
+                      },
+                      {
+                        path: 'employees/:id',
+                        Component: ViewEmployee,
                       },
                     ],
                   },
