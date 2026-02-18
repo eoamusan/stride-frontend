@@ -12,13 +12,12 @@ export default class JobPostService {
         data.append('accountId', userStore.data.account._id);
       }
     } else {
-      // Wrap in array as required for backend session transactions
-      data = [
-        {
-          ...data,
-          accountId: userStore.data?.account?._id,
-        },
-      ];
+      // Backend expects a single object, not an array
+      data = {
+        ...data,
+        accountId: userStore.data?.account?._id,
+        businessId: userStore.activeBusiness?._id,
+      };
     }
 
     const response = await axiosInstance.post('job', data, {
@@ -58,6 +57,7 @@ export default class JobPostService {
     const payload = {
       ...rest,
       accountId: userStore.data?.account?._id,
+      businessId: userStore.activeBusiness?._id,
     };
 
     console.log('JobPostService.update called with ID:', id);
@@ -76,6 +76,7 @@ export default class JobPostService {
     const payload = {
       status,
       accountId: userStore.data?.account?._id,
+      // businessId: userStore.activeBusiness?._id,
     };
 
     console.log(

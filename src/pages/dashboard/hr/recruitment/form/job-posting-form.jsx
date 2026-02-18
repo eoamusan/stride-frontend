@@ -211,8 +211,7 @@ export default function JobPostingForm({ onSuccess, initialData, onCancel }) {
         });
 
         // Check if status needs to be updated separately
-        const currentStatus = initialData.status;
-        if (targetStatus && targetStatus !== currentStatus) {
+        if (targetStatus) {
           await updateJobStatus({
             id: initialData._id || initialData.id,
             status: targetStatus,
