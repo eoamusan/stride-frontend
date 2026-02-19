@@ -44,7 +44,41 @@ const requisitionSchema = z.object({
     .max(200, { message: 'Must be 200 characters or less' })
     .optional(),
 });
+const departments = [
+  { label: 'Engineering', value: 'engineering' },
+  { label: 'Design', value: 'design' },
+  { label: 'Marketing', value: 'marketing' },
+  { label: 'Human Resources', value: 'hr' },
+];
 
+const employmentTypes = [
+  { label: 'Full-time', value: 'full-time' },
+  { label: 'Part-time', value: 'part-time' },
+  { label: 'Contract', value: 'contract' },
+  { label: 'Internship', value: 'internship' },
+];
+
+const cadres = [
+  { label: 'Entry Level', value: 'entry-level' },
+  { label: 'Mid Level', value: 'mid-level' },
+  { label: 'Senior Level', value: 'senior-level' },
+  { label: 'Executive Level', value: 'executive-level' },
+  { label: 'Director Level', value: 'director-level' },
+  { label: 'CEO Level', value: 'ceo-level' },
+];
+
+const urgencyLevels = [
+  { label: 'Low', value: 'low' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'High', value: 'high' },
+];
+
+const reasons = [
+  { label: 'Recruitment', value: 'recruitment' },
+  { label: 'Replacement', value: 'replacement' },
+  { label: 'Rotation', value: 'rotation' },
+  { label: 'Other', value: 'other' },
+];
 export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
   const [isPreview, setIsPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +94,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
       minBudget: '',
       maxBudget: '',
       noOfOpenings: 1,
-      urgency: 'Low',
+      urgency: '',
       startDate: undefined,
       reason: '',
       detailedReason: '',
@@ -77,12 +111,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
         minBudget: initialData.minBudget || '',
         maxBudget: initialData.maxBudget || '',
         noOfOpenings: initialData.noOfOpenings || initialData.openings || 1,
-        urgency:
-          initialData.urgency === true
-            ? 'High'
-            : initialData.urgency === false
-              ? 'Low'
-              : 'Low', // Handle boolean or string if needed, assuming boolean based on old code
+        urgency: initialData.urgency || '',
         startDate: initialData.startDate
           ? new Date(initialData.startDate)
           : undefined,
@@ -159,42 +188,6 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
       />
     );
   }
-
-  const departments = [
-    { label: 'Engineering', value: 'engineering' },
-    { label: 'Design', value: 'design' },
-    { label: 'Marketing', value: 'marketing' },
-    { label: 'Human Resources', value: 'hr' },
-  ];
-
-  const employmentTypes = [
-    { label: 'Full-time', value: 'full-time' },
-    { label: 'Part-time', value: 'part-time' },
-    { label: 'Contract', value: 'contract' },
-    { label: 'Internship', value: 'internship' },
-  ];
-
-  const cadres = [
-    { label: 'Entry Level', value: 'entry-level' },
-    { label: 'Mid Level', value: 'mid-level' },
-    { label: 'Senior Level', value: 'senior-level' },
-    { label: 'Executive Level', value: 'executive-level' },
-    { label: 'Director Level', value: 'director-level' },
-    { label: 'CEO Level', value: 'ceo-level' },
-  ];
-
-  const urgencyLevels = [
-    { label: 'Low', value: 'low' },
-    { label: 'Medium', value: 'medium' },
-    { label: 'High', value: 'high' },
-  ];
-
-  const reasons = [
-    { label: 'Recruitment', value: 'recruitment' },
-    { label: 'Replacement', value: 'replacement' },
-    { label: 'Rotation', value: 'rotation' },
-    { label: 'Other', value: 'other' },
-  ];
 
   return (
     <div className="flex h-full w-full items-center justify-center">
@@ -300,6 +293,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
                         onChange={(e) => onBudgetChange(e, field)}
                         placeholder="₦15,000,000"
                         className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
+                        value={formatBudget(field.value)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -319,6 +313,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
                         {...field}
                         onChange={(e) => onBudgetChange(e, field)}
                         placeholder="₦25,000,000"
+                        value={formatBudget(field.value)}
                         className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
                       />
                     </FormControl>

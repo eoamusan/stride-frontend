@@ -317,7 +317,7 @@ export default function Recruitment() {
 
   const dropdownItems = [
     { label: 'All Statuses', value: 'all' },
-    { label: 'Pending Approval', value: 'pending' },
+    { label: 'Pending', value: 'pending' },
     { label: 'Approved', value: 'approved' },
     { label: 'Rejected', value: 'rejected' },
   ];

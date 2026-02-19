@@ -3,17 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeftIcon,
-  Banknote,
   Briefcase,
-  BriefcaseIcon,
-  Building,
   CheckCircleIcon,
-  Clock,
-  DownloadIcon,
-  Edit,
-  FileQuestion,
-  User,
-  Users,
   XCircleIcon,
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
@@ -31,6 +22,12 @@ import {
 import ManpowerRequisitionForm from '../form/requisition-form';
 
 import CalendarIcon from '@/assets/icons/calendar.svg';
+import BriefcaseTimer from '@/assets/icons/brifecase-timer.svg';
+import DepartmentIcon from '@/assets/icons/dept.svg';
+import DiscoverIcon from '@/assets/icons/discover.svg';
+import MoneyIcon from '@/assets/icons/money.svg';
+import Profile2User from '@/assets/icons/profile-2user.svg';
+
 import SaveIcon from '@/assets/icons/save.svg';
 
 import { CustomButton } from '@/components/customs';
@@ -259,21 +256,33 @@ export default function RecruitmentDetails() {
               title={jobRequest.jobTitle}
               header="Job Title"
               icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
+                <img
+                  src={BriefcaseTimer}
+                  alt="BriefcaseTimer"
+                  className="h-6 w-6"
+                />
               }
             />
             <Fields
               title={jobRequest.department}
               header="Department"
               icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
+                <img
+                  src={DepartmentIcon}
+                  alt="DepartmentIcon"
+                  className="h-6 w-6"
+                />
               }
             />
             <Fields
               title={jobRequest.employmentType}
               header="Employment Type"
               icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
+                <img
+                  src={DiscoverIcon}
+                  alt="DiscoverIcon"
+                  className="h-6 w-6"
+                />
               }
             />
             <Fields
@@ -286,15 +295,17 @@ export default function RecruitmentDetails() {
             <Fields
               title={`${jobRequest.minBudget} - ${jobRequest.maxBudget}`}
               header="Budget Range (Per Annum)"
-              icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
-              }
+              icon={<img src={MoneyIcon} alt="MoneyIcon" className="h-6 w-6" />}
             />
             <Fields
               title={`${jobRequest.noOfOpenings} Positions`}
               header="Number of Openings"
               icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
+                <img
+                  src={Profile2User}
+                  alt="Profile2User"
+                  className="h-6 w-6"
+                />
               }
             />
             <Fields
@@ -345,7 +356,7 @@ export default function RecruitmentDetails() {
               Detailed Reason for Hire
             </h2>
             <p className="rounded-xl border border-gray-100 p-4 text-gray-700">
-              {jobRequest.detailedReason}
+              {jobRequest.detailedReason || 'Detailed Reason was not provided'}
             </p>
           </div>
           {jobRequest.rejectionReason && (
@@ -363,7 +374,7 @@ export default function RecruitmentDetails() {
 
       {/* Action Buttons */}
       <footer className="mt-8 flex gap-3">
-        <CustomButton onClick={handleApprove} className="w-48 text-xs">
+        <CustomButton className="inline-flex w-48 rounded-xl py-6 text-sm">
           <CheckCircleIcon className="mr-2 h-4 w-4" />
           Approve
         </CustomButton>
@@ -371,7 +382,7 @@ export default function RecruitmentDetails() {
         <CustomButton
           variant="outline"
           onClick={handleReject}
-          className="w-48 border-green-500 bg-transparent text-xs text-green-500"
+          className="w-48 rounded-xl border-green-500 bg-transparent py-6 text-xs text-green-500"
         >
           <XCircleIcon className="mr-2 h-4 w-4" />
           Reject

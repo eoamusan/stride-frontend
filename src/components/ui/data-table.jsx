@@ -172,7 +172,7 @@ export function DataTable({
               placeholder={placeholder}
               value={inputValue}
               onChange={handleInputChange}
-              className={'w-full rounded-xl py-6 pl-10'}
+              className={'w-auto max-w-64 rounded-xl py-6 pl-10'}
             />
           </div>
 

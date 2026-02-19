@@ -54,7 +54,8 @@ export default function PreviewForm({
                   Budget Range
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
-                  {formData.minBudget} - {formData.maxBudget}
+                  {formData.minBudget.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} -{' '}
+                  {formData.maxBudget.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 </td>
               </tr>
               <tr>
