@@ -29,6 +29,9 @@ import { CustomButton } from '@/components/customs';
 import SaveIcon from '@/assets/icons/save.svg';
 import CalendarIcon from '@/assets/icons/calendar.svg';
 import DeptIcon from '@/assets/icons/dept.svg';
+import DiscoverIcon from '@/assets/icons/discover.svg';
+import UserIcon from '@/assets/icons/user.svg';
+import MoneyIcon from '@/assets/icons/money.svg';
 import LocationIcon from '@/assets/icons/location.svg';
 import { format } from 'date-fns';
 import ActivityLog from '@/components/dashboard/hr/activity-log';
@@ -350,17 +353,23 @@ export default function JobDetails() {
             <Fields
               title={job.employmentType || job.type}
               header="Employment Type"
-              icon={<Clock className="h-6 w-6 text-gray-400" />}
+              icon={
+                <img
+                  src={DiscoverIcon}
+                  alt="DiscoverIcon"
+                  className="h-6 w-6"
+                />
+              }
             />
             <Fields
               title={job.cadre || job.careerLevel || 'Not Specified'}
               header="Cadre Level"
-              icon={<Award className="h-6 w-6 text-gray-400" />}
+              icon={<img src={UserIcon} alt="UserIcon" className="h-6 w-6" />}
             />
             <Fields
               title={job.salaryRange || 'Not Specified'}
               header="Salary Range"
-              icon={<Banknote className="h-6 w-6 text-gray-400" />}
+              icon={<img src={MoneyIcon} alt="MoneyIcon" className="h-6 w-6" />}
             />
             <Fields
               title={new Date(job.deadline).toLocaleDateString()}
@@ -415,23 +424,21 @@ export default function JobDetails() {
           {/* Action Card */}
           <div className="rounded-xl bg-white p-6">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Action</h2>
-            <div className="flex w-full flex-col justify-between gap-4">
-              <Button
-                variant="outline"
-                className="rounded-xl bg-[#3300C9] p-6 text-white md:w-full"
-              >
+            <footer className="mt-8 flex flex-col gap-3">
+              <CustomButton className="inline-flex w-full rounded-xl py-6 text-sm">
                 <XCircle className="h-5 w-5" />
                 Close
-              </Button>
-              <Button
+              </CustomButton>
+
+              <CustomButton
                 variant="outline"
-                className="rounded-xl border-green-300 bg-transparent p-6 md:w-full"
+                className="w-full rounded-xl border-green-500 bg-transparent py-6 text-xs text-green-500"
                 onClick={handleDelete}
               >
                 <Delete className="h-5 w-5" />
                 Delete
-              </Button>
-            </div>
+              </CustomButton>
+            </footer>
           </div>
         </div>
 
