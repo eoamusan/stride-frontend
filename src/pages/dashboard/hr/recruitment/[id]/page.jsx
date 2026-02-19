@@ -27,6 +27,9 @@ import DepartmentIcon from '@/assets/icons/dept.svg';
 import DiscoverIcon from '@/assets/icons/discover.svg';
 import MoneyIcon from '@/assets/icons/money.svg';
 import Profile2User from '@/assets/icons/profile-2user.svg';
+import UserIcon from '@/assets/icons/user.svg';
+import MessageText from '@/assets/icons/message-text.svg';
+import ArrowUpSquare from '@/assets/icons/arrow-square-up.svg';
 
 import SaveIcon from '@/assets/icons/save.svg';
 
@@ -288,9 +291,7 @@ export default function RecruitmentDetails() {
             <Fields
               title={jobRequest.grade}
               header="Cadre Level"
-              icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
-              }
+              icon={<img src={UserIcon} alt="UserIcon" className="h-6 w-6" />}
             />
             <Fields
               title={`${jobRequest.minBudget} - ${jobRequest.maxBudget}`}
@@ -318,7 +319,11 @@ export default function RecruitmentDetails() {
               }
               header="Urgency"
               icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
+                <img
+                  src={ArrowUpSquare}
+                  alt="ArrowUpSquare"
+                  className="h-6 w-6"
+                />
               }
             />
             <Fields
@@ -331,15 +336,13 @@ export default function RecruitmentDetails() {
             <Fields
               title={jobRequest.requestedBy || 'N/A'}
               header="Requested By"
-              icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
-              }
+              icon={<img src={UserIcon} alt="Usericon" className="h-6 w-6" />}
             />
             <Fields
               title={jobRequest.reason}
               header="Reason for Hire"
               icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
+                <img src={MessageText} alt="MessageText" className="h-6 w-6" />
               }
             />
           </div>
