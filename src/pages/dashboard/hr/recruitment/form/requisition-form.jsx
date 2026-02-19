@@ -1,86 +1,115 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Calendar } from '@/components/ui/calendar';
 import { useJobRequisitionStore } from '@/stores/job-requisition-store';
 import toast from 'react-hot-toast';
 import {
-  NumberInput,
-  RadioInput,
-  SelectInput,
-  TextAreaInput,
-  TextInput,
-} from './inputs';
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { FormInput, FormSelect } from '@/components/customs'; // Custom wrappers
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import PreviewForm from './preview-form';
+import CalendarIcon from '@/assets/icons/calendar.svg';
+
+const requisitionSchema = z.object({
+  jobTitle: z.string().min(1, { message: 'Job Title is required' }),
+  department: z.string().min(1, { message: 'Department is required' }),
+  employmentType: z.string().min(1, { message: 'Employment Type is required' }),
+  grade: z.string().min(1, { message: 'Grade is required' }),
+  minBudget: z.string().min(1, { message: 'Min Budget is required' }),
+  maxBudget: z.string().min(1, { message: 'Max Budget is required' }),
+  noOfOpenings: z.coerce
+    .number()
+    .min(1, { message: 'At least one opening is required' }),
+  urgency: z.string().min(1, { message: 'Urgency is required' }),
+  startDate: z.date({ required_error: 'Start Date is required' }),
+  reason: z.string().min(1, { message: 'Reason for hire is required' }),
+  detailedReason: z
+    .string()
+    .max(200, { message: 'Must be 200 characters or less' })
+    .optional(),
+});
 
 export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
   const [isPreview, setIsPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createRequisition, updateRequisition } = useJobRequisitionStore();
-  const [formData, setFormData] = useState({
-    jobTitle: initialData?.jobTitle || '',
-    department: initialData?.department || '',
-    employmentType: initialData?.employmentType || '',
-    detailedReason: initialData?.detailedReason || '',
-    grade: initialData?.grade || '',
-    minBudget: initialData?.minBudget || '',
-    maxBudget: initialData?.maxBudget || '',
-    noOfOpenings: initialData?.noOfOpenings || initialData?.openings || 1,
-    reason: initialData?.reason || '',
-    startDate: initialData?.startDate
-      ? new Date(initialData.startDate)
-      : undefined,
-    urgency: initialData?.urgency
-      ? initialData.urgency === true
-        ? 'High'
-        : 'Low'
-      : '',
+
+  const form = useForm({
+    resolver: zodResolver(requisitionSchema),
+    defaultValues: {
+      jobTitle: '',
+      department: '',
+      employmentType: '',
+      grade: '',
+      minBudget: '',
+      maxBudget: '',
+      noOfOpenings: 1,
+      urgency: 'Low',
+      startDate: undefined,
+      reason: '',
+      detailedReason: '',
+    },
   });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    // Handle comma formatting for budget fields
-    if (name === 'minBudget' || name === 'maxBudget') {
-      // Remove existing commas and non-numeric chars (except dot if needed, but usually budget is int)
-      const rawValue = value.replace(/,/g, '').replace(/\D/g, '');
-      // Format with commas
-      const formattedValue = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-      setFormData((prev) => ({
-        ...prev,
-        [name]: formattedValue,
-      }));
-      return;
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        jobTitle: initialData.jobTitle || '',
+        department: initialData.department || '',
+        employmentType: initialData.employmentType || '',
+        grade: initialData.grade || '',
+        minBudget: initialData.minBudget || '',
+        maxBudget: initialData.maxBudget || '',
+        noOfOpenings: initialData.noOfOpenings || initialData.openings || 1,
+        urgency:
+          initialData.urgency === true
+            ? 'High'
+            : initialData.urgency === false
+              ? 'Low'
+              : 'Low', // Handle boolean or string if needed, assuming boolean based on old code
+        startDate: initialData.startDate
+          ? new Date(initialData.startDate)
+          : undefined,
+        reason: initialData.reason || '',
+        detailedReason: initialData.detailedReason || '',
+      });
     }
+  }, [initialData, form]);
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const formatBudget = (value) => {
+    if (!value) return '';
+    const rawValue = value.replace(/,/g, '').replace(/\D/g, '');
+    return rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  const handleRadioChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const onBudgetChange = (e, field) => {
+    const formatted = formatBudget(e.target.value);
+    field.onChange(formatted);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const onSubmit = (data) => {
     setIsPreview(true);
   };
 
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
+    const formData = form.getValues();
     try {
       const payload = {
         jobTitle: formData.jobTitle,
@@ -90,9 +119,9 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
         minBudget: formData.minBudget.replace(/,/g, ''),
         maxBudget: formData.maxBudget.replace(/,/g, ''),
         noOfOpenings: `${formData.noOfOpenings}`,
-        urgency: formData.urgency === 'High' ? true : false,
+        urgency: formData.urgency === 'High',
         reason: formData.reason,
-        detailedReason: formData.detailedReason.slice(0, 200),
+        detailedReason: formData.detailedReason,
         startDate: formData.startDate,
       };
 
@@ -107,19 +136,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
         toast.success('Requisition created successfully');
       }
 
-      setFormData({
-        jobTitle: '',
-        department: '',
-        employmentType: '',
-        detailedReason: '',
-        grade: '',
-        minBudget: '',
-        maxBudget: '',
-        noOfOpenings: 1,
-        reason: '',
-        startDate: '',
-        urgency: true,
-      });
+      form.reset();
       setIsPreview(false);
       if (onSuccess) onSuccess();
     } catch (error) {
@@ -134,196 +151,339 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
 
   if (isPreview) {
     return (
-      <>
-        <PreviewForm
-          formData={formData}
-          handleFinalSubmit={handleFinalSubmit}
-          isSubmitting={isSubmitting}
-          setIsPreview={setIsPreview}
-        />
-      </>
+      <PreviewForm
+        formData={form.getValues()}
+        handleFinalSubmit={handleFinalSubmit}
+        isSubmitting={isSubmitting}
+        setIsPreview={setIsPreview}
+      />
     );
   }
 
+  const departments = [
+    { label: 'Engineering', value: 'engineering' },
+    { label: 'Design', value: 'design' },
+    { label: 'Marketing', value: 'marketing' },
+    { label: 'Human Resources', value: 'hr' },
+  ];
+
+  const employmentTypes = [
+    { label: 'Full-time', value: 'full-time' },
+    { label: 'Part-time', value: 'part-time' },
+    { label: 'Contract', value: 'contract' },
+    { label: 'Internship', value: 'internship' },
+  ];
+
+  const cadres = [
+    { label: 'Entry Level', value: 'entry-level' },
+    { label: 'Mid Level', value: 'mid-level' },
+    { label: 'Senior Level', value: 'senior-level' },
+    { label: 'Executive Level', value: 'executive-level' },
+    { label: 'Director Level', value: 'director-level' },
+    { label: 'CEO Level', value: 'ceo-level' },
+  ];
+
+  const urgencyLevels = [
+    { label: 'Low', value: 'low' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'High', value: 'high' },
+  ];
+
+  const reasons = [
+    { label: 'Recruitment', value: 'recruitment' },
+    { label: 'Replacement', value: 'replacement' },
+    { label: 'Rotation', value: 'rotation' },
+    { label: 'Other', value: 'other' },
+  ];
+
   return (
     <div className="flex h-full w-full items-center justify-center">
-      <form onSubmit={handleSubmit} className="w-full max-w-2xl space-y-6">
-        <h2 className="mb-6 text-center text-2xl font-bold text-gray-900">
-          {initialData
-            ? 'Edit Man-Power Requisition Form'
-            : 'Man-Power Requisition Form'}
-        </h2>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="w-full max-w-2xl space-y-6"
+        >
+          <h2 className="mb-6 text-center text-2xl font-bold text-gray-900">
+            {initialData
+              ? 'Edit Man-Power Requisition Form'
+              : 'Man-Power Requisition Form'}
+          </h2>
 
-        {/* Job Title */}
-        <TextInput
-          label="Job Title"
-          name="jobTitle"
-          placeholder="e.g Senior Software Engineer"
-          value={formData.jobTitle}
-          onChange={handleInputChange}
-        />
+          <FormInput
+            control={form.control}
+            name="jobTitle"
+            label={
+              <>
+                Job Title<span className="text-red-500">*</span>
+              </>
+            }
+            placeholder="e.g Senior Software Engineer"
+          />
 
-        {/* Department */}
-        <SelectInput
-          label="Department"
-          name="department"
-          value={formData.department}
-          onChange={handleInputChange}
-          options={[
-            { label: 'Select Department', value: '', disabled: true },
-            { label: 'Engineering', value: 'engineering' },
-            { label: 'Design', value: 'design' },
-            { label: 'Marketing', value: 'marketing' },
-            { label: 'Human Resources', value: 'hr' },
-          ]}
-        />
+          <FormSelect
+            control={form.control}
+            name="department"
+            label={
+              <>
+                Department<span className="text-red-500">*</span>
+              </>
+            }
+            placeholder="Select Department"
+            options={departments}
+          />
 
-        {/* Employment Type */}
-        <RadioInput
-          label="Employment Type"
-          name="employmentType"
-          value={formData.employmentType}
-          onChange={handleRadioChange}
-          options={['Full Time', 'Contract', 'Internship']}
-        />
+          <FormField
+            control={form.control}
+            name="employmentType"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>
+                  Employment Type<span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                    className="flex items-center gap-4"
+                  >
+                    {employmentTypes.map((type) => (
+                      <FormItem
+                        key={type.value}
+                        className="flex items-center space-y-0 space-x-1"
+                      >
+                        <FormControl>
+                          <RadioGroupItem value={type.value} />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {type.label}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Cadre */}
-        <SelectInput
-          label="Cadre"
-          name="grade"
-          value={formData.grade}
-          onChange={handleInputChange}
-          options={[
-            {
-              label: 'Select the role level or grade',
-              value: '',
-              disabled: true,
-            },
-            { label: 'Junior (L1-L2)', value: 'junior' },
-            { label: 'Mid-Level (L3-L4)', value: 'mid' },
-            { label: 'Senior (L5+)', value: 'senior' },
-          ]}
-        />
+          <FormSelect
+            control={form.control}
+            name="grade"
+            label={
+              <>
+                Cadre<span className="text-red-500">*</span>
+              </>
+            }
+            placeholder="Select the role level or grade"
+            options={cadres}
+          />
 
-        {/* Budget Range */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Budget Range{' '}
-            <span className="text-xs text-gray-400">(Per Annum)</span>{' '}
-            <span className="text-red-500">*</span>
-          </label>
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400">
-                Min
-              </span>
-              <input
-                type="text"
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Budget Range{' '}
+              <span className="text-xs text-gray-400">(Per Annum)</span>{' '}
+              <span className="text-red-500">*</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <FormField
+                control={form.control}
                 name="minBudget"
-                placeholder="₦15,000,000"
-                className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
-                value={formData.minBudget}
-                onChange={handleInputChange}
+                render={({ field }) => (
+                  <FormItem className="relative flex-1">
+                    <span className="absolute top-1/2 left-3 z-10 -translate-y-[calc(50%+10px)] text-xs text-gray-400">
+                      Min
+                    </span>
+                    <FormControl>
+                      <input
+                        {...field}
+                        onChange={(e) => onBudgetChange(e, field)}
+                        placeholder="₦15,000,000"
+                        className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="relative flex-1">
-              <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400">
-                Max
-              </span>
-              <input
-                type="text"
+              <FormField
+                control={form.control}
                 name="maxBudget"
-                placeholder="₦25,000,000"
-                className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
-                value={formData.maxBudget}
-                onChange={handleInputChange}
+                render={({ field }) => (
+                  <FormItem className="relative flex-1">
+                    <span className="absolute top-1/2 left-3 z-10 -translate-y-[calc(50%+10px)] text-xs text-gray-400">
+                      Max
+                    </span>
+                    <FormControl>
+                      <input
+                        {...field}
+                        onChange={(e) => onBudgetChange(e, field)}
+                        placeholder="₦25,000,000"
+                        className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
           </div>
-        </div>
 
-        {/* Number of Openings */}
-        <NumberInput
-          label="Number of Openings"
-          name="noOfOpenings"
-          value={formData.noOfOpenings}
-          onChange={handleInputChange}
-        />
+          <FormInput
+            control={form.control}
+            name="noOfOpenings"
+            label={
+              <>
+                Number of Openings<span className="text-red-500">*</span>
+              </>
+            }
+            type="number"
+            placeholder="1"
+          />
 
-        {/* Urgency */}
-        <RadioInput
-          label="Urgency"
-          name="urgency"
-          value={formData.urgency}
-          onChange={handleRadioChange}
-          options={['Low', 'High']}
-        />
+          <FormField
+            control={form.control}
+            name="urgency"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>
+                  Urgency<span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                    className="flex items-center gap-4"
+                  >
+                    {urgencyLevels.map((urgency) => (
+                      <FormItem
+                        key={urgency.value}
+                        className="flex items-center space-y-0 space-x-0"
+                      >
+                        <FormControl>
+                          <RadioGroupItem value={urgency.value} />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {urgency.label}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Expected Start Date */}
-        <div className="space-y-2">
-          <label className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Expected Start Date
-          </label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  'w-full justify-start text-left font-normal',
-                  !formData.startDate && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.startDate ? (
-                  format(formData.startDate, 'PPP')
-                ) : (
-                  <span>Pick a date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={formData.startDate}
-                onSelect={(date) =>
-                  handleInputChange({
-                    target: { name: 'startDate', value: date },
-                  })
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+          <FormField
+            control={form.control}
+            name="startDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>
+                  Expected Start Date<span className="text-red-500">*</span>
+                </FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className="h-14 w-full justify-between rounded-xl text-left text-sm font-normal"
+                      >
+                        {field.value
+                          ? format(field.value, 'PPP')
+                          : 'Pick a date'}
+                        <img
+                          src={CalendarIcon}
+                          alt="Calendar Icon"
+                          className="ml-2"
+                        />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Reason for Hire */}
-        <RadioInput
-          label="Reason for Hire"
-          name="reason"
-          value={formData.reason}
-          onChange={handleRadioChange}
-          options={['New Role', 'Replacement', 'Growth']}
-        />
+          <FormField
+            control={form.control}
+            name="reason"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>
+                  Reason for Hire<span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                    className="flex items-center gap-4"
+                  >
+                    {reasons.map((reason) => (
+                      <FormItem
+                        key={reason.value}
+                        className="flex items-center space-y-0 space-x-0"
+                      >
+                        <FormControl>
+                          <RadioGroupItem value={reason.value} />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {reason.label}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Detailed Reason */}
-        <TextAreaInput
-          label="Detailed Reason"
-          name="detailedReason"
-          placeholder="Explain with details the reasons for this hire and how it benefits the company"
-          value={formData.detailedReason}
-          onChange={handleInputChange}
-          textLength={formData.detailedReason.length}
-          maxLength={200}
-        />
+          <FormField
+            control={form.control}
+            name="detailedReason"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Detailed Reason</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Textarea
+                      placeholder="Explain with details the reasons for this hire and how it benefits the company"
+                      className="min-h-32 resize-none"
+                      maxLength={200}
+                      {...field}
+                    />
+                    <div className="text-muted-foreground mt-1 text-right text-xs">
+                      {field.value?.length || 0}/200
+                    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="mt-4 w-full rounded-xl bg-[#3b07bb] py-3 font-medium text-white shadow-sm transition-colors hover:bg-[#2f0596]"
-        >
-          {initialData ? 'Update Requisition' : 'Preview Requisition'}
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="mt-4 w-full rounded-xl bg-[#3b07bb] py-3 font-medium text-white shadow-sm transition-colors hover:bg-[#2f0596]"
+          >
+            {initialData ? 'Update Requisition' : 'Preview Requisition'}
+          </button>
+        </form>
+      </Form>
     </div>
   );
 }

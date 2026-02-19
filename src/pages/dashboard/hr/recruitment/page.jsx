@@ -9,7 +9,6 @@ import {
   Edit,
   CheckCircle,
   XCircle,
-  
 } from 'lucide-react';
 import PlusIcon from '@/assets/icons/plus.svg';
 import ManpowerRequisitionForm from './form/requisition-form';
@@ -183,28 +182,6 @@ export default function Recruitment() {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   }
-
-  // Define actions that were previously passed to TableActions
-  const handleAction = (action, request) => {
-    if (action === 'edit') {
-      const fullRequisition = requisitions.find(
-        (r) => (r._id || r.id) === (request.id || request._id)
-      );
-      setEditingRequisition(fullRequisition || request);
-      setIsModalOpen(true);
-    }
-    // Implement or mock the action logic here
-    console.log(`Action: ${action}, ID: ${request.id}`);
-  };
-
-  // Filter the data locally for now as the API might support server-side filtering differently
-  // or if we rely on the store's fetched data which is paginated.
-  // Note: If the backend supports filtering, we should pass these filters to fetchRequisitions.
-  // For now, assuming client-side filtering on the current page of data (or if data is all fetched).
-  // However, since we have pagination, client-side filtering only filters the current page which is weird.
-  // Ideally, search/filter should trigger a new fetch.
-  // Given the previous implementation did client-side filtering on `tableData` prop,
-  // I will replicate that logic but apply it to the data passed to DataTable.
 
   const rawTableData = (requisitions || []).map((item) => {
     const getRequesterName = (requester) => {
@@ -410,7 +387,7 @@ export default function Recruitment() {
           isLoading={isLoading}
           pagination={tablePagination}
           onPageChange={setCurrentPage}
-          placeholder="Search requests..."
+          placeholder="Search Job Requisitions..."
           inputValue={searchTerm}
           handleInputChange={(e) => setSearchTerm(e.target.value)}
           dropdownItems={dropdownItems}
