@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddIcon, EditIcon, DeleteIcon } from '@/components/ui/svgs';
 import SupportTicketsTable from '@/components/dashboard/hr/employee-directory/support-tickets-table';
-import EditTicketModal from '@/components/dashboard/hr/employee-directory/edit-ticket-modal';
-import DeleteConfirmationDialog from '@/components/dashboard/hr/delete-confirmation-dialog';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { useUserStore } from '@/stores/user-store';
 import { format } from 'date-fns';
@@ -56,21 +54,12 @@ const ticketDropdownActions = [
 
 export default function HRServiceDesk() {
   const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false);
-  const [isEditTicketOpen, setIsEditTicketOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
-  const [selectedTicket, setSelectedTicket] = useState(null);
-  const [confirmResolutionModalOpen, setConfirmResolutionModalOpen] =
-    useState(false);
-  const [successMessage, setSuccessMessage] = useState({
-    title: 'Ticket Created',
-    subtitle: "You've successfully created a ticket",
-  });
+  const [confirmResolutionModalOpen, setConfirmResolutionModalOpen] = useState(false);
   const { activeBusiness } = useUserStore();
   const [tickets, setTickets] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [paginationData, setPaginationData] = useState({
     page: 1,
@@ -177,9 +166,7 @@ export default function HRServiceDesk() {
   };
 
   const ticketData = transformTicketData(tickets);
-  const selectedTicketForView = ticketData.find(
-    (t) => t.id === selectedTicketId
-  );
+  const selectedTicket = ticketData.find((t) => t.id === selectedTicketId);
 
   // Sample chart data for metrics
   const sampleChartData = [
@@ -222,109 +209,29 @@ export default function HRServiceDesk() {
   const handleTicketTableAction = (action, ticket) => {
     switch (action) {
       case 'edit':
-        // Find the full ticket data from the tickets array
-        const fullTicketData = tickets.find((t) => t.id === ticket.id);
-        setSelectedTicket(fullTicketData || ticket);
-        setIsEditTicketOpen(true);
+        // TODO: Open edit ticket modal
+        console.log('Edit ticket:', ticket.id);
         break;
       case 'delete':
-        setSelectedTicket(ticket);
-        setIsDeleteDialogOpen(true);
+        // TODO: Confirm and delete ticket
+        console.log('Delete ticket:', ticket.id);
         break;
       case 'respond':
-        // Open the ticket detail view for responding
-        setSelectedTicketId(ticket.id);
+        // TODO: Open response modal
+        console.log('Respond to ticket:', ticket.id);
         break;
       case 'assign':
-        // TODO: Open assignment modal when needed
+        // TODO: Open assignment modal
         console.log('Assign ticket:', ticket.id);
-        toast.info('Assignment feature coming soon');
         break;
       case 'close':
-        handleCloseTicket(ticket);
+        // TODO: Close ticket
+        console.log('Close ticket:', ticket.id);
+        toast.success('Ticket closed successfully');
         break;
       default:
         console.log('Unknown action:', action);
     }
-  };
-
-  const handleCloseTicket = (ticket) => {
-    setTickets((prev) =>
-      prev.map((t) => (t.id === ticket.id ? { ...t, status: 'Closed' } : t))
-    );
-    // Update analytics
-    setAnalytics((prev) => ({
-      ...prev,
-      openTickets:
-        ticket.status === 'Open'
-          ? Math.max(0, prev.openTickets - 1)
-          : prev.openTickets,
-      inProgress:
-        ticket.status === 'In Progress'
-          ? Math.max(0, prev.inProgress - 1)
-          : prev.inProgress,
-      closedTickets: prev.closedTickets + 1,
-    }));
-    toast.success('Ticket closed successfully');
-  };
-
-  const handleDeleteTicket = async () => {
-    if (!selectedTicket) return;
-
-    try {
-      setIsDeleting(true);
-
-      // TODO: Replace with actual API call when available
-      console.log('Deleting ticket:', selectedTicket.id);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Remove ticket from local state
-      const deletedTicket = tickets.find((t) => t.id === selectedTicket.id);
-      setTickets((prev) => prev.filter((t) => t.id !== selectedTicket.id));
-
-      // Update analytics
-      setAnalytics((prev) => ({
-        ...prev,
-        totalTickets: Math.max(0, prev.totalTickets - 1),
-        openTickets:
-          deletedTicket?.status === 'Open'
-            ? Math.max(0, prev.openTickets - 1)
-            : prev.openTickets,
-        inProgress:
-          deletedTicket?.status === 'In Progress'
-            ? Math.max(0, prev.inProgress - 1)
-            : prev.inProgress,
-        closedTickets:
-          deletedTicket?.status === 'Closed'
-            ? Math.max(0, prev.closedTickets - 1)
-            : prev.closedTickets,
-      }));
-
-      setIsDeleteDialogOpen(false);
-      setSelectedTicket(null);
-      toast.success('Ticket deleted successfully');
-    } catch (error) {
-      console.error('Error deleting ticket:', error);
-      toast.error('Failed to delete ticket. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleEditSuccess = () => {
-    setSuccessMessage({
-      title: 'Ticket Updated',
-      subtitle: "You've successfully updated the ticket",
-    });
-    setIsSuccessModalOpen(true);
-  };
-
-  const handleCreateSuccess = () => {
-    setSuccessMessage({
-      title: 'Ticket Created',
-      subtitle: "You've successfully created a ticket",
-    });
-    setIsSuccessModalOpen(true);
   };
 
   const handlePageChange = (newPage) => {
@@ -352,7 +259,7 @@ export default function HRServiceDesk() {
 
       setIsCreateTicketOpen(false);
       form.reset();
-      handleCreateSuccess();
+      setIsSuccessModalOpen(true);
     } catch (error) {
       console.error('Error creating ticket:', error);
       toast.error('Failed to create ticket. Please try again.');
@@ -408,9 +315,9 @@ export default function HRServiceDesk() {
         </div>
 
         <div className="mt-10">
-          {selectedTicketForView ? (
+          {selectedTicket ? (
             <RequestDetailsView
-              ticket={selectedTicketForView}
+              ticket={selectedTicket}
               onBack={() => setSelectedTicketId(null)}
               onConfirmResolution={handleConfirmResolution}
               onReopenTicket={() => {
@@ -606,28 +513,11 @@ export default function HRServiceDesk() {
         </DialogContent>
       </Dialog>
 
-      <EditTicketModal
-        open={isEditTicketOpen}
-        onOpenChange={setIsEditTicketOpen}
-        onSuccess={handleEditSuccess}
-        ticket={selectedTicket}
-      />
-
-      <DeleteConfirmationDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={handleDeleteTicket}
-        title="Delete Ticket"
-        description={`Are you sure you want to delete ticket ${selectedTicket?.ticketId || 'this ticket'}? This action cannot be undone.`}
-        confirmText="Delete Ticket"
-        isLoading={isDeleting}
-      />
-
       <SuccessModal
         open={isSuccessModalOpen}
         onOpenChange={setIsSuccessModalOpen}
-        title={successMessage.title}
-        subtitle={successMessage.subtitle}
+        title="Ticket Created"
+        subtitle="You've successfully created a ticket"
       />
     </div>
   );

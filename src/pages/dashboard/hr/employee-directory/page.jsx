@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import AddEmployeeModal from '@/components/dashboard/hr/employee-directory/add-employee';
-import EditEmployeeModal from '@/components/dashboard/hr/employee-directory/edit-employee';
-import DeleteConfirmationDialog from '@/components/dashboard/hr/delete-confirmation-dialog';
 import EmployeeTable from '@/components/dashboard/hr/employee-directory/employee-table';
 import SuccessModal from '@/components/dashboard/hr/success-modal';
 import { Button } from '@/components/ui/button';
@@ -11,7 +9,6 @@ import MetricCard from '@/components/dashboard/hr/metric-card';
 import EmployeeService from '@/api/employee';
 import { useUserStore } from '@/stores/user-store';
 import youtubeIcon from '@/assets/icons/youtube-red.png';
-import toast from 'react-hot-toast';
 
 const getInitials = (name) =>
   name
@@ -91,18 +88,10 @@ const mockAnalytics = {
 
 export default function EmployeeDirectory() {
   const [isCreateEmployeeOpen, setIsCreateEmployeeOpen] = useState(false);
-  const [isEditEmployeeOpen, setIsEditEmployeeOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [successMessage, setSuccessMessage] = useState({
-    title: 'Employee Added',
-    subtitle: "You've successfully Added an Employee",
-  });
   const { activeBusiness } = useUserStore();
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [paginationData, setPaginationData] = useState({
@@ -202,83 +191,16 @@ export default function EmployeeDirectory() {
         navigate(`/dashboard/hr/employee-directory/employees/${employee.id}`);
         break;
       case 'edit':
-        // Find the full employee data from the employees array
-        const fullEmployeeData = employees.find(
-          (emp) => emp.id === employee.id
-        );
-        setSelectedEmployee(fullEmployeeData || employee);
-        setIsEditEmployeeOpen(true);
+        // TODO: Open edit modal
+        console.log('Edit employee:', employee.id);
         break;
       case 'delete':
-        setSelectedEmployee(employee);
-        setIsDeleteDialogOpen(true);
+        // TODO: Confirm and call delete API
+        console.log('Delete employee:', employee.id);
         break;
       default:
         console.log('Unknown action:', action);
     }
-  };
-
-  const handleDeleteEmployee = async () => {
-    if (!selectedEmployee) return;
-
-    try {
-      setIsDeleting(true);
-
-      // TODO: Replace with actual API call when available
-      await EmployeeService.delete({ id: selectedEmployee.id });
-
-      // Remove employee from local state
-      setEmployees((prev) =>
-        prev.filter((emp) => emp.id !== selectedEmployee.id)
-      );
-
-      // Update analytics
-      setAnalytics((prev) => ({
-        ...prev,
-        totalEmployees: Math.max(0, prev.totalEmployees - 1),
-        activeEmployees:
-          selectedEmployee.status === 'ACTIVE'
-            ? Math.max(0, prev.activeEmployees - 1)
-            : prev.activeEmployees,
-        onLeave:
-          selectedEmployee.status === 'ON_LEAVE'
-            ? Math.max(0, prev.onLeave - 1)
-            : prev.onLeave,
-        exitedEmployees:
-          selectedEmployee.status === 'TERMINATED'
-            ? Math.max(0, prev.exitedEmployees - 1)
-            : prev.exitedEmployees,
-      }));
-
-      setIsDeleteDialogOpen(false);
-      setSelectedEmployee(null);
-      toast.success('Employee deleted successfully');
-    } catch (error) {
-      console.error('Error deleting employee:', error);
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          'Failed to delete employee. Please try again.'
-      );
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleEditSuccess = () => {
-    setSuccessMessage({
-      title: 'Employee Updated',
-      subtitle: "You've successfully updated the employee information",
-    });
-    setIsSuccessModalOpen(true);
-  };
-
-  const handleAddSuccess = () => {
-    setSuccessMessage({
-      title: 'Employee Added',
-      subtitle: "You've successfully Added an Employee",
-    });
-    setIsSuccessModalOpen(true);
   };
 
   const handlePageChange = (newPage) => {
@@ -412,31 +334,14 @@ export default function EmployeeDirectory() {
       <AddEmployeeModal
         open={isCreateEmployeeOpen}
         onOpenChange={setIsCreateEmployeeOpen}
-        onSuccess={handleAddSuccess}
-      />
-
-      <EditEmployeeModal
-        open={isEditEmployeeOpen}
-        onOpenChange={setIsEditEmployeeOpen}
-        onSuccess={handleEditSuccess}
-        employee={selectedEmployee}
-      />
-
-      <DeleteConfirmationDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={handleDeleteEmployee}
-        title="Delete Employee"
-        description={`Are you sure you want to delete ${selectedEmployee?.name || 'this employee'}? This action cannot be undone and will permanently remove all employee data from the system.`}
-        confirmText="Delete Employee"
-        isLoading={isDeleting}
+        onSuccess={() => setIsSuccessModalOpen(true)}
       />
 
       <SuccessModal
         open={isSuccessModalOpen}
         onOpenChange={setIsSuccessModalOpen}
-        title={successMessage.title}
-        subtitle={successMessage.subtitle}
+        title="Employee Added"
+        subtitle="You've successfully Added an Employee"
       />
     </div>
   );
