@@ -1,7 +1,7 @@
 'use client';
 
-import { useTableStore } from '@/stores/table-store';
 import { useState } from 'react';
+import { useTableStore } from '@/stores/table-store';
 
 import FilterIcon from '@/assets/icons/filter.svg';
 import { SearchInput } from '@/components/customs';
@@ -21,39 +21,117 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import CourseCard from './courseCard';
 import { CardContent } from '@/components/ui/card';
-import { mockCourses } from '../data';
+import RecognitionCard from './recognitionCard';
 
-const CoursesSection = ({ onViewCourse }) => {
-  const [statusFilter, setStatusFilter] = useState('all');
+// Mock data for recognitions
+const mockRecognitions = [
+  {
+    id: 1,
+    senderName: 'Grace Bola',
+    senderRole: 'Manager',
+    senderImage: 'https://randomuser.me/api/portraits/women/44.jpg',
+    recipientName: 'Femi Johnson',
+    recipientImage: 'https://randomuser.me/api/portraits/men/32.jpg',
+    message:
+      'Femi went above and beyond to deliver the Q3 campaign on time. His creativity and dedication were instrumental to our success.',
+    category: 'Teamwork',
+    timeAgo: '2 hours ago',
+    likeCount: 12,
+  },
+  {
+    id: 2,
+    senderName: 'Sarah Williams',
+    senderRole: 'HR Associate',
+    senderImage: 'https://randomuser.me/api/portraits/women/65.jpg',
+    recipientName: 'Femi Johnson',
+    recipientImage: 'https://randomuser.me/api/portraits/men/32.jpg',
+    message:
+      'Femi went above and beyond to deliver the Q3 campaign on time. His creativity and dedication were instrumental to our success.',
+    category: 'Collaboration',
+    timeAgo: '2 hours ago',
+    likeCount: 12,
+  },
+  {
+    id: 3,
+    senderName: 'Grace Bola',
+    senderRole: 'Manager',
+    senderImage: 'https://randomuser.me/api/portraits/women/44.jpg',
+    recipientName: 'Femi Johnson',
+    recipientImage: 'https://randomuser.me/api/portraits/men/32.jpg',
+    message:
+      'Femi went above and beyond to deliver the Q3 campaign on time. His creativity and dedication were instrumental to our success.',
+    category: 'Teamwork',
+    timeAgo: '2 hours ago',
+    likeCount: 12,
+  },
+  {
+    id: 4,
+    senderName: 'John Doe',
+    senderRole: 'Team Lead',
+    senderImage: 'https://randomuser.me/api/portraits/men/45.jpg',
+    recipientName: 'Sarah Adeyemi',
+    recipientImage: 'https://randomuser.me/api/portraits/women/33.jpg',
+    message:
+      'Sarah showed exceptional leadership during the project rollout. Her ability to coordinate across teams was impressive.',
+    category: 'Leadership',
+    timeAgo: '5 hours ago',
+    likeCount: 8,
+  },
+  {
+    id: 5,
+    senderName: 'Emily Johnson',
+    senderRole: 'Product Manager',
+    senderImage: 'https://randomuser.me/api/portraits/women/55.jpg',
+    recipientName: 'Michael Brown',
+    recipientImage: 'https://randomuser.me/api/portraits/men/50.jpg',
+    message:
+      'Michael brought innovative ideas to solve our biggest challenges. His out-of-the-box thinking saved us weeks of work.',
+    category: 'Innovation',
+    timeAgo: '1 day ago',
+    likeCount: 15,
+  },
+];
+
+const filterData = [
+  { key: 'all', label: 'All Recognitions' },
+  { key: 'teamwork', label: 'Teamwork' },
+  { key: 'collaboration', label: 'Collaboration' },
+  { key: 'leadership', label: 'Leadership' },
+  { key: 'innovation', label: 'Innovation' },
+];
+
+const RecognitionSection = ({ onEdit, onDelete }) => {
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   const currentPage = useTableStore((s) => s.currentPage);
   const setCurrentPage = useTableStore((state) => state.setCurrentPage);
 
-  // Filter courses
-  const filteredCourses = mockCourses.filter((course) => {
-    const matchesStatus =
-      statusFilter === 'all' ||
-      course.status.toLowerCase() === statusFilter.toLowerCase();
-    const matchesSearch = course.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return matchesStatus && matchesSearch;
+  // Filter recognitions
+  const filteredRecognitions = mockRecognitions.filter((recognition) => {
+    const matchesCategory =
+      categoryFilter === 'all' ||
+      recognition.category.toLowerCase() === categoryFilter.toLowerCase();
+    const matchesSearch =
+      recognition.senderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recognition.recipientName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
   });
 
   // Pagination
-  const itemsPerPage = 6;
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(filteredRecognitions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCourses = filteredCourses.slice(
+  const paginatedRecognitions = filteredRecognitions.slice(
     startIndex,
     startIndex + itemsPerPage
   );
 
-  const handleStatusFilterChange = (status) => {
-    setStatusFilter(status);
+  const handleCategoryFilterChange = (category) => {
+    setCategoryFilter(category);
     setCurrentPage(1);
   };
 
@@ -145,11 +223,11 @@ const CoursesSection = ({ onViewCourse }) => {
   return (
     <CardContent>
       <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-center">
-        <h2 className="text-lg font-semibold">Courses</h2>
+        <h2 className="text-lg font-semibold">Recognition</h2>
 
         <div className="flex items-center gap-3">
           <SearchInput
-            placeholder="Search courses..."
+            placeholder="Search employee......"
             value={searchTerm}
             onValueChange={setSearchTerm}
             onResetPage={() => setCurrentPage(1)}
@@ -160,18 +238,18 @@ const CoursesSection = ({ onViewCourse }) => {
               <Button
                 variant="outline"
                 size="icon"
-                className={`h-12 w-12 rounded-xl ${statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''}`}
+                className={`h-12 w-12 rounded-xl ${categoryFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''}`}
               >
                 <img src={FilterIcon} alt="Filter Icon" />
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="text-sm">
+            <DropdownMenuContent align="end">
               {filterData.map((filter) => (
                 <DropdownMenuItem
                   key={filter.key}
-                  onClick={() => handleStatusFilterChange(filter.key)}
-                  className={statusFilter === filter.key ? 'bg-blue-50' : ''}
+                  onClick={() => handleCategoryFilterChange(filter.key)}
+                  className={categoryFilter === filter.key ? 'bg-blue-50' : ''}
                 >
                   {filter.label}
                 </DropdownMenuItem>
@@ -181,31 +259,28 @@ const CoursesSection = ({ onViewCourse }) => {
         </div>
       </div>
 
-      {/* Course Cards Grid */}
-      <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {paginatedCourses.length > 0 ? (
-          paginatedCourses.map((course) => (
-            <CourseCard
-              key={course.id}
-              image={course.image}
-              status={course.status}
-              category={course.category}
-              title={course.title}
-              duration={course.duration}
-              trainees={course.trainees}
-              deliveryMode={course.deliveryMode}
-              hasStatus={true}
-              onView={onViewCourse ? () => onViewCourse(course) : undefined}
-              onEdit={() => console.log('Edit:', course.id)}
-              onDelete={() => console.log('Delete:', course.id)}
-              statusVariant={
-                course.status === 'Draft' ? 'secondary' : 'default'
-              }
+      {/* Recognition Cards */}
+      <div className="mb-8 flex flex-col gap-4">
+        {paginatedRecognitions.length > 0 ? (
+          paginatedRecognitions.map((recognition) => (
+            <RecognitionCard
+              key={recognition.id}
+              senderName={recognition.senderName}
+              senderRole={recognition.senderRole}
+              senderImage={recognition.senderImage}
+              recipientName={recognition.recipientName}
+              recipientImage={recognition.recipientImage}
+              message={recognition.message}
+              category={recognition.category}
+              timeAgo={recognition.timeAgo}
+              likeCount={recognition.likeCount}
+              onEdit={() => onEdit?.(recognition)}
+              onDelete={() => onDelete?.(recognition)}
             />
           ))
         ) : (
-          <div className="col-span-full flex items-center justify-center py-12">
-            <p className="text-gray-500">No courses found</p>
+          <div className="flex items-center justify-center py-12">
+            <p className="text-gray-500">No recognitions found</p>
           </div>
         )}
       </div>
@@ -246,10 +321,4 @@ const CoursesSection = ({ onViewCourse }) => {
   );
 };
 
-export default CoursesSection;
-
-const filterData = [
-  { key: 'all', label: 'All Courses' },
-  { key: 'draft', label: 'Draft' },
-  { key: 'active', label: 'Active' },
-];
+export default RecognitionSection;

@@ -82,9 +82,15 @@ export default function PeriodAndType({
 
   const { handleSubmit, control } = form;
 
+  const handleFormSubmit = (values) => {
+    if (typeof onNext === 'function') {
+      onNext(values);
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onNext)} className="space-y-5">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
         <div className="grid grid-cols-2 gap-3">
           <FormSelect
             control={control}
@@ -123,7 +129,7 @@ export default function PeriodAndType({
                   <FormControl>
                     <Button
                       variant="outline"
-                      className={`flex justify-between h-10 w-full rounded-xl text-left font-normal text-sm ${!field.value ? 'text-muted-foreground' : ''}`}
+                      className={`flex h-10 w-full justify-between rounded-xl text-left text-sm font-normal ${!field.value ? 'text-muted-foreground' : ''}`}
                     >
                       {field.value ? format(field.value, 'PPP') : 'Choose date'}
                       <img src={CalendarIcon} alt="calendar-icon" />
@@ -147,11 +153,15 @@ export default function PeriodAndType({
         <hr />
 
         <div className="flex items-center justify-between">
-          <CustomButton type="button" variant="outline" onClick={onBack}>
+          <CustomButton
+            type="button"
+            variant="outline"
+            onClick={() => onBack?.()}
+          >
             Back
           </CustomButton>
 
-          <CustomButton type="button" onClick={onNext}>Next Step</CustomButton>
+          <CustomButton type="submit">Next Step</CustomButton>
         </div>
       </form>
     </Form>

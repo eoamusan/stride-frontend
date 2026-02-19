@@ -551,12 +551,12 @@ const engagementItems = [
     link: '/dashboard/hr/engagement',
   },
   {
-    title: 'Suggestions Box',
-    link: '/dashboard/hr/engagement/suggestions-box',
-  },
-  {
     title: 'Recognition Wall',
     link: '/dashboard/hr/engagement/recognition-wall',
+  },
+   {
+    title: 'Suggestions Box',
+    link: '/dashboard/hr/engagement/suggestions-box',
   },
 ];
 

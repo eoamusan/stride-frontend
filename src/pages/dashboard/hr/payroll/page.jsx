@@ -25,6 +25,7 @@ import { useModalStore } from '@/stores/modal-store';
 import EditIcon from '@/assets/icons/gray-edit.svg';
 import DeleteIcon from '@/assets/icons/gray-delete.svg';
 import { useGetSalaryComponentQuery } from '@/hooks/api/useGetSalaryComponentQuery';
+import useDebounce from '@/hooks/useDebounce';
 
 export default function Payroll() {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -62,6 +63,8 @@ export default function Payroll() {
 
   const pageSize = 5;
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
+
   const {
     salaryComponents,
     pagination,
@@ -69,7 +72,7 @@ export default function Payroll() {
     isFetching: isSalaryComponentsFetching,
     refetch: refetchSalaryComponents,
   } = useGetSalaryComponentQuery({
-    search: searchTerm,
+    search: debouncedSearchTerm,
     page: currentPage,
     perPage: pageSize,
   });

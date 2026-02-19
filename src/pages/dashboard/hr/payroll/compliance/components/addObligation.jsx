@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -38,13 +38,6 @@ const obligationSchema = z.object({
     }),
 });
 
-const formatCurrency = (value) =>
-  new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    maximumFractionDigits: 0,
-  }).format(value);
-
 const defaultValues = {
   name: '',
   type: '',
@@ -53,57 +46,68 @@ const defaultValues = {
   amount: '',
 };
 
-const inferStatusFromDueDate = (date) => {
-  if (!date) return 'Upcoming';
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return 'Upcoming';
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  parsed.setHours(0, 0, 0, 0);
-  return parsed < today ? 'Overdue' : 'Upcoming';
+const periodFormats = ['MMMM yyyy', 'MMM yyyy', 'MM-yyyy', 'MM-yy', 'yyyy-MM'];
+
+const parsePeriodToDate = (value) => {
+  if (!value) return null;
+
+  for (const formatString of periodFormats) {
+    const parsed = parse(value, formatString, new Date());
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  const fallback = new Date(value);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
 };
 
-const toTitle = (value) => {
-  if (!value) return '';
-  return value.trim().slice(0, 1).toUpperCase() + value.trim().slice(1);
+const normalizeAmountInput = (value) => {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'number') return value.toString();
+  if (typeof value === 'string') return value.replace(/[^\d.]/g, '');
+  return '';
 };
 
-export default function AddObligationForm({ open, onOpenChange, onSave }) {
+export default function AddObligationForm({
+  open,
+  onOpenChange,
+  onSubmit,
+  mode = 'create',
+  initialData = null,
+  isSubmitting = false,
+}) {
   const form = useForm({
     resolver: zodResolver(obligationSchema),
     defaultValues,
   });
 
   useEffect(() => {
-    if (!open) form.reset(defaultValues);
-  }, [open, form]);
+    if (!open) {
+      form.reset(defaultValues);
+      return;
+    }
 
-  const onSubmit = (values) => {
-    const status = inferStatusFromDueDate(values.dueDate);
-    const amountDisplay = formatCurrency(values.amount);
+    if (initialData) {
+      form.reset({
+        name: initialData.obligationName ?? initialData.name ?? '',
+        type: initialData.obligationType ?? initialData.type ?? '',
+        period: parsePeriodToDate(initialData.period) ?? null,
+        dueDate: initialData.dueDate ? new Date(initialData.dueDate) : null,
+        amount: normalizeAmountInput(initialData.amount),
+      });
+    } else {
+      form.reset(defaultValues);
+    }
+  }, [open, form, initialData]);
 
-    const formattedPeriod = values.period ? format(values.period, 'MM-yy') : '';
-    const formattedDueDate = values.dueDate
-      ? format(values.dueDate, 'dd-MM-yy')
-      : '';
-
-    const newRow = {
-      obligation: values.name.trim(),
-      type: toTitle(values.type),
-      dueDate: formattedDueDate,
-      period: formattedPeriod,
-      amount: amountDisplay,
-      status,
-    };
-
-    onSave?.(newRow);
-    onOpenChange?.(false);
-    form.reset(defaultValues);
+  const handleSubmit = async (values) => {
+    await onSubmit?.(values);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <FormInput
           control={form.control}
           name="name"
@@ -209,16 +213,17 @@ export default function AddObligationForm({ open, onOpenChange, onSave }) {
             type="button"
             variant="outline"
             onClick={() => onOpenChange?.(false)}
-            // className="h-12 rounded-2xl border-[#254C00] px-6 text-[#254C00] hover:bg-[#254C00]/10"
+            disabled={isSubmitting}
           >
             Back
           </CustomButton>
 
-          <CustomButton
-            type="submit"
-            // className="h-12 rounded-2xl bg-[#3F00A8] px-6 text-white hover:bg-[#2f0080]"
-          >
-            Add Component
+          <CustomButton type="submit" disabled={isSubmitting}>
+            {isSubmitting
+              ? 'Saving...'
+              : mode === 'edit'
+                ? 'Update Obligation'
+                : 'Add Obligation'}
           </CustomButton>
         </div>
       </form>

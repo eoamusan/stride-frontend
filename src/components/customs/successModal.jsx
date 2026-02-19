@@ -43,13 +43,15 @@ const SuccessModal = ({
 
             <p className="text-center text-gray-700">{description}</p>
           </div>
+
+          <hr />
         </DialogHeader>
 
-        <div className="mt-10 mb-4">
+        <div className="mt-4 mb-4">
           <CustomButton
             variant="default"
             onClick={handleAction}
-            className="h-12 w-full rounded-xl bg-[#2A00A2] text-sm font-semibold text-white hover:bg-[#220080]"
+            className="md:w-full rounded-xl text-base py-6"
           >
             {buttonText}
           </CustomButton>

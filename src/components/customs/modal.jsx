@@ -19,9 +19,13 @@ const CustomModal = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className={`max-h-[90vh] md:w-[75%] max-w-3xl overflow-y-auto px-12 py-8 rounded-xl sm:max-w-xl ${className}`}>
-        <div className="flex gap-3 mb-2">
-          <div className={`flex h-8 w-8 items-center justify-center rounded-full bg-[#254C00] text-white ${description ? 'mt-2' : ''}`}>
+      <DialogContent
+        className={`flex max-h-[90vh] max-w-3xl flex-col rounded-xl px-12 py-8 sm:max-w-xl md:w-[75%] ${className}`}
+      >
+        <div className="mb-2 flex flex-shrink-0 gap-3">
+          <div
+            className={`flex h-8 w-8 items-center justify-center rounded-full bg-[#254C00] text-white ${description ? 'mt-2' : ''}`}
+          >
             <img src={icon ?? PlusIcon} className="size-4" />
           </div>
 
@@ -36,7 +40,7 @@ const CustomModal = ({
           </DialogHeader>
         </div>
 
-        {children}
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </DialogContent>
     </Dialog>
   );

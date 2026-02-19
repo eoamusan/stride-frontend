@@ -5,14 +5,14 @@ const CustomButton = ({
   type,
   variant,
   onClick,
-  className = 'h-10 rounded-xl text-xs w-full md:w-auto',
+  className,
 }) => {
   return (
     <Button
       type={type}
       variant={variant}
       onClick={onClick}
-      className={className}
+      className={`h-10 rounded-xl text-xs w-full md:w-auto ${className}`}
     >
       {children}
     </Button>

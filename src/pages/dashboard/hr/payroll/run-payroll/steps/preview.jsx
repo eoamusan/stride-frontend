@@ -1,21 +1,34 @@
+import { format } from 'date-fns';
 import { CustomButton } from '@/components/customs';
 import AlertModal from '@/components/customs/alertModal';
 import { useModalStore } from '@/stores/modal-store';
-import { useNavigate } from 'react-router';
 
-const PayrollPreview = ({ onBack }) => {
+const PayrollPreview = ({
+  onBack,
+  runPayroll,
+  employeeScope,
+  onSubmit,
+  isSubmitting,
+}) => {
   const { openModal, closeModal, modals } = useModalStore();
   const runPayrollModal = modals['runPayrollAlert'];
 
-  const navigate = useNavigate();
+  const summaryItems = buildSummaryItems(runPayroll, employeeScope);
 
   const handleRunPayroll = () => {
     openModal('runPayrollAlert');
   };
 
-  const handleConfirmRunPayroll = () => {
-    closeModal('runPayrollAlert');
-    navigate('/dashboard/hr/payroll/review');
+  const handleConfirmRunPayroll = async () => {
+    if (isSubmitting) return;
+    try {
+      if (typeof onSubmit === 'function') {
+        await onSubmit();
+      }
+      closeModal('runPayrollAlert');
+    } catch (error) {
+      // Submission errors are surfaced by the hook's toast handler
+    }
   };
 
   const handleCloseModal = () => {
@@ -49,12 +62,16 @@ const PayrollPreview = ({ onBack }) => {
       <hr />
 
       <div className="flex w-full flex-col items-center justify-between gap-4 md:flex-row">
-        <CustomButton type="button" variant="outline" onClick={onBack}>
+        <CustomButton
+          type="button"
+          variant="outline"
+          onClick={() => onBack?.()}
+        >
           Back
         </CustomButton>
 
         <CustomButton type="button" onClick={handleRunPayroll}>
-          Run Payroll
+          {isSubmitting ? 'Processing...' : 'Run Payroll'}
         </CustomButton>
       </div>
 
@@ -63,51 +80,94 @@ const PayrollPreview = ({ onBack }) => {
         handleBack={handleCloseModal}
         handleNext={handleConfirmRunPayroll}
         title="Run Payroll"
-        description="You are about to calculate payroll for March 2025. This process will include 142 employees."
+        description={buildConfirmationMessage(runPayroll, employeeScope)}
         backText="Back"
-        nextText="Confirm & Run"
+        nextText={isSubmitting ? 'Processing...' : 'Confirm & Run'}
       />
     </div>
   );
 };
+const buildSummaryItems = (runPayroll, employeeScope) => {
+  const payrollType = runPayroll?.payrollType || 'Not specified';
+  const payDateLabel = formatPayDate(runPayroll?.payDate);
+  const payrollPeriod = formatPayrollPeriod(runPayroll);
+  const scopeLabel = describeScope(employeeScope);
 
-const summaryItems = [
-  {
-    label: 'Total Employees',
-    value: '150',
-    valueClassName: 'text-gray-900',
-    isLarge: true,
-  },
-  {
-    label: 'Total Gross Pay',
-    value: '₦8,500',
-    valueClassName: 'text-green-700',
-    isLarge: true,
-  },
-  {
-    label: 'Total Deductions',
-    value: '₦1,500',
-    valueClassName: 'text-red-600',
-    isLarge: true,
-  },
-  {
-    label: 'Total Net Pay',
-    value: '₦7,000',
-    valueClassName: 'text-gray-900',
-    isLarge: true,
-  },
-  {
-    label: 'Pay Date',
-    value: 'March 1',
-    valueClassName: 'text-gray-800',
-    isLarge: false,
-  },
-  {
-    label: 'Payroll Type',
-    value: 'Monthly Payroll',
-    valueClassName: 'text-gray-800',
-    isLarge: false,
-  },
-];
+  return [
+    {
+      label: 'Payroll Period',
+      value: payrollPeriod,
+      valueClassName: 'text-gray-900',
+    },
+    {
+      label: 'Payroll Type',
+      value: payrollType,
+      valueClassName: 'text-gray-900',
+    },
+    {
+      label: 'Pay Date',
+      value: payDateLabel,
+      valueClassName: 'text-gray-900',
+    },
+    {
+      label: 'Scope',
+      value: scopeLabel,
+      valueClassName: 'text-gray-900',
+    },
+    {
+      label: 'Departments',
+      value: employeeScope?.filterByDepartment
+        ? `${employeeScope.departments?.length || 0} selected`
+        : 'All departments',
+      valueClassName: 'text-gray-900',
+    },
+    {
+      label: 'Specific Employees',
+      value: employeeScope?.specificEmployees
+        ? `${employeeScope.employees?.length || 0} selected`
+        : 'Automatically selected',
+      valueClassName: 'text-gray-900',
+    },
+  ];
+};
+
+const formatPayDate = (dateValue) => {
+  if (!dateValue) return 'Not scheduled';
+  const parsedDate = new Date(dateValue);
+  if (isNaN(parsedDate.getTime())) return 'Not scheduled';
+  return format(parsedDate, 'PPP');
+};
+
+const formatPayrollPeriod = (runPayroll) => {
+  if (!runPayroll?.month || !runPayroll?.year) return 'Not set';
+  const monthNumber = runPayroll.month.toString().padStart(2, '0');
+  const parsedDate = new Date(`${runPayroll.year}-${monthNumber}-01T00:00:00Z`);
+  if (isNaN(parsedDate.getTime())) return 'Not set';
+  const monthName = parsedDate.toLocaleString('default', { month: 'long' });
+  return `${monthName} ${runPayroll.year}`;
+};
+
+const describeScope = (employeeScope) => {
+  if (!employeeScope) return 'All eligible employees';
+  if (employeeScope.specificEmployees) {
+    const count = employeeScope.employees?.length || 0;
+    return `${count} specific employee${count === 1 ? '' : 's'}`;
+  }
+  if (employeeScope.filterByDepartment) {
+    const count = employeeScope.departments?.length || 0;
+    return `${count} department${count === 1 ? '' : 's'}`;
+  }
+  if (employeeScope.filterByCadres) {
+    const count = employeeScope.cadres?.length || 0;
+    return `${count} cadre${count === 1 ? '' : 's'}`;
+  }
+  return 'All eligible employees';
+};
+
+const buildConfirmationMessage = (runPayroll, employeeScope) => {
+  const period = formatPayrollPeriod(runPayroll);
+  const scope = describeScope(employeeScope);
+  return `You are about to calculate payroll for ${period}. Scope: ${scope}.`;
+};
 
 export default PayrollPreview;
