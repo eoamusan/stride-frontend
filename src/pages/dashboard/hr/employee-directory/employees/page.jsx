@@ -1250,7 +1250,7 @@ export default function EmployeeDetail() {
           <span className="flex size-6 items-center justify-center rounded-full bg-[#254C00] text-white">
             <AddIcon className="size-3.5" />
           </span>
-          + Add New
+          Add New
         </button>
 
         {showAddCategoryForm && (
