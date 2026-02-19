@@ -35,7 +35,6 @@ import VendorInvoices from './dashboard/accounting/accounts-payable/vendor-invoi
 import PaymentScheduling from './dashboard/accounting/accounts-payable/payment-scheduling/page';
 import Vendors from './dashboard/accounting/accounts-payable/vendors/page';
 import Bids from './dashboard/accounting/accounts-payable/bids/page';
-import BidDetails from './dashboard/accounting/accounts-payable/bids/[id]/page';
 import ApprovalWorkflow from './dashboard/accounting/accounts-payable/approval-workflow/page';
 import ReportsAP from './dashboard/accounting/accounts-payable/reports/page';
 import Sales from './dashboard/accounting/inventory-management/sales/page';
@@ -95,6 +94,7 @@ import OfferStage from './dashboard/hr/recruitment/offer-stage/page';
 import HROnboarding from './dashboard/hr/onboarding/page';
 import AssetManagement from './dashboard/hr/onboarding/asset-management/page';
 import HRServiceDesk from './dashboard/hr/employee-directory/hr-service-desk/page';
+import EmployeeDetail from './dashboard/hr/employee-directory/employees/page';
 import Attendance from './dashboard/hr/attendance-leave/page';
 import Leave from './dashboard/hr/attendance-leave/Leave/page';
 
@@ -128,13 +128,6 @@ import OrganizationStructure from './dashboard/hr/setup/organization-structure/p
 import RBAC from './dashboard/hr/setup/RBAC/page';
 import SalaryFramework from './dashboard/hr/setup/salary-framework/page';
 import GlobalSetting from './dashboard/hr/setup/global-setting/page';
-import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
-import JobDetails from './dashboard/hr/recruitment/job-posting/[id]/page';
-import PayslipsHistory from './dashboard/hr/payroll/payslips-history/page';
-import ApplicantDetails from './dashboard/hr/recruitment/applicant-screening/[applicantID]/page';
-import InterviewScheduleDetails from './dashboard/hr/recruitment/interview-schedules/[id]/page';
-import HrValidationDetails from './dashboard/hr/onboarding/hr-validation/[id]/page';
-import ViewEmployee from './dashboard/hr/employee-directory/[id]/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -374,10 +367,6 @@ const router = createBrowserRouter([
                         Component: Bids,
                       },
                       {
-                        path: 'bids/:id',
-                        Component: BidDetails,
-                      },
-                      {
                         path: 'payment-scheduling',
                         Component: PaymentScheduling,
                       },
@@ -561,52 +550,18 @@ const router = createBrowserRouter([
                   {
                     path: 'recruitment',
                     children: [
-                      {
-                        index: true,
-                        Component: Recruitment,
-                      },
-                      {
-                        path: 'detail/:id',
-                        Component: RecruitmentDetails,
-                      },
+                      { index: true, Component: Recruitment },
                       {
                         path: 'job-postings',
-                        children: [
-                          {
-                            index: true,
-                            Component: JobPosting,
-                          },
-                          {
-                            path: 'detail/:id',
-                            Component: JobDetails,
-                          },
-                        ],
+                        Component: JobPosting,
                       },
                       {
                         path: 'applicant-screening',
-                        children: [
-                          {
-                            index: true,
-                            Component: ApplicantScreening,
-                          },
-                          {
-                            path: 'applicant/:applicantID',
-                            Component: ApplicantDetails,
-                          },
-                        ],
+                        Component: ApplicantScreening,
                       },
                       {
                         path: 'interview-schedules',
-                        children: [
-                          {
-                            index: true,
-                            Component: InterviewAndSchedules,
-                          },
-                          {
-                            path: 'detail/:id',
-                            Component: InterviewScheduleDetails,
-                          },
-                        ],
+                        Component: InterviewAndSchedules,
                       },
                       {
                         path: 'offer-stage',
@@ -620,16 +575,7 @@ const router = createBrowserRouter([
                       { index: true, Component: HROnboarding },
                       {
                         path: 'hr-validation',
-                        children: [
-                          {
-                            index: true,
-                            Component: HrValidation,
-                          },
-                          {
-                            path: 'detail/:id',
-                            Component: HrValidationDetails,
-                          },
-                        ],
+                        Component: HrValidation,
                       },
                       {
                         path: 'asset-management',
@@ -647,7 +593,7 @@ const router = createBrowserRouter([
                       },
                       {
                         path: 'employees/:id',
-                        Component: ViewEmployee,
+                        Component: EmployeeDetail,
                       },
                     ],
                   },
@@ -705,10 +651,6 @@ const router = createBrowserRouter([
                       {
                         path: 'compliance',
                         Component: Compliance,
-                      },
-                      {
-                        path: 'payslips-history',
-                        Component: PayslipsHistory,
                       },
                     ],
                   },
