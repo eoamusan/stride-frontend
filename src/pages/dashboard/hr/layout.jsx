@@ -14,10 +14,10 @@ export default function HumanResourcesLayout() {
 
     if (pathname.includes('/recruitment')) return 'recruitment';
     if (pathname.includes('/onboarding')) return 'onboarding';
+    if (pathname.includes('/employee-directory/employees/')) return 'employeeDetail';
     if (pathname.includes('/employee-directory')) return 'employeeDirectory';
     if (pathname.includes('/attendance-leave')) return 'attendanceLeave';
     if (pathname.includes('/performance')) return 'performance';
-    if (pathname.includes('/payslips-history')) return 'employeePayroll';
     if (pathname.includes('/payroll')) return 'payroll';
     if (pathname.includes('/learning-and-development'))
       return 'learningAndDevelopement';
@@ -35,21 +35,23 @@ export default function HumanResourcesLayout() {
   const currentItems = hrTopItems[currentPage] || [];
   return (
     <div className="mt-2 overflow-y-auto">
-      <div className="mt-2.5 flex items-center gap-8 overflow-x-auto scroll-auto border-b-2 border-[#D9D9D9] pt-4">
-        {currentItems.map((item) => (
-          <span
-            key={item.link}
-            onClick={() => handleItemClick(item)}
-            className={`cursor-pointer pb-2.5 text-sm font-bold text-nowrap transition-colors ${
-              location.pathname === item.link
-                ? 'text-primary border-primary border-b-2'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            {item.title}
-          </span>
-        ))}
-      </div>
+      {currentItems.length > 0 && (
+        <div className="mt-2.5 flex items-center gap-6 overflow-x-auto scroll-auto border-b-2 border-[#D9D9D9] pt-4">
+          {currentItems.map((item) => (
+            <span
+              key={item.link}
+              onClick={() => handleItemClick(item)}
+              className={`cursor-pointer pb-2.5 text-xs font-bold text-nowrap transition-colors ${
+                location.pathname === item.link
+                  ? 'text-primary border-primary border-b-2'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {item.title}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Render child routes */}
       <Outlet />
