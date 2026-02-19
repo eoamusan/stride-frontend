@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import notFoundImg from '@/assets/icons/not-found.png';
+import emptyTableImg from '@/assets/icons/empty-table.svg';
 import {
   SearchIcon,
   FilterIcon,
@@ -43,7 +43,9 @@ const ROW_ACTIONS = [
 
 function SkeletonRow() {
   return (
-    <div className={`${GRID} rounded-[16px] border border-gray-100 bg-white px-5 py-4`}>
+    <div
+      className={`${GRID} rounded-[16px] border border-gray-100 bg-white px-5 py-4`}
+    >
       <div className="flex items-center gap-3">
         <div className="size-10 shrink-0 animate-pulse rounded-full bg-gray-200" />
         <div className="space-y-1">
@@ -150,13 +152,10 @@ export default function LeaveRequestsTable({
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <img
-              src={notFoundImg}
+              src={emptyTableImg}
               alt="No records found"
               className="mx-auto w-[180px]"
             />
-            <p className="mt-4 text-sm font-medium text-[#7D7D7D]">
-              No File Found
-            </p>
           </div>
         ) : (
           filtered.map((row) => (

@@ -39,9 +39,8 @@ import EmployeeService from '@/api/employee';
 import { useUserStore } from '@/stores/user-store';
 import { AddIcon } from '@/components/ui/svgs';
 
-/* Input/select field style: width 305px, height 44px, 8px radius, 10px 12px padding, 1px border, Raleway 400 10px/24px */
 const inputFieldClass =
-  'h-[44px] w-[305px] rounded-[8px] border border-[1px] py-2.5 px-3 font-raleway font-normal text-[10px] leading-[24px] tracking-normal align-middle placeholder:font-raleway placeholder:font-normal placeholder:text-[10px] placeholder:leading-[24px]';
+  'h-[44px] w-full rounded-[8px] border border-[#D3D3D3] py-[10px] px-3 font-raleway font-normal text-sm leading-[24px] placeholder:font-raleway placeholder:font-normal placeholder:text-sm placeholder:leading-[24px]';
 
 const employeeFormSchema = z.object({
   fullName: z.string().min(1, { message: 'Full name is required' }),
@@ -171,7 +170,7 @@ export default function AddEmployeeModal({ open, onOpenChange, onSuccess }) {
               <div className="flex size-10 items-center justify-center rounded-full bg-[#254C00]">
                 <AddIcon />
               </div>
-              <DialogTitle className="font-raleway align-middle text-[12px] leading-[24px] font-[600] tracking-[0%]">
+              <DialogTitle className="font-raleway align-middle text-[24px] leading-[24px] font-semibold tracking-[0%]">
                 Add New Employee
               </DialogTitle>
             </div>
@@ -511,14 +510,14 @@ export default function AddEmployeeModal({ open, onOpenChange, onSuccess }) {
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                className="font-raleway h-11 min-w-[120px] rounded-full border-[1px] border-[#254C00] px-6 py-2 text-[12px] leading-[24px] font-normal text-[#254C00] hover:bg-[#254C00] hover:text-white"
+                className="font-raleway h-11 min-w-[120px] rounded-full border border-[#254C00] px-6 py-2 text-sm leading-[24px] font-normal text-[#254C00] hover:bg-[#254C00] hover:text-white"
                 disabled={isLoading}
               >
                 Back
               </Button>
               <Button
                 type="submit"
-                className="font-raleway h-11 min-w-[160px] rounded-full border-[1px] border-[#3300C9] bg-[#3300C9] px-8 py-2 text-[12px] leading-[24px] font-normal text-white hover:bg-[#3300C9]/90"
+                className="font-raleway h-11 min-w-[160px] rounded-full border border-[#3300C9] bg-[#3300C9] px-8 py-2 text-[12px] leading-[24px] font-normal text-white hover:bg-[#3300C9]/90"
                 disabled={isLoading}
               >
                 {isLoading ? 'Adding...' : 'Add Employee'}
