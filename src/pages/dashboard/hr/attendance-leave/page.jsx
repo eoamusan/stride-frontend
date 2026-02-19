@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import ClockInHistoryTable from '@/components/dashboard/hr/attendance-leave/clock-in-history-table';
@@ -73,6 +74,7 @@ const SUB_TABS = [
 ];
 
 export default function Attendance() {
+  const navigate = useNavigate();
   const [subTab, setSubTab] = useState('dashboard');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -162,9 +164,13 @@ export default function Attendance() {
                 totalCount: 198,
               }}
               onPageChange={setCurrentPage}
-              onRowAction={(action, row) =>
-                console.log('Attendance action:', action, row)
-              }
+              onRowAction={(action, row) => {
+                if (action === 'view') {
+                  navigate(`/dashboard/hr/attendance-leave/${row.id}`);
+                } else {
+                  console.log('Attendance action:', action, row);
+                }
+              }}
             />
           </div>
         </>

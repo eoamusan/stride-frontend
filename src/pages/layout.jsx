@@ -96,6 +96,7 @@ import AssetManagement from './dashboard/hr/onboarding/asset-management/page';
 import HRServiceDesk from './dashboard/hr/employee-directory/hr-service-desk/page';
 import EmployeeDetail from './dashboard/hr/employee-directory/employees/page';
 import Attendance from './dashboard/hr/attendance-leave/page';
+import AttendanceDetails from './dashboard/hr/attendance-leave/[id]/page';
 import Leave from './dashboard/hr/attendance-leave/Leave/page';
 
 import CycleSetup from './dashboard/hr/perfomance/page';
@@ -601,6 +602,7 @@ const router = createBrowserRouter([
                     path: 'attendance-leave',
                     children: [
                       { index: true, Component: Attendance },
+                      { path: ':id', Component: AttendanceDetails },
                       { path: 'leave', Component: Leave },
                     ],
                   },
