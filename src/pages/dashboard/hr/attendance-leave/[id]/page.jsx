@@ -2,10 +2,22 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Building2, Calendar, Download } from 'lucide-react';
+import {
+  ArrowLeft,
+  Building2,
+  Calendar,
+  Download,
+  BriefcaseIcon,
+  CalendarIcon,
+} from 'lucide-react';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { Input } from '@/components/ui/input';
-import { SearchIcon, FilterIcon } from '@/components/ui/svgs';
+import {
+  SearchIcon,
+  FilterIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+} from '@/components/ui/svgs';
 import { cn } from '@/lib/utils';
 
 const sampleChartData = [
@@ -80,6 +92,23 @@ const METHOD_STYLES = {
   Manual: 'bg-[#F3F4F6] text-[#374151]',
 };
 
+function buildPages(page, totalPages) {
+  if (totalPages <= 7)
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  const pages = [1];
+  if (page > 3) pages.push('…');
+  for (
+    let i = Math.max(2, page - 1);
+    i <= Math.min(totalPages - 1, page + 1);
+    i++
+  ) {
+    pages.push(i);
+  }
+  if (page < totalPages - 2) pages.push('…');
+  if (totalPages > 1) pages.push(totalPages);
+  return pages;
+}
+
 export default function AttendanceDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -87,6 +116,8 @@ export default function AttendanceDetails() {
   const [attendanceLog, setAttendanceLog] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchDate, setSearchDate] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = 10;
 
   useEffect(() => {
     // TODO: Fetch employee and attendance data from API
@@ -148,48 +179,62 @@ export default function AttendanceDetails() {
       </button>
 
       {/* Employee Profile Card */}
-      <div className="mb-8 flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-6">
-        <div className="flex items-center gap-4">
-          <Avatar className="size-20 shrink-0">
-            {employee.avatar && (
-              <AvatarImage src={employee.avatar} alt={employee.name} />
-            )}
-            <AvatarFallback
-              className={`${employee.avatarColor} text-2xl font-semibold text-white`}
-            >
-              {employee.initials}
-            </AvatarFallback>
-          </Avatar>
+      <div className="mb-8 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Avatar className="size-[140px] shrink-0">
+              {employee.avatar && (
+                <AvatarImage src={employee.avatar} alt={employee.name} />
+              )}
+              <AvatarFallback
+                className={`${employee.avatarColor} text-2xl font-semibold text-white`}
+              >
+                {employee.initials}
+              </AvatarFallback>
+            </Avatar>
 
-          <div>
-            <h2 className="font-raleway text-xl font-bold text-gray-900">
-              {employee.name}
-            </h2>
-            <p className="font-raleway mt-1 text-sm text-gray-600">
-              {employee.role}
-            </p>
-
-            <div className="mt-3 flex items-center gap-6">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Building2 className="size-4" />
-                <span className="font-raleway">{employee.department}</span>
+            <div className="flex flex-col gap-3">
+              <div>
+                <h2 className="font-raleway text-base font-semibold text-[#000000]">
+                  {employee.name}
+                </h2>
+                <p className="font-raleway mt-1 text-[14px] text-[#434343]">
+                  {employee.role}
+                </p>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Calendar className="size-4" />
-                <span className="font-raleway">{employee.dateJoined}</span>
+
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="flex size-5 items-center justify-center rounded bg-white/60">
+                    <BriefcaseIcon className="size-3.5 text-[#434343]" />
+                  </div>
+                  <span className="font-raleway text-sm text-[#434343]">
+                    {employee.department}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex size-5 items-center justify-center rounded bg-white/60">
+                    <CalendarIcon className="size-3.5 text-[#434343]" />
+                  </div>
+                  <span className="font-raleway text-sm text-[#434343]">
+                    {employee.dateJoined}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
+
+          <div className="flex flex-col items-center gap-4">
+            <span className="inline-flex h-8 items-center justify-center rounded-full bg-[#DCFCE7] px-4 text-sm font-medium text-[#15803D]">
+              on-time
+            </span>
+
+            <Button className="font-raleway h-11 gap-2 rounded-lg bg-[#3300C9] px-6 text-sm font-semibold text-white hover:bg-[#5A23B8]">
+              <Download className="size-4" />
+              Export
+            </Button>
+          </div>
         </div>
-
-        <span className="inline-flex h-8 items-center justify-center rounded-full bg-[#DCFCE7] px-4 text-sm font-medium text-[#15803D]">
-          on-time
-        </span>
-
-        <Button className="font-raleway h-11 gap-2 rounded-lg bg-[#3300C9] px-6 text-sm font-semibold text-white hover:bg-[#5A23B8]">
-          <Download className="size-4" />
-          Export
-        </Button>
       </div>
 
       {/* Metrics */}
@@ -324,38 +369,51 @@ export default function AttendanceDetails() {
         </div>
 
         {/* Pagination */}
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-9 rounded-lg border border-gray-200"
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+            disabled={currentPage <= 1}
+            className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 shadow-xs transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <ArrowLeft className="size-4" />
-          </Button>
+            <ArrowLeftIcon className="size-4" />
+            Previous
+          </button>
 
-          {[1, 2, 3, '...', 8, 9, 10].map((page, index) => (
-            <button
-              key={index}
-              className={cn(
-                'flex size-9 items-center justify-center rounded-lg text-sm font-medium transition-colors',
-                page === 1
-                  ? 'bg-[#6C2BD9] text-white'
-                  : page === '...'
-                    ? 'cursor-default text-gray-400'
-                    : 'text-gray-600 hover:bg-gray-100'
-              )}
-            >
-              {page}
-            </button>
-          ))}
+          <div className="flex items-center gap-1">
+            {buildPages(currentPage, totalPages).map((p, i) =>
+              p === '…' ? (
+                <span
+                  key={`ellipsis-${i}`}
+                  className="flex size-8 items-center justify-center text-sm text-gray-400"
+                >
+                  …
+                </span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => setCurrentPage(p)}
+                  className={`flex size-8 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                    p === currentPage
+                      ? 'bg-[#6C2BD9] text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            )}
+          </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-9 rounded-lg border border-gray-200"
+          <button
+            onClick={() =>
+              currentPage < totalPages && setCurrentPage(currentPage + 1)
+            }
+            disabled={currentPage >= totalPages}
+            className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 shadow-xs transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <ArrowLeft className="size-4 rotate-180" />
-          </Button>
+            Next
+            <ArrowRightIcon className="size-4" />
+          </button>
         </div>
       </div>
     </div>

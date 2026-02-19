@@ -207,12 +207,12 @@ export default function ViewEmployee() {
           <div className="flex-1 space-y-6">
             {/* Name and Title */}
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-[#434343]">
                 {employee.title ? `${employee.title}. ` : ''}
                 {employee.firstName} {employee.middleName || ''}{' '}
                 {employee.lastName}
               </h2>
-              <p className="mt-1 text-lg text-gray-600">
+              <p className="mt-1 text-lg text-[#434343]">
                 {employee.positionTitle || employee.position}
               </p>
             </div>
@@ -224,8 +224,8 @@ export default function ViewEmployee() {
                   <UserIcon className="size-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Employee ID</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-xs text-[#7D7D7D]">Employee ID</p>
+                  <p className="font-medium text-[#434343]">
                     {employee.employeeId}
                   </p>
                 </div>
@@ -236,8 +236,8 @@ export default function ViewEmployee() {
                   <BriefcaseIcon className="size-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Department</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-xs text-[#7D7D7D]">Department</p>
+                  <p className="font-medium text-[#434343]">
                     {employee.departmentName || employee.department}
                   </p>
                 </div>
@@ -248,8 +248,8 @@ export default function ViewEmployee() {
                   <CalendarIcon className="size-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Hire Date</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-xs text-[#7D7D7D]">Hire Date</p>
+                  <p className="font-medium text-[#434343]">
                     {employee.hireDate
                       ? format(new Date(employee.hireDate), 'MMM dd, yyyy')
                       : '-'}
@@ -262,8 +262,8 @@ export default function ViewEmployee() {
                   <ClockIcon className="size-5 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Employment Type</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-xs text-[#7D7D7D]">Employment Type</p>
+                  <p className="font-medium text-[#434343]">
                     {employee.employmentType?.replace('_', '-') || '-'}
                   </p>
                 </div>
@@ -275,7 +275,7 @@ export default function ViewEmployee() {
 
       {/* Contact Information */}
       <div className="mb-6 rounded-lg border bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">
+        <h3 className="mb-4 text-lg font-semibold text-[#434343]">
           Contact Information
         </h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -284,7 +284,7 @@ export default function ViewEmployee() {
               <MailIcon className="size-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Email Address</p>
+              <p className="text-xs text-[#7D7D7D]">Email Address</p>
               <a
                 href={`mailto:${employee.email}`}
                 className="font-medium text-blue-600 hover:underline"
@@ -299,10 +299,10 @@ export default function ViewEmployee() {
               <PhoneIcon className="size-5 text-green-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Phone Number</p>
+              <p className="text-xs text-[#7D7D7D]">Phone Number</p>
               <a
                 href={`tel:${employee.phoneNumber}`}
-                className="font-medium text-gray-900 hover:underline"
+                className="font-medium text-[#434343] hover:underline"
               >
                 {employee.phoneNumber}
               </a>
@@ -315,8 +315,8 @@ export default function ViewEmployee() {
                 <MapPinIcon className="size-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Address</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-xs text-[#7D7D7D]">Address</p>
+                <p className="font-medium text-[#434343]">
                   {employee.address.address1}
                   {employee.address.address2 &&
                     `, ${employee.address.address2}`}
@@ -334,13 +334,13 @@ export default function ViewEmployee() {
 
       {/* Personal Information */}
       <div className="mb-6 rounded-lg border bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">
+        <h3 className="mb-4 text-lg font-semibold text-[#434343]">
           Personal Information
         </h3>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div>
-            <p className="text-sm text-gray-500">Date of Birth</p>
-            <p className="mt-1 font-medium text-gray-900">
+            <p className="text-sm text-[#7D7D7D]">Date of Birth</p>
+            <p className="mt-1 font-medium text-[#434343]">
               {employee.dateOfBirth
                 ? format(new Date(employee.dateOfBirth), 'MMM dd, yyyy')
                 : '-'}
@@ -348,15 +348,15 @@ export default function ViewEmployee() {
           </div>
 
           <div>
-            <p className="text-sm text-gray-500">Gender</p>
-            <p className="mt-1 font-medium text-gray-900">
+            <p className="text-sm text-[#7D7D7D]">Gender</p>
+            <p className="mt-1 font-medium text-[#434343]">
               {employee.gender || '-'}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-gray-500">Marital Status</p>
-            <p className="mt-1 font-medium text-gray-900">
+            <p className="text-sm text-[#7D7D7D]">Marital Status</p>
+            <p className="mt-1 font-medium text-[#434343]">
               {employee.maritalStatus || '-'}
             </p>
           </div>
@@ -365,27 +365,27 @@ export default function ViewEmployee() {
 
       {/* Employment Information */}
       <div className="mb-6 rounded-lg border bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">
+        <h3 className="mb-4 text-lg font-semibold text-[#434343]">
           Employment Information
         </h3>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div>
-            <p className="text-sm text-gray-500">Manager</p>
-            <p className="mt-1 font-medium text-gray-900">
+            <p className="text-sm text-[#7D7D7D]">Manager</p>
+            <p className="mt-1 font-medium text-[#434343]">
               {employee.manager?.name || '-'}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-gray-500">Work Location</p>
-            <p className="mt-1 font-medium text-gray-900">
+            <p className="text-sm text-[#7D7D7D]">Work Location</p>
+            <p className="mt-1 font-medium text-[#434343]">
               {employee.workLocation || '-'}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-gray-500">Probation End Date</p>
-            <p className="mt-1 font-medium text-gray-900">
+            <p className="text-sm text-[#7D7D7D]">Probation End Date</p>
+            <p className="mt-1 font-medium text-[#434343]">
               {employee.probationEndDate
                 ? format(new Date(employee.probationEndDate), 'MMM dd, yyyy')
                 : '-'}
