@@ -16,6 +16,11 @@ import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
+import EditIcon from '@/assets/icons/gray-edit.svg';
+import DeleteIcon from '@/assets/icons/gray-delete.svg';
+import EyeIcon from '@/assets/icons/eye.svg';
+import PaidIcon from "@/assets/icons/gray-checkmark.svg";
+
 const ReviewTable = ({ onAction, isFrozen = false }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [rows, setRows] = useState(tableData);
@@ -156,20 +161,23 @@ const ReviewTable = ({ onAction, isFrozen = false }) => {
                     className="text-xs"
                     onClick={() => onAction(row, 'view')}
                   >
-                    View
+                    <img src={EyeIcon} alt="View" className="mr-1 h-4" />
+                    <span>View</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-xs"
                     disabled={isFrozen}
                     onClick={() => !isFrozen && onAction(row, 'edit')}
                   >
-                    {isFrozen ? 'Paid' : 'Edit'}
+                    <img src={isFrozen ? PaidIcon : EditIcon} alt="Edit" className="mr-1 h-4" />
+                    <span>{isFrozen ? 'Paid' : 'Edit'}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-xs"
                     onClick={() => handleDelete(row.employeeName)}
                   >
-                    Delete
+                    <img src={DeleteIcon} alt="Delete" className="mr-1 h-4" />
+                    <span>Delete</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

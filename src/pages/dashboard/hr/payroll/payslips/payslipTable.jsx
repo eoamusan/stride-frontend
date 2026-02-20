@@ -15,6 +15,10 @@ import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontalIcon } from 'lucide-react';
 
+import EyeIcon from '@/assets/icons/eye.svg';
+import DeleteIcon from '@/assets/icons/gray-delete.svg';
+import DocIcon from '@/assets/icons/gray-doc.svg';
+
 const payrollBadgeStyles = {
   frozen: 'bg-gray-200 text-gray-700',
   finalized: 'bg-green-100 text-green-700',
@@ -66,13 +70,22 @@ const PayslipTable = ({ onAction }) => {
       return [
         {
           label: 'Generate Payslip',
+          icon: DocIcon,
           action: () => onAction?.(row, 'generate'),
         },
       ];
     }
     return [
-      { label: 'Preview', action: () => onAction?.(row, 'preview') },
-      { label: 'Delete', action: () => handleDelete(row.period) },
+      {
+        label: 'Preview',
+        icon: EyeIcon,
+        action: () => onAction?.(row, 'preview'),
+      },
+      {
+        label: 'Delete',
+        icon: DeleteIcon,
+        action: () => handleDelete(row.period),
+      },
     ];
   };
 
@@ -80,7 +93,9 @@ const PayslipTable = ({ onAction }) => {
     const key = (text || '').toLowerCase();
     const styles = map[key] ?? 'bg-gray-100 text-gray-700';
     return (
-      <span className={`rounded-full px-4 py-2 text-sm font-medium ${styles}`}>
+      <span
+        className={`inline-flex w-[98px] items-center justify-center rounded-full px-4 py-2 text-sm font-medium ${styles}`}
+      >
         {text}
       </span>
     );
@@ -165,7 +180,12 @@ const PayslipTable = ({ onAction }) => {
                 <DropdownMenuContent align="end" className="text-sm">
                   {actionOptions(row).map((item) => (
                     <DropdownMenuItem key={item.label} onClick={item.action}>
-                      {item.label}
+                      <img
+                        src={item.icon}
+                        alt={item.label}
+                        className="mr-1 h-4"
+                      />
+                      <span>{item.label}</span>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>

@@ -12,11 +12,11 @@ const Header = ({
     <div className="flex flex-wrap items-center justify-between gap-6">
       <hgroup className="flex flex-col gap-1">
         <h1 className="text-[24px] font-semibold">{title}</h1>
-        <p className="text-xs text-[#7D7D7D]">{description}</p>
+        <p className="text-sm text-[#7D7D7D]">{description}</p>
       </hgroup>
 
       <div
-        className={`${className} flex flex-col items-center gap-5 md:flex-row w-full md:w-auto justify-end`}
+        className={`${className} flex w-full flex-col items-center justify-end gap-5 md:w-auto md:flex-row`}
       >
         {hasYoutubeButton && (
           <Button variant={'outline'} className={'h-10 rounded-2xl text-sm'}>

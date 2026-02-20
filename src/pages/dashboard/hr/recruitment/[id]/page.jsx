@@ -1,278 +1,396 @@
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeftIcon,
-  CalendarIcon,
-  ClockIcon,
-  DollarSignIcon,
+  Briefcase,
   CheckCircleIcon,
-  BriefcaseIcon,
-  UsersIcon,
-  DownloadIcon,
-  NotebookPen,
+  XCircleIcon,
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import RecruitmentNotFound from '../NotFound';
-import { dummyRequisitionRequests } from '../job-requests';
+import Fields from '@/components/dashboard/hr/overview/fields';
+import { useJobRequisitionStore } from '@/stores/job-requisition-store';
+import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import ManpowerRequisitionForm from '../form/requisition-form';
+
+import CalendarIcon from '@/assets/icons/calendar.svg';
+import BriefcaseTimer from '@/assets/icons/brifecase-timer.svg';
+import DepartmentIcon from '@/assets/icons/dept.svg';
+import DiscoverIcon from '@/assets/icons/discover.svg';
+import MoneyIcon from '@/assets/icons/money.svg';
+import Profile2User from '@/assets/icons/profile-2user.svg';
+import UserIcon from '@/assets/icons/user.svg';
+import MessageText from '@/assets/icons/message-text.svg';
+import ArrowUpSquare from '@/assets/icons/arrow-square-up.svg';
+
+import SaveIcon from '@/assets/icons/save.svg';
+
+import { CustomButton } from '@/components/customs';
+import ActivityLog from '@/components/dashboard/hr/activity-log';
 
 export default function RecruitmentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const jobRequest = dummyRequisitionRequests.find((job) => job.id === id);
+  const { requisitions, fetchRequisitions, isLoading } =
+    useJobRequisitionStore();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (requisitions.length === 0) {
+      fetchRequisitions(1);
+    }
+  }, [fetchRequisitions, requisitions.length]);
+
+  const jobRequest = useMemo(() => {
+    return requisitions.find((job) => job._id === id || job.id === id);
+  }, [requisitions, id]);
+
+  if (isLoading && !jobRequest) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
   if (!jobRequest) {
     return <RecruitmentNotFound />;
   }
 
-  return (
-    <div className="min-h-screen overflow-scroll bg-gray-100 p-6">
-      <div className="mx-auto max-w-full">
-        {/* Main Content */}
-        <main className="grid gap-6 md:gap-8 lg:grid-cols-3">
-          {/* Header with back button and title */}
-          <nav className="flex items-center gap-4 lg:col-span-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full"
-              onClick={() => navigate('/dashboard/hr/recruitment')}
-            >
-              <ArrowLeftIcon className="h-5 w-5" />
-            </Button>
-            <p className="text-2xl font-bold text-gray-900">
-              Requisition Details
-            </p>
-          </nav>
+  const handleApprove = () => {
+    console.log('Approved');
+  };
 
-          {/* Job Header Card */}
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row lg:col-span-3">
-            <div className="flex items-center gap-4 md:w-156">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#B190B6] md:h-30 md:w-30">
-                <BriefcaseIcon className="h-12 w-12 text-white" />
+  const handleReject = () => {
+    console.log('Rejected');
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy');
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const formatTime = (dateString) => {
+    if (!dateString) return '';
+    try {
+      return format(new Date(dateString), 'hh:mm a');
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const activityLog = [
+    {
+      id: 1,
+      title: 'Requisition Created',
+      description: `by ${jobRequest.user || 'N/A'} • ${formatDate(jobRequest.createdAt)}, ${formatTime(jobRequest.createdAt)}`,
+      checked: true,
+    },
+    {
+      id: 2,
+      title: 'Submitted for Approval',
+      description: `by ${jobRequest.user || 'N/A'} • ${formatDate(jobRequest.createdAt)}, ${formatTime(jobRequest.createdAt)}`,
+      checked: true,
+    },
+    {
+      id: 3,
+      title: 'Approved',
+      description: `by ${jobRequest.user || 'N/A'} • ${formatDate(jobRequest.createdAt)}, ${formatTime(jobRequest.createdAt)}`,
+      checked: false,
+    },
+  ];
+
+  return (
+    <div className="mx-auto min-h-screen max-w-full overflow-scroll bg-gray-100 py-4 md:p-6">
+      {/* Main Content */}
+      <main className="grid gap-6 md:gap-8 lg:grid-cols-3">
+        <nav className="flex items-center gap-4 lg:col-span-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={() => navigate('/dashboard/hr/recruitment')}
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </Button>
+          <p className="text-2xl font-bold text-gray-900">
+            Requisition Details
+          </p>
+        </nav>
+
+        {/* Job Header Card */}
+        <div className="flex flex-col items-end justify-between gap-4 md:flex-row md:items-center lg:col-span-3">
+          <header className="flex w-full items-end gap-4">
+            <div className="flex w-full flex-col gap-4 md:w-156 md:flex-row md:items-center md:gap-6">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#B190B6] md:h-34 md:w-34">
+                <Briefcase className="h-14 w-14 text-white md:h-24 md:w-24" />
               </div>
-              <div className="flex-1">
-                <h1 className="text-xl font-semibold">{jobRequest.title}</h1>
-                <p className="mt-1 text-sm text-gray-600">{jobRequest.id}</p>
-                <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
-                  <CalendarIcon className="h-4 w-4" />
-                  <span>
-                    Created {jobRequest.dateCreated}, {jobRequest.createdTime}
+              <div className="flex flex-col gap-2">
+                <hgroup className="space-y-1">
+                  <h1 className="font-semibold">{jobRequest.jobTitle}</h1>
+                  <p className="text-sm font-medium text-gray-700">
+                    {jobRequest._id || jobRequest.id}
+                  </p>
+                </hgroup>
+                <div className="flex gap-4 text-xs text-gray-400">
+                  <span className="flex items-center gap-1 text-gray-700">
+                    <img
+                      src={CalendarIcon}
+                      alt="Calendar"
+                      className="h-6 w-6"
+                    />
+                    Created {formatDate(jobRequest.createdAt)},{' '}
+                    {formatTime(jobRequest.createdAt)}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="flex w-full flex-col items-end gap-2">
-              <Badge
-                className={`${jobRequest.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : jobRequest.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-              >
-                {jobRequest.status === 'Pending'
-                  ? 'Pending Approval'
-                  : jobRequest.status}
-              </Badge>
-              <div className="flex w-full justify-between gap-4 md:justify-end">
-                <Button
-                  variant="outline"
-                  className="rounded-xl border-green-300 bg-transparent p-6"
-                >
-                  <NotebookPen className="h-5 w-5" />
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  className="rounded-xl bg-[#3300C9] p-6 text-white"
-                >
-                  <DownloadIcon className="h-5 w-5" />
-                  Generate PDF
-                </Button>
-              </div>
+            <Badge
+              variant={
+                jobRequest.status === 'PENDING'
+                  ? 'info'
+                  : jobRequest.status === 'APPROVED'
+                    ? 'success'
+                    : 'danger'
+              }
+              className="inline px-4 py-1 text-sm md:hidden"
+            >
+              {jobRequest.status.charAt(0).toUpperCase() +
+                jobRequest.status.slice(1).toLowerCase()}
+            </Badge>
+          </header>
+
+          <div className="flex w-full flex-col gap-2 md:w-auto md:items-end md:gap-8">
+            <Badge
+              variant={
+                jobRequest.status === 'PENDING'
+                  ? 'info'
+                  : jobRequest.status === 'APPROVED'
+                    ? 'success'
+                    : 'danger'
+              }
+              className="hidden px-4 py-1 text-sm md:inline"
+            >
+              {jobRequest.status.charAt(0).toUpperCase() +
+                jobRequest.status.slice(1).toLowerCase()}
+            </Badge>
+
+            <div className="flex w-full justify-between md:justify-end md:gap-4">
+              <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogTrigger asChild>
+                  <CustomButton className="inline-flex w-5/11 rounded-xl border border-[#254C00] bg-transparent py-6 text-sm text-[#254C00] hover:bg-transparent md:w-auto">
+                    <svg
+                      width="25"
+                      height="25"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M11 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H15C20 22 22 20 22 15V13"
+                        stroke="#254C00"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M16.0399 3.02123L8.15988 10.9012C7.85988 11.2012 7.55988 11.7912 7.49988 12.2212L7.06988 15.2312C6.90988 16.3212 7.67988 17.0812 8.76988 16.9312L11.7799 16.5012C12.1999 16.4412 12.7899 16.1412 13.0999 15.8412L20.9799 7.96123C22.3399 6.60123 22.9799 5.02123 20.9799 3.02123C18.9799 1.02123 17.3999 1.66123 16.0399 3.02123Z"
+                        stroke="#254C00"
+                        strokeWidth="2"
+                        strokeMiterlimit="10"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M14.9102 4.14844C15.5802 6.53844 17.4502 8.40844 19.8502 9.08844"
+                        stroke="#254C00"
+                        strokeWidth="2"
+                        strokeMiterlimit="10"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Edit
+                  </CustomButton>
+                </DialogTrigger>
+                <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
+                  <DialogTitle className="sr-only">
+                    Edit Man Power Requisition Form
+                  </DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Form to edit Man Power Requisition Form
+                  </DialogDescription>
+                  <ManpowerRequisitionForm
+                    initialData={jobRequest}
+                    onSuccess={() => {
+                      setIsEditModalOpen(false);
+                      fetchRequisitions(1); // Refresh data
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+              <CustomButton className="inline-flex w-5/11 rounded-xl py-6 text-sm md:w-auto">
+                <img src={SaveIcon} alt="Save Changes" className="mr-1" />
+                Generate PDF
+              </CustomButton>
             </div>
           </div>
+        </div>
 
-          {/* Left Column - Job Overview */}
-          <div className="rounded-2xl bg-white px-8 py-4 lg:col-span-2">
-            {/* Job Overview Section */}
-            <div>
-              <h2 className="mb-6 text-lg font-semibold text-gray-900">
-                Job Overview
-              </h2>
-              <div className="grid gap-8 sm:grid-cols-2">
-                {/* Left Column Fields */}
-                <div className="space-y-5">
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Job Title
-                    </label>
-                    <div className="mt-2 flex items-center gap-2 text-gray-900">
-                      <BriefcaseIcon className="h-4 w-4 text-gray-400" />
-                      <span className="font-medium">{jobRequest.title}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Employment Type
-                    </label>
-                    <div className="mt-2 flex items-center gap-2 text-gray-900">
-                      <ClockIcon className="h-4 w-4 text-gray-400" />
-                      <span className="font-medium">{jobRequest.type}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Budget Range
-                    </label>
-                    <div className="mt-2 flex items-center gap-2 text-gray-900">
-                      <DollarSignIcon className="h-4 w-4 text-gray-400" />
-                      <span className="font-medium">{jobRequest.salary}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Urgency
-                    </label>
-                    <div className="mt-2">
-                      <Badge
-                        variant="outline"
-                        className={`${jobRequest.urgency === 'High' ? 'border-red-200 bg-red-50 text-red-700' : jobRequest.urgency === 'Medium' ? 'border-yellow-200 bg-yellow-50 text-yellow-700' : 'border-green-200 bg-green-50 text-green-700'}`}
-                      >
-                        {jobRequest.urgency}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Requested By
-                    </label>
-                    <div className="mt-2 flex items-center gap-2 text-gray-900">
-                      <span className="h-4 w-4 rounded-full bg-gray-300"></span>
-                      <span className="font-medium">
-                        {jobRequest.requestedBy}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column Fields */}
-                <div className="space-y-5">
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Department
-                    </label>
-                    <div className="mt-2 flex items-center gap-2 text-gray-900">
-                      <span className="text-lg">🏢</span>
-                      <span className="font-medium">
-                        {jobRequest.department}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Career Level
-                    </label>
-                    <div className="mt-2 flex items-center gap-2 text-gray-900">
-                      <span className="text-lg">📊</span>
-                      <span className="font-medium">
-                        {jobRequest.careerLevel}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Number of Openings
-                    </label>
-                    <div className="mt-2 flex items-center gap-2 text-gray-900">
-                      <UsersIcon className="h-4 w-4 text-gray-400" />
-                      <span className="font-medium">
-                        {jobRequest.openings} Positions
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Expected Start Date
-                    </label>
-                    <div className="mt-2 flex items-center gap-2 text-gray-900">
-                      <CalendarIcon className="h-4 w-4 text-gray-400" />
-                      <span className="font-medium">{jobRequest.deadline}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">
-                      Reason for Hire
-                    </label>
-                    <div className="mt-2 flex items-center gap-2 text-gray-900">
-                      <span className="text-lg">📝</span>
-                      <span className="font-medium">
-                        {jobRequest.reasonForHire}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* Left Column - Job Overview */}
+        <section className="space-y-10 rounded-2xl bg-white p-8 lg:col-span-2">
+          {/* Job Overview Section */}
+          <h2 className="font-semibold">Job Overview</h2>
+          <div className="grid gap-x-12 gap-y-10 md:grid-cols-2">
+            {/* Left Column Fields */}
+            <Fields
+              title={jobRequest.jobTitle}
+              header="Job Title"
+              icon={
+                <img
+                  src={BriefcaseTimer}
+                  alt="BriefcaseTimer"
+                  className="h-6 w-6"
+                />
+              }
+            />
+            <Fields
+              title={jobRequest.department}
+              header="Department"
+              icon={
+                <img
+                  src={DepartmentIcon}
+                  alt="DepartmentIcon"
+                  className="h-6 w-6"
+                />
+              }
+            />
+            <Fields
+              title={jobRequest.employmentType}
+              header="Employment Type"
+              icon={
+                <img
+                  src={DiscoverIcon}
+                  alt="DiscoverIcon"
+                  className="h-6 w-6"
+                />
+              }
+            />
+            <Fields
+              title={jobRequest.grade}
+              header="Cadre Level"
+              icon={<img src={UserIcon} alt="UserIcon" className="h-6 w-6" />}
+            />
+            <Fields
+              title={`${jobRequest.minBudget} - ${jobRequest.maxBudget}`}
+              header="Budget Range (Per Annum)"
+              icon={<img src={MoneyIcon} alt="MoneyIcon" className="h-6 w-6" />}
+            />
+            <Fields
+              title={`${jobRequest.noOfOpenings} Positions`}
+              header="Number of Openings"
+              icon={
+                <img
+                  src={Profile2User}
+                  alt="Profile2User"
+                  className="h-6 w-6"
+                />
+              }
+            />
+            <Fields
+              title={
+                typeof jobRequest.urgency === 'boolean'
+                  ? jobRequest.urgency
+                    ? 'High'
+                    : 'Low'
+                  : jobRequest.urgency
+              }
+              header="Urgency"
+              icon={
+                <img
+                  src={ArrowUpSquare}
+                  alt="ArrowUpSquare"
+                  className="h-6 w-6"
+                />
+              }
+            />
+            <Fields
+              title={new Date(jobRequest.startDate).toLocaleDateString()}
+              header="Expected Start Date"
+              icon={
+                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
+              }
+            />
+            <Fields
+              title={jobRequest.requestedBy || 'N/A'}
+              header="Requested By"
+              icon={<img src={UserIcon} alt="Usericon" className="h-6 w-6" />}
+            />
+            <Fields
+              title={jobRequest.reason}
+              header="Reason for Hire"
+              icon={
+                <img src={MessageText} alt="MessageText" className="h-6 w-6" />
+              }
+            />
           </div>
+        </section>
 
-          {/* Right Column - Activity and Reason */}
-          <div className="space-y-6">
-            {/* Activity Log Card */}
+        {/* Right Column - Activity and Reason */}
+        <div className="space-y-6">
+          {/* Activity Log Card */}
+          <ActivityLog activity={activityLog} />
+
+          {/* Detailed Reason Card */}
+          <div className="rounded-xl bg-white p-6">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              Detailed Reason for Hire
+            </h2>
+            <p className="rounded-xl border border-gray-100 p-4 text-gray-700">
+              {jobRequest.detailedReason || 'Detailed Reason was not provided'}
+            </p>
+          </div>
+          {jobRequest.rejectionReason && (
             <div className="rounded-xl bg-white p-6">
               <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                Activity Log
-              </h2>
-              <div className="space-y-4">
-                {jobRequest.activityLog?.map((activity, index) => (
-                  <div key={index} className="flex gap-3">
-                    <div className="flex-shrink-0 pt-0.5">
-                      {activity.type === 'approved' ||
-                      activity.type === 'created' ||
-                      activity.type === 'submitted' ? (
-                        <CheckCircleIcon className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <div className="h-5 w-5 rounded-full border-2 border-gray-300"></div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {activity.title}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {activity.user} • {activity.date}, {activity.time}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Detailed Reason Card */}
-            <div className="rounded-xl bg-white p-6">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                Detailed Reason for Hire
+                Reason for Rejection
               </h2>
               <p className="text-sm text-gray-700">
-                {jobRequest.detailedReason}
+                {jobRequest.rejectionReason}
               </p>
             </div>
-          </div>
-        </main>
-
-        {/* Action Buttons */}
-        <div className="mt-8 flex gap-3">
-          <Button className="rounded-lg bg-blue-600 hover:bg-blue-700">
-            <CheckCircleIcon className="mr-2 h-4 w-4" />
-            Approve
-          </Button>
-          <Button variant="outline" className="rounded-lg">
-            Reject
-          </Button>
+          )}
         </div>
-      </div>
+      </main>
+
+      {/* Action Buttons */}
+      <footer className="mt-8 flex gap-3">
+        <CustomButton className="inline-flex w-48 rounded-xl py-6 text-sm">
+          <CheckCircleIcon className="mr-2 h-4 w-4" />
+          Approve
+        </CustomButton>
+
+        <CustomButton
+          variant="outline"
+          onClick={handleReject}
+          className="w-48 rounded-xl border-green-500 bg-transparent py-6 text-xs text-green-500"
+        >
+          <XCircleIcon className="mr-2 h-4 w-4" />
+          Reject
+        </CustomButton>
+      </footer>
     </div>
   );
 }

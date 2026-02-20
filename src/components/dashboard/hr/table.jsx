@@ -27,6 +27,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { FilterIcon, MoreHorizontalIcon, SearchIcon } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import emptyTableImg from '@/assets/icons/empty-table.svg';
 
 // Dummy data for table headers
 
@@ -37,6 +39,11 @@ export function TableActions({
   description,
   pageSize = 3,
   path,
+  tableActions = [],
+  applicantID,
+  paginationData,
+  onPageChange,
+  isLoading,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,20 +66,30 @@ export function TableActions({
     return (
       request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.status?.toLowerCase().includes(searchTerm.toLowerCase())
+      request.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.applicantName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
+  const isServerSide = !!paginationData;
+
   // Calculate pagination
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
+  const activePage = isServerSide ? paginationData.page : currentPage;
+  const totalItems = isServerSide
+    ? paginationData.totalCount
+    : filteredData.length;
+  const totalPages = isServerSide
+    ? paginationData.totalPages
+    : Math.ceil(totalItems / pageSize);
+  const startIndex = (activePage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  const currentData = filteredData.slice(startIndex, endIndex);
+  const currentData = isServerSide
+    ? filteredData
+    : filteredData.slice(startIndex, endIndex);
 
   // Handle page change
   const handlePageChange = (page) => {
-    setCurrentPage(page);
+    isServerSide ? onPageChange(page) : setCurrentPage(page);
   };
 
   // Handle status filter change
@@ -81,7 +98,7 @@ export function TableActions({
     setCurrentPage(1); // Reset to first page when filtering
   };
 
-  // Render pagination items
+  // Render pagination items (using activePage instead of currentPage)
   const renderPaginationItems = () => {
     const items = [];
 
@@ -92,7 +109,7 @@ export function TableActions({
           <PaginationItem key={i}>
             <PaginationLink
               className="size-7 cursor-pointer text-sm"
-              isActive={i === currentPage}
+              isActive={i === activePage}
               onClick={() => handlePageChange(i)}
             >
               {i}
@@ -106,7 +123,7 @@ export function TableActions({
         <PaginationItem key={1}>
           <PaginationLink
             className="size-7 cursor-pointer text-sm"
-            isActive={1 === currentPage}
+            isActive={1 === activePage}
             onClick={() => handlePageChange(1)}
           >
             1
@@ -117,18 +134,18 @@ export function TableActions({
       // Calculate which 3 pages to show in the middle
       let startPage, endPage;
 
-      if (currentPage <= 2) {
+      if (activePage <= 2) {
         // Near the beginning: show 2, 3
         startPage = 2;
         endPage = 3;
-      } else if (currentPage >= totalPages - 1) {
+      } else if (activePage >= totalPages - 1) {
         // Near the end: show totalPages-2, totalPages-1
         startPage = totalPages - 2;
         endPage = totalPages - 1;
       } else {
-        // In the middle: show currentPage-1, currentPage, currentPage+1
-        startPage = currentPage - 1;
-        endPage = currentPage + 1;
+        // In the middle: show activePage-1, activePage, activePage+1
+        startPage = activePage - 1;
+        endPage = activePage + 1;
       }
 
       // Add left ellipsis if needed
@@ -148,7 +165,7 @@ export function TableActions({
             <PaginationItem key={i}>
               <PaginationLink
                 className="size-7 cursor-pointer text-sm"
-                isActive={i === currentPage}
+                isActive={i === activePage}
                 onClick={() => handlePageChange(i)}
               >
                 {i}
@@ -173,7 +190,7 @@ export function TableActions({
           <PaginationItem key={totalPages}>
             <PaginationLink
               className="size-7 cursor-pointer text-sm"
-              isActive={totalPages === currentPage}
+              isActive={totalPages === activePage}
               onClick={() => handlePageChange(totalPages)}
             >
               {totalPages}
@@ -208,7 +225,7 @@ export function TableActions({
               }}
             />
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -288,76 +305,118 @@ export function TableActions({
             ))}
           </TableRow>
         </TableHeader>
+
         <TableBody>
-          {currentData.map((request) => (
-            <TableRow
-              key={request.id}
-              className="hover:bg-muted/50 border-transparent [&_td]:border-y [&_td:first-child]:rounded-l-3xl [&_td:first-child]:border-l [&_td:last-child]:rounded-r-3xl [&_td:last-child]:border-r"
-            >
-              {/* 1. DYNAMIC DATA COLUMNS */}
-              {Object.entries(request).map(([key, value]) => {
-                // A. Filter out keys you don't want to display (e.g., 'id')
-                if (key === 'id') return null;
-
-                // B. Special Styling for 'status'
-                if (key === 'status') {
-                  const statusColors = {
-                    Pending: { bg: '#CE8D001A', text: '#CE8D00' },
-                    Approved: { bg: '#0596691A', text: '#059669' },
-                    Rejected: { bg: '#DC26261A', text: '#DC2626' },
-                  };
-
-                  // Fallback in case status is unknown
-                  const style = statusColors[value] || {
-                    bg: '#000',
-                    text: '#fff',
-                  };
-
-                  return (
-                    <TableCell key={key} className="py-4 font-medium">
-                      <span
-                        className="rounded-full px-3 py-2 text-xs"
-                        style={{
-                          backgroundColor: style.bg,
-                          color: style.text,
-                        }}
-                      >
-                        {value}
-                      </span>
-                    </TableCell>
-                  );
-                }
-
-                // C. Default Render for all other keys (Title, Department, etc.)
-                return (
-                  <TableCell key={key} className="px-6 py-4 font-medium">
-                    {value}
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, index) => (
+              <TableRow
+                key={`skeleton-${index}`}
+                className="hover:bg-muted/50 border-transparent [&_td]:border-y [&_td:first-child]:rounded-l-3xl [&_td:first-child]:border-l [&_td:last-child]:rounded-r-3xl [&_td:last-child]:border-r"
+              >
+                {tableHeaders.map((_, colIndex) => (
+                  <TableCell key={colIndex} className="px-6 py-4">
+                    <Skeleton className="h-4 w-full" />
                   </TableCell>
-                );
-              })}
-
-              {/* 2. STATIC ACTION COLUMN (The Dropdown) */}
-              <TableCell className="py-4 text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8">
-                      <MoreHorizontalIcon />
-                      <span className="sr-only">Open menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => navigate(`${path}/${request?.id}`)}
-                    >
-                      View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>Approve</DropdownMenuItem>
-                    <DropdownMenuItem>Reject</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                ))}
+              </TableRow>
+            ))
+          ) : currentData.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={tableHeaders.length + 1}
+                className="h-24 text-center text-gray-500"
+              >
+                <img
+                  src={emptyTableImg}
+                  alt="Empty Table"
+                  className="mx-auto block w-55"
+                />
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            currentData.map((request) => (
+              <TableRow
+                key={request.id}
+                className="hover:bg-muted/50 border-transparent [&_td]:border-y [&_td:first-child]:rounded-l-3xl [&_td:first-child]:border-l [&_td:last-child]:rounded-r-3xl [&_td:last-child]:border-r"
+              >
+                {/* 1. DYNAMIC DATA COLUMNS */}
+                {Object.entries(request).map(([key, value]) => {
+                  // A. Filter out keys you don't want to display (e.g., 'id')
+                  if (key === 'id' || key === 'applicantID') return null;
+
+                  // B. Special Styling for 'status'
+                  if (key === 'status') {
+                    const statusColors = {
+                      Pending: { bg: '#CE8D001A', text: '#CE8D00' },
+                      Approved: { bg: '#0596691A', text: '#059669' },
+                      Rejected: { bg: '#DC26261A', text: '#DC2626' },
+                      Review: { bg: '#F39C121A', text: '#F39C12' },
+                      Interviewing: { bg: '#3300C91A', text: '#3300C9' },
+                      Shortlisted: { bg: '#3498DB1A', text: '#3498DB' },
+                    };
+
+                    // Fallback in case status is unknown
+                    const style = statusColors[value] || {
+                      bg: '#000',
+                      text: '#fff',
+                    };
+
+                    return (
+                      <TableCell key={key} className="py-4 font-medium">
+                        <span
+                          className="flex max-w-26 justify-center overflow-hidden rounded-full px-3 py-2 text-xs"
+                          style={{
+                            backgroundColor: style.bg,
+                            color: style.text,
+                          }}
+                        >
+                          {value}
+                        </span>
+                      </TableCell>
+                    );
+                  }
+
+                  // C. Default Render for all other keys (Title, Department, etc.)
+                  return (
+                    <TableCell key={key} className="px-6 py-4 font-medium">
+                      {value}
+                    </TableCell>
+                  );
+                })}
+
+                {/* 2. STATIC ACTION COLUMN (The Dropdown) */}
+                <TableCell className="py-4 text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="size-8">
+                        <MoreHorizontalIcon />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() =>
+                          navigate(
+                            `${path}/${applicantID ? request?.applicantID : request?.id}`
+                          )
+                        }
+                      >
+                        View
+                      </DropdownMenuItem>
+                      {tableActions.map((action) => (
+                        <DropdownMenuItem
+                          key={action.title}
+                          onClick={() => action.action(request)}
+                        >
+                          {action.title}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 
@@ -389,9 +448,7 @@ export function TableActions({
           <PaginationItem>
             <PaginationPrevious
               className="cursor-pointer border"
-              onClick={() =>
-                currentPage > 1 && handlePageChange(currentPage - 1)
-              }
+              onClick={() => activePage > 1 && handlePageChange(activePage - 1)}
             />
           </PaginationItem>
 
@@ -401,7 +458,7 @@ export function TableActions({
             <PaginationNext
               className="cursor-pointer border"
               onClick={() =>
-                currentPage < totalPages && handlePageChange(currentPage + 1)
+                activePage < totalPages && handlePageChange(activePage + 1)
               }
             />
           </PaginationItem>

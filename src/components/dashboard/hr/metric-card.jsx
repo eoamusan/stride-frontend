@@ -1,4 +1,4 @@
-import { Bar, BarChart, Cell, XAxis, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, Cell, XAxis, YAxis } from 'recharts';
 import chevronUpIcon from '@/assets/icons/chevron-up.svg';
 import chevronDownIcon from '@/assets/icons/chevron-down.svg';
 import { Card } from '../../ui/card'; // Verify this path matches your project
@@ -26,10 +26,10 @@ export default function MetricCard({
   // Define colors directly here to avoid CSS variable issues
   const colors = {
     // Start Light (300) -> End Dark (600) to increase visual weight
-    month1: isPositive ? '#86efac' : '#fca5a5',
-    month2: isPositive ? '#4ade80' : '#f87171',
-    month3: isPositive ? '#22c55e' : '#ef4444',
-    month4: isPositive ? '#16a34a' : '#dc2626',
+    month1: isPositive ? '#36FF1B' : '#fca5a5',
+    month2: isPositive ? '#36FF1BCC' : '#f87171',
+    month3: isPositive ? '#36FF1BB2' : '#ef4444',
+    month4: isPositive ? '#36FF1B80' : '#dc2626',
   };
 
   const chartConfig = {
@@ -62,7 +62,7 @@ export default function MetricCard({
   // Render function for the chart to ensure consistency
   const renderChart = () => (
     <div className="ml-4 shrink-0">
-      <div className="relative h-12 w-16">
+      <div className="relative h-12 w-12">
         <ChartContainer config={chartConfig} className="h-full w-full">
           <BarChart
             data={activeData}
@@ -71,6 +71,10 @@ export default function MetricCard({
           >
             {/* XAxis is required to define the slots, but we hide it and remove padding */}
             <XAxis dataKey="month" hide padding={{ left: 0, right: 0 }} />
+            <YAxis
+              hide
+              domain={[0, (dataMax) => (dataMax < 50 ? 50 : dataMax)]}
+            />
             <Bar dataKey="unifiedValue" radius={0}>
               {activeData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fillColor} />
@@ -88,8 +92,8 @@ export default function MetricCard({
         <h3 className="text-sm font-medium text-[#434343]">{title}</h3>
         <div className="flex items-end justify-between">
           <div className="flex-1">
-            <div className="mb-2 text-base font-bold text-[#434343]">
-              000{unit && <span className="text-[#7D7D7D]">{unit}</span>}
+            <div className="mb-2 text-2xl font-bold text-[#434343]">
+              00{unit && <span className="text-[#7D7D7D]">{unit}</span>}
             </div>
             <div className="mt-4 flex items-center text-sm font-bold text-[#7D7D7D]">
               <img src={chevronUpIcon} alt="Increase" className="mr-1" />
@@ -98,36 +102,7 @@ export default function MetricCard({
           </div>
 
           {/* Chart Area */}
-          {(chartData || sampleChartData) && renderChart()}
-
-          {emojis && (
-            <div className="ml-4 shrink-0">
-              <span className="text-4xl">{emojis}</span>
-            </div>
-          )}
-
-          {!chartData && !emojis && (
-            <div className="flex flex-row items-center">
-              <Avatar>
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  className="grayscale"
-                />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <Avatar className="-ml-3">
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  className="grayscale"
-                />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <Avatar className="-ml-3">
-                <AvatarImage src="#" className="grayscale" />
-                <AvatarFallback>+3</AvatarFallback>
-              </Avatar>
-            </div>
-          )}
+          {sampleChartData && renderChart()}
         </div>
       </Card>
     );
@@ -139,7 +114,7 @@ export default function MetricCard({
 
       <div className="flex items-end justify-between">
         <div className="flex-1">
-          <div className="mb-2 text-base font-bold text-[#434343]">
+          <div className="mb-2 text-2xl font-bold text-[#434343]">
             {new Intl.NumberFormat('en-US', {
               minimumFractionDigits: 0,
               maximumFractionDigits: 2,
@@ -164,17 +139,20 @@ export default function MetricCard({
         {/* Chart Area */}
         {chartData && renderChart()}
 
-        {emojis && (
-          <div className="ml-4 shrink-0">
-            <span className="text-4xl">{emojis}</span>
-          </div>
-        )}
+        {emojis && <div className="ml-4 shrink-0">{emojis}</div>}
 
         {!chartData && !emojis && (
           <div className="flex flex-row items-center">
             <Avatar className="h-6 w-6">
               <AvatarImage
-                src="https://github.com/shadcn.png"
+                src="https://github.com/1.png"
+                className="grayscale"
+              />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+            <Avatar className="-ml-3 h-6 w-6">
+              <AvatarImage
+                src="https://github.com/8.png"
                 className="grayscale"
               />
               <AvatarFallback>CN</AvatarFallback>
@@ -186,14 +164,7 @@ export default function MetricCard({
               />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
-            <Avatar className="-ml-3 h-6 w-6">
-              <AvatarImage
-                src="https://github.com/shadcn.png"
-                className="grayscale"
-              />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-            <Avatar className="-ml-3 h-6 w-6">
+            <Avatar className="-ml-3 h-6 w-6 text-xs">
               <AvatarImage src="#" className="grayscale" />
               <AvatarFallback>+27</AvatarFallback>
             </Avatar>

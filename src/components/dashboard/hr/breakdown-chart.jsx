@@ -68,13 +68,13 @@ export function ChartPieDonutText({
   }, [chartData]);
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex min-h-80 flex-col justify-between">
       <CardHeader className="items-center pb-0">
         <CardTitle>{title}</CardTitle>
         <CardDescription>{text}</CardDescription>
       </CardHeader>
       {emptyState ? (
-        <div className="flex min-h-40 w-full items-center justify-center bg-white">
+        <div className="flex h-40 w-40 w-full justify-center">
           <img src={emptyStateImg} alt="Empty State" />
         </div>
       ) : (
@@ -131,15 +131,15 @@ export function ChartPieDonutText({
             </PieChart>
           </ChartContainer>
           <div
-            className={`flex flex-wrap justify-center gap-4 ${newClass ? '' : 'md:flex-col md:justify-center'}`}
+            className={`flex flex-wrap justify-center gap-3 ${newClass ? '' : 'md:flex-col md:justify-center'}`}
           >
             {chartData.map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
+              <div key={item.label} className="flex items-center gap-1">
                 <span
                   className={newClass ? 'h-2 w-2 rounded-full' : 'h-4.5 w-2'}
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-muted-foreground text-sm font-medium">
+                <span className="text-muted-foreground text-xs font-medium">
                   {item.label}
                 </span>
               </div>

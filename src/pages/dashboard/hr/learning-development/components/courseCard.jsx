@@ -32,7 +32,11 @@ export default function CourseCard({
         {status && (
           <Badge
             variant={statusVariant}
-            className="absolute top-3 right-3 bg-white/90 px-3 py-1 border-sm text-gray-700 hover:bg-white"
+            className={`border-sm absolute top-3 right-3 px-3 py-1 ${
+              status.toLowerCase() === 'active'
+                ? 'bg-green-500 text-white hover:bg-green-600'
+                : 'bg-white/90 text-gray-700 hover:bg-white'
+            }`}
           >
             {status}
           </Badge>
@@ -76,7 +80,7 @@ export default function CourseCard({
             {onView && (
               <button
                 onClick={onView}
-                className="rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                className="cursor-pointer rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
                 aria-label="View course"
               >
                 <img src={EyeIcon} alt="View Icon" />
@@ -86,7 +90,7 @@ export default function CourseCard({
             {onEdit && (
               <button
                 onClick={onEdit}
-                className="rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                className="cursor-pointer rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
                 aria-label="Edit course"
               >
                 <img src={EditIcon} alt="Edit Icon" />
@@ -96,10 +100,10 @@ export default function CourseCard({
             {onDelete && (
               <button
                 onClick={onDelete}
-                className="rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-red-600 cursor-pointer"
+                className="cursor-pointer rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-red-600"
                 aria-label="Delete course"
               >
-                <img src={TrashIcon} alt="Delete Icon" />
+                <img src={TrashIcon} alt="Delete Icon" className='h-4' />
               </button>
             )}
           </div>

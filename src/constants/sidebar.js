@@ -174,10 +174,10 @@ const accountsPayableItems = [
     title: 'Vendor Invoices',
     link: '/dashboard/accounting/accounts-payable/vendor-invoices',
   },
-  // {
-  //   title: 'Vendors',
-  //   link: '/dashboard/accounting/accounts-payable/vendors',
-  // },
+  {
+    title: 'Vendors',
+    link: '/dashboard/accounting/accounts-payable/vendors',
+  },
   {
     title: 'Bids',
     link: '/dashboard/accounting/accounts-payable/bids',
@@ -392,7 +392,6 @@ const bankingAndReconciliationItems = [
     link: '/dashboard/accounting/banking-reconciliation/audit-trail',
   },
 ];
-
 const recruitmentItems = [
   {
     title: 'Job Requisitions',
@@ -444,15 +443,14 @@ const employeeDirectoryItems = [
 
 const attendanceLeaveItems = [
   {
-    title: 'Attendance',
+    title: 'Attendance Management',
     link: '/dashboard/hr/attendance-leave',
   },
   {
-    title: 'Leave',
+    title: 'Leave Management',
     link: '/dashboard/hr/attendance-leave/leave',
   },
 ];
-
 const performanceItems = [
   {
     title: 'Performance',
@@ -497,10 +495,6 @@ const payrollItems = [
     title: 'Compliance',
     link: '/dashboard/hr/payroll/compliance',
   },
-];
-
-const employeePayroll = [
-  { title: 'PaySlips History', link: '/dashboard/hr/payroll/payslips-history' },
 ];
 
 const learningAndDevelopmentItems = [
@@ -665,7 +659,6 @@ const hrTopItems = {
   attendanceLeave: attendanceLeaveItems,
   performance: performanceItems,
   payroll: payrollItems,
-  employeePayroll: employeePayroll,
   learningAndDevelopement: learningAndDevelopmentItems,
   engagement: engagementItems,
   analytics: analyticsItems,

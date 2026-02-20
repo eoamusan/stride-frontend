@@ -17,6 +17,9 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontalIcon } from 'lucide-react';
 
+import DeleteIcon from '@/assets/icons/gray-delete.svg';
+import EditIcon from '@/assets/icons/gray-edit.svg';
+
 const priorityBadgeStyles = {
   mandatory: 'bg-red-100 text-red-500',
   optional: 'bg-blue-50 text-blue-400',
@@ -89,7 +92,7 @@ const CourseTable = ({ onEdit }) => {
     const styles = map[key] ?? 'bg-gray-100 text-gray-700';
     return (
       <span
-        className={`min-w-[98px] rounded-full px-4 py-2 text-xs font-medium ${styles}`}
+        className={`inline-flex w-[98px] items-center justify-center rounded-full px-4 py-2 text-sm font-medium ${styles}`}
       >
         {text}
       </span>
@@ -216,11 +219,13 @@ const CourseTable = ({ onEdit }) => {
 
                 <DropdownMenuContent align="end" className="text-sm">
                   <DropdownMenuItem onClick={() => onEdit(row)}>
-                    Edit
+                    <img src={EditIcon} alt="Edit" className="mr-1 h-4" />
+                    <span>Edit</span>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem onClick={() => handleDelete(row.id)}>
-                    Delete
+                    <img src={DeleteIcon} alt="Delete" className="mr-1 h-4" />
+                    <span className="text-sm">Delete</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -1,157 +1,277 @@
-import React, { useState } from 'react';
-import { Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Calendar } from '@/components/ui/calendar';
+import { useJobRequisitionStore } from '@/stores/job-requisition-store';
+import toast from 'react-hot-toast';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { FormInput, FormSelect } from '@/components/customs'; // Custom wrappers
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
+import PreviewForm from './preview-form';
+import CalendarIcon from '@/assets/icons/calendar.svg';
 
-export default function ManpowerRequisitionForm() {
-  const [formData, setFormData] = useState({
-    jobTitle: '',
-    department: '',
-    employmentType: '',
-    cadre: '',
-    budgetMin: '',
-    budgetMax: '',
-    openings: 1,
-    urgency: '',
-    expectedStartDate: '',
-    reasonForHire: '',
-    detailedReason: '',
+const requisitionSchema = z.object({
+  jobTitle: z.string().min(1, { message: 'Job Title is required' }),
+  department: z.string().min(1, { message: 'Department is required' }),
+  employmentType: z.string().min(1, { message: 'Employment Type is required' }),
+  grade: z.string().min(1, { message: 'Grade is required' }),
+  minBudget: z.string().min(1, { message: 'Min Budget is required' }),
+  maxBudget: z.string().min(1, { message: 'Max Budget is required' }),
+  noOfOpenings: z.coerce
+    .number()
+    .min(1, { message: 'At least one opening is required' }),
+  urgency: z.string().min(1, { message: 'Urgency is required' }),
+  startDate: z.date({ required_error: 'Start Date is required' }),
+  reason: z.string().min(1, { message: 'Reason for hire is required' }),
+  detailedReason: z
+    .string()
+    .max(200, { message: 'Must be 200 characters or less' })
+    .optional(),
+});
+const departments = [
+  { label: 'Engineering', value: 'engineering' },
+  { label: 'Design', value: 'design' },
+  { label: 'Marketing', value: 'marketing' },
+  { label: 'Human Resources', value: 'hr' },
+];
+
+const employmentTypes = [
+  { label: 'Full-time', value: 'full-time' },
+  { label: 'Part-time', value: 'part-time' },
+  { label: 'Contract', value: 'contract' },
+  { label: 'Internship', value: 'internship' },
+];
+
+const cadres = [
+  { label: 'Entry Level', value: 'entry-level' },
+  { label: 'Mid Level', value: 'mid-level' },
+  { label: 'Senior Level', value: 'senior-level' },
+  { label: 'Executive Level', value: 'executive-level' },
+  { label: 'Director Level', value: 'director-level' },
+  { label: 'CEO Level', value: 'ceo-level' },
+];
+
+const urgencyLevels = [
+  { label: 'Low', value: 'low' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'High', value: 'high' },
+];
+
+const reasons = [
+  { label: 'Recruitment', value: 'recruitment' },
+  { label: 'Replacement', value: 'replacement' },
+  { label: 'Rotation', value: 'rotation' },
+  { label: 'Other', value: 'other' },
+];
+export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
+  const [isPreview, setIsPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createRequisition, updateRequisition } = useJobRequisitionStore();
+
+  const form = useForm({
+    resolver: zodResolver(requisitionSchema),
+    defaultValues: {
+      jobTitle: '',
+      department: '',
+      employmentType: '',
+      grade: '',
+      minBudget: '',
+      maxBudget: '',
+      noOfOpenings: 1,
+      urgency: '',
+      startDate: undefined,
+      reason: '',
+      detailedReason: '',
+    },
   });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        jobTitle: initialData.jobTitle || '',
+        department: initialData.department || '',
+        employmentType: initialData.employmentType || '',
+        grade: initialData.grade || '',
+        minBudget: initialData.minBudget || '',
+        maxBudget: initialData.maxBudget || '',
+        noOfOpenings: initialData.noOfOpenings || initialData.openings || 1,
+        urgency: initialData.urgency || '',
+        startDate: initialData.startDate
+          ? new Date(initialData.startDate)
+          : undefined,
+        reason: initialData.reason || '',
+        detailedReason: initialData.detailedReason || '',
+      });
+    }
+  }, [initialData, form]);
+
+  const formatBudget = (value) => {
+    if (!value) return '';
+    const rawValue = value.replace(/,/g, '').replace(/\D/g, '');
+    return rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  const handleRadioChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const onBudgetChange = (e, field) => {
+    const formatted = formatBudget(e.target.value);
+    field.onChange(formatted);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form Data:', formData);
-    // Add your submission logic here
+  const onSubmit = (data) => {
+    setIsPreview(true);
   };
+
+  const handleFinalSubmit = async () => {
+    setIsSubmitting(true);
+    const formData = form.getValues();
+    try {
+      const payload = {
+        jobTitle: formData.jobTitle,
+        department: formData.department,
+        employmentType: formData.employmentType,
+        grade: formData.grade,
+        minBudget: formData.minBudget.replace(/,/g, ''),
+        maxBudget: formData.maxBudget.replace(/,/g, ''),
+        noOfOpenings: `${formData.noOfOpenings}`,
+        urgency: formData.urgency === 'High',
+        reason: formData.reason,
+        detailedReason: formData.detailedReason,
+        startDate: formData.startDate,
+      };
+
+      if (initialData?._id || initialData?.id) {
+        await updateRequisition({
+          id: initialData._id || initialData.id,
+          data: payload,
+        });
+        toast.success('Requisition updated successfully');
+      } else {
+        await createRequisition({ data: payload });
+        toast.success('Requisition created successfully');
+      }
+
+      form.reset();
+      setIsPreview(false);
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error('Error saving requisition:', error);
+      toast.error(
+        error.response?.data?.message || 'Failed to save requisition'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isPreview) {
+    return (
+      <PreviewForm
+        formData={form.getValues()}
+        handleFinalSubmit={handleFinalSubmit}
+        isSubmitting={isSubmitting}
+        setIsPreview={setIsPreview}
+      />
+    );
+  }
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-2xl space-y-6 bg-white"
-      >
-        <h2 className="mb-6 text-center text-2xl font-bold text-gray-900">
-          Man-Power Requisition Form
-        </h2>
+    <div className="flex h-full w-full items-center justify-center">
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="w-full max-w-2xl space-y-6"
+        >
+          <h2 className="mb-6 text-center text-2xl font-bold text-gray-900">
+            {initialData
+              ? 'Edit Man-Power Requisition Form'
+              : 'Man-Power Requisition Form'}
+          </h2>
 
-        {/* Job Title */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Job Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
+          <FormInput
+            control={form.control}
             name="jobTitle"
+            label={
+              <>
+                Job Title<span className="text-red-500">*</span>
+              </>
+            }
             placeholder="e.g Senior Software Engineer"
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 transition-all focus:border-transparent focus:ring-2 focus:ring-purple-600 focus:outline-none"
-            required
-            value={formData.jobTitle}
-            onChange={handleInputChange}
           />
-        </div>
 
-        {/* Department */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Department <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <select
-              name="department"
-              className="w-full cursor-pointer appearance-none rounded-lg border border-gray-200 bg-white px-4 py-2.5 focus:ring-2 focus:ring-purple-600 focus:outline-none"
-              value={formData.department}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="" disabled>
-                Engineering
-              </option>
-              <option value="engineering">Engineering</option>
-              <option value="design">Design</option>
-              <option value="marketing">Marketing</option>
-              <option value="hr">Human Resources</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-              </svg>
-            </div>
-          </div>
-        </div>
+          <FormSelect
+            control={form.control}
+            name="department"
+            label={
+              <>
+                Department<span className="text-red-500">*</span>
+              </>
+            }
+            placeholder="Select Department"
+            options={departments}
+          />
 
-        {/* Employment Type */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Employment Type <span className="text-red-500">*</span>
-          </label>
-          <div className="flex gap-6 pt-1">
-            {['Full Time', 'Contract', 'Internship'].map((type) => (
-              <label
-                key={type}
-                className="group flex cursor-pointer items-center"
-              >
-                <div className="relative flex items-center">
-                  <input
-                    type="radio"
-                    name="employmentType"
-                    value={type}
-                    checked={formData.employmentType === type}
-                    onChange={() => handleRadioChange('employmentType', type)}
-                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-full border border-gray-300 transition-all checked:border-purple-600 checked:bg-white"
-                  />
-                  <div className="pointer-events-none absolute top-1/2 left-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 opacity-0 transition-opacity peer-checked:opacity-100"></div>
-                </div>
-                <span className="ml-2 text-sm text-gray-600 group-hover:text-gray-900">
-                  {type}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
+          <FormField
+            control={form.control}
+            name="employmentType"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>
+                  Employment Type<span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                    className="flex items-center gap-4"
+                  >
+                    {employmentTypes.map((type) => (
+                      <FormItem
+                        key={type.value}
+                        className="flex items-center space-y-0 space-x-1"
+                      >
+                        <FormControl>
+                          <RadioGroupItem value={type.value} />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {type.label}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Cadre */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Cadre <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <select
-              name="cadre"
-              className="w-full cursor-pointer appearance-none rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-500 focus:ring-2 focus:ring-purple-600 focus:outline-none"
-              value={formData.cadre}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="" disabled>
-                Select the role level or grade
-              </option>
-              <option value="junior">Junior (L1-L2)</option>
-              <option value="mid">Mid-Level (L3-L4)</option>
-              <option value="senior">Senior (L5+)</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-              </svg>
-            </div>
-          </div>
-        </div>
+          <FormSelect
+            control={form.control}
+            name="grade"
+            label={
+              <>
+                Cadre<span className="text-red-500">*</span>
+              </>
+            }
+            placeholder="Select the role level or grade"
+            options={cadres}
+          />
 
-        {/* Budget Range & Number of Openings */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               Budget Range{' '}
@@ -159,157 +279,212 @@ export default function ManpowerRequisitionForm() {
               <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400">
-                  Min
-                </span>
-                <input
-                  type="text"
-                  name="budgetMin"
-                  placeholder="₦15,000,000"
-                  className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
-                  value={formData.budgetMin}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="relative flex-1">
-                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs text-gray-400">
-                  Max
-                </span>
-                <input
-                  type="text"
-                  name="budgetMax"
-                  placeholder="₦25,000,000"
-                  className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
-                  value={formData.budgetMax}
-                  onChange={handleInputChange}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="minBudget"
+                render={({ field }) => (
+                  <FormItem className="relative flex-1">
+                    <span className="absolute top-5 left-3 z-10 -translate-y-[calc(50%+10px)] text-xs text-gray-400">
+                      Min
+                    </span>
+                    <span className="absolute top-9 left-3 z-10 -translate-y-[calc(50%+10px)] text-lg font-bold text-gray-400">
+                      ₦
+                    </span>
+                    <FormControl>
+                      <input
+                        {...field}
+                        onChange={(e) => onBudgetChange(e, field)}
+                        placeholder="₦15,000,000"
+                        className="h-12 w-full rounded-xl border border-gray-200 pr-3 pl-10 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        value={formatBudget(field.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="maxBudget"
+                render={({ field }) => (
+                  <FormItem className="relative flex-1">
+                    <span className="absolute top-5 left-3 z-10 -translate-y-[calc(50%+10px)] text-xs text-gray-400">
+                      Max
+                    </span>
+                    <span className="absolute top-9 left-3 z-10 -translate-y-[calc(50%+10px)] text-lg font-bold text-gray-400">
+                      ₦
+                    </span>
+                    <FormControl>
+                      <input
+                        {...field}
+                        onChange={(e) => onBudgetChange(e, field)}
+                        placeholder="₦25,000,000"
+                        value={formatBudget(field.value)}
+                        className="h-12 w-full rounded-xl border border-gray-200 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Number of Openings <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              name="openings"
-              min="1"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 focus:ring-2 focus:ring-purple-600 focus:outline-none"
-              value={formData.openings}
-              onChange={handleInputChange}
-            />
-          </div>
-        </div>
+          <FormInput
+            control={form.control}
+            name="noOfOpenings"
+            label={
+              <>
+                Number of Openings<span className="text-red-500">*</span>
+              </>
+            }
+            type="number"
+            placeholder="1"
+          />
 
-        {/* Urgency */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Urgency
-          </label>
-          <div className="flex gap-6 pt-1">
-            {['Low', 'High'].map((level) => (
-              <label
-                key={level}
-                className="group flex cursor-pointer items-center"
-              >
-                <div className="relative flex items-center">
-                  <input
-                    type="radio"
-                    name="urgency"
-                    value={level}
-                    checked={formData.urgency === level}
-                    onChange={() => handleRadioChange('urgency', level)}
-                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-full border border-gray-300 transition-all checked:border-purple-600 checked:bg-white"
-                  />
-                  <div className="pointer-events-none absolute top-1/2 left-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 opacity-0 transition-opacity peer-checked:opacity-100"></div>
-                </div>
-                <span className="ml-2 text-sm text-gray-600 group-hover:text-gray-900">
-                  {level}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
+          <FormField
+            control={form.control}
+            name="urgency"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>
+                  Urgency<span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                    className="flex items-center gap-4"
+                  >
+                    {urgencyLevels.map((urgency) => (
+                      <FormItem
+                        key={urgency.value}
+                        className="flex items-center space-y-0 space-x-0"
+                      >
+                        <FormControl>
+                          <RadioGroupItem value={urgency.value} />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {urgency.label}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Expected Start Date */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Expected Start Date
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              name="expectedStartDate"
-              placeholder="20/12/2025"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-gray-600 focus:ring-2 focus:ring-purple-600 focus:outline-none"
-              value={formData.expectedStartDate}
-              onChange={handleInputChange}
-              onFocus={(e) => (e.target.type = 'date')}
-              onBlur={(e) => (e.target.type = 'text')}
-            />
-            <Calendar className="pointer-events-none absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 text-gray-400" />
-          </div>
-        </div>
+          <FormField
+            control={form.control}
+            name="startDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>
+                  Expected Start Date<span className="text-red-500">*</span>
+                </FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className="h-12 w-full justify-between rounded-xl bg-gray-50 text-left text-sm font-normal"
+                      >
+                        {field.value
+                          ? format(field.value, 'PPP')
+                          : 'Pick a date'}
+                        <img
+                          src={CalendarIcon}
+                          alt="Calendar Icon"
+                          className="ml-2"
+                        />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Reason for Hire */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Reason for Hire <span className="text-red-500">*</span>
-          </label>
-          <div className="flex gap-6 pt-1">
-            {['New Role', 'Replacement', 'Growth'].map((reason) => (
-              <label
-                key={reason}
-                className="group flex cursor-pointer items-center"
-              >
-                <div className="relative flex items-center">
-                  <input
-                    type="radio"
-                    name="reasonForHire"
-                    value={reason}
-                    checked={formData.reasonForHire === reason}
-                    onChange={() => handleRadioChange('reasonForHire', reason)}
-                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-full border border-gray-300 transition-all checked:border-purple-600 checked:bg-white"
-                  />
-                  <div className="pointer-events-none absolute top-1/2 left-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 opacity-0 transition-opacity peer-checked:opacity-100"></div>
-                </div>
-                <span className="ml-2 text-sm text-gray-600 group-hover:text-gray-900">
-                  {reason}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
+          <FormField
+            control={form.control}
+            name="reason"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>
+                  Reason for Hire<span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                    className="flex items-center gap-4"
+                  >
+                    {reasons.map((reason) => (
+                      <FormItem
+                        key={reason.value}
+                        className="flex items-center space-y-0 space-x-0"
+                      >
+                        <FormControl>
+                          <RadioGroupItem value={reason.value} />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {reason.label}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Detailed Reason */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Detailed Reason
-          </label>
-          <textarea
+          <FormField
+            control={form.control}
             name="detailedReason"
-            rows="4"
-            maxLength="200"
-            placeholder="Explain with details the reasons for this hire and how it benefits the company"
-            className="w-full resize-none rounded-lg border border-gray-200 px-4 py-2.5 focus:ring-2 focus:ring-purple-600 focus:outline-none"
-            value={formData.detailedReason}
-            onChange={handleInputChange}
-          ></textarea>
-          <div className="text-right text-xs text-gray-400">
-            {formData.detailedReason.length}/200
-          </div>
-        </div>
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Detailed Reason</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Textarea
+                      placeholder="Explain with details the reasons for this hire and how it benefits the company"
+                      className="min-h-32 resize-none"
+                      maxLength={200}
+                      {...field}
+                    />
+                    <div className="text-muted-foreground mt-1 text-right text-xs">
+                      {field.value?.length || 0}/200
+                    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="mt-4 w-full rounded-xl bg-[#3b07bb] py-3 font-medium text-white shadow-sm transition-colors hover:bg-[#2f0596]"
-        >
-          Preview Requisition
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="mt-4 w-full rounded-xl bg-[#3b07bb] py-3 font-medium text-white shadow-sm transition-colors hover:bg-[#2f0596]"
+          >
+            {initialData ? 'Update Requisition' : 'Preview Requisition'}
+          </button>
+        </form>
+      </Form>
     </div>
   );
 }
