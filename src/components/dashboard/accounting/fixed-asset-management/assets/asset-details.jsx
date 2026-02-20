@@ -20,6 +20,10 @@ import {
 } from "@/components/ui/accordion"
 import ImageCarousel from "../../shared/image-carousel";
 import temporaryImg from '@/assets/images/customer-ledger-temp.png';
+import { useEffect, useMemo, useState } from "react";
+import AssetService from "@/api/asset";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDate } from "@/lib/utils";
 
 function MaintenanceHistory() {
   return <div>
@@ -112,15 +116,12 @@ function MaintenanceHistory() {
   </div>
 }
 
-function AssignedImages() {
+function AssignedImages({ assignedImages }) {
+  console.log('Rendering AssignedImages component', assignedImages)
   return <>
 
   <div className="mt-4">
-    <ImageCarousel images={[
-      'https://placehold.co/600x400',
-      'https://placehold.co/600x500',
-      'https://placehold.co/600x300',
-    ]} />
+    <ImageCarousel images={[...assignedImages]} />
   </div>
   
   </>
@@ -185,69 +186,70 @@ function InsuranceDetails() {
   </>
 }
 
-export default function AssetDetails({ setShowDetails }) {
+export default function AssetDetails({ setShowDetails, selectedItem }) {
 
-  const assetData = [
-    {
-      label: 'Asset Name',
-      value: 'Office Van'
-    },
-    {
-      label: 'Category',
-      value: 'Office Van'
-    },
-    {
-      label: 'Sub Category',
-      value: 'Office Van'
-    },
-    {
-      label: 'Serial Number',
-      value: 'MBP2024001'
-    },
-    {
-      label: 'Description',
-      value: 'Keep this for over 3 years'
-    },
-    {
-      label: 'Depreciation Status',
-      type: 'component',
-      value: () => {
-        return (
-          <div className="grid grid-cols-1 items-center">
-            <ProgressBar variant="danger" value={30} />
-            <span className="text-[7pt]">The depreciation value of your asset is almost depleted. 
-              <span className="font-semibold">You might want to put it up for sale on </span> <a href="#" className="text-primary underline">Shobu</a>
-            </span>
-          </div>
-        )
+  const [assetInfo, setAssetInfo] = useState({})
+
+  const assetData = useMemo(() => {
+    console.log('Asset Info in useMemo: ', assetInfo)
+    return [
+      {
+        label: 'Asset Name',
+        value: assetInfo?.asset?.assetName
+      },
+      {
+        label: 'Category',
+        value: assetInfo?.asset?.category?.categoryName
+      },
+      {
+        label: 'Sub Category',
+        value: assetInfo?.asset?.subCategory
+      },
+      {
+        label: 'Serial Number',
+        value: assetInfo?.asset?.serialNo
+      },
+      {
+        label: 'Description',
+        value: assetInfo?.asset?.description
+      },
+      {
+        label: 'Depreciation Status',
+        type: 'component',
+        value: () => {
+          return (
+            <div className="grid grid-cols-1 items-center">
+              <ProgressBar variant="danger" value={30} />
+              <span className="text-[7pt]">The depreciation value of your asset is almost depleted. 
+                <span className="font-semibold">You might want to put it up for sale on </span> <a href="#" className="text-primary underline">Shobu</a>
+              </span>
+            </div>
+          )
+        }
       }
-    },
-  ]
+    ]
+  }, [assetInfo])
 
   const purchaseData = [
     {
       label: 'Purchase Price',
-      value: 'Office Van'
+      value: assetInfo?.purchaseDetails?.purchasePrice
     },
     {
       label: 'Supplier',
-      value: 'JJ Solutions'
+      value: assetInfo?.purchaseDetails?.supplier
     },
     {
       label: 'Purchase No',
-      value: 'PO123456'
+      value: assetInfo?.purchaseDetails?.pon
     },
     {
       label: 'Warranty Start Date',
-      value: '01-01-2024'
-    },
-    {
-      label: 'Serial Number',
-      value: 'MBP2024001'
+      value: assetInfo?.purchaseDetails?.warrantyStartDate
     },
     {
       label: 'Warranty End Date',
-      value: '22-08-2026'
+      value: assetInfo?.purchaseDetails?.warrantyEndDate
     },
     {
       label: 'Status',
@@ -263,49 +265,61 @@ export default function AssetDetails({ setShowDetails }) {
   const locationData = [
     {
       label: 'Building',
-      value: 'Head Office'
+      value: assetInfo?.location?.building
     },
     {
       label: 'Floor',
-      value: '3rd Floor'
+      value: assetInfo?.location?.floor
     },
     {
       label: 'Room',
-      value: 'Logistics Room'
+      value: assetInfo?.location?.room
     },
     {
       label: 'Assigned To',
-      value: 'John Doe'
+      value: assetInfo?.location?.assignedTo
     },
     {
       label: 'Assigned Date',
-      value: '2024-01-15'
+      value: formatDate(assetInfo?.location?.createdAt)
     },
     {
       label: 'Department',
-      value: 'Logistics'
+      value: assetInfo?.location?.department
     },
-    {
-      label: 'Documents',
-      type: 'component',
-      value: () => {
-        return (
-          <a
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50"
-          >
-            <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
-            <span className="text-xs font-medium text-gray-700">
-              file.pdf
-            </span>
-            <DownloadIcon className="ml-2 h-4 w-4 text-green-600" />
-          </a>
-        )
-      }
-    }
+    // {
+    //   label: 'Documents',
+    //   type: 'component',
+    //   value: () => {
+    //     return (
+    //       <a
+    //         href="#"
+    //         target="_blank"
+    //         rel="noopener noreferrer"
+    //         className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50"
+    //       >
+    //         <img src={pdfIcon} alt="PDF Icon" className="h-4 w-4" />
+    //         <span className="text-xs font-medium text-gray-700">
+    //           file.pdf
+    //         </span>
+    //         <DownloadIcon className="ml-2 h-4 w-4 text-green-600" />
+    //       </a>
+    //     )
+    //   }
+    // }
   ]
+
+  const fetchAssetDetails = async (itemId) => {
+    // Fetch asset details logic here
+    const response = await AssetService.get({id: itemId})
+    console.log('Asset Details: ', response.data.data);
+    setAssetInfo(response.data.data)
+  }
+
+  useEffect(() => {
+    console.log('Selected Item: ', selectedItem._id);
+    fetchAssetDetails(selectedItem._id);
+  }, [selectedItem]);
 
 
   return (
@@ -359,11 +373,11 @@ export default function AssetDetails({ setShowDetails }) {
         <div className="flex gap-6 mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AssetCard title="Asset Information" data={assetData} />
-            <AssetCard title="Attached Images" data={ { component: AssignedImages } } />
+            <AssetCard title="Attached Images" data={ { component: <AssignedImages assignedImages={assetInfo?.assetFile?.assetPhotos} /> } } />
             <AssetCard title="Purchase Information" data={purchaseData} />
             <AssetCard title="Location" data={locationData} />
-            <AssetCard title="Maintenance History" data={ { component: MaintenanceHistory } } />
-            <AssetCard title="Insurance details" data={ { component: InsuranceDetails}} />
+            <AssetCard title="Maintenance History" data={ { component: <MaintenanceHistory /> } } />
+            <AssetCard title="Insurance details" data={ { component: <InsuranceDetails />}} />
           </div>
           <div className="hidden w-full max-w-47 lg:block">
             <img src={temporaryImg} alt="temporary" className="w-full" />

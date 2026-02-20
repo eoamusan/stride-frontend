@@ -69,7 +69,7 @@ export default function AccountingTable({
   actionBtns = null,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeProductView, setActiveProductView] = useState('grid');
+  const [activeProductView, setActiveProductView] = useState('list');
 
   // Generate grid column classes based on gridCols prop
   const getGridColsClass = () => {
@@ -419,7 +419,7 @@ export default function AccountingTable({
         {showDataSize && (
           <p className="text-sm font-medium text-zinc-600">
             Showing{' '}
-            {`${paginationData.page * paginationData.pageSize - paginationData.pageSize + 1}-${paginationData.page * paginationData.pageSize} of ${paginationData.totalCount}`}
+            {`${paginationData.page * paginationData.pageSize - paginationData.pageSize + 1}-${(paginationData.totalCount < paginationData.page * paginationData.pageSize ? paginationData.totalCount : paginationData.page * paginationData.pageSize)} of ${paginationData.totalCount}`}
           </p>
         )}
 

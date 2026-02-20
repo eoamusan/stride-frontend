@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import ProgressBar from '@/components/dashboard/accounting/shared/progress-bar';
 
 function StepIndicator({ isActive = true }) {
@@ -80,7 +80,7 @@ export default function MultiStepForm({
   onSubmit,
 }) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formValues, setFormValues] = useState(initialValues || {});
+  const [formValues, setFormValues] = useState({});
 
   const totalSteps = steps.length;
   const isLastStep = currentStep === totalSteps - 1;
@@ -100,6 +100,13 @@ export default function MultiStepForm({
   };
 
   const CurrentStepComponent = steps[currentStep].component;
+
+  useEffect(() => {
+    if (initialValues) {
+      console.log("setting initial values in multi step form", initialValues)
+      setFormValues(initialValues);
+    }
+  }, [initialValues]);
 
   return (
     <div>

@@ -130,6 +130,7 @@ import RBAC from './dashboard/hr/setup/RBAC/page';
 import SalaryFramework from './dashboard/hr/setup/salary-framework/page';
 import GlobalSetting from './dashboard/hr/setup/global-setting/page';
 import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
+import CreateBudget from './dashboard/accounting/budgeting/[id]/page';
 import JobDetails from './dashboard/hr/recruitment/job-posting/[id]/page';
 import ApplicantDetails from './dashboard/hr/recruitment/applicant-screening/[applicantID]/page';
 import InterviewScheduleDetails from './dashboard/hr/recruitment/interview-schedules/[id]/page';
@@ -425,6 +426,10 @@ const router = createBrowserRouter([
                       {
                         index: true,
                         Component: Budgeting,
+                      },
+                      {
+                        path: ':id',
+                        Component: CreateBudget
                       },
                       {
                         path: 'reports',

@@ -1,69 +1,24 @@
 import { useCallback, useState } from 'react';
 import AccountingTable from '@/components/dashboard/accounting/table';
-import EmptyBudget from '@/components/dashboard/accounting/budgeting/overview/empty-state';
-import Metrics from '@/components/dashboard/accounting/invoicing/plain-metrics';
-import BudgetCard from '@/components/dashboard/accounting/budgeting/overview/budget-card';
 import BudgetHeader from '@/components/dashboard/accounting/budgeting/shared/budget-header';
-import { cn } from '@/lib/utils';
-
-// Mock data
-const sampleData = [
-  {
-    id: 'Q1 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 90,
-  },
-  {
-    id: 'Q2 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 23,
-  },
-  {
-    id: 'Q3 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 51,
-  },
-  {
-    id: 'Q4 2024 Revenue Budget',
-    name: 'Marketing Budget',
-    type: 'Profit and loss',
-    date: 'Mar 2025-Feb2025',
-    lastModifiedBy: 'James Doe',
-    timeModified: 'Thur 12:23pm',
-    budgetAmount: 150000,
-    actualAmount: 150000,
-    status: 'Active',
-    variance: 67,
-  }
-]
+import useBudgeting from '@/hooks/budgeting/useBudgeting';
+import { useNavigate } from 'react-router';
+import SuccessModal from '@/components/dashboard/accounting/success-modal';
+import BudgetService from '@/api/budget';
+import { ControlledAlertDialog } from '@/components/dashboard/accounting/shared/alert-dialog';
 
 export default function Budgeting() {
+
+  const navigate = useNavigate()
   
   // State for table selection
   const [selectedItems, setSelectedItems] = useState([]);
-  const [ openBudgetForm, setOpenBudgetForm ] = useState(false)
-  const [budgets] = useState([...sampleData])
+  const [ openBudgetForm, _setOpenBudgetForm ] = useState(false)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState({visible: false, isCreate: true});
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  
+
+  const { budgets, loading, paginationData, fetchBudgets } = useBudgeting();
 
   // Handle table item selection
   const handleSelectItem = (itemId, checked) => {
@@ -97,12 +52,20 @@ export default function Budgeting() {
       className: 'font-medium',
     },
     {
-      key: 'type',
-      label: 'Type',
+      key: 'format',
+      label: 'Format',
+    },
+    {
+      key: 'scope',
+      label: 'Scope',
     },
     {
       key: 'date',
       label: 'Date',
+    },
+    {
+      key: 'status',
+      label: 'Status',
     },
     {
       key: 'lastModifiedBy',
@@ -116,61 +79,113 @@ export default function Budgeting() {
 
   // Dropdown actions for each row
   const dropdownActions = [
-    { key: 'run-budget', label: 'Run Budget vs. Actuals report' },
-    { key: 'run-overview', label: 'Run Budget Overview report' },
+    { key: 'edit-budget', label: 'View Budget' },
+    { key: 'run-budget', label: 'View Budget vs. Actuals report' },
+    { key: 'download-budget', label: 'Download Budget' },
+    // { key: 'run-overview', label: 'Run Budget Overview report' },
     { key: 'archive', label: 'Archive' },
     { key: 'duplicate', label: 'Duplicate' },
     { key: 'delete', label: 'Delete' },
   ];
 
-  // Pagination data
-  const paginationData = {
-    page: 1,
-    totalPages: 6,
-    pageSize: 12,
-    totalCount: 64,
-  };
-
+  // const [, setSearchParams] = useSearchParams() 
   const handleRowAction = (action, item) => {
     console.log(`Action ${action} on item:`, item);
 
     // Implement row action logic here
     switch (action) {
-      case 'view':
+      case 'edit-budget':
+        {
+          const budgetName = item.budgetName;
+          navigate(`/dashboard/accounting/budgeting/${budgetName}`, { state: { budgetPayload: item } }); // Navigate to budget details page
+          break;
+        }
+      case 'duplicate':
+        {
+        const copyItem = { ...item };
+        delete copyItem.id; // Remove id to create a new budget
+        delete copyItem._id;
+        const budgetName = item.budgetName + '_Copy';
+        copyItem.budgetName = budgetName;
+        navigate(`/dashboard/accounting/budgeting/${budgetName}`, { state: { budgetPayload: copyItem } });
+        break; }
+      case 'archive':
+        BudgetService.update({ data: { status: 'ARCHIVED' }, id: item._id }).then(() => {
+          fetchBudgets();
+        });
+        break;
+      case 'delete':
+        setSelectedItems([item._id]);
+        setOpenAlertDialog(true);
         break;
     }
   };
 
-  const handleSetOpenBudgetForm = useCallback((value) => {
-    setOpenBudgetForm(value)
-  }, [])
+  const handleDeleteConfirm = useCallback(() => {
+    if (selectedItems.length === 0) return;
+
+    const deleteBudgets = async () => {
+      try {
+        for (const id of selectedItems) {
+          await BudgetService.delete({ id });
+        }
+        fetchBudgets();
+        setSelectedItems([]);
+      } catch (error) {
+        console.error('Error deleting budgets:', error);
+      } finally {
+        setOpenAlertDialog(false);
+      }
+    };
+
+    deleteBudgets();
+  }, [selectedItems, fetchBudgets]);
 
   return (
     <div className='my-4 min-h-screen'>
-    <div className={cn(!budgets.length && 'hidden')}>
-      <BudgetHeader triggerBudgetForm={openBudgetForm} setTriggerBudgetForm={handleSetOpenBudgetForm} />
-    </div>
-    { !budgets.length ? <EmptyBudget onClick={() => handleSetOpenBudgetForm(true)} /> : 
-      <>
-        <div className="relative mt-10">
-          <AccountingTable
-            title="Budgets"
-            data={budgets}
-            columns={tableColumns}
-            searchFields={[]}
-            searchPlaceholder="Search......"
-            dropdownActions={dropdownActions}
-            paginationData={paginationData}
-            selectedItems={selectedItems}
-            handleSelectItem={handleSelectItem}
-            handleSelectAll={handleSelectAll}
-            onRowAction={handleRowAction}
-            isProductTable
-            showDataSize
-            itemComponent={BudgetCard}
-          />
-        </div>
-      </>}
+    <>
+      <BudgetHeader triggerBudgetForm={openBudgetForm} budgetCreated={fetchBudgets}  />
+      <div className="relative mt-10">
+        <AccountingTable
+          title="Budgets"
+          data={budgets}
+          columns={tableColumns}
+          searchFields={[]}
+          searchPlaceholder="Search......"
+          dropdownActions={dropdownActions}
+          paginationData={paginationData}
+          selectedItems={selectedItems}
+          handleSelectItem={handleSelectItem}
+          handleSelectAll={handleSelectAll}
+          onRowAction={handleRowAction}
+          statusStyles={{
+            ACTIVE: 'bg-green-100 text-green-800',
+            ARCHIVED: 'bg-yellow-100 text-yellow-800',
+            CLOSED: 'bg-red-100 text-red-800',
+            DRAFT: 'bg-gray-100 text-gray-800',
+          }}
+          // isProductTable
+          showDataSize
+          isLoading={loading}
+          // itemComponent={BudgetCard}
+        />
+      </div>
+    </>
+      <SuccessModal
+        title={isSuccessModalOpen.isCreate ? 'Budget Created' : 'Budget Updated'}
+        description={isSuccessModalOpen.isCreate ? "You've successfully created a budget." : "You've successfully updated the budget."}
+        open={isSuccessModalOpen.visible}
+        onOpenChange={() => setIsSuccessModalOpen({visible: false, isCreate: true})}
+        backText={'Back'}
+        handleBack={() => {
+          setIsSuccessModalOpen(false);
+        }} 
+      />
+
+      <ControlledAlertDialog isOpen={openAlertDialog} setIsOpen={() => {
+        setOpenAlertDialog(false);
+        setSelectedItems([]);
+      }} title="Are you sure you want to delete this budget?" description="You will not be able to revert this action." onConfirm={handleDeleteConfirm} />
     </div>
   );
 }

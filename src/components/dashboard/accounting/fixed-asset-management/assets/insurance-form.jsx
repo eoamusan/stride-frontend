@@ -15,10 +15,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import FileUploadDropzone from "../../shared/file-upload-dropzone";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import AssetService from "@/api/asset";
+import { uploadMultipleToCloudinary } from "@/lib/cloudinary";
 
 export default function InsuranceForm({ onBack, onNext, formValues }) {
   const formSchema = z.object({
@@ -27,10 +31,11 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
       risk: z.string().min(1, "Risk is required"),
       startDate: z.date().min(1, "Start date is required"),
       endDate: z.date().min(1, "End date is required"),
-      purchasePrice: z.coerce.number().min(1, "Sum insured is required"),
+      sumIssued: z.coerce.number().min(1, "Sum insured is required"),
       exclusions: z.string().min(1, "Exclusions is required"),
-      hasClaimed: z.string({ message: 'Select an option'}),
-      claimDate: z.date().min(1, "Claim date is required").optional(),
+      claimMade: z.boolean({ message: 'Select an option'}),
+      date: z.date().min(1, "Claim date is required"),
+      documents: z.array(z.string()).optional(),
     })
 
   const form = useForm({
@@ -41,10 +46,11 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
       risk: formValues.risk || '',
       startDate: formValues.startDate || null,
       endDate: formValues.endDate || null,
-      purchasePrice: formValues.purchasePrice || 0,
+      sumIssued: formValues.sumIssued || 0,
       exclusions: formValues.exclusions || '',
-      hasClaimed: formValues.hasClaimed || 'yes',
-      claimDate: formValues.claimDate || null
+      claimMade: formValues.claimMade || true,
+      date: formValues.date || null,
+      documents: formValues.insuranceDocuments || formValues.documents || []
     },
     mode: "onChange"
   })
@@ -52,9 +58,39 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
 
   const { isValid } = formState
 
-  const handleNext = (values) => {
+  const [filesForUpload, setFilesForUpload] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+
+
+  const handleNext = async (values) => {
     if (!isValid) return
-    onNext(values)
+
+    try {
+      setIsLoading(true)
+      console.log("formValues in status condition form", formValues)
+      const payload = { ...values, assetId: formValues.item.asset?._id }
+      // upload the files and get the urls, then include in the payload
+      if (filesForUpload.length > 0) {
+        const uploadedFiles  = await uploadMultipleToCloudinary(
+          filesForUpload,
+          {
+            folder: 'assets/insurance',
+            tags: ['asset', formValues.item.asset?._id, 'insurance']
+          }
+        );
+        const fileUrls = uploadedFiles.map(file => file.url)
+        payload.documents = fileUrls
+      }
+      await AssetService.updateInsurance({ data: payload, id: formValues.item?.insurance?._id })
+      toast.success("Insurance information saved successfully")
+      onNext(values)
+    } catch (error) {
+      console.log(error)
+      toast.error(error.response?.data?.message || "Failed to save Insurance Information")
+      return
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -190,7 +226,7 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
           <div className="grid lg:grid-cols-2 gap-4">
             <FormField
               control={control}
-              name="purchasePrice"
+              name="sumIssued"
               render={({ field }) => (
                 <FormItem className="flex flex-col gap-3 items-baseline">
                   <FormLabel className="whitespace-nowrap min-w-25">Sum insured (NGN)</FormLabel>
@@ -209,7 +245,7 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
                 <FormItem className="flex flex-col gap-3 items-baseline">
                   <FormLabel className="whitespace-nowrap min-w-25">Exclusions</FormLabel>
                   <FormControl className="flex w-full">
-                    <Input type="number" placeholder="Enter price" onChange={field.onChange} value={field.value} />
+                    <Input type="text" placeholder="Enter exclusions" onChange={field.onChange} value={field.value} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -219,18 +255,18 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
 
           <FormField
             control={control}
-            name="hasClaimed"
+            name="claimMade"
             render={({ field }) => (
               <FormItem className="flex flex-col gap-3">
                 <FormLabel>Has claimed been made?</FormLabel>
                 <FormControl className="flex gap-8">
                   <RadioGroup  value={field.value} onValueChange={field.onChange}>
                     <div className="flex items-center gap-3">
-                      <RadioGroupItem value="yes" id="yes" />
+                      <RadioGroupItem value={true} id="yes" />
                       <Label htmlFor="yes">Yes</Label>
                     </div>
                     <div className="flex items-center gap-3">
-                      <RadioGroupItem value="no" id="no" />
+                      <RadioGroupItem value={false} id="no" />
                       <Label htmlFor="no">No</Label>
                     </div>
                   </RadioGroup>
@@ -242,7 +278,7 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
 
           <FormField
             control={control}
-            name="claimDate"
+            name="date"
             render={({ field }) => (
               <FormItem>
                 <Popover>
@@ -279,12 +315,33 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
             )}
           />
 
+          
           <div className="space-y-2">
             <Label className="text-sm font-medium">Documents</Label>
             <FileUploadDropzone
-              accept=".csv,.xlsx"
-              onFilesChange={(files) => console.log(files)}
+              accept=".png,.jpg,.jpeg"
+              onFilesChange={(files) => setFilesForUpload(files)}
             />
+            {/* Show preview of previously uploaded documents */}
+            {formValues.insuranceDocuments && formValues.insuranceDocuments.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {formValues.insuranceDocuments.map((doc, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between rounded bg-gray-50 p-2"
+                  >
+                    <span className="text-sm truncate">Document {index + 1}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 justify-end mt-4">
@@ -294,7 +351,8 @@ export default function InsuranceForm({ onBack, onNext, formValues }) {
             <Button
               type="submit"
               className="h-10 px-10 text-sm rounded-3xl"
-              disabled={!isValid}
+              disabled={!isValid || isLoading || filesForUpload.length === 0}
+              isLoading={isLoading}
             >
               Next
             </Button>

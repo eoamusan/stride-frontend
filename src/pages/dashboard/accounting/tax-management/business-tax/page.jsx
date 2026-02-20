@@ -70,8 +70,8 @@ export default function BusinessTax() {
           </div>
         </div>
 
-         <div className='flex mt-4'>
-          <div className='w-2/5'>
+        <div className='flex mt-4'>
+          <div className='w-1/5'>
             <Select onValueChange={handleOnChange} value={selectedValue}>
               <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder="Select Business Type" />

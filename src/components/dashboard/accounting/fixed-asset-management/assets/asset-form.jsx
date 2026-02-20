@@ -5,10 +5,9 @@ import LocationForm from "./location-form";
 import StatusConditionForm from "./status-condition-form";
 import InsuranceForm from "./insurance-form";
 import FileUploadForm from "./file-upload-form";
-import { useState } from "react";
-import SuccessModal from "../../success-modal";
+import { useEffect, useState } from "react";
 
-export default function AssetForm() {
+export default function AssetForm({onCreateAsset, formValues}) {
   const steps = [
     {
       id: 1,
@@ -42,26 +41,56 @@ export default function AssetForm() {
     },
   ]
 
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
-
   const handleFormSubmit = (data) => {
-    console.log("Final form data:", data)
-    setIsSuccessModalOpen(true);
+    onCreateAsset(data);
   }
+
+  const [initialValues, setInitialValues] = useState()
+  useEffect(() => {
+    const values = {
+      assetId: formValues?.asset?._id || '',
+      assetName: formValues?.asset?.assetName || '',
+      assetType: formValues?.asset?.assetType || '',
+      serialNo: formValues?.asset?.serialNo || '',
+      category: formValues?.asset?.category?._id || '',
+      subCategory: formValues?.asset?.subCategory || '',
+      description: formValues?.asset?.description || '',
+      purchaseDate: formValues?.purchaseDetails?.createdAt || null,
+      pon: formValues?.purchaseDetails?.pon || '',
+      purchasePrice: formValues?.purchaseDetails?.purchasePrice || 0,
+      supplier: formValues?.purchaseDetails?.supplier || '',
+      warrantyStartDate: formValues?.purchaseDetails?.warrantyStartDate ? new Date(formValues.purchaseDetails.warrantyStartDate) : null,
+      warrantyEndDate: formValues?.purchaseDetails?.warrantyEndDate ? new Date(formValues.purchaseDetails.warrantyEndDate) : null,
+      building: formValues?.location?.building || '',
+      floor: formValues?.location?.floor || '',
+      room: formValues?.location?.room || '',
+      department: formValues?.location?.department || '',
+      assignedTo: formValues?.location?.assignedTo || '',
+      assignmentDate: formValues?.location?.assignmentDate || null,
+      initialStatus: formValues?.status?.initialStatus || '',
+      conditionalAssessment: formValues?.status?.conditionalAssessment || '',
+      notes: formValues?.status?.notes || '',
+      insuranceCompany: formValues?.insurance.insuranceCompany || '',
+      plan: formValues?.insurance.plan || '',
+      risk: formValues?.insurance.risk || '',
+      startDate: formValues?.insurance.startDate ? new Date(formValues.insurance.startDate) : null,
+      endDate: formValues?.insurance.endDate ? new Date(formValues.insurance.endDate) : null,
+      sumIssued: formValues?.insurance.sumIssued || 0,
+      exclusions: formValues?.insurance.exclusions || '',
+      claimMade: formValues?.insurance.claimMade || true,
+      date: formValues?.insurance.date ? new Date(formValues.insurance.date) : null,
+      insuranceDocuments: formValues?.insurance.documents || [],
+      assetPhotos: formValues?.assetFile?.assetPhotos || [],
+      assetDocuments: formValues?.assetFile?.documents || [],
+      assetPhoto: formValues?.assetFile?.photo || '',
+      item: { ...formValues }
+    }
+    setInitialValues(values)
+  }, [formValues])
 
   return (
     <>
-      <MultiStepForm steps={steps} onSubmit={handleFormSubmit} />
-      <SuccessModal
-        title={'Asset Saved'}
-        description={"You've successfully created an Asset."}
-        open={isSuccessModalOpen}
-        onOpenChange={setIsSuccessModalOpen}
-        backText={'Back'}
-        handleBack={() => {
-          setIsSuccessModalOpen(false);
-        }} 
-      />
+      <MultiStepForm steps={steps} onSubmit={handleFormSubmit} initialValues={initialValues} />
     </>
   )
 }
