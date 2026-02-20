@@ -4,7 +4,7 @@ import FilterIcon from '@/assets/icons/filter.svg';
 
 export default function FilterTrigger({ statusFilter }) {
   return (
-    <DropdownMenuTrigger>
+    <DropdownMenuTrigger asChild>
       <Button
         variant="outline"
         size="icon"
