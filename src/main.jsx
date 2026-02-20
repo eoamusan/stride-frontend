@@ -1,28 +1,33 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import { RouterProvider } from 'react-router';
-import { router } from './pages/layout';
-import { Toaster } from 'react-hot-toast';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createBrowserRouter, RouterProvider } from 'react-router';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 0,
-    },
-    mutations: {
-      retry: 0,
-    },
+// Import page components
+import LandingPage from './pages/landing/page.jsx';
+import LoginPage from './pages/auth/login/page.jsx';
+import RegisterPage from './pages/auth/register/page.jsx';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <LandingPage />,
   },
-});
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
+  },
+]);
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  createRoot(rootElement).render(
+    <StrictMode>
       <RouterProvider router={router} />
-      <Toaster position="top-right" containerClassName="font-medium" />
-    </QueryClientProvider>
-  </StrictMode>
-);
+    </StrictMode>
+  );
+}
