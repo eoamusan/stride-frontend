@@ -177,7 +177,6 @@ export default function AttendanceDetails() {
         <ArrowLeft className="size-5" />
         Attendance Details
       </button>
-
       {/* Employee Profile Card */}
       <div className="mb-8 p-6">
         <div className="flex items-center justify-between">
@@ -236,8 +235,7 @@ export default function AttendanceDetails() {
           </div>
         </div>
       </div>
-
-      {/* Metrics */}
+      {/* Metrics */}x
       <div className="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {metrics.map((metric, index) => (
           <MetricCard
@@ -253,7 +251,6 @@ export default function AttendanceDetails() {
           />
         ))}
       </div>
-
       {/* Attendance Log */}
       <div className="rounded-2xl border border-gray-100 bg-white p-6">
         <div className="mb-6 flex items-center justify-between">
