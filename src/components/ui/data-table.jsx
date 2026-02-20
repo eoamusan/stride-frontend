@@ -152,7 +152,7 @@ export function DataTable({
   };
 
   return (
-    <div className="w-full rounded-2xl px-4 py-2">
+    <div className="w-full rounded-2xl px-4 py-2 md:min-h-100">
       {/* Header Section */}
       <div className="mb-2 flex flex-col items-center justify-between gap-2 md:flex-row">
         <hgroup className="flex w-full flex-col">

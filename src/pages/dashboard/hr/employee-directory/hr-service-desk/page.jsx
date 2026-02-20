@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { AddIcon, EditIcon, DeleteIcon } from '@/components/ui/svgs';
-import SupportTicketsTable from '@/components/dashboard/hr/employee-directory/support-tickets-table';
 import MetricCard from '@/components/dashboard/hr/metric-card';
 import { useUserStore } from '@/stores/user-store';
 import { format } from 'date-fns';
-import youtubeIcon from '@/assets/icons/youtube-red.png';
 import {
   Dialog,
   DialogContent,
@@ -35,7 +33,36 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import SuccessModal from '@/components/dashboard/hr/success-modal';
 import RequestDetailsView from '@/components/dashboard/hr/employee-directory/request-details-view';
+import Header from '@/components/customs/header';
+import { DataTable } from '@/components/ui/data-table';
+import { useDataTable } from '@/hooks/use-data-table';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontalIcon } from 'lucide-react';
 
+// ─── Status colours ───────────────────────────────────────────────────────────
+const STATUS_COLORS = {
+  Open: { bg: '#FEE2E2', text: '#B91C1C' },
+  'In Progress': { bg: '#FEF9C3', text: '#A16207' },
+  Closed: { bg: '#DCFCE7', text: '#15803D' },
+  Resolved: { bg: '#DBEAFE', text: '#1D4ED8' },
+};
+
+// ─── Dropdown filter items for DataTable ──────────────────────────────────────
+const dropdownItems = [
+  { label: 'All', value: 'all' },
+  { label: 'Open', value: 'Open' },
+  { label: 'In Progress', value: 'In Progress' },
+  { label: 'Closed', value: 'Closed' },
+  { label: 'Resolved', value: 'Resolved' },
+];
+
+// ─── Form schema ──────────────────────────────────────────────────────────────
 const ticketFormSchema = z.object({
   requestType: z.string().min(1, { message: 'Request type is required' }),
   employeeName: z.string().min(1, { message: 'Employee name is required' }),
@@ -46,27 +73,22 @@ const ticketFormSchema = z.object({
     .max(200, { message: 'Description must be 200 characters or less' }),
 });
 
-// Row actions: only Edit and Delete (no View)
-const ticketDropdownActions = [
-  { key: 'edit', label: 'Edit', icon: EditIcon },
-  { key: 'delete', label: 'Delete', icon: DeleteIcon },
+// ─── Metric chart placeholder ─────────────────────────────────────────────────
+const sampleChartData = [
+  { month: 'Jan', month1: 600 },
+  { month: 'Feb', month2: 800 },
+  { month: 'Mar', month3: 1000 },
 ];
 
 export default function HRServiceDesk() {
   const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
-  const [confirmResolutionModalOpen, setConfirmResolutionModalOpen] = useState(false);
+  const [confirmResolutionModalOpen, setConfirmResolutionModalOpen] =
+    useState(false);
   const { activeBusiness } = useUserStore();
   const [tickets, setTickets] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [paginationData, setPaginationData] = useState({
-    page: 1,
-    totalPages: 1,
-    pageSize: 20,
-    totalCount: 0,
-  });
   const [analytics, setAnalytics] = useState({
     totalTickets: 0,
     openTickets: 0,
@@ -87,10 +109,9 @@ export default function HRServiceDesk() {
   const descriptionValue = form.watch('description') || '';
   const charCount = descriptionValue.length;
 
-  // Mock data for demonstration
+  // ─── Mock data ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (activeBusiness) {
-      // TODO: Replace with actual API call
       const mockTickets = [
         {
           id: '1',
@@ -150,8 +171,9 @@ export default function HRServiceDesk() {
         closedTickets: 50,
       });
     }
-  }, [activeBusiness, currentPage]);
+  }, [activeBusiness]);
 
+  // ─── Transform ticket data ────────────────────────────────────────────────
   const transformTicketData = (ticketsData) => {
     return ticketsData.map((ticket) => ({
       id: ticket.id,
@@ -168,13 +190,23 @@ export default function HRServiceDesk() {
   const ticketData = transformTicketData(tickets);
   const selectedTicket = ticketData.find((t) => t.id === selectedTicketId);
 
-  // Sample chart data for metrics
-  const sampleChartData = [
-    { month: 'Jan', month1: 600 },
-    { month: 'Feb', month2: 800 },
-    { month: 'Mar', month3: 1000 },
-  ];
+  // ─── useDataTable for search, filter, pagination ──────────────────────────
+  const {
+    currentTableData,
+    pagination,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    setCurrentPage,
+  } = useDataTable({
+    data: ticketData,
+    pageSize: 8,
+    filterKeys: ['ticketId', 'requestType', 'submittedBy', 'status'],
+    statusKey: 'status',
+  });
 
+  // ─── Metric cards ─────────────────────────────────────────────────────────
   const ticketMetrics = [
     {
       title: 'Total Tickets',
@@ -206,36 +238,28 @@ export default function HRServiceDesk() {
     },
   ];
 
-  const handleTicketTableAction = (action, ticket) => {
+  // ─── Row action handler ───────────────────────────────────────────────────
+  const handleTicketAction = (action, ticket) => {
     switch (action) {
       case 'edit':
-        // TODO: Open edit ticket modal
         console.log('Edit ticket:', ticket.id);
         break;
       case 'delete':
-        // TODO: Confirm and delete ticket
         console.log('Delete ticket:', ticket.id);
         break;
       case 'respond':
-        // TODO: Open response modal
         console.log('Respond to ticket:', ticket.id);
         break;
       case 'assign':
-        // TODO: Open assignment modal
         console.log('Assign ticket:', ticket.id);
         break;
       case 'close':
-        // TODO: Close ticket
         console.log('Close ticket:', ticket.id);
         toast.success('Ticket closed successfully');
         break;
       default:
         console.log('Unknown action:', action);
     }
-  };
-
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
   };
 
   const handleConfirmResolution = () => {
@@ -251,12 +275,8 @@ export default function HRServiceDesk() {
   const onSubmitTicket = async (data) => {
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
       console.log('Creating ticket:', data);
-
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
       setIsCreateTicketOpen(false);
       form.reset();
       setIsSuccessModalOpen(true);
@@ -268,37 +288,97 @@ export default function HRServiceDesk() {
     }
   };
 
+  // ─── Table columns ────────────────────────────────────────────────────────
+  const columns = [
+    { header: 'Ticket ID', accessorKey: 'ticketId' },
+    { header: 'Request Type', accessorKey: 'requestType' },
+    {
+      header: 'Submitted By',
+      accessorKey: 'submittedBy',
+      cell: (row) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="size-9 shrink-0">
+            <AvatarFallback
+              className={`${row.avatarColor || 'bg-blue-600 text-white'} text-xs font-medium`}
+            >
+              {row.avatarInitials}
+            </AvatarFallback>
+          </Avatar>
+          <span className="truncate text-sm font-medium">
+            {row.submittedBy}
+          </span>
+        </div>
+      ),
+    },
+    { header: 'Date Submitted', accessorKey: 'dateSubmitted' },
+    {
+      header: 'Status',
+      accessorKey: 'status',
+      cell: (row) => {
+        const style = STATUS_COLORS[row.status] ?? {
+          bg: '#F3F4F6',
+          text: '#6B7280',
+        };
+        return (
+          <span
+            className="flex max-w-28 items-center justify-center rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap"
+            style={{ backgroundColor: style.bg, color: style.text }}
+          >
+            {row.status}
+          </span>
+        );
+      },
+    },
+    {
+      header: 'Actions',
+      accessorKey: 'actions',
+      className: 'text-right',
+      cell: (row) => (
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-8">
+                <MoreHorizontalIcon className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setSelectedTicketId(row.id)}>
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleTicketAction('edit', row)}>
+                <EditIcon className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleTicketAction('delete', row)}
+                className="text-red-600"
+              >
+                <DeleteIcon className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="my-4 min-h-screen">
-      <div className="flex flex-wrap items-center justify-between gap-6">
-        <hgroup>
-          <h1 className="text-2xl font-bold">HR Service Desk</h1>
-          <p className="text-sm text-[#7D7D7D]">
-            Manage employee requests and support tickets
-          </p>
-        </hgroup>
-
-        <div className="flex items-center gap-4">
-          <Button variant={'outline'} className={'h-10 rounded-lg text-sm'}>
-            <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
-            See video guide
-          </Button>
-          <Button
-            onClick={() => setIsCreateTicketOpen(true)}
-            className="font-raleway h-10 gap-2 rounded-[16px] bg-[#3300C9] px-5 text-[14px] font-semibold text-white hover:bg-[#5A23B8]"
-          >
-            <AddIcon />
-            Create New Ticket
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsSuccessModalOpen(true)}
-            className="h-10 text-sm"
-          >
-            Test success modal
-          </Button>
-        </div>
-      </div>
+      <Header
+        title="HR Service Desk"
+        description="Manage employee requests and support tickets"
+        hasYoutubeButton={true}
+      >
+        <Button
+          onClick={() => setIsCreateTicketOpen(true)}
+          className="rounded-xl md:py-6"
+        >
+          <AddIcon />
+          Create New Ticket
+        </Button>
+      </Header>
 
       <div className="mt-10">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -336,15 +416,23 @@ export default function HRServiceDesk() {
               }}
             />
           ) : (
-            <SupportTicketsTable
-              data={ticketData}
-              isLoading={isLoading}
-              paginationData={paginationData}
-              onPageChange={handlePageChange}
-              onRowAction={handleTicketTableAction}
-              onRowClick={(ticket) => setSelectedTicketId(ticket.id)}
-              dropdownActions={ticketDropdownActions}
-            />
+            <div className="rounded-lg bg-white p-6 shadow-md">
+              <DataTable
+                columns={columns}
+                data={currentTableData}
+                title="Support Tickets"
+                isLoading={isLoading}
+                pagination={pagination}
+                onPageChange={setCurrentPage}
+                placeholder="Search tickets..."
+                inputValue={searchTerm}
+                handleInputChange={(e) => setSearchTerm(e.target.value)}
+                dropdownItems={dropdownItems}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                setSearchTerm={setSearchTerm}
+              />
+            </div>
           )}
         </div>
       </div>
