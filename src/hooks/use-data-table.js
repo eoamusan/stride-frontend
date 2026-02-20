@@ -1,6 +1,11 @@
 import { useState, useMemo } from 'react';
 
-export function useDataTable({ data, pageSize = 10, filterKeys = [] }) {
+export function useDataTable({
+  data,
+  pageSize = 10,
+  filterKeys = [],
+  statusKey = 'status',
+}) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -11,7 +16,7 @@ export function useDataTable({ data, pageSize = 10, filterKeys = [] }) {
       // Status filter
       if (statusFilter !== 'all') {
         const statusMatch =
-          item.status?.toLowerCase() === statusFilter.toLowerCase();
+          item[statusKey]?.toLowerCase() === statusFilter.toLowerCase();
         if (!statusMatch) return false;
       }
 
@@ -22,7 +27,7 @@ export function useDataTable({ data, pageSize = 10, filterKeys = [] }) {
         item[key]?.toString().toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
-  }, [data, filterKeys, statusFilter, searchTerm]);
+  }, [data, filterKeys, statusFilter, searchTerm, statusKey]);
 
   // Pagination Logic
   const totalItems = filteredData.length;
