@@ -95,7 +95,7 @@ export const dummyJobRequests = [
         id: 'APP-2025-002',
         name: 'Bob Smith',
         date: 'Nov 16, 2025',
-        status: 'View',
+        status: 'Approved',
         personalInfo: {
           phone: '+1 (555) 010-5566',
           email: 'bob.smith@example.com',

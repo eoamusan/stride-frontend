@@ -327,7 +327,7 @@ export default function RecruitmentDetails() {
               }
             />
             <Fields
-              title={jobRequest.startDate}
+              title={new Date(jobRequest.startDate).toLocaleDateString()}
               header="Expected Start Date"
               icon={
                 <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />

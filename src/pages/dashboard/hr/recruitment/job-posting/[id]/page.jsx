@@ -7,13 +7,10 @@ import {
   Briefcase,
   XCircle,
   Delete,
-  Clock,
-  Banknote,
-  Award,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
 import MetricCard from '@/components/dashboard/hr/metric-card';
-import { TableActions } from '@/components/dashboard/hr/table';
+
 import { useJobPostStore } from '@/stores/job-post-store';
 import { useEffect, useState } from 'react';
 import {
@@ -35,6 +32,61 @@ import MoneyIcon from '@/assets/icons/money.svg';
 import LocationIcon from '@/assets/icons/location.svg';
 import { format } from 'date-fns';
 import ActivityLog from '@/components/dashboard/hr/activity-log';
+import { DataTable } from '@/components/ui/data-table';
+
+// Placeholder metrics - future improvement: fetch real metrics for this specific job
+const sampleChartData = [
+  { month: 'Jan', month1: 0 },
+  { month: 'Feb', month2: 0 },
+  { month: 'Mar', month3: 0 },
+  { month: 'Apr', month4: 0 },
+];
+
+const metricsData = [
+  {
+    title: 'Total Applicants',
+    value: 0,
+    percentage: 0,
+    chartData: sampleChartData,
+  },
+  {
+    title: 'Pending Review',
+    value: 0,
+    percentage: 0,
+    chartData: sampleChartData,
+    isPositive: false,
+  },
+  {
+    title: 'Interviewing',
+    value: 0,
+    percentage: 0,
+    chartData: sampleChartData,
+  },
+  {
+    title: 'Offers Sent',
+    value: 0,
+    percentage: 0,
+    chartData: sampleChartData,
+  },
+];
+
+const applicantColumns = [
+  {
+    header: 'Applicant Name',
+    accessorKey: 'applicantName',
+    className: '',
+  },
+  {
+    header: 'Application Date',
+    accessorKey: 'applicationDate',
+    className: '',
+  },
+  {
+    header: 'Status',
+    accessorKey: 'status',
+    className: '',
+  },
+];
 export default function JobDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -48,6 +100,9 @@ export default function JobDetails() {
   console.log(job);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleDelete = async () => {
     if (
@@ -74,48 +129,6 @@ export default function JobDetails() {
   useEffect(() => {
     if (job) console.log('Current Job Details:', job);
   }, [job]);
-
-  // Placeholder metrics - future improvement: fetch real metrics for this specific job
-  const sampleChartData = [
-    { month: 'Jan', month1: 0 },
-    { month: 'Feb', month2: 0 },
-    { month: 'Mar', month3: 0 },
-    { month: 'Apr', month4: 0 },
-  ];
-
-  const metricsData = [
-    {
-      title: 'Total Applicants',
-      value: 0,
-      percentage: 0,
-      chartData: sampleChartData,
-    },
-    {
-      title: 'Pending Review',
-      value: 0,
-      percentage: 0,
-      chartData: sampleChartData,
-      isPositive: false,
-    },
-    {
-      title: 'Interviewing',
-      value: 0,
-      percentage: 0,
-      chartData: sampleChartData,
-    },
-    {
-      title: 'Offers Sent',
-      value: 0,
-      percentage: 0,
-      chartData: sampleChartData,
-    },
-  ];
-
-  const jobHeader = [
-    { key: 'applicantName', label: 'Applicant Name', className: '' },
-    { key: 'applicationDate', label: 'Application Date', className: '' },
-    { key: 'status', label: 'Status', className: '' },
-  ];
 
   if (isLoading) {
     return (
@@ -168,6 +181,7 @@ export default function JobDetails() {
       return '';
     }
   };
+
   const activityLog = [
     {
       title: 'Job Created',
@@ -309,16 +323,17 @@ export default function JobDetails() {
                 </DialogTrigger>
                 <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
                   <DialogTitle className="sr-only">
-                    Edit Man Power Requisition Form
+                    Edit Job Posting Form
                   </DialogTitle>
                   <DialogDescription className="sr-only">
-                    Form to edit Man Power Requisition Form
+                    Form to edit Job Posting Form
                   </DialogDescription>
                   <JobPostingForm
                     initialData={job}
+                    onCancel={() => setIsEditModalOpen(false)}
                     onSuccess={() => {
                       setIsEditModalOpen(false);
-                      fetchRequisitions(1); // Refresh data
+                      getJobPosting(id); // Refresh current job data
                     }}
                   />
                 </DialogContent>
@@ -443,11 +458,28 @@ export default function JobDetails() {
         </div>
 
         <div className="rounded-lg bg-white p-6 shadow-md md:col-span-3 xl:col-span-2">
-          <TableActions
-            tableData={tableData}
-            tableHeaders={jobHeader}
+          <DataTable
+            columns={applicantColumns}
+            data={tableData}
             title="Applicants"
-            path="/dashboard/hr/recruitment/applicant-screening/applicant"
+            isLoading={isLoading}
+            pagination={{ page: currentPage, totalPages: 1 }}
+            onPageChange={setCurrentPage}
+            placeholder="Search Applicants..."
+            inputValue={searchTerm}
+            handleInputChange={(e) => setSearchTerm(e.target.value)}
+            dropdownItems={[
+              { label: 'All', value: 'all' },
+              { label: 'Pending', value: 'pending' },
+              { label: 'Reviewed', value: 'reviewed' },
+              { label: 'Interviewed', value: 'interviewed' },
+              { label: 'Offers Sent', value: 'offers-sent' },
+              { label: 'Rejected', value: 'rejected' },
+              { label: 'Approved', value: 'approved' },
+            ]}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            setSearchTerm={setSearchTerm}
           />
         </div>
       </main>

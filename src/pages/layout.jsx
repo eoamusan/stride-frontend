@@ -129,6 +129,10 @@ import OrganizationStructure from './dashboard/hr/setup/organization-structure/p
 import RBAC from './dashboard/hr/setup/RBAC/page';
 import SalaryFramework from './dashboard/hr/setup/salary-framework/page';
 import GlobalSetting from './dashboard/hr/setup/global-setting/page';
+import RecruitmentDetails from './dashboard/hr/recruitment/[id]/page';
+import JobDetails from './dashboard/hr/recruitment/job-posting/[id]/page';
+import ApplicantDetails from './dashboard/hr/recruitment/applicant-screening/[applicantID]/page';
+import InterviewScheduleDetails from './dashboard/hr/recruitment/interview-schedules/[id]/page';
 // Hr imports ends here
 
 const router = createBrowserRouter([
@@ -553,16 +557,47 @@ const router = createBrowserRouter([
                     children: [
                       { index: true, Component: Recruitment },
                       {
+                        path: 'detail/:id',
+                        Component: RecruitmentDetails,
+                      },
+                      {
                         path: 'job-postings',
-                        Component: JobPosting,
+                        children: [
+                          {
+                            index: true,
+                            Component: JobPosting,
+                          },
+                          {
+                            path: 'detail/:id',
+                            Component: JobDetails,
+                          },
+                        ],
                       },
                       {
                         path: 'applicant-screening',
-                        Component: ApplicantScreening,
+                        children: [
+                          {
+                            index: true,
+                            Component: ApplicantScreening,
+                          },
+                          {
+                            path: 'applicant/:applicantID',
+                            Component: ApplicantDetails,
+                          },
+                        ],
                       },
                       {
                         path: 'interview-schedules',
-                        Component: InterviewAndSchedules,
+                        children: [
+                          {
+                            index: true,
+                            Component: InterviewAndSchedules,
+                          },
+                          {
+                            path: 'detail/:id',
+                            Component: InterviewScheduleDetails,
+                          },
+                        ],
                       },
                       {
                         path: 'offer-stage',

@@ -112,18 +112,9 @@ export default function OfferStage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() =>
-                  navigate(
-                    `/dashboard/hr/recruitment/interview-schedules/detail/${row.id}`
-                  )
-                }
+                onClick={() => console.log('View Offer', row.id)}
               >
-                <EyeIcon className="mr-2 h-4 w-4" />
-                View
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log('Edit', row.id)}>
-                <CheckCheck className="mr-2 h-4 w-4" />
-                Accepted
+                Download Offer
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -163,7 +154,7 @@ export default function OfferStage() {
           isLoading={isLoading}
           pagination={pagination}
           onPageChange={setCurrentPage}
-          placeholder="Search by name..."
+          placeholder="Search Offers..."
           inputValue={searchTerm}
           handleInputChange={(e) => setSearchTerm(e.target.value)}
           dropdownItems={dropdownItems}

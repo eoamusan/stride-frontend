@@ -25,10 +25,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import FilterIcon from '@/assets/icons/filter.svg';
-import { Button } from './button';
+import FilterTrigger from '../dashboard/hr/FilterTrigger';
 
 export function DataTable({
   columns,
@@ -177,17 +175,7 @@ export function DataTable({
           </div>
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className={
-                  statusFilter !== 'all' ? 'border-blue-200 bg-blue-50' : ''
-                }
-              >
-                <img src={FilterIcon} alt="Filter Icon" />
-              </Button>
-            </DropdownMenuTrigger>
+            <FilterTrigger statusFilter={statusFilter} />
 
             <DropdownMenuContent align="end" className="w-48">
               {dropdownItems.map((item) => (

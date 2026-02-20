@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { dummyJobRequests } from '../../job-requests';
@@ -7,15 +8,21 @@ import { CustomButton } from '@/components/customs';
 import Avatar from '@/assets/icons/avatar.svg';
 import Fields from '@/components/dashboard/hr/overview/fields';
 import ActivityLog from '@/components/dashboard/hr/activity-log';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import ScheduleInterviewForm from '../../form/schedule-interview-form';
 
 import DocumentIcon from '@/assets/icons/document.svg';
-import EditIcon from '@/assets/icons/edit.svg';
-import SaveIcon from '@/assets/icons/save.svg';
 import PhoneIcon from '@/assets/icons/phone.svg';
 import LocationIcon from '@/assets/icons/location.svg';
-import userIcon from '@/assets/icons/user-square.svg';
-
+import userIcon from '@/assets/icons/user.svg';
+import EmailIcon from '@/assets/icons/mail.svg';
 export default function ApplicantDetails() {
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const navigate = useNavigate();
   const { applicantID } = useParams();
 
@@ -54,44 +61,25 @@ export default function ApplicantDetails() {
     );
   }
 
-  const activityLog = [
-    {
-      title: 'Under Review',
-      date: '2024-01-01',
-      time: '10:00 AM',
-      checked: true,
-    },
-    {
-      title: 'Shortlisted',
-      date: '2024-01-01',
-      time: '10:00 AM',
-      checked: true,
-    },
-    {
-      title: 'Interviewing',
-      date: '2024-01-01',
-      time: '10:00 AM',
-      checked: false,
-    },
-    {
-      title: 'Approved',
-      date: '2024-01-01',
-      time: '10:00 AM',
-      checked: false,
-    },
-    {
-      title: 'Offer Sent',
-      date: '2024-01-01',
-      time: '10:00 AM',
-      checked: false,
-    },
-    {
-      title: 'Offer Accepted',
-      date: '2024-01-01',
-      time: '10:00 AM',
-      checked: false,
-    },
+  // Ordered pipeline stages — each step is "checked" if the applicant
+  // has reached or passed that stage.
+  const PIPELINE = [
+    { title: 'Under Review', statusKey: 'Review' },
+    { title: 'Shortlisted', statusKey: 'Shortlisted' },
+    { title: 'Interviewing', statusKey: 'Interviewing' },
+    { title: 'Approved', statusKey: 'Approved' },
+    { title: 'Offer Sent', statusKey: 'Offer Sent' },
+    { title: 'Offer Accepted', statusKey: 'Offer Accepted' },
   ];
+
+  const currentStageIndex = PIPELINE.findIndex(
+    (stage) => stage.statusKey === applicant?.status
+  );
+
+  const activityLog = PIPELINE.map((stage, index) => ({
+    title: stage.title,
+    checked: currentStageIndex !== -1 && index <= currentStageIndex,
+  }));
 
   return (
     <div className="mx-auto min-h-screen space-y-8 p-6 font-sans text-gray-900">
@@ -112,8 +100,8 @@ export default function ApplicantDetails() {
         </span>
       </nav>
 
-      <header className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-4">
+      <header className="flex flex-col justify-between gap-4 p-4 md:flex-row md:items-center">
+        <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
           <div className="overflow-hidden rounded-full bg-purple-200">
             <img src={Avatar} alt="avatar" />
           </div>
@@ -126,7 +114,7 @@ export default function ApplicantDetails() {
               </p>
             </div>
 
-            <div className="w-160 text-sm">
+            <div className="text-sm md:w-160">
               <p>
                 {applicant?.name} is a {jobData?.title} with 5 years experience
                 in the field. He is currently working at Lorem ipsum dolor sit
@@ -156,24 +144,34 @@ export default function ApplicantDetails() {
           {applicant?.status === 'Approved' ? (
             <CustomButton className="rounded-xl py-6 text-sm">
               <img src={DocumentIcon} alt="Download Payslip" className="mr-1" />
-              Download Payslip
-            </CustomButton>
-          ) : applicant?.status === 'Offer Sent' ? (
-            <CustomButton>
-              <img src={SaveIcon} alt="Save Changes" className="mr-1" />
-              Save Changes
-            </CustomButton>
-          ) : applicant?.status === 'Offer Accepted' ? (
-            <CustomButton className="rounded-xl py-6 text-sm">
-              <img src={EditIcon} alt="Edit Payroll" className="mr-1" />
-              Edit Payroll
+              Send Offer
             </CustomButton>
           ) : (
-            <CustomButton className="rounded-xl py-6 text-sm">
-              <img src={EditIcon} alt="Edit Payroll" className="mr-1" />
-              Edit Payroll
+            <CustomButton
+              className="rounded-xl py-6 text-sm"
+              onClick={() => setIsScheduleModalOpen(true)}
+            >
+              <img src={DocumentIcon} alt="Schedule" className="mr-1" />
+              Schedule Interview
             </CustomButton>
           )}
+
+          {/* Schedule Interview Modal */}
+          <Dialog
+            open={isScheduleModalOpen}
+            onOpenChange={setIsScheduleModalOpen}
+          >
+            <DialogContent className="max-h-[80vh] w-full overflow-y-auto rounded-2xl bg-gray-50 md:max-w-2xl">
+              <DialogTitle className="sr-only">Schedule Interview</DialogTitle>
+              <DialogDescription className="sr-only">
+                Schedule an interview for {applicant?.name}
+              </DialogDescription>
+              <ScheduleInterviewForm
+                initialData={{ applicantName: applicant?.name }}
+                onClose={() => setIsScheduleModalOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       </header>
 
@@ -203,7 +201,7 @@ export default function ApplicantDetails() {
               <Fields
                 title={applicant?.personalInfo?.email}
                 header="Email Address"
-                icon={<img src={userIcon} className="h-6 w-6 text-gray-400" />}
+                icon={<img src={EmailIcon} className="h-6 w-6 text-gray-400" />}
               />
               <Fields
                 title={applicant?.personalInfo?.location}
@@ -216,7 +214,7 @@ export default function ApplicantDetails() {
           </article>
 
           {/* Job Experience and Qualifications */}
-          <article className="overflow-hidden rounded-3xl border border-gray-100 bg-white px-6 py-8 shadow-sm">
+          <article className="overflow-hidden rounded-2xl bg-white px-6 py-8">
             <hgroup>
               <h2 className="mb-6 text-lg font-semibold text-gray-900">
                 Job Experience and Qualifications
@@ -273,7 +271,7 @@ export default function ApplicantDetails() {
           </article>
 
           {/* Links */}
-          <article className="overflow-hidden rounded-3xl border border-gray-100 bg-white px-6 py-8 shadow-sm">
+          <article className="overflow-hidden rounded-2xl bg-white px-6 py-8">
             <hgroup>
               <h2 className="mb-6 text-lg font-semibold text-gray-900">
                 Links
@@ -301,7 +299,8 @@ export default function ApplicantDetails() {
             </div>
           </article>
 
-          <article className="overflow-hidden rounded-3xl border border-gray-100 bg-white px-6 py-8 shadow-sm">
+          {/* Attachment */}
+          <article className="overflow-hidden rounded-2xl bg-white px-6 py-8">
             <hgroup>
               <h2 className="mb-6 text-lg font-semibold text-gray-900">
                 Attachment

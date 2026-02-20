@@ -5,13 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
   ArrowLeftIcon,
-  Calendar,
-  CheckCircle2,
-  Circle,
-  LocateIcon,
-  User,
   Briefcase,
-  Clock,
   CheckCircleIcon,
   XCircleIcon,
 } from 'lucide-react';
@@ -24,6 +18,8 @@ import LocationIcon from '@/assets/icons/location.svg';
 import PhoneIcon from '@/assets/icons/phone.svg';
 import SaveIcon from '@/assets/icons/save.svg';
 import CalendarIcon from '@/assets/icons/calendar.svg';
+import UserIcon from '@/assets/icons/user.svg';
+import DepartmentIcon from '@/assets/icons/dept.svg';
 
 import { CustomButton } from '@/components/customs';
 import Fields from '@/components/dashboard/hr/overview/fields';
@@ -171,9 +167,7 @@ export default function InterviewScheduleDetails() {
             <Fields
               title={interview.applicantName}
               header="Applicant"
-              icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
-              }
+              icon={<img src={UserIcon} alt="Calendar" className="h-6 w-6" />}
             />
             <Fields
               title={`${interview.interviewDate}, ${interview.interviewTime}`}
@@ -186,28 +180,26 @@ export default function InterviewScheduleDetails() {
               title={interview.roleApplied}
               header="Role Applied For"
               icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
+                <img src={DepartmentIcon} alt="Calendar" className="h-6 w-6" />
               }
             />
             <Fields
-              title={`${interview.interviewerName || 'N/A'}`}
+              title={`${interview?.interviewerName || 'N/A'}`}
               header="Interviewer(s)"
-              icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
-              }
+              icon={<img src={UserIcon} alt="Calendar" className="h-6 w-6" />}
             />
             <Fields
-              title={interview.interviewType}
+              title={interview?.interviewType || 'N/A'}
               header="Interview Type"
               icon={
                 <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
               }
             />
             <Fields
-              title={interview.location}
+              title={interview?.location || 'N/A'}
               header="Location / Link"
               icon={
-                <img src={CalendarIcon} alt="Calendar" className="h-6 w-6" />
+                <img src={LocationIcon} alt="Calendar" className="h-6 w-6" />
               }
             />
           </div>
@@ -217,7 +209,7 @@ export default function InterviewScheduleDetails() {
         <footer className="mt-8 flex gap-3">
           <CustomButton
             onClick={() => console.log('Submit')}
-            className="w-48 text-xs"
+            className="inline-flex w-48 rounded-xl py-6 text-sm"
           >
             <CheckCircleIcon className="mr-2 h-4 w-4" />
             Submit
@@ -226,7 +218,7 @@ export default function InterviewScheduleDetails() {
           <CustomButton
             variant="outline"
             onClick={() => console.log('Not Selected')}
-            className="w-48 border-green-500 bg-transparent text-xs text-green-500"
+            className="w-48 rounded-xl border-green-500 bg-transparent py-6 text-xs text-green-500"
           >
             <XCircleIcon className="mr-2 h-4 w-4" />
             Not Selected

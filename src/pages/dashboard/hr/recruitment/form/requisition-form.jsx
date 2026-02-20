@@ -284,15 +284,18 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
                 name="minBudget"
                 render={({ field }) => (
                   <FormItem className="relative flex-1">
-                    <span className="absolute top-1/2 left-3 z-10 -translate-y-[calc(50%+10px)] text-xs text-gray-400">
+                    <span className="absolute top-5 left-3 z-10 -translate-y-[calc(50%+10px)] text-xs text-gray-400">
                       Min
+                    </span>
+                    <span className="absolute top-9 left-3 z-10 -translate-y-[calc(50%+10px)] text-lg font-bold text-gray-400">
+                      ₦
                     </span>
                     <FormControl>
                       <input
                         {...field}
                         onChange={(e) => onBudgetChange(e, field)}
                         placeholder="₦15,000,000"
-                        className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
+                        className="h-12 w-full rounded-xl border border-gray-200 pr-3 pl-10 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                         value={formatBudget(field.value)}
                       />
                     </FormControl>
@@ -305,8 +308,11 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
                 name="maxBudget"
                 render={({ field }) => (
                   <FormItem className="relative flex-1">
-                    <span className="absolute top-1/2 left-3 z-10 -translate-y-[calc(50%+10px)] text-xs text-gray-400">
+                    <span className="absolute top-5 left-3 z-10 -translate-y-[calc(50%+10px)] text-xs text-gray-400">
                       Max
+                    </span>
+                    <span className="absolute top-9 left-3 z-10 -translate-y-[calc(50%+10px)] text-lg font-bold text-gray-400">
+                      ₦
                     </span>
                     <FormControl>
                       <input
@@ -314,7 +320,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
                         onChange={(e) => onBudgetChange(e, field)}
                         placeholder="₦25,000,000"
                         value={formatBudget(field.value)}
-                        className="w-full rounded-lg border border-gray-200 py-2.5 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
+                        className="h-12 w-full rounded-xl border border-gray-200 pr-3 pl-10 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
                       />
                     </FormControl>
                     <FormMessage />
@@ -384,7 +390,7 @@ export default function ManpowerRequisitionForm({ onSuccess, initialData }) {
                     <FormControl>
                       <Button
                         variant="outline"
-                        className="h-14 w-full justify-between rounded-xl text-left text-sm font-normal"
+                        className="h-12 w-full justify-between rounded-xl bg-gray-50 text-left text-sm font-normal"
                       >
                         {field.value
                           ? format(field.value, 'PPP')
