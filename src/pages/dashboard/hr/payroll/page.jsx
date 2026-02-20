@@ -26,6 +26,7 @@ import EditIcon from '@/assets/icons/gray-edit.svg';
 import DeleteIcon from '@/assets/icons/gray-delete.svg';
 import { useGetSalaryComponentQuery } from '@/hooks/api/useGetSalaryComponentQuery';
 import useDebounce from '@/hooks/useDebounce';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function Payroll() {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -153,6 +154,14 @@ export default function Payroll() {
     return 'default';
   };
 
+  if (isTableLoading) {
+    return (
+      <div className="flex items-center justify-center mt-12">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
+
   return (
     <div className="my-5 flex flex-col gap-4">
       <Header
@@ -233,29 +242,8 @@ export default function Payroll() {
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             statusFilter={statusFilter}
+            hasNoData={currentPageRows.length === 0 && !isTableLoading}
           >
-            {isTableLoading && (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-muted-foreground py-8 text-center text-sm"
-                >
-                  Loading salary components...
-                </TableCell>
-              </TableRow>
-            )}
-
-            {!isTableLoading && currentPageRows.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-muted-foreground py-8 text-center text-sm"
-                >
-                  No salary components found.
-                </TableCell>
-              </TableRow>
-            )}
-
             {!isTableLoading &&
               currentPageRows.length > 0 &&
               currentPageRows.map((row) => {

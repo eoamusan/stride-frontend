@@ -23,11 +23,13 @@ const CustomModal = ({
         className={`flex max-h-[90vh] max-w-3xl flex-col rounded-xl px-12 py-8 sm:max-w-xl md:w-[75%] ${className}`}
       >
         <div className="mb-2 flex flex-shrink-0 gap-3">
-          <div
-            className={`flex h-8 w-8 items-center justify-center rounded-full bg-[#254C00] text-white ${description ? 'mt-2' : ''}`}
-          >
-            <img src={icon ?? PlusIcon} className="size-4" />
-          </div>
+          {icon && (
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-full bg-[#254C00] text-white ${description ? 'mt-2' : ''}`}
+            >
+              <img src={icon ?? PlusIcon} className="size-4" />
+            </div>
+          )}
 
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-[24px] font-semibold">

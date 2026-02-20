@@ -1,12 +1,46 @@
-import { CustomButton } from "@/components/customs";
-import Header from "@/components/customs/header";
+import { useState } from 'react';
+
+import { CustomButton } from '@/components/customs';
+import Header from '@/components/customs/header';
+import CustomModal from '@/components/customs/modal';
 
 import PlusIcon from '@/assets/icons/plus.svg';
-import MetricCard from "@/components/dashboard/hr/metric-card";
-import RecognitionSection from "./components/recognitionSection";
-import { Card } from "@/components/ui/card";
+import MetricCard from '@/components/dashboard/hr/metric-card';
+import RecognitionSection from './components/recognitionSection';
+import GiveRecognitionModalContent from './components/giveRecognitionModalContent';
+import { Card } from '@/components/ui/card';
 
 export default function RecognitionWall() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRecognition, setEditingRecognition] = useState(null);
+
+  const handleOpenCreateModal = () => {
+    setEditingRecognition(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (recognition) => {
+    setEditingRecognition(recognition);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = (open) => {
+    if (!open) {
+      setIsModalOpen(false);
+      setEditingRecognition(null);
+    }
+  };
+
+  const handleModalSuccess = () => {
+    // Refresh data or perform any actions after successful submission
+    console.log('Recognition saved successfully');
+  };
+
+  const handleDeleteRecognition = (recognition) => {
+    // Handle delete logic here
+    console.log('Delete recognition:', recognition);
+  };
+
   return (
     <div className="my-5 flex flex-col gap-4">
       <Header
@@ -16,7 +50,7 @@ export default function RecognitionWall() {
       >
         <CustomButton
           className="w-full rounded-xl py-6 text-sm md:w-auto"
-          // onClick={handleOpenCreateModal}
+          onClick={handleOpenCreateModal}
         >
           <img src={PlusIcon} alt="create new celebration" className="mr-1" />
           Give Recognition
@@ -35,8 +69,29 @@ export default function RecognitionWall() {
       </div>
 
       <Card>
-        <RecognitionSection />
+        <RecognitionSection
+          onEdit={handleOpenEditModal}
+          onDelete={handleDeleteRecognition}
+        />
       </Card>
+
+      <CustomModal
+        open={isModalOpen}
+        handleClose={handleCloseModal}
+        title={editingRecognition ? 'Edit Recognition' : 'Give Recognition'}
+        description={
+          editingRecognition
+            ? 'Update the recognition details below.'
+            : 'Appreciate a colleague for their great work.'
+        }
+      >
+        <GiveRecognitionModalContent
+          mode={editingRecognition ? 'edit' : 'create'}
+          initialData={editingRecognition}
+          onOpenChange={handleCloseModal}
+          onSuccess={handleModalSuccess}
+        />
+      </CustomModal>
     </div>
   );
 }

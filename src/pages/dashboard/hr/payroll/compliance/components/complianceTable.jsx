@@ -23,6 +23,7 @@ import {
 import FilterIcon from '@/assets/icons/filter.svg';
 import CheckmarkIcon from '@/assets/icons/gray-checkmark.svg';
 import DeleteIcon from '@/assets/icons/gray-delete.svg';
+import { Spinner } from '@/components/ui/spinner';
 
 const statusStyles = {
   paid: 'bg-green-100 text-green-700',
@@ -116,19 +117,6 @@ const ComplianceTable = ({
       );
     }
 
-    if (isEmpty) {
-      return (
-        <TableRow>
-          <TableCell
-            colSpan={tableHeaders.length}
-            className="text-muted-foreground py-6 text-center text-sm"
-          >
-            No obligations found for the selected filters.
-          </TableCell>
-        </TableRow>
-      );
-    }
-
     return filteredRows.map((row) => (
       <TableRow key={row.id} className="rounded-2xl">
         <TableCell className="py-5 text-sm font-medium">
@@ -200,6 +188,14 @@ const ComplianceTable = ({
     ));
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
+
   return (
     <CardContent>
       <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
@@ -249,6 +245,7 @@ const ComplianceTable = ({
         searchTerm={searchTerm}
         setSearchTerm={handleSearchUpdate}
         statusFilter={statusFilter}
+        hasNoData={isEmpty}
       >
         {renderRows()}
       </CustomTable>

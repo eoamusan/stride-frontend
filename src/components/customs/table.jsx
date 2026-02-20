@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '../ui/table';
 import { useTableStore } from '@/stores/table-store';
+import NoDataIcon from '@/assets/icons/no-data.svg';
 
 const CustomTable = (props) => {
   const {
@@ -25,6 +26,7 @@ const CustomTable = (props) => {
     setSearchTerm,
     statusFilter,
     tableHeaders,
+    hasNoData = false,
     children,
   } = props;
   const { currentPage, setCurrentPage } = useTableStore();
@@ -136,6 +138,17 @@ const CustomTable = (props) => {
 
     return items;
   };
+
+  if (hasNoData) {
+    return (
+      <div className='mt-12'>
+        <img src={NoDataIcon} alt="No data" className="mx-auto mb-4" />
+        <div className="text-[#D3D3D3] text-center text-xl font-bold">
+          No records found.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2">

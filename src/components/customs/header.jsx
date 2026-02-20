@@ -19,7 +19,7 @@ const Header = ({
         className={`${className} flex flex-col items-center gap-5 md:flex-row w-full md:w-auto justify-end`}
       >
         {hasYoutubeButton && (
-          <Button variant={'outline'} className={'h-10 rounded-2xl text-sm'}>
+          <Button variant={'outline'} className={'h-10 rounded-2xl w-full md:w-auto text-sm'}>
             <img src={youtubeIcon} alt="YouTube Icon" className="mr-1 h-4" />
             See video guide
           </Button>

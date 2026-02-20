@@ -28,6 +28,9 @@ import {
   resolveEntityIdentifier,
 } from '@/lib/utils';
 
+import NoDataIcon from '@/assets/icons/no-data.svg';
+import { Spinner } from '@/components/ui/spinner';
+
 const PAYROLL_IDENTIFIER_KEYS = [
   'id',
   '_id',
@@ -115,6 +118,14 @@ const ReviewTable = ({ onAction = () => {}, isFrozen = false }) => {
     return 'default';
   };
 
+  if (isTableLoading) {
+    return (
+      <div className="flex items-center justify-center">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
+
   return (
     <CardContent>
       <div className="mb-2 flex flex-col justify-between gap-2 md:flex-row md:items-center">
@@ -166,29 +177,8 @@ const ReviewTable = ({ onAction = () => {}, isFrozen = false }) => {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         statusFilter={statusFilter}
+        hasNoData={!isTableLoading && currentPageRows.length === 0}
       >
-        {isTableLoading && (
-          <TableRow>
-            <TableCell
-              colSpan={7}
-              className="text-muted-foreground py-8 text-center text-sm"
-            >
-              Loading payroll data...
-            </TableCell>
-          </TableRow>
-        )}
-
-        {!isTableLoading && currentPageRows.length === 0 && (
-          <TableRow>
-            <TableCell
-              colSpan={7}
-              className="text-muted-foreground py-8 text-center text-sm"
-            >
-              No payroll records found.
-            </TableCell>
-          </TableRow>
-        )}
-
         {!isTableLoading &&
           currentPageRows.length > 0 &&
           currentPageRows.map((row) => {
